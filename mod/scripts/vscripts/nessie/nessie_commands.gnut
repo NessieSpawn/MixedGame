@@ -180,7 +180,7 @@ void function DelayedDissolvePlayer( entity player, int dissovleType )
 	if ( IsValid( player ) && !IsAlive( player ) )
 	{
 		player.Dissolve( dissovleType, Vector( 0, 0, 0 ), 500 )
-		EmitSoundAtPosition( TEAM_UNASSIGNED, deadEnt.GetOrigin(), "Object_Dissolve" )
+		EmitSoundAtPosition( TEAM_UNASSIGNED, player.GetOrigin(), "Object_Dissolve" )
 	}
 }
 
@@ -217,7 +217,7 @@ void function DelayedRagdollPlayer( entity player )
 	vector ragdollVel = player.GetVelocity() * 5 // add a bit velocity so ragdoll can fly
 	player.EndSignal( "OnDestroy" )
 
-	WaitEndFrame() // wait so we don't mess up client prediction
+	WaitFrame() // wait so we don't mess up client prediction
 	if ( !IsAlive( player ) )
 		player.BecomeRagdoll( ragdollVel, false )
 }
