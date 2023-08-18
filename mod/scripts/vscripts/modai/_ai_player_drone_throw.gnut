@@ -44,7 +44,7 @@ entity function SpawnDroneFromPlayer( entity player, string aiSettings )
 	// generic check
 	if ( !PlayerCanSpawnDrone( player ) )
 	{
-		SendHudMessage( player, "接觸地面以釋放無人機", -1, -0.35, 255, 255, 100, 255, 0, 3, 0 )
+		SendHudMessage( player, "Touch the Ground to Release Your Drones", -1, -0.35, 255, 255, 100, 255, 0, 3, 0 )
 		return null
 	}
 
