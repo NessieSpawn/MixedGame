@@ -46,6 +46,20 @@ global function SetDeathHintsInterval // how many deaths needed for a death hint
 
 global function CalculateTitanDamageTaken
 
+// CodeCallbacks that exists in _base_gametype_sp.gnut
+global function CodeCallback_OnWeaponAttack
+global function CodeCallback_OnPlayerMatchmakingChanged
+global function CodeCallback_OnWeaponTouch
+global function CodeCallback_WeaponDropped
+global function CodeCallback_PlayerHasBeenConnectedForDuration
+
+// vanilla missing AddCallbacks
+global function AddCallback_OnWeaponAttack
+global function AddCallback_OnPlayerMatchmakingChanged
+global function AddCallback_OnWeaponTouch
+global function AddCallback_WeaponDropped
+global function AddCallback_PlayerHasBeenConnectedForDuration
+
 struct 
 {
 	bool killcamsEnabled = true
@@ -74,6 +88,13 @@ struct
 	bool deathHintsEnabled = true
 	table<entity, float> playerDeathHintAllowedTime
 	int deathHintsInterval = 60
+
+	// vanilla missing AddCallbacks
+	array< void functionref( entity player, entity weapon, string weaponName, int ammoUsed ) > onWeaponAttackCallbacks
+	array< void functionref( entity player ) > onPlayerMatchmakingChangedCallbacks
+	array< void functionref( entity player, entity weapon, int ammoRecieved ) > onWeaponTouchCallbacks
+	array< void functionref( entity weapon ) > weaponDroppedCallbacks
+	array< void functionref( entity player, float durationInSeconds ) > playerHasBeenConnectedForDurationCallbacks
 } file
 
 void function BaseGametype_Init_MPSP()
@@ -357,7 +378,7 @@ void function GracePeriodThink_Threaded( entity player )
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnPrimaryAttack" )
 	player.EndSignal( "OnDeath" )
-	player.EndSignal( "PlayerEmbarkedTitan" )
+	player.EndSignal( "player_embarks_titan" ) // end thread whenever a titan embark sequence is triggered
 
 	OnThreadEnd(
 		function(): ( player )
@@ -373,7 +394,29 @@ void function GracePeriodThink_Threaded( entity player )
 		}
 	)
 
-	wait CLASS_CHANGE_GRACE_PERIOD // max duration
+	while ( true )
+	{
+		WaitFrame()
+
+		// we're not in playing state, never disable player's loadout switch
+		if ( GetGameState() < eGameState.Playing )
+			continue // keep waiting...
+
+		// northstarFD adding think: re-calculate respawn timer based on gamestate changes
+		// so player can have full 20s grace period when game starts
+		float respawnTimeReal
+		if ( GetGameState() == eGameState.Playing && Time() - expect float( GetServerVar( "gameStateChangeTime" ) ) <= CLASS_CHANGE_GRACE_PERIOD )
+			respawnTimeReal = expect float( GetServerVar( "gameStateChangeTime" ) )
+		else
+			respawnTimeReal = expect float( player.s.respawnTime )
+
+		// calculate max waiting time
+		float maxWait = respawnTimeReal + CLASS_CHANGE_GRACE_PERIOD
+
+		// time hits max wait?
+		if ( Time() > maxWait )
+			break // stop waiting
+	}
 }
 
 void function CodeCallback_OnPlayerKilled( entity player, var damageInfo )
@@ -797,7 +840,8 @@ void function PlayerWatchesKillReplayWrapper( entity player, int inflictorEHandl
 	if ( player.GetPlayerSettings() != "spectator" )
 		PlayerClassChangeToSpectator( player )
 
-	player.SetPredictionEnabled( false )
+	//player.SetPredictionEnabled( false )
+	player.SetPredictionEnabled( true ) // should we enable prediction on killreplay?
 	//PlayerWatchesKillReplay( player, attacker.GetEncodedEHandle(), attacker.GetIndexForEntity(), timeSinceAttackerSpawned, timeOfDeath, beforeTime, replayTracker )
 	PlayerWatchesKillReplay( player, inflictorEHandle, attackerIndex, timeSinceAttackerSpawned, timeOfDeath, beforeTime, replayTracker )
 }
@@ -846,11 +890,14 @@ void function RespawnAsTitan( entity player, bool manualPosition = false )
 	// do titanfall scoreevent
 	if ( !level.firstTitanfall )
 	{
-		AddPlayerScore( player, "FirstTitanfall", player )
+		if ( Riff_SpawnAsTitan() == 0 )	// only add score if we're not always spawn as titan
+		{
+			AddPlayerScore( player, "FirstTitanfall", player )
 
-		#if HAS_STATS
-		UpdatePlayerStat( player, "misc_stats", "titanFallsFirst" )
-		#endif
+			#if HAS_STATS
+				UpdatePlayerStat( player, "misc_stats", "titanFallsFirst" )
+			#endif
+		}
 
 		level.firstTitanfall = true
 	}
@@ -1126,4 +1173,76 @@ void function SetDeathHintsEnabled( bool enabled )
 void function SetDeathHintsInterval( int interval )
 {
 	file.deathHintsInterval = interval
+}
+
+// CodeCallbacks that exists in _base_gametype_sp.gnut
+void function CodeCallback_OnWeaponAttack( entity player, entity weapon, string weaponName, int ammoUsed )
+{
+	// Added via AddCallback_OnWeaponAttack()
+	foreach ( callbackFunc in file.onWeaponAttackCallbacks )
+	{
+		callbackFunc( player, weapon, weaponName, ammoUsed )
+	}
+}
+
+void function CodeCallback_OnPlayerMatchmakingChanged( entity player )
+{
+	// Added via AddCallback_OnPlayerMatchmakingChanged()
+	foreach ( callbackFunc in file.onPlayerMatchmakingChangedCallbacks )
+	{
+		callbackFunc( player )
+	}
+}
+
+void function CodeCallback_OnWeaponTouch( entity player, entity weapon, int ammoRecieved )
+{
+	// Added via AddCallback_OnWeaponTouch()
+	foreach ( callbackFunc in file.onWeaponTouchCallbacks )
+	{
+		callbackFunc( player, weapon, ammoRecieved )
+	}
+}
+
+void function CodeCallback_WeaponDropped( entity weapon )
+{
+	// Added via AddCallback_WeaponDropped()
+	foreach ( callbackFunc in file.weaponDroppedCallbacks )
+	{
+		callbackFunc( weapon )
+	}
+}
+
+void function CodeCallback_PlayerHasBeenConnectedForDuration( entity player, float durationInSeconds ) //Empty function declaration to stop load error.
+{
+	// Added via AddCallback_PlayerHasBeenConnectedForDuration()
+	foreach ( callbackFunc in file.playerHasBeenConnectedForDurationCallbacks )
+	{
+		callbackFunc( player, durationInSeconds )
+	}
+}
+
+// vanilla missing AddCallbacks
+void function AddCallback_OnWeaponAttack( void functionref( entity player, entity weapon, string weaponName, int ammoUsed ) callbackFunc )
+{
+	file.onWeaponAttackCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_OnPlayerMatchmakingChanged( void functionref( entity player ) callbackFunc )
+{
+	file.onPlayerMatchmakingChangedCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_OnWeaponTouch( void functionref( entity player, entity weapon, int ammoRecieved ) callbackFunc )
+{
+	file.onWeaponTouchCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_WeaponDropped( void functionref( entity weapon ) callbackFunc )
+{
+	file.weaponDroppedCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_PlayerHasBeenConnectedForDuration( void functionref( entity player, float durationInSeconds ) callbackFunc )
+{
+	file.playerHasBeenConnectedForDurationCallbacks.append( callbackFunc )
 }

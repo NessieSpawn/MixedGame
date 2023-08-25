@@ -690,6 +690,9 @@ var function OnWeaponPrimaryAttack_EPG( entity weapon, WeaponPrimaryAttackParams
 #if SERVER
 var function OnWeaponPrimaryAttack_GenericBoltWithDrop_NPC( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// debug
+	//print( "RUNNING OnWeaponPrimaryAttack_GenericBoltWithDrop_NPC()" )
+
 	return FireGenericBoltWithDrop( weapon, attackParams, false )
 }
 #endif // #if SERVER
@@ -802,10 +805,12 @@ bool function PlantStickyEntity( entity ent, table collisionParams, vector angle
 			else
 				ent.SetParent( collisionParams.hitEnt )
 
-			if ( collisionParams.hitEnt.IsPlayer() )
-			{
+			// modified: remove player only disappering parent check. 
+			// breaks vanilla behavior but whatever, this is better for npc combats
+			//if ( collisionParams.hitEnt.IsPlayer() )
+			//{
 				thread HandleDisappearingParent( ent, expect entity( collisionParams.hitEnt ) )
-			}
+			//}
 		}
 	}
 	else
@@ -852,17 +857,16 @@ bool function PlantStickyGrenade( entity ent, vector pos, vector normal, entity 
 	#endif
 
 	// fix for map props
+	local entClassname
+	if ( IsServer() )
+		entClassname = hitEnt.GetClassName()
+	else
+		entClassname = hitEnt.GetSignifierName() // Can return null
 	//if ( !hitEnt.IsWorld() && (!hitEnt.IsTitan() || !allowEntityStick) )
-		//return false
-	if ( !IsValid( hitEnt ) )
-		return false
-	if( hitEnt.GetClassName() == "script_mover" ) // better not stick to movers
-		return false
-
-	if( hitEnt.IsProjectile() )
-		return false
-
-	if( IsPilot( hitEnt ) )
+	if ( !hitEnt.IsWorld() && 
+		 (!hitEnt.IsTitan() || !allowEntityStick) &&
+		 !( entClassname in level.stickyClasses ) // new adding check
+		)
 		return false
 
 	// SetOrigin might be causing the ent to get markedForDeletion.
@@ -883,10 +887,12 @@ bool function PlantStickyGrenade( entity ent, vector pos, vector normal, entity 
 		else // Hit a func_brush
 			ent.SetParent( hitEnt )
 
-		if ( hitEnt.IsPlayer() )
-		{
+		// modified: remove player only disappering parent check. 
+		// breaks vanilla behavior but whatever, this is better for npc combats
+		//if ( hitEnt.IsPlayer() )
+		//{
 			thread HandleDisappearingParent( ent, hitEnt )
-		}
+		//}
 	}
 
 	#if CLIENT
@@ -922,14 +928,17 @@ bool function PlantSuperStickyGrenade( entity ent, vector pos, vector normal, en
 	#endif
 
 	// fix for map props
+	local entClassname
+	if ( IsServer() )
+		entClassname = hitEnt.GetClassName()
+	else
+		entClassname = hitEnt.GetSignifierName() // Can return null
 	//if ( !hitEnt.IsWorld() && !hitEnt.IsPlayer() && !hitEnt.IsNPC() )
-		//return false
-	if ( !IsValid( hitEnt ) )
-		return false
-	if( hitEnt.GetClassName() == "script_mover" ) // better not stick to movers
-		return false
-	
-	if( hitEnt.IsProjectile() )
+	if ( !hitEnt.IsWorld() && 
+		 !hitEnt.IsPlayer() && 
+		 !hitEnt.IsNPC() &&
+		 !( entClassname in level.stickyClasses ) // new adding check
+		)
 		return false
 
 	ent.SetVelocity( Vector( 0, 0, 0 ) )
@@ -947,10 +956,12 @@ bool function PlantSuperStickyGrenade( entity ent, vector pos, vector normal, en
 			else // Hit a func_brush
 				ent.SetParent( hitEnt )
 
-			if ( hitEnt.IsPlayer() )
-			{
+			// modified: remove player only disappering parent check. 
+			// breaks vanilla behavior but whatever, this is better for npc combats
+			//if ( hitEnt.IsPlayer() )
+			//{
 				thread HandleDisappearingParent( ent, hitEnt )
-			}
+			//}
 		}
 	}
 
@@ -1017,9 +1028,9 @@ bool function EntityCanHaveStickyEnts( entity stickyEnt, entity ent )
 	else
 		entClassname = ent.GetSignifierName() // Can return null
 
-	// fix for map props
-	//if ( !( entClassname in level.stickyClasses ) && !ent.IsNPC() )
-	//	return false
+	//print( "entClassname: " + string( entClassname ) )
+	if ( !( entClassname in level.stickyClasses ) && !ent.IsNPC() )
+		return false
 
 	#if CLIENT
 	if ( stickyEnt instanceof C_Projectile )
@@ -4016,6 +4027,7 @@ void function Thermite_DamagePlayerOrNPCSounds( entity ent )
 	}
 
 	// fix for thermite sound
+	// add random interval for next sound
 	file.entNextThermiteSoundAllowedTime[ ent ] = Time() + RandomFloatRange( 0.15, 0.25 )
 	//
 }

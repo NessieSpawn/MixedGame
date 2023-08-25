@@ -39,7 +39,7 @@ function Anim_Init()
 	RegisterSignal( "NewFirstPersonSequence" )
 	RegisterSignal( "ScriptAnimStop" )
 	RegisterSignal( "AnimEventKill" )
-	// oh no
+	// modified error anim handle!
 	RegisterSignal( "ErrorAnimStart" )
 
 	AddGlobalAnimEvent( "enable_weapon", GlobalAnimEvent_EnableWeapon )
@@ -382,7 +382,7 @@ function __PlayAnim( guy, animation_name, reference = null, optionalTag = null, 
 	}
 	#endif
 
-	try // hack!
+	try // modified error handle!
 	{
 		if ( guy.IsNPC() )
 		{
@@ -477,24 +477,15 @@ function __PlayAnim( guy, animation_name, reference = null, optionalTag = null, 
 	}
 	catch( ex ) // an error in try-catch will crash the game, should notice it
 	{
-		print( ex )
-		if ( !( "modelChangedForErrorAnim" in guy.s ) )
-			guy.s.modelChangedForErrorAnim <- false
-		if ( guy.s.modelChangedForErrorAnim ) // already doing a wrong animation?
-		{
-			print( "Reset animation model error! Not playing any animation" )
-			guy.Signal( "OnAnimationInterrupted" ) // mark this animation as interruped
-			return
-		}
-
-		asset modelName = GetBestModelNameForErrorAnim( guy )
-		asset orgModel = guy.GetModelName()
-		guy.SetModel( modelName )
-		print( "Model animation error int __PlayAnim()! Resetting to " + string( modelName ) )
-		guy.s.modelChangedForErrorAnim = true
+		// log print
+		//print( ex )
+		//asset modelName = GetBestModelNameForErrorAnim( guy )
+		//print( "Model animation error in __PlayAnim()! Resetting to " + string( modelName ) )
+		//print( "this animation is: " + animation_name )
+		
+		// error animation handle start
+		thread TrackErrorAnimationEnd( guy )
 		thread __PlayAnim( guy, animation_name, reference, optionalTag, blendTime )
-		print( "this animation is: " + animation_name )
-		thread TrackErrorAnimationEnd( guy, orgModel )
 	}
 
 }
@@ -503,8 +494,23 @@ function __PlayAnim( guy, animation_name, reference = null, optionalTag = null, 
 asset function GetBestModelNameForErrorAnim( entity guy )
 {
 	asset modelName = $"models/humans/pilots/pilot_medium_geist_m.mdl" // default
+	// npc default
+	if ( guy.IsNPC() )
+	{
+		modelName = TEAM_IMC_GRUNT_MODEL_LMG
+		if ( guy.GetTeam() == TEAM_MILITIA )
+			modelName = TEAM_MIL_GRUNT_MODEL_LMG
+	}
+	// mechanical default
 	if( guy.IsMechanical() )
+	{
 		modelName = $"models/humans/pilots/pilot_light_ged_m.mdl"
+		// npc
+		if ( guy.IsNPC() )
+			modelName = $"models/robots/spectre/imc_spectre.mdl"
+	}
+
+	// player specific
 	if( guy.IsPlayer() )
 	{
 		if( guy.IsTitan() )
@@ -512,32 +518,58 @@ asset function GetBestModelNameForErrorAnim( entity guy )
 		else
 			modelName = guy.GetPlayerSettingsAsset( "bodymodel" )
 	}
+
 	return modelName
 }
 
-void function TrackErrorAnimationEnd( guy, asset orgModel )
+void function TrackErrorAnimationEnd( guy )
 {
 	expect entity( guy )
 	if( !IsValid( guy ) )
 		return
+
+	if ( !( "modelChangedForErrorAnim" in guy.s ) )
+		guy.s.modelChangedForErrorAnim <- false
+	if ( guy.s.modelChangedForErrorAnim ) // already doing an error animation?
+	{
+		//print( "Reset animation model more than one time! Intterupting current animation" )
+		guy.Signal( "OnAnimationInterrupted" ) // mark this animation as interruped
+		return
+	}
+
+	asset modelName = GetBestModelNameForErrorAnim( guy )
+	asset modelToRecover = guy.GetModelName()
+	int bodygroupToRecover = guy.GetFullBodygroup()
+
+	guy.SetModel( modelName )
+	guy.s.modelChangedForErrorAnim = true
 
 	guy.Signal( "ErrorAnimStart" )
 	guy.EndSignal( "OnDestroy" )
 	guy.EndSignal( "OnAnimationInterrupted" )
 	guy.EndSignal( "OnAnimationDone" )
 
+	// store data into a table so we don't miss them
+	table results = {
+		orgModel = modelToRecover
+		orgBodygroup = bodygroupToRecover
+	}
+
 	OnThreadEnd(
-		function():( guy, orgModel )
+		function():( guy, results )
 		{
 			if( IsValid( guy ) )
 			{
-				if ( "modelChangedForErrorAnim" in guy.s )
-					guy.s.modelChangedForErrorAnim = false // clean up
-				// check if it's embarking
+				asset modelToRecover = expect asset( results.orgModel )
+				int bodygroupToRecover = expect int( results.orgBodygroup )
+
+				guy.s.modelChangedForErrorAnim = false // clean up
+
+				// player specific: check for embarking
 				if( guy.IsPlayer() && guy.p.isEmbarking )
-					thread TrackPlayerBecomePilot( guy, orgModel )
+					thread TrackPlayerBecomePilot( guy, modelToRecover, bodygroupToRecover )
 				else
-					thread DelayedResetGuyModel( guy, orgModel )
+					thread DelayedResetGuyModel( guy, modelToRecover, bodygroupToRecover )
 			}
 		}
 	)
@@ -545,7 +577,7 @@ void function TrackErrorAnimationEnd( guy, asset orgModel )
 	WaitForever()
 }
 
-void function TrackPlayerBecomePilot( entity player, asset orgModel )
+void function TrackPlayerBecomePilot( entity player, asset orgModel, int orgBodygroup )
 {
 	//print( "Error player has become titan, waiting for leaving.." )
 	player.EndSignal( "OnDeath" )
@@ -567,11 +599,12 @@ void function TrackPlayerBecomePilot( entity player, asset orgModel )
 	if( IsAlive( player ) )
 	{
 		player.SetModel( orgModel )
+		player.SetFullBodygroup( orgBodygroup )
 		//print( "Leaving titan! resetting model to " + string( orgModel ) )
 	}
 }
 
-void function DelayedResetGuyModel( entity guy, asset orgModel )
+void function DelayedResetGuyModel( entity guy, asset orgModel, int orgBodygroup )
 {
 	guy.EndSignal( "OnDestroy" )
 	//WaitFrame() // give 1 frame grace period, so it won't mess up most animations. guess it's no need if we have parent checks
@@ -579,7 +612,8 @@ void function DelayedResetGuyModel( entity guy, asset orgModel )
 		WaitFrame()
 
 	guy.SetModel( orgModel )
-	print( "Error animation end! resetting model to " + string( orgModel ) )
+	guy.SetFullBodygroup( orgBodygroup )
+	//print( "Error animation end! resetting model to " + string( orgModel ) )
 }
 //
 
@@ -1059,7 +1093,7 @@ function CalcSequenceBlendTime( FirstPersonSequenceStruct sequence, entity playe
 	if ( sequence.blendTime != CALCULATE_SEQUENCE_BLEND_TIME )
 		return
 
-	try
+	try // modified error handle!
 	{
 		sequence.blendTime = 0
 		if ( ent && sequence.thirdPersonAnim != "" )
@@ -1090,22 +1124,13 @@ function CalcSequenceBlendTime( FirstPersonSequenceStruct sequence, entity playe
 	}
 	catch( ex )
 	{
-		print( ex )
-		if ( !( "modelChangedForErrorAnim" in player.s ) )
-			player.s.modelChangedForErrorAnim <- false
-		if ( player.s.modelChangedForErrorAnim ) // already doing a wrong animation?
-		{
-			print( "Reset animation model error! Not calculating any blend time" )
-			player.Signal( "OnAnimationInterrupted" ) // mark this animation as interruped
-			return
-		}
-
-		asset modelName = GetBestModelNameForErrorAnim( player )
-		asset orgModel = player.GetModelName()
-		player.SetModel( modelName )
-		print( "Model animation error in CalcSequenceBlendTime()! resetting to " + string( modelName ) )
-		thread TrackErrorAnimationEnd( player, orgModel )
-
+		// log print
+		//print( ex )
+		//asset modelName = GetBestModelNameForErrorAnim( player )
+		//print( "Model animation error in CalcSequenceBlendTime()! resetting to " + string( modelName ) )
+		
+		// error animation handle start
+		thread TrackErrorAnimationEnd( player )
 		CalcSequenceBlendTime( sequence, player, ent )
 	}
 }
@@ -1175,6 +1200,8 @@ void function FirstPersonSequence( FirstPersonSequenceStruct sequence, entity pl
 	}
 
 	//figure out if we have/should do a first person sequence and handle Spawn slots.
+	//bool doFirstPersonAnim = sequence.firstPersonAnim != ""
+	// modified check for npc animations
 	bool doFirstPersonAnim = sequence.firstPersonAnim != "" && player.IsPlayer() // check for npc executions
 
 	entity firstPersonProxy
@@ -1208,9 +1235,9 @@ void function FirstPersonSequence( FirstPersonSequenceStruct sequence, entity pl
 	}
 	else if ( sequence.thirdPersonCameraAttachments.len() > 0 )
 	{
-		//if ( player.IsPlayer() )
-		// HACK check for _melee_synced_titan.gnut
-		if ( player.IsPlayer() && sequence.thirdPersonCameraAttachments[0] != "" )
+		// HACK check for modified execution camera, remove for now
+		//if ( player.IsPlayer() && sequence.thirdPersonCameraAttachments[0] != "" )
+		if ( player.IsPlayer() )
 		{
 			entity fpProxy = player.GetFirstPersonProxy() //Shouldn't ever need to show the first person proxy when doing thirdPersonCameraAttachments; hide it explicitly here to stop it from showing up when chaining animations
 			if ( IsValid( fpProxy )  )

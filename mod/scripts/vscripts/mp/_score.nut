@@ -126,6 +126,12 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 	{
 		earnValue *= pilotScaleVar
 		ownValue *= pilotScaleVar
+		// if pilot player can't earn, remove earn value display
+		if ( !PlayerEarnMeter_CanEarn( targetPlayer ) )
+		{
+			earnValue = 0.0
+			ownValue = 0.0
+		}
 	}
 
 	// nessie modify
@@ -134,6 +140,7 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 		if ( event.displayType & eEventDisplayType.CALLINGCARD )
 			event.displayType = event.displayType & ~eEventDisplayType.CALLINGCARD
 	}
+	//
 	
 	if ( displayTypeOverride != null ) // has overrides?
 	{
@@ -530,7 +537,7 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "EliminateTitan", 0.10, 0.15 )
 	ScoreEvent_SetEarnMeterValues( "EliminateAutoTitan", 0.10, 0.15 )
 	ScoreEvent_SetEarnMeterValues( "TitanKillTitan", 0.0, 0.15 )
-	ScoreEvent_SetEarnMeterValues( "TitanAssist", 0.0, 0.10 )
+	ScoreEvent_SetEarnMeterValues( "TitanAssist", 0.10, 0.10 )
 	// rodeo
 	ScoreEvent_SetEarnMeterValues( "PilotBatteryStolen", 0.0, 0.35, 0.0 )
 	ScoreEvent_SetEarnMeterValues( "PilotBatteryApplied", 0.0, 0.35, 0.0 )
@@ -544,11 +551,11 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "LeechSpectre", 0.02, 0.02 )
 	ScoreEvent_SetEarnMeterValues( "KillHackedSpectre", 0.02, 0.02, 0.5 )
 	ScoreEvent_SetEarnMeterValues( "KillStalker", 0.02, 0.02, 0.5 )
-	ScoreEvent_SetEarnMeterValues( "KillSuperSpectre", 0.05, 0.10, 0.5 )
+	ScoreEvent_SetEarnMeterValues( "KillSuperSpectre", 0.10, 0.10, 0.5 )
 	// ai(extended)
 	ScoreEvent_SetEarnMeterValues( "KillLightTurret", 0.05, 0.05 )
 	ScoreEvent_SetEarnMeterValues( "KillProwler", 0.02, 0.02, 0.5 )
-	ScoreEvent_SetEarnMeterValues( "KillDrone", 0.00, 0.02 )
+	ScoreEvent_SetEarnMeterValues( "KillDrone", 0.00, 0.02, 0.5 )
 }
 
 void function ScoreEvent_SetupEarnMeterValuesForTitanModes()

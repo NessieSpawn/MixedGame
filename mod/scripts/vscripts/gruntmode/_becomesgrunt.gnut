@@ -36,9 +36,9 @@ const array<int> PLAYER_DAMAGE_PROTECTION_BLACKLIST_DAMAGEFLAGS =
 ]
 
 // npc damage settings!!!
-const float NPC_PILOT_DAMAGE_MULTIPLIER = 2.5
+const float NPC_PILOT_DAMAGE_MULTIPLIER = 2.0
 const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.3
-const float NPC_SUPER_SPECTRE_ROCKET_DAMAGE_MULTIPLIER = 0.4
+const float NPC_SUPER_SPECTRE_ROCKET_DAMAGE_MULTIPLIER = 0.5
 
 struct PlayerClassStruct
 {
@@ -102,16 +102,11 @@ void function BecomesGruntMode_Init()
 	// rodeo
 	Rodeo_BatteryThiefHighlightEnabled( false ) // you don't have to worry about the highlight
 	//Rodeo_SetBatteryRemovalDamageFlags( damageTypes.rodeoBatteryRemoval | DF_BYPASS_SHIELD ) // rodeo will deal bvpass_shield damage to titans
-	/* // classic rodeo
-	ClassicRodeo_SetEnabled( true )
-	ClassicRodeo_AllowContinuallyRemoveBattery( true ) // so you can rip battery all day long!
-	ClassicRodeo_SetBatteryRemovalDamageAmped( true ) // rodeo will deal large damage to titans
-	ClassicRodeo_SetBatteryRemovalDamageCoreMeter( true ) // battery removal will damage titan core meter
-	ClassicRodeo_SetRodeoAttackDamageScale( 1.0 ) // since ripping battery is always, we should also deal additional damage on rodeo to catch up with it
-	ClassicRodeo_BatteryContainerOnlyProtectsOnce( false )
-	ClassicRodeo_OwnerApplyBatteryAllowed( true )
-	ClassicRodeo_SetShouldAutomaticallyDoRodeoSequence( false )
-	*/
+	
+	// classic rodeo modifier settings!
+    //ClassicRodeo_SetEnabled( true ) // handled by playlistvar!
+	ClassicRodeo_SetRodeoAttackDamageScale( 1.0 ) // damage taken from classic rodeo
+	ClassicRodeo_BatteryContainerOnlyProtectsOnce( true ) // battery container can only protect once
 
 	// tempfix specifics!
 	SetShouldPlayFactionDialogue( false ) // don't announce player!
@@ -152,6 +147,7 @@ void function BecomesGruntMode_Init()
 	//MeleeSyncedNPC_AllowExecutingNPCPilot( true ) // hard to perform, but you can oneshot pilots with this
 	AddDamageCallbackSourceID( eDamageSourceId.prowler_melee, NerfProwlerMelee )
 	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_super_spectre, NerfReaperRocket )
+	//DamageUtility_EnableNPCLocationBasedDamage( true ) // modified function in sh_damage_utility.gnut. allow npcs to deal headshot damages
 }
 
 
@@ -273,8 +269,10 @@ const array<string> GRUNTMODE_SPECIALIST_GRUNTS =
 [
 	"npc_soldier_shield_captain",
 	"npc_soldier_pve_specialist",
-	"npc_soldier_sidearm"
+	"npc_soldier_sidearm",
+	"npc_soldier_pve_eliteguard",
 ]
+
 void function GruntConfig( entity soldier )
 {
 	// friendly highlight
@@ -833,6 +831,9 @@ bool function CanPlayerUseGruntChatter( entity player, bool damageChatter = fals
 	if ( !IsAlive( player ) )
 		return false
 
+	if ( IsValid( player.GetTitanSoulBeingRodeoed() ) ) // player rodeoing a titan! shouldn't do chatter
+		return false
+
 	bool nextChatterAllow = Time() >= file.playerNextChatterAllowedTime[ player ]
 	bool nextDamageChatterAllow = Time() >= file.playerNextDamageChatterAllowedTime[ player ]
 	if ( damageChatter )
@@ -984,8 +985,8 @@ void function InitGruntModeSpawnerSettings()
 	ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson"] )
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_pilot_elite", ["mp_weapon_thermite_grenade", "mp_weapon_grenade_emp"] )	
 
-	ExtraSpawner_SetNPCWeapons( "npc_stalker", ["mp_weapon_softball", "mp_weapon_smr"] ) // npcs can't shoot "mp_weapon_pulse_lmg"
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["gruntmode_stalker_weapon"] ) // lower damage explosives
+	ExtraSpawner_SetNPCWeapons( "npc_stalker", ["mp_weapon_softball", "mp_weapon_smr", "mp_weapon_epg"] ) // npcs can't shoot "mp_weapon_pulse_lmg"
+	ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["multiplayer_npc_grenadier", "gruntmode_stalker_weapon"] ) // lower damage explosives
 
 	ExtraSpawner_SetCarePackageWeapons( ["mp_weapon_epg", "mp_weapon_smr", "mp_weapon_softball"] ) // removed "mp_weapon_pulse_lmg"
 
