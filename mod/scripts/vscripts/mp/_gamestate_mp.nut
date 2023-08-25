@@ -127,8 +127,6 @@ void function SetGameState( int newState )
 	SetServerVar( "gameStateChangeTime", Time() )
 	SetServerVar( "gameState", newState )
 	svGlobal.levelEnt.Signal( "GameStateChanged" )
-	// this function is NorthstarCN only!
-	//NSUpdateSQGameState(newState)
 
 	// added in AddCallback_GameStateEnter
 	foreach ( callbackFunc in svGlobal.gameStateEnterCallbacks[ newState ] )
