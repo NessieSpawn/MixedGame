@@ -198,7 +198,7 @@ void function Modded_Gamemode_Bleedout_Init()
     ClassicMP_SetCustomIntro( ClassicMP_ShorterDropshipIntro_Setup, DROPSHIP_INTRO_LENGTH_SHORTER )
 
     Bleedout_AddCallback_OnPlayerStartBleedout( BleedoutMode_OnPlayerDowned )
-    Bleedout_AddCallback_OnPlayerGiveFirstAid( BleedoutMode_OnPlayerRevived )
+    Bleedout_AddCallback_OnPlayerBeenRevived( BleedoutMode_OnPlayerRevived )
 
     //AddCallback_GameStateEnter( eGameState.Playing, SetBleedoutState )
     AddCallback_OnClientConnected( OnClientConnected )
@@ -505,12 +505,15 @@ void function OnPlayerFinalDamaged( entity victim, var damageInfo )
 	if ( Bleedout_IsPlayerBleeding( victim ) ) // victim is bleeding!
 	{
 		// damage protection
-		// don't block bleedout downed shot( we need to leave knockbacks for player )
-		if ( file.playerBleedoutStartTime[ victim ] != Time() )
+		// don't block bleedout knockdown shot( we need to leave knockbacks for player )
+		// well, no need to add complicated checks, knockdown shots won't be blocked here
+		float protectionEndTime = file.playerBleedoutStartTime[ victim ] + file.protectionDuration
+		if ( Time() < protectionEndTime )
 		{
-			float protectionEndTime = file.playerBleedoutStartTime[ victim ] + file.protectionDuration
-			if ( Time() < protectionEndTime )
-				DamageInfo_SetDamage( damageInfo, 0 )
+			// debug
+			//print( "Damage blocked by bleedout protection" )
+			
+			DamageInfo_SetDamage( damageInfo, 0 )
 		}
 	}
 }
@@ -607,7 +610,7 @@ void function BleedoutMode_OnPlayerDowned( entity player, entity attacker, var d
 	Bleedout_PlayerDownedEffect( player, damageInfo )
 	Bleedout_PlayerDownedObit( player, attacker, damageInfo ) // now only shows to attacker!
 
-    EmitSoundOnEntityToTeam( player, "UI_Spawn_FriendlyPilot", player.GetTeam() )
+    EmitSoundOnEntityToTeamExceptPlayer( player, "UI_Spawn_FriendlyPilot", player.GetTeam(), player )
 
     //thread Bleedout_DeathProtection( player )
 	thread Bleedout_PlayerMovementLimiter( player ) // using this now, also prevents player from slide hopping
@@ -1477,9 +1480,12 @@ void function Bleedout_IncapShieldThink( entity player )
 	float lastDryFireTime = 0
 	bool vortexShown = true // default is shown
 	bool hasStatusEffect = true
+	bool firstLoop = true
 	while( true )
 	{
-		WaitFrame()
+		if ( !firstLoop ) // first loop should never wait, so player can hide their incap shield immediately
+			WaitFrame()
+		firstLoop = false
 
 		// not holding attack or be in special state
 		if( IsInValidIncapShieldState( player ) && player.IsInputCommandHeld( IN_ATTACK ) ) 
