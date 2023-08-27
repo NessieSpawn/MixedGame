@@ -329,9 +329,7 @@ void function MeleeThread_PilotVsEnemy_Target( SyncedMelee action, entity attack
 
 				if ( isAlive )
 				{
-					// modified: adding force killing target settings
-					//if ( target.e.markedForExecutionDeath ) //Kill off target if he already reached blackout part of melee
-					if ( target.e.markedForExecutionDeath || file.alwaysKillTarget )
+					if ( target.e.markedForExecutionDeath ) //Kill off target if he already reached blackout part of melee
 					{
 						entity killCreditAttacker = null //If the attacker disconnected, we don't have a player to give credit to, that's fine. Script will not error
 						if ( IsValid( target.e.syncedMeleeAttacker ) )
