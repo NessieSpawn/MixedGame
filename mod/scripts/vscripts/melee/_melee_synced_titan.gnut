@@ -188,7 +188,12 @@ bool function MeleeThread_TitanVsTitan_Internal( SyncedMelee action, entity atta
 			if ( IsValid( attacker ) )
 			{
 				if ( dataStruct.setAttackerInvulnerable )
+				{
 					attacker.ClearInvulnerable()
+					// attacker should be ignored while executing a target, cause they get invulnerablility
+					// breaks vanilla behavior but whatever
+					attacker.SetNoTarget( false )
+				}
 
 				if ( dataStruct.setAttackerDemigod )
 					DisableDemigod( attacker )
@@ -222,6 +227,9 @@ bool function MeleeThread_TitanVsTitan_Internal( SyncedMelee action, entity atta
 	#if TITAN_EXECUTION_ATTACKER_IS_INVULNERABLE
 		dataStruct.setAttackerInvulnerable = true
 		attacker.SetInvulnerable()
+		// attacker should be ignored while executing a target, cause they get invulnerablility
+		// breaks vanilla behavior but whatever
+		attacker.SetNoTarget( true )
 	#else
 		dataStruct.setAttackerDemigod = true
 		EnableDemigod( attacker )
@@ -329,6 +337,9 @@ void function MeleeThread_AtlasVsTitanShort( SyncedMelee action, entity attacker
 
 	//	attacker.SetInvulnerable()
 	target.SetInvulnerable()    //HACK: Have to SetInvulnerable first before attacker holsters weapon, because if the attacker is vortexing, holster will release bullets caught and kill off the victim if low enough health
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( true )
 
 	//HACK! This function was originally for NPCs only, but now that it is being used for players, we need to holster their weapon
 	if ( target.IsPlayer() )
@@ -348,6 +359,9 @@ void function MeleeThread_AtlasVsTitanShort( SyncedMelee action, entity attacker
 	AddAnimEvent( target, "rider_rodeo_over", ForceTitanRodeoToEnd  )
 
 	target.SetInvulnerable() //Setting target of execution as invulnerable to prevent them dying mid-way
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( true )
 
 	OnThreadEnd(
 		function() : ( ref, attacker, target, e  )
@@ -476,6 +490,9 @@ function MeleeThread_TitanRipsPilot( table e, SyncedMelee action, entity attacke
 
 	//	attacker.SetInvulnerable()
 	target.SetInvulnerable()    //HACK: Have to SetInvulnerable first before attacker holsters weapon, because if the attacker is vortexing, holster will release bullets caught and kill off the victim if low enough health
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( true )
 	if ( ShouldHolsterWeaponForSyncedMelee( attacker ) )
 		HolsterAndDisableWeapons( attacker )
 
@@ -541,6 +558,10 @@ function MeleeThread_TitanRipsPilot( table e, SyncedMelee action, entity attacke
 		target = CreateSoldier( target.GetTeam(), Vector(0,0,0), Vector(0,0,0) )
 		DispatchSpawn( target )
     	e.target <- target
+
+		// vanilla missing
+		target.SetInvulnerable()
+		target.SetNoTarget( true )
 	}
 
 
@@ -548,6 +569,9 @@ function MeleeThread_TitanRipsPilot( table e, SyncedMelee action, entity attacke
 	AddAnimEvent( targetTitan, "melee_killed_ragdoll", MeleeKilledRagdoll, attacker )
 
 	targetTitan.SetInvulnerable() //Setting target of execution as invulnerable to prevent them dying mid-way
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	targetTitan.SetNoTarget( true )
 
 	target.SetOwner( attacker )
 	target.kv.VisibilityFlags = (ENTITY_VISIBLE_TO_FRIENDLY | ENTITY_VISIBLE_TO_ENEMY) //owner cant see
@@ -772,6 +796,9 @@ void function MeleePinkMist( table e )
 		ClearPlayerAnimViewEntity( target )
 
 	target.ClearInvulnerable()
+	// target should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( false )
 }
 
 function MeleeThrowIntoWallSplat( entity attacker, entity target, e )
@@ -784,6 +811,9 @@ function MeleeThrowIntoWallSplat( entity attacker, entity target, e )
 				target.ClearParent()
 				target.Anim_Stop()
 				target.ClearInvulnerable()
+				// target should be ignored while being executed
+				// breaks vanilla behavior but whatever
+				target.SetNoTarget( false )
 			}
 		}
 	)
@@ -840,6 +870,9 @@ function MeleeThrowIntoWallSplat( entity attacker, entity target, e )
 	Assert( IsAlive( target ) )
 
 	target.ClearInvulnerable()
+	// target should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( false )
 
 	target.BecomeRagdoll( Vector(0,0,0), false )
 
@@ -917,6 +950,9 @@ void function MeleeThread_OgreVsTitan( SyncedMelee action, entity attacker, enti
 
 	//	attacker.SetInvulnerable()
 	target.SetInvulnerable()
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( true )
 
 	entity soul = target.GetTitanSoul()
 	soul.SetInvalidHealthBarEnt( true )
@@ -959,6 +995,10 @@ void function MeleeThread_OgreVsTitan( SyncedMelee action, entity attacker, enti
 
 				target.ClearParent()
 				target.ClearInvulnerable()
+				// target should be ignored while being executed
+				// breaks vanilla behavior but whatever
+				target.SetNoTarget( false )
+
 				if ( target.IsPlayer() )
 				{
 					ClearPlayerAnimViewEntity( target )
@@ -1091,6 +1131,9 @@ void function TitanVsTitan_3p( SyncedMelee action, entity attacker, entity targe
 
 	//	attacker.SetInvulnerable()
 	target.SetInvulnerable()
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	target.SetNoTarget( true )
 
 	entity targetViewBody
 	FirstPersonSequenceStruct targetBodySequence
@@ -1223,6 +1266,10 @@ void function TitanVsTitan_3p( SyncedMelee action, entity attacker, entity targe
 
 				target.ClearParent()
 				target.ClearInvulnerable()
+				// target should be ignored while being executed
+				// breaks vanilla behavior but whatever
+				target.SetNoTarget( false )
+
 				if ( target.IsPlayer() )
 				{
 					ClearPlayerAnimViewEntity( target )

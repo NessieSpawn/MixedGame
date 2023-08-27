@@ -104,6 +104,10 @@ struct PilotVsEnemyStruct
 	bool clearInvulnerable = false
 	bool wasCloaked = false
 	float cloakEndTime = 0.0
+
+	// for targets. they should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	bool clearNoTarget = false
 }
 
 void function DisableCloakBeforeMelee( entity player, PilotVsEnemyStruct dataStruct )
@@ -304,6 +308,16 @@ void function MeleeThread_PilotVsEnemy_Target( SyncedMelee action, entity attack
 				}
 				DeleteAnimEvent( target, "synced_melee_enable_planting" )
 
+				// I wondering one thing: should target been set to invulnerable in vanilla?
+				if ( dataStruct.clearInvulnerable )
+				{
+					target.ClearInvulnerable()
+				}
+				// targets should be ignored while being executed
+				// breaks vanilla behavior but whatever
+				if ( dataStruct.clearNoTarget )
+					target.SetNoTarget( false )
+
 				bool isAlive = IsAlive( target )
 
 				if ( target.IsPlayer() )
@@ -315,7 +329,9 @@ void function MeleeThread_PilotVsEnemy_Target( SyncedMelee action, entity attack
 
 				if ( isAlive )
 				{
-					if ( target.e.markedForExecutionDeath ) //Kill off target if he already reached blackout part of melee
+					// modified: adding force killing target settings
+					//if ( target.e.markedForExecutionDeath ) //Kill off target if he already reached blackout part of melee
+					if ( target.e.markedForExecutionDeath || file.alwaysKillTarget )
 					{
 						entity killCreditAttacker = null //If the attacker disconnected, we don't have a player to give credit to, that's fine. Script will not error
 						if ( IsValid( target.e.syncedMeleeAttacker ) )
@@ -405,6 +421,20 @@ void function MeleeThread_PilotVsEnemy_Target( SyncedMelee action, entity attack
 		{
 			thread AttachPlayerModelForDuration( attacker, action.attachModel1p, action.attachTag1p, 2.2 )
 		}
+	}
+
+	// I wondering one thing: should target been set to invulnerable in vanilla?
+	if ( !target.IsInvulnerable() )
+	{
+		dataStruct.clearInvulnerable = true
+		target.SetInvulnerable()
+	}
+	// targets should be ignored while being executed
+	// breaks vanilla behavior but whatever
+	if ( !target.GetNoTarget() )
+	{
+		dataStruct.clearNoTarget = true
+		target.SetNoTarget( true )
 	}
 
 	if ( isAttackerRef )
