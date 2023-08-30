@@ -16,8 +16,9 @@ const string ANSI_COLOR_YELLOW = "\x1b[38;5;11m"
 const array<string> CONNECTING_NOTIFICATIONS = 
 [
     ANSI_COLOR_YELLOW + "流血倒地PVP" + ANSI_COLOR_END,
-	ANSI_COLOR_BLUE + "玩家拥有125生命和100护盾。装备依照高TTK进行平衡，反泰坦武器增加了反铁驭能力" + ANSI_COLOR_END,
-	ANSI_COLOR_BLUE + "血量归零后不会立即死亡而是会倒地等待救助。期间按住开火使用击倒护盾，在倒地玩家的背后按下E键进行处决" + ANSI_COLOR_END,
+	ANSI_COLOR_BLUE + "玩家拥有125生命和100护盾" + ANSI_COLOR_END,
+	ANSI_COLOR_BLUE + "装备依照高TTK进行平衡，反泰坦武器增加了反铁驭能力。辅助瞄准禁用" + ANSI_COLOR_END,
+	ANSI_COLOR_ORANGE + "血量归零后不会立即死亡而是会倒地等待救助。期间按住开火使用击倒护盾，在倒地玩家的背后按下E键进行处决" + ANSI_COLOR_END,
     ANSI_COLOR_ORANGE + "击杀敌人或助攻以获取护盾电池，可回满护盾。处决击杀和救助队友也可恢复最大80护盾" + ANSI_COLOR_END,
 
     ANSI_COLOR_RED + "请尊重其他玩家，勿卖弱、嘲讽等" + ANSI_COLOR_END,
@@ -56,7 +57,7 @@ const bool BLEEDOUT_MODE_ENABLE_SECOND_LOADOUT = false // default value
 // passives, unfinished
 const bool BLEEDOUT_MODE_ENABLE_PASSIVES = false
 
-const float BLEEDOUT_MODE_SHIELD_BATTERY_USETIME = 2.1 // remember try to avoid sound issue( using sound lasts about 3.0s )
+const float BLEEDOUT_MODE_SHIELD_BATTERY_USETIME = 2.5 // remember try to avoid sound issue( using sound lasts about 3.0s )
 const float BLEEDOUT_MODE_AMPED_SHIELD_BATTERY_USETIME = 7.0
 const int BLEEDOUT_MODE_SHIELD_BATTERY_REGEN_AMOUNT = 100
 const int BLEEDOUT_MODE_REVIVING_FRIENDLY_SHIELD_REWARD = 80
@@ -181,7 +182,7 @@ void function Modded_Gamemode_Bleedout_Init()
     //SetShouldAlsoFuckOffPOV( false ) // for something
     SetShouldFUCKOFFCLOAK( true ) // fuck them
 	
-    SetPlayerDeathsHidden( true ) // no sounds for deaths, and won't count deaths by default
+    //SetPlayerDeathsHidden( true ) // no sounds for deaths, and won't count deaths by default
     SetWeaponDropsEnabled( false ) // bleedout uses USE so much, don't let players drop weapons
 	// modified function in _score.nut, override "KillPilot" with "EliminatePilot"
 	ScoreEvent_SetScoreEventNameOverride( "KillPilot", "EliminatePilot" )
@@ -286,6 +287,21 @@ void function OnClientConnected( entity player )
 
 	// score event
 	file.playerBeingKnockDownBy[ player ] <- []
+
+	// disable aimassist life long
+	thread DisablePlayerBeingAimAssisted( player )
+}
+
+void function DisablePlayerBeingAimAssisted( entity player )
+{
+	player.EndSignal( "OnDestroy" )
+
+	while ( true )
+	{
+		if ( IsAlive( player ) )
+			player.SetAimAssistAllowed( false )
+		WaitFrame()
+	}
 }
 
 void function OnClientDisconnected( entity player )
@@ -300,12 +316,15 @@ void function OnClientDisconnected( entity player )
 void function OnPlayerClassChanged( entity player )
 {
 	// health&shield update
-	if ( !player.IsTitan() && player.GetPlayerSettings() != "spectator" )
+	if ( IsAlive( player ) ) // can't set health for a no-alive entity
 	{
-		player.SetMaxHealth( BLEEDOUT_MODE_HEALTH )
-		player.SetHealth( BLEEDOUT_MODE_HEALTH )
-		player.SetShieldHealthMax( BLEEDOUT_MODE_SHIELD_HEALTH )
-		player.SetShieldHealth( BLEEDOUT_MODE_SHIELD_HEALTH )
+		if ( !player.IsTitan() && player.GetPlayerSettings() != "spectator" )
+		{
+			player.SetMaxHealth( BLEEDOUT_MODE_HEALTH )
+			player.SetHealth( BLEEDOUT_MODE_HEALTH )
+			player.SetShieldHealthMax( BLEEDOUT_MODE_SHIELD_HEALTH )
+			player.SetShieldHealth( BLEEDOUT_MODE_SHIELD_HEALTH )
+		}
 	}
 
     //print( "Running OnPlayerClassChanged()" )
@@ -498,6 +517,19 @@ void function OnPlayerKilled( entity victim, entity attacker, var damageInfo )
 		PlayerEarnMeter_AddEarnedAndOwned( victim, BLEEDOUT_MODE_DEATH_EARNED_VALUE, BLEEDOUT_MODE_DEATH_OWNED_VALUE )
 	}
 	file.playerBeingKnockDownBy[ victim ].clear() // clear knocked down saver
+
+	// we never count player's deaths
+	thread DelayedReducePlayerDeathCount( victim )
+	
+}
+
+void function DelayedReducePlayerDeathCount( entity player )
+{
+	player.EndSignal( "OnDestroy" )
+	WaitEndFrame() // wait for other death callbacks setup and death count being added
+
+	if ( player.GetPlayerGameStat( PGS_DEATHS ) > 0 )
+		player.AddToPlayerGameStat( PGS_DEATHS, -1 )
 }
 
 void function OnPlayerFinalDamaged( entity victim, var damageInfo )
