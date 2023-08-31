@@ -93,6 +93,8 @@ global function DevPrintAllStatusEffectsOnEnt
 	global function RemoveThreatScopeColorStatusEffect
 
 	// modified to globlize these
+	global function Electricity_DamagedPlayerOrNPC
+	
 	global function PROTO_Flak_Rifle_DamagedPlayerOrNPC
 	global function TripleThreatGrenade_DamagedPlayerOrNPC
 	global function VanguardEnergySiphon_DamagedPlayerOrNPC
@@ -226,7 +228,7 @@ function WeaponUtility_Init()
 		AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_flak_rifle, PROTO_Flak_Rifle_DamagedPlayerOrNPC )
 		// handled by mp_titanweapon_stun_laser.nut: StunLaser_DamagedTarget()
 		//AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_stun_laser, VanguardEnergySiphon_DamagedPlayerOrNPC )
-		// handled by mp_weapon_impulse_grenade.gnut
+		// handled by mp_weapon_grenade_emp_fixed.nut
 		//AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_grenade_emp, EMP_DamagedPlayerOrNPC )
 		AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_proximity_mine, EMP_DamagedPlayerOrNPC )
 		AddDamageCallbackSourceID( eDamageSourceId[ CHARGE_TOOL ], EMP_DamagedPlayerOrNPC )
@@ -1156,7 +1158,7 @@ function Player_DetonateSatchels( entity player )
 			// nerfed satchel!
 			if( mods.contains( "satchel_long_delay" ) )
 			{
-				thread PROTO_ExplodeAfterDelay( satchel, ( index + 1 ) * 0.5 )
+				thread PROTO_ExplodeAfterDelay( satchel, ( index + 1 ) * 0.4 )
 				continue
 			}
 			
@@ -3088,7 +3090,7 @@ array<entity> function GetActiveThermiteBurnsWithinRadius( vector origin, float 
 
 void function EMP_DamagedPlayerOrNPC( entity ent, var damageInfo )
 {
-	Elecriticy_DamagedPlayerOrNPC( ent, damageInfo, FX_EMP_BODY_HUMAN, FX_EMP_BODY_TITAN, EMP_SEVERITY_SLOWTURN, EMP_SEVERITY_SLOWMOVE )
+	Electricity_DamagedPlayerOrNPC( ent, damageInfo, FX_EMP_BODY_HUMAN, FX_EMP_BODY_TITAN, EMP_SEVERITY_SLOWTURN, EMP_SEVERITY_SLOWMOVE )
 }
 
 void function VanguardEnergySiphon_DamagedPlayerOrNPC( entity ent, var damageInfo )
@@ -3100,10 +3102,10 @@ void function VanguardEnergySiphon_DamagedPlayerOrNPC( entity ent, var damageInf
 		return
 	// other checks left for function calls this to modify
 
-	Elecriticy_DamagedPlayerOrNPC( ent, damageInfo, FX_VANGUARD_ENERGY_BODY_HUMAN, FX_VANGUARD_ENERGY_BODY_TITAN, LASER_STUN_SEVERITY_SLOWTURN, LASER_STUN_SEVERITY_SLOWMOVE )
+	Electricity_DamagedPlayerOrNPC( ent, damageInfo, FX_VANGUARD_ENERGY_BODY_HUMAN, FX_VANGUARD_ENERGY_BODY_TITAN, LASER_STUN_SEVERITY_SLOWTURN, LASER_STUN_SEVERITY_SLOWMOVE )
 }
 
-void function Elecriticy_DamagedPlayerOrNPC( entity ent, var damageInfo, asset humanFx, asset titanFx, float slowTurn, float slowMove )
+void function Electricity_DamagedPlayerOrNPC( entity ent, var damageInfo, asset humanFx, asset titanFx, float slowTurn, float slowMove )
 {
 	if ( !IsValid( ent ) )
 		return
