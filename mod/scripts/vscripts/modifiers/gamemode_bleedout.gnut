@@ -93,7 +93,7 @@ const array<int> BLEEDOUT_TRAP_DAMAGE_TYPES =
 	eDamageSourceId.mp_weapon_satchel,
 	eDamageSourceId.mp_weapon_proximity_mine, // modded weapon
 ]
-const float BLEEDOUT_DOWNED_TRAP_DAMAGE_SCALE = 0.6 // scale trap damage for downed players, as they mostly can't escape from traps
+const float BLEEDOUT_DOWNED_TRAP_DAMAGE_SCALE = 0.7 // scale trap damage for downed players, as they mostly can't escape from traps
 // things below should be in playlistvar
 /*
 riff_player_bleedout 1
@@ -2193,11 +2193,9 @@ void function Bleedout_VisualEffectThink( entity player )
 
 	float bleedingTime = Bleedout_GetBleedoutTime()
 	float screenFadeStartDelay = bleedingTime * 0.5
-	// bleedout DOF takes ~12s to fully apply
-	const BLEED_DOF_APPLY_DURATION = 12
-	float dofStartDelay = -1
-	if ( bleedingTime >= BLEED_DOF_APPLY_DURATION )
-		dofStartDelay = bleedingTime - BLEED_DOF_APPLY_DURATION
+	// bleedout DOF takes 80% of actual bleeding time to fully apply
+	float dofApplyDuration = bleedingTime * 0.8
+	float dofStartDelay = bleedingTime - dofApplyDuration
 
 	// text "Bleeding out"
 	float endTime = Time() + bleedingTime
