@@ -88,6 +88,12 @@ const array<int> BLEEDOUT_DOT_DAMAGE_TYPES =
 ]
 const float BLEEDOUT_DOWNED_DOT_DAMAGE_SCALE = 0.3 // scale dot damage for downed players, so they can try to escape
 
+const array<int> BLEEDOUT_TRAP_DAMAGE_TYPES =
+[
+	eDamageSourceId.mp_weapon_satchel,
+	eDamageSourceId.mp_weapon_proximity_mine, // modded weapon
+]
+const float BLEEDOUT_DOWNED_TRAP_DAMAGE_SCALE = 0.6 // scale trap damage for downed players, as they mostly can't escape from traps
 // things below should be in playlistvar
 /*
 riff_player_bleedout 1
@@ -558,6 +564,8 @@ void function OnPlayerDamaged( entity victim, var damageInfo )
 		int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 		if ( BLEEDOUT_DOT_DAMAGE_TYPES.contains( damageSourceID ) )
 			DamageInfo_ScaleDamage( damageInfo, BLEEDOUT_DOWNED_DOT_DAMAGE_SCALE )
+		else if ( BLEEDOUT_TRAP_DAMAGE_TYPES.contains( damageSourceID ) )
+			DamageInfo_ScaleDamage( damageInfo, BLEEDOUT_DOWNED_TRAP_DAMAGE_SCALE )
 	}
 }
 
@@ -716,13 +724,14 @@ void function BleedoutMode_OnPlayerRevived( entity playerToRes, entity playerHea
     thread Bleedout_PlayerForceStand( playerToRes ) // so players won't have to manually cancel their crouch, but might be annoying for reviving behind low covers
 
     // do a reward for playerHealer
-    if( playerHealer.GetShieldHealth() == playerHealer.GetShieldHealthMax() ) // shield full!
-        return
-    if( playerHealer == playerToRes ) // selfRes
-        return
-
-    int shieldRestored = PlayerShieldReward( playerHealer, BLEEDOUT_MODE_REVIVING_FRIENDLY_SHIELD_REWARD )
-    SendHudMessage( playerHealer, "復活一名隊友, 已回復" + string(shieldRestored) + "點護盾! ", -1, -0.3, 0, 255, 255, 255, 0, 2, 0 )
+	if( playerHealer != playerToRes ) // selfRes
+	{
+    	if( playerHealer.GetShieldHealth() < playerHealer.GetShieldHealthMax() )
+		{
+			int shieldRestored = PlayerShieldReward( playerHealer, BLEEDOUT_MODE_REVIVING_FRIENDLY_SHIELD_REWARD )
+			SendHudMessage( playerHealer, "復活一名隊友, 已回復" + string(shieldRestored) + "點護盾! ", -1, -0.3, 0, 255, 255, 255, 0, 2, 0 )
+		}
+	}
 }
 
 void function SwitchLoadoutType( entity player )
@@ -1108,7 +1117,7 @@ void function Bleedout_PlayerDownedObit( entity ent, entity attacker, var damage
 	}
 }
 
-/* // reworked. now be in 
+/* // reworked. now handled by OnPlayerFinalDamaged()
 void function Bleedout_DeathProtection( entity player )
 {
 	// really should use a better check!
@@ -1160,6 +1169,8 @@ void function Bleedout_DeathProtection( entity player )
 }
 */
 
+// reworked. now handled by OnPlayerFinalDamaged()
+/*
 void function OnRecentDownedPlayerDamaged( entity player, var damageInfo )
 {
 	if ( IsInstantDeath( damageInfo ) || DamageInfo_GetForceKill( damageInfo ) )
@@ -1176,6 +1187,7 @@ void function OnRecentDownedPlayerPostDamage( entity player, var damageInfo )
 	else // not a kill shot
 		DamageInfo_SetDamage( damageInfo, 0 ) // protect the player
 }
+*/
 
 void function Bleedout_PlayerMovementLimiter( entity player )
 {
