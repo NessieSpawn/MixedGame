@@ -342,7 +342,7 @@ void function Spawner_Threaded( int team )
 				
 				array< entity > points = GetZiplineDropshipSpawns()
 				// Prefer dropship when spawning grunts
-				if ( ent == "npc_soldier" && points.len() != 0 )
+				if ( CoinFlip() && ent == "npc_soldier" && points.len() != 0 )
 				{
 					if ( RandomInt( points.len() ) )
 					{
@@ -619,7 +619,7 @@ void function ReaperHandler( entity reaper )
 		expect vector( clampedPos )
 		reaper.AssaultPoint( clampedPos )
 
-		//wait RandomFloatRange( 10.0, 20.0 ) // remove random wait to make them more aggresive?
+		wait RandomFloatRange( 10.0, 20.0 )
 	}
 	// thread AITdm_CleanupBoredNPCThread( reaper )
 }
