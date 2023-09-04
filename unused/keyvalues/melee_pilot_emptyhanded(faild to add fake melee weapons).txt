@@ -33,7 +33,7 @@ WeaponData
 		{
 		}
 
-		fighter_melee
+		fighter_melee // should thread the function PlayerFakeMeleeThink() when use, done in _fighter_melee.gnut
 		{
 			"melee_lunge_time"								"0.1"
 			"melee_attack_animtime"							"0.1" // 1 tick!
@@ -52,20 +52,29 @@ WeaponData
 		}
 
 		// fake melee weapons
-		// they have faster damage animevent but whatever
-		fake_melee_kunai // force client to use kunai viewmodel
+		// done in script: force client to use kunai viewmodel if they melee on ground( won't influence airkick )
+		// this is just a placeholder, actual model change in "fake_melee_kunai_model"
+		fake_melee_kunai
+		{
+			
+		}
+		fake_melee_kunai_model
 		{
 			"melee_anim_1p_number"							"1"
 			"viewmodel"   									"models/weapons/kunai/ptpov_kunai.mdl"
 			"melee_sound_attack_1p"							"Player_Melee_Backhand_1P"
-			"melee_attack_animtime"							"1.1" // force them to use longer anim
 		}
-		fake_melee_sword // force client to use sword viewmodel
+
+		// force client to use sword viewmodel if they melee on ground( won't influence airkick )
+		// this is just a placeholder, actual model change in "fake_melee_sword_model"
+		fake_melee_sword
+		{
+		}
+		fake_melee_sword_model
 		{
 			"melee_anim_1p_number"							"1"
 			"viewmodel"   									"models/weapons/bolo_sword/ptpov_bolo_sword.mdl"
 			"melee_sound_attack_1p"							"Player_Melee_Backhand_1P"
-			"melee_attack_animtime"							"1.1" // force them to use longer anim
 		}
 
 		//apex_melee // rename to pushback_melee
