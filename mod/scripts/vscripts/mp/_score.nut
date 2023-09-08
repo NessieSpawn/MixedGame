@@ -195,15 +195,8 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	
 	int methodOfDeath = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	// headshot
-	//if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
-	//	AddPlayerScore( attacker, "Headshot", victim )
-	// modified to handle specific damages
 	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
-	{
 		AddPlayerScore( attacker, "Headshot", victim )
-		if ( CoinFlip() ) // 50% chance of playing a special dialogue
-			PlayFactionDialogueToPlayer( "kc_bullseye", attacker )
-	}
 
 	// special method of killing dialogues	
 	if( methodOfDeath == damagedef_titan_step )
@@ -419,6 +412,10 @@ void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageIn
 	}
 	catch ( ex ) {}
 
+	// headshot
+	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
+		AddPlayerScore( attacker, "Headshot", victim )
+
 	// mayhem and onslaught, doesn't add any score but vanilla has this event
 	// mayhem killstreak broke
 	if ( attacker.s.lastNPCKillTime < Time() - MAYHEM_REQUIREMENT_TIME )
@@ -484,9 +481,9 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 		return
 
 	// pilot kill
-	ScoreEvent_SetEarnMeterValues( "KillPilot", 0.07, 0.15, 0.34 )
-	ScoreEvent_SetEarnMeterValues( "EliminatePilot", 0.07, 0.15, 0.34 )
-	ScoreEvent_SetEarnMeterValues( "PilotAssist", 0.02, 0.05, 0.0 )
+	ScoreEvent_SetEarnMeterValues( "KillPilot", 0.075, 0.075, 0.67 )
+	ScoreEvent_SetEarnMeterValues( "EliminatePilot", 0.075, 0.075, 0.67 )
+	ScoreEvent_SetEarnMeterValues( "PilotAssist", 0.035, 0.035, 0.0 )
 	// titan kill
 	ScoreEvent_SetEarnMeterValues( "DoomTitan", 0.0, 0.0 )
 	ScoreEvent_SetEarnMeterValues( "KillTitan", 0.10, 0.15 )
@@ -499,8 +496,8 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "PilotBatteryStolen", 0.0, 0.35, 0.0 )
 	ScoreEvent_SetEarnMeterValues( "PilotBatteryApplied", 0.0, 0.35, 0.0 )
 	// special method of killing
-	ScoreEvent_SetEarnMeterValues( "Headshot", 0.0, 0.02, 0.0 )
-	ScoreEvent_SetEarnMeterValues( "FirstStrike", 0.0, 0.05, 0.0 )
+	ScoreEvent_SetEarnMeterValues( "Headshot", 0.0, 0.0, 0.0 )
+	ScoreEvent_SetEarnMeterValues( "FirstStrike", 0.025, 0.025, 0.0 )
 	
 	// ai
 	ScoreEvent_SetEarnMeterValues( "KillGrunt", 0.02, 0.02, 0.5 )
@@ -509,10 +506,6 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "KillHackedSpectre", 0.02, 0.02, 0.5 )
 	ScoreEvent_SetEarnMeterValues( "KillStalker", 0.02, 0.02, 0.5 )
 	ScoreEvent_SetEarnMeterValues( "KillSuperSpectre", 0.10, 0.10, 0.5 )
-	// ai(extended)
-	ScoreEvent_SetEarnMeterValues( "KillLightTurret", 0.05, 0.05 )
-	ScoreEvent_SetEarnMeterValues( "KillProwler", 0.02, 0.02, 0.5 )
-	ScoreEvent_SetEarnMeterValues( "KillDrone", 0.00, 0.02, 0.5 )
 }
 
 void function ScoreEvent_SetupEarnMeterValuesForTitanModes()
