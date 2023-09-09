@@ -270,7 +270,7 @@ void function UpdateMarksForKill( entity victim, entity attacker, var damageInfo
 {
 	if ( victim == GetMarked( victim.GetTeam() ) )
 	{
-		entity attackerEHandle = -1
+		int attackerEHandle = -1
 		if ( IsValid( attacker ) )
 		{
 			attackerEHandle = attacker.GetEncodedEHandle()
