@@ -7,8 +7,9 @@ void function GamemodeTdm_Init()
 	ScoreEvent_SetupEarnMeterValuesForMixedModes()
 	SetTimeoutWinnerDecisionFunc( CheckScoreForDraw )
 
-	// nscn specifics
-	SetShouldPlayDefaultMusic( true )
+	// tempfix specifics
+	SetShouldPlayDefaultMusic( true ) // play music when score or time reaches some point
+	EarnMeterMP_SetPassiveGainProgessEnable( true ) // enable earnmeter gain progressing like vanilla
 }
 
 void function GiveScoreForPlayerKill( entity victim, entity attacker, var damageInfo )

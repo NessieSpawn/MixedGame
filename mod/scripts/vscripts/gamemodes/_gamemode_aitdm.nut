@@ -62,8 +62,9 @@ void function GamemodeAITdm_Init()
 	
 	ScoreEvent_SetupEarnMeterValuesForMixedModes()
 
-	// nscn specifics
-	SetShouldPlayDefaultMusic( true )
+	// tempfix specifics
+	SetShouldPlayDefaultMusic( true ) // play music when score or time reaches some point
+	EarnMeterMP_SetPassiveGainProgessEnable( true ) // enable earnmeter gain progressing like vanilla
 }
 
 // modified... really should add settings for these settings
