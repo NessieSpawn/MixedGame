@@ -3,7 +3,7 @@ global function GamemodeAITdm_Init
 
 
 // these are now default settings
-const int SQUADS_PER_TEAM = 3
+const int SQUADS_PER_TEAM = 4 // was 3, vanilla seems to have 4 squads
 
 const int REAPERS_PER_TEAM = 2
 
@@ -259,6 +259,7 @@ void function SpawnIntroBatch_Threaded( int team )
 	{
 		if ( ( pods != 0 || ships == 0 ) && podNodes.len() > 0 ) // defensive fix for podNodes can sometimes be 0
 		{
+			spawnSucceeded = true // mark as we've done intro spawn, we'll wait before game-loop-spawn
 			int index = i
 			
 			if ( index > podNodes.len() - 1 )
@@ -271,6 +272,7 @@ void function SpawnIntroBatch_Threaded( int team )
 		}
 		else if ( shipNodes.len() > 0 ) // defensive fix for shipNodes can sometimes be 0
 		{
+			spawnSucceeded = true // mark as we've done intro spawn, we'll wait before game-loop-spawn
 			if ( startIndex == 0 ) 
 				startIndex = i // save where we started
 			
@@ -339,6 +341,7 @@ void function Spawner_Threaded( int team )
 		
 		// NORMAL SPAWNS
 		int squadsToSpawn = ( file.squadsPerTeam * SQUAD_SIZE - 2 - infantryCount ) / SQUAD_SIZE
+		//print( "squadsToSpawn:" + string( squadsToSpawn ) )
 		if ( squadsToSpawn > 0 )
 		{
 			for ( int i = 0; i < squadsToSpawn; i++ )
@@ -365,6 +368,7 @@ void function Spawner_Threaded( int team )
 				thread AiGameModes_SpawnDropPod( node.GetOrigin(), node.GetAngles(), team, ent, SquadHandler )
 			}
 
+			//print( "awaiting spawn wave to end..." )
 			wait 15.0 // wait after each spawn wave
 		}
 		
