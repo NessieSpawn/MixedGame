@@ -21,6 +21,12 @@
             }
 		},
 		// initilize scripts end
+		// nessie bug fixes
+		{
+			"Path": "/nessiefix/special_3p_attack_anim_fix.gnut",
+			"RunOn": "SERVER"
+		},
+		// nessie bug fixes end
 		// nessie utility
 		{
 			"Path": "/nessieutil/levels_util.gnut",
@@ -694,6 +700,71 @@
 			}
 		},
 		// shared weapon mods end
+		// modded weapon utility
+		{
+			"Path": "/modweapons/modutility/_thermite_dot.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "ThermiteDotUtility_Init"
+            }
+		},
+		{
+			"Path": "/modweapons/modutility/_bombardment_utility.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "Bombardment_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_fake_magnetic_ammo.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "FAKE_Magnetic_ammo_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_no_ironsight_weapons.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "No_Iron_Sight_Weapons_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_fake_scope_snipers.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+                "After": "Fake_Scope_Sniper_Rifles_Init"
+            }
+		},
+		{
+			"Path": "/modweapons/modutility/_force_synced_cooldown.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "ModdedWeaponsForcedCooldown_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_modded_cover_utility.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+				"After": "Modded_Deployable_Cover_Utility"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_fake_shell_shock.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "FakeShellShock_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_fake_world_weapon_model.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "FakeWorldModelForWeapon_Init"
+			}
+		},
+		// modded weapon utility end
 		// modded softball
 		{
 			"Path": "/modweapons/mp_weapon_modded_softball.gnut",
@@ -788,13 +859,6 @@
 		{
 			"Path": "/modai/_ai_personal_turret.gnut",
 			"RunOn": "SERVER"
-		},
-		{
-			"Path": "/modweapons/modutility/_thermite_dot.gnut",
-			"RunOn": "SERVER",
-            "ServerCallback": {
-                "After": "ThermiteDotUtility_Init"
-            }
 		},
 		{
 			"Path": "/modweapons/mp_weapon_nessie_pistol.gnut",
@@ -906,13 +970,6 @@
 			}
 		}, 
 		{
-			"Path": "/modweapons/modutility/_bombardment_utility.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-				"After": "Bombardment_Init"
-			}
-		},
-		{
 			"Path": "/modweapons/mp_weapon_grenade_creeping_bombardment.nut",
 			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
@@ -981,13 +1038,6 @@
 			}
 		},
 		{
-			"Path": "/modweapons/modutility/_fake_magnetic_ammo.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-				"After": "FAKE_Magnetic_ammo_Init"
-			}
-		},
-		{
 			"Path": "/modweapons/mp_ability_jet_pack.gnut",
 			"RunOn": "CLIENT || SERVER",
 			"ClientCallback":{
@@ -1029,13 +1079,6 @@
 			}
 		},
 		{
-			"Path": "/modweapons/modutility/_no_ironsight_weapons.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-				"After": "No_Iron_Sight_Weapons_Init"
-			}
-		},
-		{
 			"Path": "/modweapons/mp_ability_emp_drone.gnut",
 			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
@@ -1054,13 +1097,6 @@
 			"RunOn": "SERVER && MP",
             "ServerCallback": {
                 "After": "DropPodSpawn1Player_Init"
-            }
-		},
-		{
-			"Path": "/modweapons/modutility/_fake_scope_snipers.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-                "After": "Fake_Scope_Sniper_Rifles_Init"
             }
 		},
 		{
@@ -1167,13 +1203,6 @@
 		{
 			"Path": "/events/ClassWar.gnut",
 			"RunOn": "SERVER && MP"
-		},
-		{
-			"Path": "/modweapons/modutility/_force_synced_cooldown.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-				"After": "ModdedWeaponsForcedCooldown_Init"
-			}
 		},
 		{
 			"Path": "/modweapons/mp_titancore_tesla_core.gnut",
@@ -1317,13 +1346,6 @@
 			}
 		},
 		{
-			"Path": "/modweapons/modutility/_modded_cover_utility.gnut",
-			"RunOn": " SERVER",
-			"ServerCallback": {
-				"After": "Modded_Deployable_Cover_Utility"
-			}
-		},
-		{
 			"Path": "/modmp/_respawn_beacon.gnut",
 			"RunOn": "SERVER && MP",
 			"ServerCallback": {
@@ -1339,13 +1361,6 @@
 			"ClientCallback": {
                 "After": "MpAbilityZiplineGun_Init"
             }
-		},
-		{
-			"Path": "/modweapons/modutility/_fake_shell_shock.gnut",
-			"RunOn": "SERVER",
-            "ServerCallback": {
-                "After": "FakeShellShock_Init"
-			}
 		},
 		{
 			"Path": "/nessie/nessie_menu.gnut",
