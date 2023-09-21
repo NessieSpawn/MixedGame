@@ -58,8 +58,7 @@ WeaponData
 		// guided missile
 		guided_missile
 		{
-			"fire_sound_1_player_1p"						"" // this will be played by server
-			"fx_muzzle_flash_view"							"" // this will be played by server
+			"fire_sound_1_player_1p"						"Null_Remove_SoundHook" // this will be played by server
 
 			"explosion_damages_owner"						"1"
 			
@@ -78,8 +77,7 @@ WeaponData
 		// direct fire
         no_lock_required
         {
-			"fire_sound_1_player_1p"						"" // this will be played by server
-			"fx_muzzle_flash_view"							"" // this will be played by server
+			"fire_sound_1_player_1p"						"Null_Remove_SoundHook" // this will be played by server
 
 			// damage
 			"explosion_damages_owner"						"1"
