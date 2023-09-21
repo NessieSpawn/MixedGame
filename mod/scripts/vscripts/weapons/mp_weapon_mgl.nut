@@ -119,8 +119,17 @@ void function OnProjectileCollision_weapon_mgl( entity projectile, vector pos, v
 
 	if ( IsMagneticTarget( hitEnt ) )
 	{
-		if ( hitEnt.GetTeam() != projectile.GetTeam() )
+		// adding friendlyfire support
+		//if ( hitEnt.GetTeam() != projectile.GetTeam() )
+		if ( FriendlyFire_IsEnabled() || hitEnt.GetTeam() != projectile.GetTeam() )
 		{
+			// adding visual fix: if client without mod installed hits a friendly target in close range
+			// they won't predict the impact effect
+			#if SERVER
+				if ( hitEnt.GetTeam() == projectile.GetTeam() )
+					FixImpactEffectForProjectileAtPosition( projectile, pos ) // shared from _unpredicted_impact_fix.gnut
+			#endif
+
 			projectile.ExplodeForCollisionCallback( normal )
 		}
 	}
