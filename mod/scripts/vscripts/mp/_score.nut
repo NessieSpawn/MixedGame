@@ -8,6 +8,8 @@ global function ScoreEvent_TitanDoomed
 global function ScoreEvent_TitanKilled
 global function ScoreEvent_NPCKilled
 global function ScoreEvent_MatchComplete
+// vanilla behavior
+global function ScoreEvent_VictoryKill
 
 global function ScoreEvent_SetEarnMeterValues
 global function ScoreEvent_SetupEarnMeterValuesForMixedModes
@@ -181,12 +183,6 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 		return
 
 	// pilot kill
-	if( IsPilotEliminationBased() || IsTitanEliminationBased() )
-	{
-		if( GetPlayerArrayOfEnemies_Alive( attacker.GetTeam() ).len() == 0 ) // no enemy player left
-			AddPlayerScore( attacker, "VictoryKill", attacker ) // show a callsign event
-	}
-	
 	string pilotKillEvent = "KillPilot"
 	if( IsPilotEliminationBased() )
 		pilotKillEvent = "EliminatePilot" // elimination gamemodes have a special medal
@@ -474,6 +470,12 @@ void function DelayedAddMatchCompleteScore( string winningScoreEvent, string mat
 		AddPlayerScore( winningPlayer, winningScoreEvent )
 }
 
+// vanilla behavior, northstar missing
+void function ScoreEvent_VictoryKill( entity attacker )
+{
+	AddPlayerScore( attacker, "VictoryKill", attacker ) // show a callsign event
+}
+
 void function ScoreEvent_SetEarnMeterValues( string eventName, float earned, float owned, float coreScale = 1.0 )
 {
 	ScoreEvent event = GetScoreEvent( eventName )
@@ -493,12 +495,11 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "PilotAssist", 0.04, 0.01, 0.0 )
 	// titan kill
 	ScoreEvent_SetEarnMeterValues( "DoomTitan", 0.0, 0.0 )
-	// don't know why titan kills appear to be no value in vanilla
-	// was set to 0.10, 0.15
-	// in vanilla all values seems to be pilot kill only
-	ScoreEvent_SetEarnMeterValues( "KillTitan", 0.0, 0.0 )
+	// don't know why auto titan kills appear to be no value in vanilla
+	// even when the titan have an owner player
+	ScoreEvent_SetEarnMeterValues( "KillTitan", 0.20, 0.10 )
 	ScoreEvent_SetEarnMeterValues( "KillAutoTitan", 0.0, 0.0 )
-	ScoreEvent_SetEarnMeterValues( "EliminateTitan", 0.0, 0.0 )
+	ScoreEvent_SetEarnMeterValues( "EliminateTitan", 0.20, 0.10 )
 	ScoreEvent_SetEarnMeterValues( "EliminateAutoTitan", 0.0, 0.0 )
 	ScoreEvent_SetEarnMeterValues( "TitanKillTitan", 0.0, 0.0 )
 	// but titan assist do have earn values...
@@ -508,7 +509,7 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "PilotBatteryApplied", 0.0, 0.35, 0.0 )
 	// special method of killing
 	ScoreEvent_SetEarnMeterValues( "Headshot", 0.0, 0.02, 0.0 )
-	ScoreEvent_SetEarnMeterValues( "FirstStrike", 0.04, 0.01, 0.0 )
+	ScoreEvent_SetEarnMeterValues( "FirstStrike", 0.04, 0.01, 0.0 ) // this displays as "4%" when earning with KillPilot, pretty weird
 	
 	// ai
 	ScoreEvent_SetEarnMeterValues( "KillGrunt", 0.03, 0.01 )
