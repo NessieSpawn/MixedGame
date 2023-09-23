@@ -23,6 +23,11 @@ global function AddTitanKilledDialogueEvent
 
 struct 
 {
+	// respawn behavior
+	float earn_meter_pilot_multiplier
+	float earn_meter_titan_multiplier
+	int earn_meter_pilot_overdrive
+
 	bool firstStrikeDone = false
 
 	// callback for doomed health loss titans
@@ -38,6 +43,11 @@ void function Score_Init()
 {
 	SvXP_Init()
 	AddCallback_OnClientConnected( InitPlayerForScoreEvents )
+
+	// respawn behavior
+	file.earn_meter_pilot_multiplier = GetCurrentPlaylistVarFloat( "earn_meter_pilot_multiplier", 1.0 )
+	file.earn_meter_titan_multiplier = GetCurrentPlaylistVarFloat( "earn_meter_titan_multiplier", 1.0 )
+	file.earn_meter_pilot_overdrive = GetCurrentPlaylistVarInt( "earn_meter_pilot_overdrive", ePilotOverdrive.Enabled )
 
 	// modified
 	InitTitanKilledDialogues()
@@ -72,7 +82,9 @@ void function InitPlayerForScoreEvents( entity player )
 //void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity associatedEnt = null, string noideawhatthisis = "", int pointValueOverride = -1 )
 void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity associatedEnt = null, var displayTypeOverride = null, int pointValueOverride = -1, float earnMeterPercentage = -1 )
 {
-	ScoreEvent event = GetScoreEvent( scoreEventName )
+	// never directly modify a struct...
+	//ScoreEvent event = GetScoreEvent( scoreEventName )
+	ScoreEvent event = clone GetScoreEvent( scoreEventName )
 	
 	if ( !event.enabled || !IsValid( targetPlayer ) || !targetPlayer.IsPlayer() )
 		return
@@ -96,29 +108,50 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 		earnValue *= earnMeterPercentage
 		ownValue *= earnMeterPercentage
 	}
+
+	// debug
+	//print( "not calculated earnValue: " + string( earnValue ) )
+	//print( "not calculated ownValue: " + string( ownValue ) )
 	
 	PlayerEarnMeter_AddEarnedAndOwned( targetPlayer, earnValue, ownValue ) //( targetPlayer, earnValue * scale, ownValue * scale ) // seriously? this causes a value*scale^2
 	
 	// PlayerEarnMeter_AddEarnedAndOwned handles this scaling by itself, we just need to do this for the visual stuff
-	float pilotScaleVar = ( expect string ( GetCurrentPlaylistVarOrUseValue( "earn_meter_pilot_multiplier", "1" ) ) ).tofloat()
-	float titanScaleVar = ( expect string ( GetCurrentPlaylistVarOrUseValue( "earn_meter_titan_multiplier", "1" ) ) ).tofloat()
-	
+	// we could use GetCurrentPlaylistVarFloat(), and use a file variable like other respawn codes...
+	//float pilotScaleVar = ( expect string ( GetCurrentPlaylistVarOrUseValue( "earn_meter_pilot_multiplier", "1" ) ) ).tofloat()
+	//float titanScaleVar = ( expect string ( GetCurrentPlaylistVarOrUseValue( "earn_meter_titan_multiplier", "1" ) ) ).tofloat()
+
 	if ( targetPlayer.IsTitan() )
 	{
-		//earnValue *= titanScaleVar // titan shouldn't get any earn value
-		ownValue *= titanScaleVar
+		// use a file variable like other respawn codes...
+		//earnValue *= titanScaleVar
+		//ownValue *= titanScaleVar
+		//earnValue *= file.earn_meter_titan_multiplier // titan shouldn't get any earn value
+		ownValue *= file.earn_meter_titan_multiplier
 	}
 	else
 	{
-		earnValue *= pilotScaleVar
-		ownValue *= pilotScaleVar
-		// if pilot player can't earn, remove earn value display
+		// use a file variable like other respawn codes...
+		//earnValue *= pilotScaleVar
+		//ownValue *= pilotScaleVar
+		earnValue *= file.earn_meter_pilot_multiplier
+		ownValue *= file.earn_meter_pilot_multiplier
+		// if pilot player can't earn, remove all value display
 		if ( !PlayerEarnMeter_CanEarn( targetPlayer ) )
 		{
 			earnValue = 0.0
 			ownValue = 0.0
 		}
+		// if pilot player can only earn overdrive, remove own value display
+		else if ( file.earn_meter_pilot_overdrive == ePilotOverdrive.Only )
+			ownValue = 0.0
+		// if pilot player can't earn overdrive, remove earn value display
+		else if ( file.earn_meter_pilot_overdrive == ePilotOverdrive.Disabled )
+			earnValue = 0.0
 	}
+
+	// debug
+	//print( "calculated earnValue: " + string( earnValue ) )
+	//print( "calculated ownValue: " + string( ownValue ) )
 	
 	if ( displayTypeOverride != null ) // has overrides?
 	{
@@ -289,18 +322,42 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	if ( !attacker.IsPlayer() )
 		return
 
+	// modified for npc pilot embarked titan
+#if NPC_TITAN_PILOT_PROTOTYPE
+	entity owner = victim.GetOwner()
+	bool hasNPCPilot = ( IsAlive( owner ) && IsPilotElite( owner ) ) || TitanHasNpcPilot( victim )
+	bool isNPCPilotPet = TitanIsNpcPilotPetTitan( victim )
+#endif
+
 	string scoreEvent = "KillTitan"
 	if ( attacker.IsTitan() )
 		scoreEvent = "TitanKillTitan"
-	if( victim.IsNPC() )
+	else if( victim.IsNPC() ) // vanilla still use KillAutoTitan even if the titan is pet titan... pretty weird
+	{
 		scoreEvent = "KillAutoTitan"
+		// modified for npc pilot embarked titan
+#if NPC_TITAN_PILOT_PROTOTYPE
+		if ( hasNPCPilot )
+		{
+			scoreEvent = "KillTitan"
+			if ( attacker.IsTitan() )
+				scoreEvent = "TitanKillTitan"
+		}
+#endif
+	}
 
 	if( IsTitanEliminationBased() )
 	{
+		scoreEvent = "EliminateTitan"
 		if( victim.IsNPC() )
+		{
 			scoreEvent = "EliminateAutoTitan"
-		else
-			scoreEvent = "EliminateTitan"
+			// modified for npc pilot embarked titan
+#if NPC_TITAN_PILOT_PROTOTYPE
+			if ( hasNPCPilot )
+				scoreEvent = "EliminateTitan"
+#endif
+		}
 	}
 
 	bool isPlayerTitan = IsValid( victim.GetBossPlayer() ) || victim.IsPlayer()
@@ -311,11 +368,9 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 
 	bool playTitanKilledDiag = isPlayerTitan
 	// modified for npc pilot embarked titan
-	#if NPC_TITAN_PILOT_PROTOTYPE
-		entity owner = victim.GetOwner()
-		bool hasNPCPilot = ( IsAlive( owner ) && IsPilotElite( owner ) ) || TitanHasNpcPilot( victim )
-		playTitanKilledDiag = isPlayerTitan || hasNPCPilot
-	#endif
+#if NPC_TITAN_PILOT_PROTOTYPE
+	playTitanKilledDiag = isPlayerTitan || hasNPCPilot || isNPCPilotPet
+#endif
 
 	if ( playTitanKilledDiag )
 		KilledPlayerTitanDialogue( attacker, victim )
@@ -327,6 +382,8 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	{
 		// debug
 		//print( "damageHistorySaver valid! " + string( damageHistorySaver ) )
+		if ( victim.IsPlayer() )
+			ScoreEvent_PlayerAssist( damageHistorySaver, attacker, "PilotAssist" )
 		// wrap into this function
 		ScoreEvent_PlayerAssist( damageHistorySaver, attacker, "TitanAssist" )
 	}
@@ -467,7 +524,7 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	// pilot kill
 	ScoreEvent_SetEarnMeterValues( "KillPilot", 0.10, 0.05 )
 	ScoreEvent_SetEarnMeterValues( "EliminatePilot", 0.10, 0.05 )
-	ScoreEvent_SetEarnMeterValues( "PilotAssist", 0.04, 0.01, 0.0 )
+	ScoreEvent_SetEarnMeterValues( "PilotAssist", 0.031, 0.02, 0.0 ) // if set to "0.03, 0.02", will display as "4%"
 	// titan kill
 	ScoreEvent_SetEarnMeterValues( "DoomTitan", 0.0, 0.0 )
 	// don't know why auto titan kills appear to be no value in vanilla
@@ -484,7 +541,7 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "PilotBatteryApplied", 0.0, 0.35, 0.0 )
 	// special method of killing
 	ScoreEvent_SetEarnMeterValues( "Headshot", 0.0, 0.02, 0.0 )
-	ScoreEvent_SetEarnMeterValues( "FirstStrike", 0.04, 0.01, 0.0 ) // this displays as "4%" when earning with KillPilot, pretty weird
+	ScoreEvent_SetEarnMeterValues( "FirstStrike", 0.031, 0.02, 0.0 ) // if set to "0.03, 0.02", will display as "4%"
 	
 	// ai
 	ScoreEvent_SetEarnMeterValues( "KillGrunt", 0.03, 0.01 )
