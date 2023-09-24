@@ -311,7 +311,7 @@ void function BerserkerCoreLimitedWeapon( entity owner, string limitedWeapon = "
 	owner.EndSignal( "OnDestroy" )
 
 	bool activeWeaponLostLastTick
-	while ( TitanCoreInUse( owner ) )
+	while ( IsValid( owner.GetTitanSoul() ) && TitanCoreInUse( owner ) )
 	{
 		WaitFrame()
 		
@@ -325,7 +325,7 @@ void function BerserkerCoreLimitedWeapon( entity owner, string limitedWeapon = "
 		{
 			if ( activeWeaponLostLastTick )
 			{
-				owner.SetActiveWeaponByName( limitedWeapon )
+				ReDeployWeapon( owner, limitedWeapon )
 				activeWeaponLostLastTick = false
 			}
 			else
@@ -336,12 +336,21 @@ void function BerserkerCoreLimitedWeapon( entity owner, string limitedWeapon = "
 		// also never allow switching to main weapon
 		if ( mainWeapons.contains( activeWeapon ) )
 		{
-			owner.HolsterWeapon() // show deploy animation, avoid blanking melee
-			owner.SetActiveWeaponByName( limitedWeapon )
-			owner.DeployWeapon()
+			ReDeployWeapon( owner, limitedWeapon )
 		}
 
 		activeWeaponLostLastTick = false
 	}
+}
+
+void function ReDeployWeapon( entity owner, string weaponName )
+{
+	if ( owner.IsPlayer() )
+		owner.HolsterWeapon() // show deploy animation, avoid blanking melee
+	
+	owner.SetActiveWeaponByName( weaponName )
+	
+	if ( owner.IsPlayer() )
+		owner.DeployWeapon()
 }
 #endif
