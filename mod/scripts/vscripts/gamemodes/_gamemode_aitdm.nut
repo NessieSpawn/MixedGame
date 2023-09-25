@@ -121,11 +121,11 @@ void function OnPlayerConnected( entity player )
 // Used to handle both player and ai events
 void function HandleScoreEvent( entity victim, entity attacker, var damageInfo )
 {
-	if ( !AttackerIsValidForAITdmScore( victim, attacker, damageInfo ) )
-		return
-
 	// if victim is a non-titan npc that owned by players, don't add score
 	if ( !VictimIsValidForAITdmScore( victim ) )
+		return
+	
+	if ( !AttackerIsValidForAITdmScore( victim, attacker, damageInfo ) )
 		return
 
 	int playerScore
