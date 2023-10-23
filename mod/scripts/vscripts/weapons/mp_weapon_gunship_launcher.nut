@@ -36,9 +36,10 @@ function MpWeaponGunshipLauncher_Init()
 
 var function OnWeaponPrimaryAttack_GunshipLauncher( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
-	#if SERVER
-		return FireGunshipLauncher( weapon, attackParams, PROJECTILE_PREDICTED )
-	#endif
+	// removing player usage
+	//#if SERVER
+	//	return FireGunshipLauncher( weapon, attackParams, PROJECTILE_PREDICTED )
+	//#endif
 }
 
 #if SERVER
@@ -57,6 +58,9 @@ function FireGunshipLauncher( entity weapon, WeaponPrimaryAttackParams attackPar
 	if ( !IsValid( targetEnemy ) )
 		return
 
+	// vanilla missing anti-crash
+	if ( !( "plantedMinesManagedEntArrayID" in weaponOwner.s ) )
+		weaponOwner.s.plantedMinesManagedEntArrayID <- CreateScriptManagedEntArray()
 	// Too many mines planted already? Then abort this attack
 	int plantedMineCount = GetScriptManagedEntArrayLen( weaponOwner.s.plantedMinesManagedEntArrayID )
 	if ( plantedMineCount >= MAX_PLANTED_MINES )
