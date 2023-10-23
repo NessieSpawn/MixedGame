@@ -1,25 +1,39 @@
 WeaponData
 {
+	// modified callbacks
+	"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_gunship_turret"
+
 	// sound, taken from xo16
-	// remove player fire_sound_2_3P
-	"fire_sound_2_player_3p"						"Null_Remove_SoundHook"
-	"fire_sound_1_npc"								"Weapon_XO16_Single_3P"
+	"fire_sound_1_npc"								"Weapon_bulletCasings.Bounce"
+	"fire_sound_2_npc"								"Weapon_XO16_Single_3P"
 	"looping_sounds"								"1"
 	"burst_or_looping_fire_sound_start_npc"			"Weapon_xo16_fire_first_3P"
 	"burst_or_looping_fire_sound_middle_npc"		"Weapon_xo16_fire_loop_Monarch_3P"
 	"burst_or_looping_fire_sound_end_npc"			"Weapon_xo16_fire_last_3P"
 
+	// now change to spitfire player sound, xo16 one is kinda annoying
+	//"fire_sound_1_npc"								"Weapon_bulletCasings.Bounce"
+	//"fire_sound_2_npc"								"Weapon_LMG_SecondShot_npc"
+	//"looping_sounds"								"1"
+	//"burst_or_looping_fire_sound_start_npc"			""
+	//"burst_or_looping_fire_sound_middle_npc"		"Weapon_LMG_Loop_3P"
+	//"burst_or_looping_fire_sound_end_npc"			""
+
 	// fire_rate, taken from xo16
+	// note that turrets can sometimes break fire_rate and make a burst, very powerful
 	"fire_rate"   									"12" // 8 in vanilla
 
 	// muzzle
-	"fx_muzzle_flash_view"							"wpn_muzzleflash_sentry"
-	"fx_muzzle_flash_world"							"wpn_muzzleflash_sentry"
-	"fx_muzzle_flash_attach"						"muzzle_flash"
+	// moved to code, for clients without mod installed can predict it
+	//"fx_muzzle_flash_view"							"wpn_muzzleflash_sentry"
+	//"fx_muzzle_flash_world"							"wpn_muzzleflash_sentry"
+	//"fx_muzzle_flash_attach"						"muzzle_flash"
 
 	"allow_headshots" 								"0" // remove headshot
 	"ammo_no_remove_from_clip"						"1" // infinite clip for turrets can better use it
+	"vortex_drain"									"0.0" // remove vortex drain
 
+	// I want make this the gunship's anti-armor weapon, cuz their ability to hit moving pilots sucks
 	// Damage - When Used by NPCs
 	"npc_damage_near_distance"						"2700"
 	"npc_damage_far_distance" 						"3200"
@@ -42,14 +56,15 @@ WeaponData
 
 	// proficiency, taken from xo16 vanguard
 	// bit tweaked, gunship needs higher accuracy for their bullet weapon
-	"proficiency_poor_spreadscale"					"4.0"
-	"proficiency_average_spreadscale" 				"3.1"
-	"proficiency_good_spreadscale"					"2.5"
-	"proficiency_very_good_spreadscale"   			"2.1"
-	"proficiency_perfect_spreadscale" 				"1.5"
+	// reverted-- I want make this the gunship's anti-armor weapon, no need to care too much about accuracy
+	"proficiency_poor_spreadscale"					"5.0" // was 4.0
+	"proficiency_average_spreadscale" 				"5.0" // was 3.1
+	"proficiency_good_spreadscale"					"4.0" // was 2.5
+	"proficiency_very_good_spreadscale"   			"3.1" // was 2.1
+	"proficiency_perfect_spreadscale" 				"2.3" // was 1.5
 
 	// change impact effect
-	"impact_effect_table" 							"titan_bullet_elec" // vanilla uses "40mm_bullet"
+	"impact_effect_table" 							"titan_bullet" // vanilla uses "40mm_bullet", once used "titan_bullet_elec", but we've removed vortex_drain so no need to use anymore
 
 	Mods
 	{
