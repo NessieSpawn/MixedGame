@@ -2061,6 +2061,9 @@ void function ExtraSpawner_SetUpTitanSeatedPilot( entity titan, int team, int pi
 	titanSoul.soul.seatedNpcPilot.health				= pilotHealth
 
 	// set up weapons
+	// because weapon setup has become more compilicated( contains 3 main weapons and their mods )
+	// it's better to spawn a pilot and assign weapon for it, destroy the pilot after weapon assignment done
+	/*
 	array<string> mainWeapons
 	array<string> secondaryWeapons
 	array<string> antiTitanWeapons
@@ -2091,6 +2094,16 @@ void function ExtraSpawner_SetUpTitanSeatedPilot( entity titan, int team, int pi
 		antiTitanWeaponStruct.weaponName = antiTitanWeapons[ RandomInt( antiTitanWeapons.len() ) ]
 		titanSoul.soul.seatedNpcPilot.weapons.append( antiTitanWeaponStruct )
 	}
+	*/
+	entity tempPilot = ExtraSpawner_SpawnPilotElite( < 0, 0, 10000 >, < 0, 0, 0 >, team ) // spawn in air so nobody can see it, and it won't be killed by triggers
+	foreach ( entity weapon in tempPilot.GetMainWeapons() )
+	{
+		NPCPilotWeaponStruct storedWeapon
+		storedWeapon.weaponName = weapon.GetWeaponClassName()
+		storedWeapon.weaponMods = weapon.GetMods()
+		titanSoul.soul.seatedNpcPilot.weapons.append( storedWeapon )
+	}
+	tempPilot.Destroy()
 }
 
 // npc pilot embarking npc titans
@@ -3394,6 +3407,10 @@ void function GunshipFlightTrailEffect( entity gunship )
 	fxs.append( PlayLoopFXOnEntity( $"veh_contrails_01", gunship, "R_WING_TIP", null, null, ENTITY_VISIBLE_TO_EVERYONE ) )
 	//fxs.append( PlayLoopFXOnEntity( $"veh_jetwash_exit_eng_blast", gunship, "L_exhaust_rear_1", null, null, ENTITY_VISIBLE_TO_EVERYONE ) )
 	//fxs.append( PlayLoopFXOnEntity( $"veh_jetwash_exit_eng_blast", gunship, "R_exhaust_rear_1", null, null, ENTITY_VISIBLE_TO_EVERYONE ) )
+	
+	// make them have infinite fadedist like dogfighter trails( the diffence is those trails are played by client-side )
+	foreach ( fx in fxs )
+		fx.DisableHibernation()
 
 	OnThreadEnd
 	(
@@ -3431,6 +3448,9 @@ void function GunshipJetBurstEffect_Threaded( entity gunship )
 	array<entity> fxs
 	fxs.append( PlayFXOnEntity( $"veh_jetwash_exit_eng_blast", gunship, "L_exhaust_rear_1" ) )
 	fxs.append( PlayFXOnEntity( $"veh_jetwash_exit_eng_blast", gunship, "R_exhaust_rear_1" ) )
+	// make them have infinite fadedist like dogfighter trails( the diffence is those trails are played by client-side )
+	foreach ( fx in fxs )
+		fx.DisableHibernation()
 
 	OnThreadEnd
 	(
@@ -3569,6 +3589,10 @@ void function ExtraSpawner_SetUpNPCPilot( entity pilot, void functionref( entity
 
 		pilot.SetBehaviorSelector( "behavior_pilot_elite_assassin" )
 	}
+
+	// start updating bodygroup
+	// this will handle npc pilot disembarking/ejecting case
+	ExtraSpawner_StartUpdatingNPCWeaponBodyGroup( pilot )
 
 	// pilots are bit special, start handler in setup func
 	if ( pilotHandler != null )
