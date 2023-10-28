@@ -1848,6 +1848,7 @@ bool function CC_SpawnTestPistolGrunt( entity player, array<string> args )
 	return true
 }
 
+// this only works for NSCN
 bool function CC_SpawnFakeMLTSpectre( entity player, array<string> args )
 {
 	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
@@ -1871,7 +1872,7 @@ bool function CC_SpawnFakeMLTSpectre( entity player, array<string> args )
 	spectre.SetMaxHealth( 5000 )
 	spectre.SetHealth( 5000 )
 	// use stalker head
-	spectre.SetModel( $"models/Robots/stalker/robot_stalker.mdl" )
+	//spectre.SetModel( $"models/Robots/stalker/robot_stalker.mdl" )
 	spectre.SetNPCMoveSpeedScale( 1.5 ) // stalkers always walk, make them do it faster
 	//thread PrintColdWarNPCPrimaryAttack( spectre )
 	//thread PrintPrimaryAttackSignal( spectre )
