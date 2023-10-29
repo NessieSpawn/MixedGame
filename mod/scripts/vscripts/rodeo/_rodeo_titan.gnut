@@ -1582,18 +1582,18 @@ void function Rodeo_PilotPicksUpBattery( entity pilot, entity battery )
 
 entity function Rodeo_TakeBatteryAwayFromPilot( entity pilot )
 {
+	//RemovePlayerHeldButtonEventCallback( player, IN_USE, Rodeo_PilotThrowsBattery, RODEO_THROW_BATTERY_BUTTON_HOLD_TIME )
+	
 	// function SetPlayerBatteryCount() has been fixed to handle negative value crash
 	SetPlayerBatteryCount( pilot, GetPlayerBatteryCount( pilot ) - 1 )
 
-	// removing some of respawn's remaining code. "unreachable" and hardcodes never makes any sense
-	entity battery = GetBatteryOnBack( pilot )
-	// clear out exisiting battery network var no matter how
-	SetBatteryOnBack( pilot, null ) //Defensive fix for 209362. Set it to null before doing any other actions on it which might cause execution to jump somewhere else. I think doing PutEntityInSafeSpot() might cause this?
-
-	// nessie fix
-	// sometimes battery can be invalid
-	if( IsValid( battery ) )
+	if ( GetPlayerBatteryCount( pilot ) == 0 )
 	{
+		entity battery = GetBatteryOnBack( pilot )
+		Assert( IsValid( battery ) )
+		Assert( battery.GetParent() == pilot )
+
+		SetBatteryOnBack( pilot, null ) //Defensive fix for 209362. Set it to null before doing any other actions on it which might cause execution to jump somewhere else. I think doing PutEntityInSafeSpot() might cause this?
 		battery.Minimap_AlwaysShow( TEAM_MILITIA, null )
 		battery.Minimap_AlwaysShow( TEAM_IMC, null )
 
@@ -1614,9 +1614,14 @@ entity function Rodeo_TakeBatteryAwayFromPilot( entity pilot )
 		battery.SetAngles( <0, 0, 0 > )
 		battery.SetVelocity( < 0, 0, 1 > )
 		PutEntityInSafeSpot( battery, pilot, null, pilot.GetOrigin(), battery.GetOrigin() ) //This might cause thread of execution to jump somewhere else, see 209362
+		return battery
+	}
+	else
+	{
+		return null
 	}
 
-	return battery
+	unreachable
 }
 
 void function Rodeo_PilotThrowsBattery( entity pilot )
