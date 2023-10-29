@@ -1482,25 +1482,6 @@ entity function Rodeo_CreateBatteryPack( entity titanStolenFrom = null )
 	return batteryPack
 }
 
-// nessie modified function
-void function Nessie_BatteryHideIcon( entity batteryPack )
-{
-	// hide for current in-game players
-	foreach ( entity player in GetPlayerArray() )
-	{
-		batteryPack.Minimap_Hide( 0, player )
-	}
-
-	// hide for late joiners, based on team
-	batteryPack.Minimap_Hide( TEAM_MILITIA, null )
-	batteryPack.Minimap_Hide( TEAM_IMC, null )
-	if( IsFFAGame() ) // hide for ffa. hardcoded as hell!
-	{
-		for( int i = 0; i <= 30; i++ ) // ttf2 is up to 20 teams, Minimap_Hide() cap to 31 teams. hardcoded!
-			batteryPack.Minimap_Hide( i, null )
-	}
-}
-
 void function Battery_StartFX( entity battery )
 {
 	Battery_StopFX( battery ) //Clear existing fx first. Not quite ideal but easier to do this than have bug potential for FX to stack on top of each other.
