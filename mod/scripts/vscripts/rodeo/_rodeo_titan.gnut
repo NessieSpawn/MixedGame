@@ -1334,6 +1334,7 @@ void function Rodeo_ApplyAllBatteriesOnEmbark_Thread( entity player, entity tita
 
 void function Rodeo_ApplyBatteryDelayed( entity player, table<string,bool> e )
 {
+	// this is bugged. rodeo battery can be invalid
 	entity battery = Rodeo_TakeBatteryAwayFromPilot( player )
 	e[ "hadAmped" ] = e[ "hadAmped" ] || IsAmpedBattery( battery )
 	int skin = battery.GetSkin()
@@ -1612,15 +1613,13 @@ entity function Rodeo_TakeBatteryAwayFromPilot( entity pilot )
 	
 	SetPlayerBatteryCount( pilot, GetPlayerBatteryCount( pilot ) - 1 )
 
-	// why is this only handled 1 battery condition?
-	// we do need to create a new battery if player still have battery left...
-	// I don't care, removing some of respawn's remaining code. "unreachable" and hardcodes never makes any sense
+	// removing some of respawn's remaining code. "unreachable" and hardcodes never makes any sense
 	entity battery = GetBatteryOnBack( pilot )
 	// clear out exisiting battery network var
 	SetBatteryOnBack( pilot, null ) //Defensive fix for 209362. Set it to null before doing any other actions on it which might cause execution to jump somewhere else. I think doing PutEntityInSafeSpot() might cause this?
 
 	// nessie fix
-	// sometimes battery can be invalid( but with multiple carried battery fix that should be less frequent )
+	// sometimes battery can be invalid
 	if( IsValid( battery ) )
 	{
 		battery.Minimap_AlwaysShow( TEAM_MILITIA, null )
@@ -1643,16 +1642,6 @@ entity function Rodeo_TakeBatteryAwayFromPilot( entity pilot )
 		battery.SetAngles( <0, 0, 0 > )
 		battery.SetVelocity( < 0, 0, 1 > )
 		PutEntityInSafeSpot( battery, pilot, null, pilot.GetOrigin(), battery.GetOrigin() ) //This might cause thread of execution to jump somewhere else, see 209362
-	}
-
-	// last battery has dropped to ground( or it's invalid )
-	// in any case player still have a battery
-	// create a new battery on their back, so they can use them
-	// which also prevents crash when carry multiple batteries and embarking the titan
-	if ( GetPlayerBatteryCount( pilot ) > 0 )
-	{
-		entity carriedBattery = Rodeo_CreateBatteryPack()
-		Rodeo_PilotPicksUpBattery_Silent( pilot, carriedBattery )
 	}
 
 	return battery
@@ -1727,7 +1716,7 @@ void function Rodeo_DropAllBatteries( entity player )
 	if ( !PlayerHasBattery( player ) )
 		return
 
-	// reduced by 1 because player will always drop a battery in center position by Rodeo_TakeBatteryAwayFromPilot()
+	// reduced by 1 because player will always drop a battery in center position by first time calling Rodeo_TakeBatteryAwayFromPilot()
 	float batteryCount = float( GetPlayerBatteryCount( player ) - 1 ) // Floats instead of ints since we need decimal values for the math
 	for ( float i = 1.0; GetPlayerBatteryCount( player ) > 1; i += 1.0 )
 	{
@@ -1739,17 +1728,12 @@ void function Rodeo_DropAllBatteries( entity player )
 		vector baseVelocity = player.GetVelocity()
 		baseVelocity.z = 0
 		newBattery.SetVelocity( baseVelocity + direction * 100 + <0, 0, 1> )
-		// we've modified Rodeo_TakeBatteryAwayFromPilot(), can't use it here because it will create new batteries for each on player's back
-		//Rodeo_TakeBatteryAwayFromPilot( player )
-		Rodeo_RemoveBatteryOffPlayer( player ) // remove current battery
+		Rodeo_TakeBatteryAwayFromPilot( player )
 	}
 
-	// take last battery, dropped directly by player
+	// this drops one battery when player only have 1 battery carried
 	entity battery = Rodeo_TakeBatteryAwayFromPilot( player )
 	Assert ( IsValid( battery ) )
-
-	// we've modified Rodeo_TakeBatteryAwayFromPilot(), needs to remove any other exsiting battery for player
-	Rodeo_RemoveAllBatteriesOffPlayer( player )
 }
 
 void function Rodeo_RemoveBatteryOffPlayer( entity player ) //Meant to be used in prematch etc.
