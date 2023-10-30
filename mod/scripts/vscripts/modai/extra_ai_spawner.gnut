@@ -1078,14 +1078,6 @@ void function BossLoadout_Jack( entity titan )
 	string squadName = MakeSquadName( titan.GetTeam(), UniqueString( "buddy" ) )
 	SetSquad( titan, squadName )
 
-	// re-assign weapons
-	titan.TakeWeaponNow( "mp_titanweapon_xo16_shorty" ) // don't use a one-shot killing xo16!
-	titan.GiveWeapon( "mp_titanweapon_xo16_vanguard", ["arc_rounds"] ) // use the arc-rounds monarch xo16
-	
-	titan.GetOffhandWeapon( OFFHAND_SPECIAL ).AddMod( "slow_recovery_vortex" ) // fix weapon mod
-	titan.GetOffhandWeapon( OFFHAND_ORDNANCE ).AddMod( "upgradeCore_MissileRack_Vanguard" ) // fix mod: lock on heavy armor target only
-	titan.GetOffhandWeapon( OFFHAND_EQUIPMENT ).AddMod( "npc_bt_balance" ) // balance core ability
-
 	// game behavior settings
 	entity soul = titan.GetTitanSoul()
 	if ( IsValid( soul ) )
@@ -1094,6 +1086,19 @@ void function BossLoadout_Jack( entity titan )
 		MeleeSyncedTitan_SetSoulCanBeExecuted( soul, false ) // cannot execute BT, they don't have enough animations
 		Rodeo_SetTitanRodeoSequenceEnabled( titan, false ) // bt don't have battery on hatch, don't allow removing
 	}
+
+	// re-assign weapons
+	// updated, now using NPC vanguard's random loadout!
+	/*
+	titan.TakeWeaponNow( "mp_titanweapon_xo16_shorty" ) // don't use a one-shot killing xo16!
+	//titan.GiveWeapon( "mp_titanweapon_xo16_vanguard", ["arc_rounds"] ) // use the arc-rounds monarch xo16
+	titan.GiveWeapon( "mp_titanweapon_xo16_vanguard" ) // removed arc rounds
+	
+	titan.GetOffhandWeapon( OFFHAND_SPECIAL ).AddMod( "slow_recovery_vortex" ) // fix weapon mod
+	titan.GetOffhandWeapon( OFFHAND_ORDNANCE ).AddMod( "upgradeCore_MissileRack_Vanguard" ) // fix mod: lock on heavy armor target only
+	titan.GetOffhandWeapon( OFFHAND_EQUIPMENT ).AddMod( "npc_bt_balance" ) // balance core ability
+	*/
+	NPCVanguard_GiveLoadout( titan )
 
 	// may needs to update spawn loadout
 	TitanLoadoutDef spawnLoadout = titan.ai.titanSpawnLoadout
@@ -1107,6 +1112,15 @@ void function BossLoadout_Sarah( entity titan )
 	string squadName = MakeSquadName( titan.GetTeam(), UniqueString( "buddy" ) )
 	SetSquad( titan, squadName )
 
+	// game behavior settings
+	entity soul = titan.GetTitanSoul()
+	if ( IsValid( soul ) )
+	{
+		PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, false )	// disable earnmeter smoke availability, they already have electric smoke
+		MeleeSyncedTitan_SetSoulCanBeExecuted( soul, false ) // cannot execute BT, they don't have enough animations
+		Rodeo_SetTitanRodeoSequenceEnabled( titan, false ) // bt don't have battery on hatch, don't allow removing
+	}
+
 	// re-assign weapons
 	titan.TakeWeaponNow( "mp_titanweapon_xo16_shorty" ) // don't use a one-shot killing xo16!
 	titan.GiveWeapon( "mp_titanweapon_xo16_vanguard", ["battle_rifle", "battle_rifle_icon", "fd_vanguard_utility_2"] )
@@ -1118,15 +1132,6 @@ void function BossLoadout_Sarah( entity titan )
 	titan.GiveOffhandWeapon( "mp_titanweapon_heat_shield", OFFHAND_SPECIAL )
 	
 	titan.GetOffhandWeapon( OFFHAND_EQUIPMENT ).AddMod( "npc_bt_balance" ) // balance core ability
-
-	// game behavior settings
-	entity soul = titan.GetTitanSoul()
-	if ( IsValid( soul ) )
-	{
-		PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, false )	// disable earnmeter smoke availability, they already have electric smoke
-		MeleeSyncedTitan_SetSoulCanBeExecuted( soul, false ) // cannot execute BT, they don't have enough animations
-		Rodeo_SetTitanRodeoSequenceEnabled( titan, false ) // bt don't have battery on hatch, don't allow removing
-	}
 
 	// may needs to update spawn loadout
 	TitanLoadoutDef spawnLoadout = titan.ai.titanSpawnLoadout
@@ -1163,19 +1168,21 @@ void function BossLoadout_SarahMonarch( entity titan )
 void function InitNPCVanguardLoadouts()
 {
 	// loadout setup
+	// have removed all behavior selector changes to disable core ability.
+	// instead, make them able to recharge shield over time
 	NPCVanguardLoadout emptyLoadout
 
 	// expedition
 	NPCVanguardLoadout expeditionLoadout = clone emptyLoadout
 	expeditionLoadout.setFile = "titan_buddy"
-	expeditionLoadout.behaviorSelector = "behavior_titan"
+	//expeditionLoadout.behaviorSelector = "behavior_titan"
 	expeditionLoadout.loadoutFunction = VanguardExpeditionLoadout
 	file.npcVanguardLoadouts.append( expeditionLoadout )
 
 	// ion
 	NPCVanguardLoadout ionLoadout = clone emptyLoadout
 	ionLoadout.setFile = "titan_atlas_stickybomb"
-	ionLoadout.behaviorSelector = "behavior_titan"
+	//ionLoadout.behaviorSelector = "behavior_titan"
 	ionLoadout.loadoutFunction = null
 	ionLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use laser core
 	file.npcVanguardLoadouts.append( ionLoadout )
@@ -1183,7 +1190,7 @@ void function InitNPCVanguardLoadouts()
 	// tone
 	NPCVanguardLoadout toneLoadout = clone emptyLoadout
 	toneLoadout.setFile = "titan_atlas_tracker"
-	toneLoadout.behaviorSelector = "behavior_titan_long_range"
+	//toneLoadout.behaviorSelector = "behavior_titan_long_range"
 	toneLoadout.loadoutFunction = null
 	toneLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use salvo core
 	file.npcVanguardLoadouts.append( toneLoadout )
@@ -1191,14 +1198,15 @@ void function InitNPCVanguardLoadouts()
 	// ronin
 	NPCVanguardLoadout roninLoadout = clone emptyLoadout
 	roninLoadout.setFile = "titan_stryder_leadwall"
-	roninLoadout.behaviorSelector = "behavior_titan_shotgun"
+	//roninLoadout.behaviorSelector = "behavior_titan_shotgun"
 	roninLoadout.loadoutFunction = null
+	roninLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT might be able to use fixed sword core? but it looks hacky, remove for now
 	file.npcVanguardLoadouts.append( roninLoadout )
 
 	// northstar
 	NPCVanguardLoadout northstarLoadout = clone emptyLoadout
 	northstarLoadout.setFile = "titan_stryder_sniper"
-	northstarLoadout.behaviorSelector = "behavior_titan_long_range" // they can't use "behavior_titan_sniper"
+	//northstarLoadout.behaviorSelector = "behavior_titan_long_range" // they can't use "behavior_titan_sniper"
 	northstarLoadout.loadoutFunction = null
 	northstarLoadout.lockedAbilities = [OFFHAND_ANTIRODEO, OFFHAND_EQUIPMENT] // BT can't use hover abilities
 	file.npcVanguardLoadouts.append( northstarLoadout )
@@ -1206,21 +1214,22 @@ void function InitNPCVanguardLoadouts()
 	// brute
 	NPCVanguardLoadout bruteLoadout = clone emptyLoadout
 	bruteLoadout.setFile = "titan_stryder_sniper" // titan_stryder_rocketeer isn't implemented good enough for MP usage, using sniper instead. loadout handled by loadoutFunction
-	bruteLoadout.behaviorSelector = "behavior_titan_shotgun" // they can't use "behavior_titan_rocketeer"
+	//bruteLoadout.behaviorSelector = "behavior_titan_shotgun" // they can't use "behavior_titan_rocketeer"
 	bruteLoadout.loadoutFunction = VanguardBruteLoadout
 	file.npcVanguardLoadouts.append( bruteLoadout )
 
 	// legion
 	NPCVanguardLoadout legionLoadout = clone emptyLoadout
 	legionLoadout.setFile = "titan_ogre_minigun"
-	legionLoadout.behaviorSelector = "behavior_titan_ogre_minigun"
+	//legionLoadout.behaviorSelector = "behavior_titan_ogre_minigun"
+	legionLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // smart core is not added for npc usage from native code
 	legionLoadout.loadoutFunction = null
 	file.npcVanguardLoadouts.append( legionLoadout )
 
 	// scorch
 	NPCVanguardLoadout scorchLoadout = clone emptyLoadout
 	scorchLoadout.setFile = "titan_ogre_meteor"
-	scorchLoadout.behaviorSelector = "behavior_titan_ogre_meteor"
+	//scorchLoadout.behaviorSelector = "behavior_titan_ogre_meteor"
 	scorchLoadout.loadoutFunction = null
 	scorchLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use flame core
 	file.npcVanguardLoadouts.append( scorchLoadout )
@@ -1260,11 +1269,20 @@ void function BossLoadout_Vanguard( entity titan )
 	string squadName = MakeSquadName( titan.GetTeam(), UniqueString( "buddy" ) )
 	SetSquad( titan, squadName )
 
+	// generic setup for vanguard
+	NPCVanguard_SetUpTitan( titan )
+	NPCVanguard_EnableShieldRegen( titan )
+
+	// start giving loadout
+	NPCVanguard_GiveLoadout( titan )
+}
+
+void function NPCVanguard_SetUpTitan( entity titan )
+{
 	// pick a random pilot setting!
 	NPCVanguardPilot pickedPilot = file.npcVanguardPilots[ RandomInt( file.npcVanguardPilots.len() ) ]
 	titan.SetTitle( pickedPilot.titanTitle ) // update titan title
 
-	// generic setup for vanguard
 	entity soul = titan.GetTitanSoul()
 	if ( IsValid( soul ) )
 	{
@@ -1278,11 +1296,29 @@ void function BossLoadout_Vanguard( entity titan )
 		MeleeSyncedTitan_SetSoulCanBeExecuted( soul, false ) // cannot execute BT, they don't have enough animations
 		Rodeo_SetTitanRodeoSequenceEnabled( titan, false ) // bt don't have battery on hatch, don't allow removing
 	}
+}
 
-	// start giving loadout
+const float NPC_VANGUARD_SHIELD_REGEN_DELAY = 6.0 // taken from titan_buddy.set( sp uses 3.0 )
+const float NPC_VANGUARD_SHIELD_REGEN_TIME = TITAN_SHIELD_REGEN_TIME * 0.4 // scale down because npc vanguard class only have 1000 max shield( sp uses 2.0 )
+
+void function NPCVanguard_EnableShieldRegen( entity titan )
+{
+	entity soul = titan.GetTitanSoul()
+	if ( IsValid( soul ) )
+	{
+		TitanHealth_SetSoulEnableShieldRegen( soul, true )
+		TitanHealth_SetSoulShieldRegenDelay( soul, NPC_VANGUARD_SHIELD_REGEN_DELAY )
+		TitanHealth_SetSoulShieldRegenTime( soul, NPC_VANGUARD_SHIELD_REGEN_TIME )
+		//TitanHealth_SetSoulShieldDamageReductionScale( soul, 0.7 )
+	}
+}
+
+void function NPCVanguard_GiveLoadout( entity titan )
+{
 	NPCVanguardLoadout pickedLoadout = file.npcVanguardLoadouts[ RandomInt( file.npcVanguardLoadouts.len() ) ]
 	// update behavior first, so loadout functions can modify it
-	titan.SetBehaviorSelector( pickedLoadout.behaviorSelector )
+	if ( pickedLoadout.behaviorSelector != "" )
+		titan.SetBehaviorSelector( pickedLoadout.behaviorSelector )
 	// modified loadout case
 	if ( pickedLoadout.loadoutFunction != null )
 		pickedLoadout.loadoutFunction( titan )
@@ -1293,20 +1329,37 @@ void function BossLoadout_Vanguard( entity titan )
 		OverwriteLoadoutWithDefaultsForSetFile( titanLoadout )
 		// manually apply loadout! only weapons are needed
 		// directly modify this struct is all good
-		TakeAllWeapons( titan )
+		//TakeAllWeapons( titan ) // never remove all weapons, only replace them if we have other weapon assigned
 		if ( titanLoadout.primary != "" )
 		{
+			foreach ( entity weapon in titan.GetMainWeapons() )
+				titan.TakeWeaponNow( weapon.GetWeaponClassName() )
+			
 			titanLoadout.primaryMods.removebyvalue( "" ) // primaryMods can have invalid values
 			titan.GiveWeapon( titanLoadout.primary, titanLoadout.primaryMods )
 		}
 		if ( titanLoadout.ordnance != "" && !pickedLoadout.lockedAbilities.contains( OFFHAND_ORDNANCE ) )
+		{
+			titan.TakeOffhandWeapon( OFFHAND_ORDNANCE )
 			titan.GiveOffhandWeapon( titanLoadout.ordnance, OFFHAND_ORDNANCE, titanLoadout.ordnanceMods )
+		}
 		if ( titanLoadout.special != "" && !pickedLoadout.lockedAbilities.contains( OFFHAND_SPECIAL ) )
+		{
+			titan.TakeOffhandWeapon( OFFHAND_SPECIAL )
 			titan.GiveOffhandWeapon( titanLoadout.special, OFFHAND_SPECIAL, titanLoadout.specialMods )
+		}
 		if ( titanLoadout.antirodeo != "" && !pickedLoadout.lockedAbilities.contains( OFFHAND_ANTIRODEO ) )
+		{
+			titan.TakeOffhandWeapon( OFFHAND_ANTIRODEO )
 			titan.GiveOffhandWeapon( titanLoadout.antirodeo, OFFHAND_ANTIRODEO, titanLoadout.antirodeoMods )
+		}
 		if ( titanLoadout.coreAbility != "" && !pickedLoadout.lockedAbilities.contains( OFFHAND_EQUIPMENT ) )
+		{
+			titan.TakeOffhandWeapon( OFFHAND_EQUIPMENT )
 			titan.GiveOffhandWeapon( titanLoadout.coreAbility, OFFHAND_EQUIPMENT )
+		}
+		else // core ability unchanged, we're still using burst core
+			titan.GetOffhandWeapon( OFFHAND_EQUIPMENT ).AddMod( "npc_bt_balance" ) // balance core ability
 		// vanguard should never replaces melee weapon
 		//if ( titanLoadout.melee != "" )
 		//	titan.GiveOffhandWeapon( titanLoadout.melee, OFFHAND_MELEE )
@@ -1318,8 +1371,9 @@ void function VanguardExpeditionLoadout( entity titan )
 {
 	// re-assign weapons
 	titan.TakeWeaponNow( "mp_titanweapon_xo16_shorty" ) // don't use a one-shot killing xo16!
-	titan.GiveWeapon( "mp_titanweapon_xo16_vanguard", ["arc_rounds"] ) // use the arc-rounds monarch xo16
-	
+	//titan.GiveWeapon( "mp_titanweapon_xo16_vanguard", ["arc_rounds"] ) // use the arc-rounds monarch xo16
+	titan.GiveWeapon( "mp_titanweapon_xo16_vanguard" ) // removed arc rounds
+
 	titan.GetOffhandWeapon( OFFHAND_SPECIAL ).AddMod( "slow_recovery_vortex" ) // fix weapon mod
 	titan.GetOffhandWeapon( OFFHAND_ORDNANCE ).AddMod( "upgradeCore_MissileRack_Vanguard" ) // fix mod: lock on heavy armor target only
 	titan.GetOffhandWeapon( OFFHAND_EQUIPMENT ).AddMod( "npc_bt_balance" ) // balance core ability
