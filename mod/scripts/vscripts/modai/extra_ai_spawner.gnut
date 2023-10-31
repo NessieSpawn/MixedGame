@@ -2218,7 +2218,11 @@ void function StartUpdatingNPCWeaponBodyGroup_Threaded( entity npc )
 		if ( IsValid( activeWeapon ) )
 		{
 			if ( activeWeapon != lastPrimaryWeaponEnt ) // weapon changed?
+			{
+				// debug
+				//print( "NPC active weapon changed!" )
 				UpdateNPCWeaponBodyGroup( npc )
+			}
 		}
 
 		lastPrimaryWeaponEnt = activeWeapon
