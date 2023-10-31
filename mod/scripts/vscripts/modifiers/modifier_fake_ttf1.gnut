@@ -14,7 +14,7 @@ const float FAKETF1_TITAN_SHIELD_REGEN_TIME = TITAN_SHIELD_REGEN_TIME * 0.6667 /
 const float TITAN_SHIELD_DAMAGE_REDUCTION = 0.7 // titan shield no longer protects full damage
 // doomed state
 const bool DOOMED_HEALTH_MATCH_MAX_HEALTH = true // if enabled, titan's doomed health will be the same as their base health
-const float ENABLE_INFINITE_DOOMED_STATE = true // titan will start lose health on doom
+const bool ENABLE_INFINITE_DOOMED_STATE = true // titan will start lose health on doom
 const float DOOMED_HEALTH_LOSS_DAMAGE_SCALE = 0.8
 
 // core ability
@@ -49,6 +49,7 @@ const array<string> CONNECTING_NOTIFICATIONS =
 	ANSI_COLOR_ORANGE + "Titan shield auto-recharge, but it can't handle full damage" + ANSI_COLOR_END,
 	ANSI_COLOR_ORANGE + "Titan has reduced un-doomed max health. Doomed health is increased, but it loss over time" + ANSI_COLOR_END,
     ANSI_COLOR_ORANGE + "Titan comes with faster charge regen and +1 more charge. Faster core build. Turbo Engine will be replaced with Over Core" + ANSI_COLOR_END,
+    ANSI_COLOR_ORANGE + "Titan starts regen shield instead of fully-recharge after getting a battery pack or upgrading" + ANSI_COLOR_END,
     //ANSI_COLOR_BLUE + "铁驭生命值为1.25倍，自带快速恢复血量（若已装备快速恢复将获得强力电池）" + ANSI_COLOR_END,
     ANSI_COLOR_BLUE + "Pilot has 1.25x health. Fast Regen will be replaced with Power Cell" + ANSI_COLOR_END,
     ANSI_COLOR_BLUE + "Pilot Anti-Titan Weapons have infinite stockpile" + ANSI_COLOR_END,
