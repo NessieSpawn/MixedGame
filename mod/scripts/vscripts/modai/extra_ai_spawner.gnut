@@ -709,6 +709,8 @@ void function NPCBruteLoadout( entity titan )
 	// Utility
 	titan.GiveOffhandWeapon( "mp_titanability_hover", OFFHAND_ANTIRODEO )
 	//Offence
+	// we have buffed quad rocket that have higher projectile speed and can make npcs do explosion damage
+	// no need to use multi-targeting missile( which extra_spawner branch uses )
 	//titan.GiveOffhandWeapon( "mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
 	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 	//Titan Core
@@ -1134,10 +1136,12 @@ void function BossLoadout_Sarah( entity titan )
 	
 	// add back multi-targeting missile for sarah because we've removed vanguard expedition loadout
 	// is that really needed? can npcs use them well? or it will be a bit too overpowered?
+	// idk, guess I'll use cluster missile now
 	titan.TakeOffhandWeapon( OFFHAND_ORDNANCE )
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["missile_racks"] )
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["missile_racks"] )
 	//titan.GetOffhandWeapon( OFFHAND_ORDNANCE ).AddMod( "upgradeCore_MissileRack_Vanguard" ) // fix mod: lock on heavy armor target only
-	
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE )
+
 	titan.TakeOffhandWeapon( OFFHAND_SPECIAL )
 	titan.GiveOffhandWeapon( "mp_titanweapon_heat_shield", OFFHAND_SPECIAL )
 	
@@ -1437,6 +1441,8 @@ void function VanguardBruteLoadout( entity titan )
 	//titan.GiveOffhandWeapon( "mp_titanability_hover", OFFHAND_ANTIRODEO )
 	titan.GiveOffhandWeapon( "mp_titanability_smoke", OFFHAND_ANTIRODEO )
 	//Offence
+	// we have buffed quad rocket that have higher projectile speed and can make npcs do explosion damage
+	// no need to use multi-targeting missile( which extra_spawner branch uses )
 	//titan.GiveOffhandWeapon( "mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
 	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 	//Titan Core. leaving it unchanged, vanguard can't use hover
