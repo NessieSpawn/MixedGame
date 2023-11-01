@@ -1130,7 +1130,7 @@ function TempAirControl( entity player )
 	wait 3.5
 
 	player.kv.airSpeed = player.GetPlayerSettingsField( "airSpeed" )
-	player.kv.airAcceleration = player.GetPlayerSettingsField( "airAcceleration" )
+	player.kv.airAcceleration = GetCurrentPlaylistVarInt( "custom_air_accel_pilot", int( player.GetPlayerSettingsField( "airAcceleration" ) ) )
 }
 
 
@@ -1144,7 +1144,7 @@ function TempLossOfAirControl( entity player, float time )
 	wait time
 
 	player.kv.airSpeed = player.GetPlayerSettingsField( "airSpeed" )
-	player.kv.airAcceleration = player.GetPlayerSettingsField( "airAcceleration" )
+	player.kv.airAcceleration = GetCurrentPlaylistVarInt( "custom_air_accel_pilot", int( player.GetPlayerSettingsField( "airAcceleration" ) ) )
 }
 
 
