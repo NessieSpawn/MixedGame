@@ -1032,7 +1032,7 @@ void function InitDefaultBossTitanList()
 		"behavior_titan",								// titan behavior, we'll need to update it in loadout function, here's just a placeholder( since we've enabled core ability for them, changed from "behavior_titan_buddy" to "behavior_titan" )
 		"execution_bt",									// executionRef
 		"#NPC_TITAN_VANGUARD_SP",						// boss title
-		"鐵馭",											// pilot title. we update it in loadout function
+		"Pilot",										// pilot title. we update it in loadout function
 		$"",											// character model. leaving empty, we update it in loadout function
 		BossLoadout_Vanguard, 							// loadout function
 		1,												// skin index
@@ -1049,7 +1049,7 @@ void function InitDefaultBossTitanList()
 		"behavior_titan_long_range",					// titan behavior
 		"execution_vanguard_kit",						// executionRef
 		"#NPC_GATES_NAME",								// boss title
-		"蓋茨",											// pilot title. can't use localized string
+		"Gates",										// pilot title. can't use localized string
 		$"models/humans/pilots/sp_medium_geist_f.mdl",	// character model
 		BossLoadout_Gates, 								// loadout function
 		-1,												// skin index, -1 means don't reset
@@ -1263,21 +1263,21 @@ void function InitNPCVanguardLoadouts()
 	// droz
 	NPCVanguardPilot drozPilot = clone emptyPilot
 	drozPilot.titanTitle = "#NPC_DROZ_NAME"
-	drozPilot.pilotTitle = "德羅"
+	drozPilot.pilotTitle = "Droz"
 	drozPilot.pilotModel = $"models/humans/pilots/sp_medium_reaper_m.mdl"
 	file.npcVanguardPilots.append( drozPilot )
 
 	// davis
 	NPCVanguardPilot davisPilot = clone emptyPilot
 	davisPilot.titanTitle = "#NPC_DAVIS_NAME"
-	davisPilot.pilotTitle = "戴維斯"
+	davisPilot.pilotTitle = "Davis"
 	davisPilot.pilotModel = $"models/humans/pilots/sp_medium_stalker_m.mdl"
 	file.npcVanguardPilots.append( davisPilot )
 
 	// bear: don't have suitable model for MP, make him never eject
 	NPCVanguardPilot bearPilot = clone emptyPilot
 	bearPilot.titanTitle = "#NPC_BEAR_NAME"
-	bearPilot.pilotTitle = "貝爾"
+	bearPilot.pilotTitle = "Bear"
 	bearPilot.pilotModel = $"models/humans/pilots/pilot_heavy_roog_m.mdl"
 	bearPilot.neverEjects = true
 	file.npcVanguardPilots.append( bearPilot )
