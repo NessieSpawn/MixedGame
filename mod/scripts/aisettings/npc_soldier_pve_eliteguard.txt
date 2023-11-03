@@ -15,5 +15,9 @@ npc_soldier_pve_eliteguard
     Health							120
     PainOnRepeatDamageThreshold		90
 
-    returnToIdleTime		3
+    // taken from npc_soldier_shield_captain
+    headshotFX 					"P_headshot_pilot"
+
+    // removed
+    //returnToIdleTime		3
 }
