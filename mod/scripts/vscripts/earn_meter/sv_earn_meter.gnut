@@ -494,26 +494,6 @@ void function GiveOffhandElectricSmoke( entity titan )
 	}
 }
 
-// CreateAutoTitanForPlayer_FromTitanLoadout's titan won't get an owner immediately, needs to delay
-void function DelayedFixNPCTitanSmokeAmmo( entity titan, entity smokeWeapon )
-{
-	titan.EndSignal( "OnDestroy" )
-	smokeWeapon.EndSignal( "OnDestroy" )
-	WaitEndFrame() // wait for titan owner being assigned in spawn func
-
-	entity soul = titan.GetTitanSoul()
-	if ( IsValid( soul ) )
-	{
-		entity owner = soul.GetBossPlayer() // this requires modified RespawnAsTitan() logic!!!
-		if ( !IsValid( owner ) )
-		{
-			// debug
-			//print( "titan is not pet titan, adding extra ammo" )
-			smokeWeapon.SetWeaponPrimaryAmmoCount( smokeWeapon.GetWeaponPrimaryAmmoCount() + 1 )
-		}
-	}
-}
-
 void function PlayerEarnMeter_SetEnabled( bool enabled )
 {
 	file.earnMeterEnabled = enabled
