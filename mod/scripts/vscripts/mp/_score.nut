@@ -340,6 +340,7 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	else if( victim.IsNPC() ) // vanilla still use KillAutoTitan even if the titan is pet titan... pretty weird
 	{
 		scoreEvent = "KillAutoTitan"
+
 		// modified for npc pilot embarked titan
 #if NPC_TITAN_PILOT_PROTOTYPE
 		if ( hasNPCPilot && !isEjecting )
