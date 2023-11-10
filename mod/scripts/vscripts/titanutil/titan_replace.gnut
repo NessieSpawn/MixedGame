@@ -674,7 +674,9 @@ void function TitanReplace_BecomeAtlas( entity titan, bool isPickup = false, boo
 			// for classic execution titans, always restore to starting execution
 			soul.soul.titanLoadout.titanExecution = TitanReplace_GetSoulStartingExecutionRef( soul )
 			MeleeSyncedTitan_SetSoulShouldReplaceLoadoutOnExecution( soul, true ) // enable execution callbacks for them
-        }
+			// change to atlas classic execution
+			MeleeSyncedTitan_SetSoulClassicExecutionType( soul, "atlas" )
+		}
 	}
 }
 
@@ -1043,6 +1045,8 @@ void function TitanReplace_BecomeStryder( entity titan, bool isPickup = false, b
 			// for classic execution titans, always restore to starting execution
 			soul.soul.titanLoadout.titanExecution = TitanReplace_GetSoulStartingExecutionRef( soul )
 			MeleeSyncedTitan_SetSoulShouldReplaceLoadoutOnExecution( soul, true ) // enable execution callbacks for them
+			// change to stryder classic execution
+			MeleeSyncedTitan_SetSoulClassicExecutionType( soul, "stryder" )
 		}
 	}
 }
@@ -1077,6 +1081,7 @@ void function TitanReplace_BecomeScorch( entity titan, bool isPickup = false, bo
 			TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
 			MeleeSyncedTitan_SetSoulDoClassicExecution( soul, false )
+			MeleeSyncedTitan_SetSoulClassicExecutionType( soul, "ogre" )
 			MeleeSyncedTitan_SetSoulCanBeExecuted( soul, true )
 
 			// spawn as scorch
@@ -1210,6 +1215,7 @@ void function TitanReplace_BecomeLegion( entity titan, bool isPickup = false, bo
 			TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
 			MeleeSyncedTitan_SetSoulDoClassicExecution( soul, false )
+			MeleeSyncedTitan_SetSoulClassicExecutionType( soul, "ogre" )
 			MeleeSyncedTitan_SetSoulCanBeExecuted( soul, true )
 
 			// spawn as legion
@@ -1381,6 +1387,14 @@ void function TitanReplace_BecomeOgre( entity titan, bool isPickup = false, bool
 			// for classic execution titans, always restore to starting execution
 			soul.soul.titanLoadout.titanExecution = TitanReplace_GetSoulStartingExecutionRef( soul )
 			MeleeSyncedTitan_SetSoulShouldReplaceLoadoutOnExecution( soul, true ) // enable execution callbacks for them
+		
+			// only change to ogre classic execution if we're ogre
+			// atlas and stryder pov model don't have "ogpov_melee_armrip_attacker" animation
+			string titanChassis = GetSoulTitanSubClass( soul )
+			if ( titanChassis == "ogre" ) // ogre titan
+				MeleeSyncedTitan_SetSoulClassicExecutionType( soul, "ogre" )
+			else
+				MeleeSyncedTitan_SetSoulClassicExecutionType( soul, titanChassis ) // reset to default
 		}
 	}
 }
