@@ -1095,13 +1095,6 @@
 			}
 		},
 		{
-			"Path": "/nessie/nessie_debug.gnut",
-			"RunOn": "SERVER && MP",
-			"ServerCallback": {
-				"After": "NessieDebug_Init"
-			}
-		}, 
-		{
 			"Path": "/modweapons/mp_weapon_grenade_creeping_bombardment.nut",
 			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
