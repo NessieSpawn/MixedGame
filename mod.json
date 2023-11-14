@@ -1485,10 +1485,7 @@
 		},
 		// mod melee end
 		// game utilities
-		{
-			"Path": "/gameutil/autokick.nut",
-			"RunOn": "SERVER && MP"
-		},
+		// note: teamshuffle.nut and private_chat.gnut has been removed from this branch
 		{
 			"Path": "/gameutil/teamshuffle.nut",
 			"RunOn": "SERVER && MP"
@@ -1502,13 +1499,6 @@
 			"RunOn": "SERVER && MP",
             "ServerCallback": {
                 "After": "Titan_Respawn_Protection_Init"
-            }
-		},
-		{
-			"Path": "/gameutil/private_chat.gnut",
-			"RunOn": "SERVER && MP",
-            "ServerCallback": {
-                "After": "Private_ChatMessage_Init"
             }
 		},
 		// game utilities end
@@ -1605,6 +1595,7 @@
 		},
 		// multiplayer boss titan end
 		// nessie funny scripts
+		// note: nessie_debug.gnut has been removed from this branch
 		{
 			"Path": "/nessie/taunt.gnut",
 			"RunOn": "SERVER && MP"
