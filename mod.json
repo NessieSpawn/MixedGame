@@ -1485,25 +1485,14 @@
 		},
 		// mod melee end
 		// game utilities
-		// note: titan_respawn_protection.gnut has been removed from this branch
+		// note: teamshuffle.nut, titan_respawn_protection.gnut and private_chat.gnut has been removed from this branch
 		{
 			"Path": "/gameutil/autokick.nut",
 			"RunOn": "SERVER && MP"
 		},
 		{
-			"Path": "/gameutil/teamshuffle.nut",
-			"RunOn": "SERVER && MP"
-		},
-		{
 			"Path": "/gameutil/forced_playlist.gnut",
 			"RunOn": "SERVER && MP"
-		},
-		{
-			"Path": "/gameutil/private_chat.gnut",
-			"RunOn": "SERVER && MP",
-            "ServerCallback": {
-                "After": "Private_ChatMessage_Init"
-            }
 		},
 		// game utilities end
 		// modded multiplayer utilities
