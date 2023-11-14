@@ -1487,7 +1487,7 @@
 		// game utilities
 		// note: teamshuffle.nut and private_chat.gnut has been removed from this branch
 		{
-			"Path": "/gameutil/teamshuffle.nut",
+			"Path": "/gameutil/autokick.nut",
 			"RunOn": "SERVER && MP"
 		},
 		{
