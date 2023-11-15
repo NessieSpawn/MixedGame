@@ -80,11 +80,14 @@ bool function WargamesDissolveDeadEntity( entity deadEnt, var damageInfo )
 	damageType = damageType | ~DF_DISSOLVE // remove any dissolving that could happen to player
 	DamageInfo_SetCustomDamageType( damageInfo, damageType )
 
-	thread DelayedDissolveDeadEntity( deadEnt )
+	// removed delayed dissolve here
+	//thread DelayedDissolveDeadEntity( deadEnt )
+	DissolveEntityWrapped( deadEnt )
 
 	return true // dissolving succeeded
 }
 
+/*
 void function DelayedDissolveDeadEntity( entity deadEnt )
 {
 	WaitFrame() // wait for next frame so we don't mess up ragdolls( seems can't fix )
@@ -93,15 +96,21 @@ void function DelayedDissolveDeadEntity( entity deadEnt )
 	if ( !IsValid( deadEnt ) || IsAlive( deadEnt ) )
 		return
 
+	DissolveEntityWrapped( deadEnt )
+}
+*/
+
+void function DissolveEntityWrapped( entity ent )
+{
 	// we never do dissolve during other gamestates, otherwise we may hide the entity forever
 	// player dissolving cleanup handled by EnsureWargamesDeathEffectIsClearedForPlayer()
 	if ( GamePlayingOrSuddenDeath() || GetGameState() == eGameState.Epilogue )
 	{
-		deadEnt.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 500 )
-		EmitSoundAtPosition( TEAM_UNASSIGNED, deadEnt.GetOrigin(), "Object_Dissolve" )
+		ent.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 500 )
+		EmitSoundAtPosition( TEAM_UNASSIGNED, ent.GetOrigin(), "Object_Dissolve" )
 		
-		if ( deadEnt.IsPlayer() )
-			thread EnsureWargamesDeathEffectIsClearedForPlayer( deadEnt )
+		if ( ent.IsPlayer() )
+			thread EnsureWargamesDeathEffectIsClearedForPlayer( ent )
 	}
 }
 
@@ -373,10 +382,17 @@ void function PlayerWatchesWargamesIntro( entity player )
 	
 	int factionTeam = ConvertPlayerFactionToIMCOrMilitiaTeam( player )
 	entity playerPod
+	// default team is IMC
+	/*
 	if ( factionTeam == TEAM_IMC )
 		playerPod = file.imcPod
 	else
 		playerPod = file.militiaPod
+	*/
+	if ( factionTeam == TEAM_MILITIA )
+		playerPod = file.militiaPod
+	else
+		playerPod = file.imcPod
 	
 	// setup player
 	int podAttachId = playerPod.LookupAttachment( "REF" )
@@ -411,8 +427,11 @@ void function PlayerWatchesWargamesIntro( entity player )
 	podIdleSequence.attachment = "REF"
 	thread FirstPersonSequence( podIdleSequence, player, playerPod )
 	
-	ScreenFadeFromBlack( player, max( 0.0, ( file.introStartTime + 0.5 ) - Time() ), max( 0.0, ( file.introStartTime + 0.5 ) - Time() ) )
-	
+	// reworked here: for matching other intro spawn, always do same screen fade
+	//ScreenFadeFromBlack( player, max( 0.0, ( file.introStartTime + 0.5 ) - Time() ), max( 0.0, ( file.introStartTime + 0.5 ) - Time() ) )
+	//ScreenFadeFromBlack( player, max( 0.0, ( file.introStartTime + 3.0 ) - Time() ), max( 0.0, ( file.introStartTime + 1.0 ) - Time() ) )
+	ScreenFadeFromBlack( player, 3.0, 1.0 )
+
 	// also get eye positions for fx here
 	if ( file.imcPodFXEyePos == < 0, 0, 0 > && factionTeam == TEAM_IMC )
 		file.imcPodFXEyePos = player.EyePosition()
