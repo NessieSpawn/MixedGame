@@ -35,7 +35,8 @@ struct
 
 void function GamemodeAITdm_Init()
 {
-	SetSpawnpointGamemodeOverride( ATTRITION ) // use bounty hunt spawns as vanilla game has no spawns explicitly defined for aitdm
+	// you can't be serious. gamemode_tdm spawns are for AITdm
+	//SetSpawnpointGamemodeOverride( ATTRITION ) // use bounty hunt spawns as vanilla game has no spawns explicitly defined for aitdm
 
 	AddCallback_GameStateEnter( eGameState.Prematch, OnPrematchStart )
 	AddCallback_GameStateEnter( eGameState.Playing, OnPlaying )
@@ -169,15 +170,21 @@ bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var 
 	// Basic checks
 	if ( !IsValid( attacker ) )
 		return false
+
+	// Team filter
+	if ( victim.GetTeam() == attacker.GetTeam() )
+		return false
+	
+	// gamestate, attacker class and selfdamage checks
 	if ( victim == attacker || !( attacker.IsPlayer() || attacker.IsTitan() ) || GetGameState() != eGameState.Playing )
+		return false
+	// NPC titans without an owner player will not count towards any team's score
+	if ( attacker.IsNPC() && attacker.IsTitan() && !IsValid( GetPetTitanOwner( attacker ) ) )
 		return false
 	
 	// Hacked spectre and pet titan filter
+	// ( though hacked spectres already handled by npc.s.givenAttritionScore )
 	if ( victim.GetOwner() == attacker || victim.GetBossPlayer() == attacker )
-		return false
-	
-	// NPC titans without an owner player will not count towards any team's score
-	if ( attacker.IsNPC() && attacker.IsTitan() && !IsValid( GetPetTitanOwner( attacker ) ) )
 		return false
 
 	// all checks passed
@@ -187,6 +194,8 @@ bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var 
 bool function VictimIsValidForAITdmScore( entity victim )
 {
 	// if victim is a non-titan npc that owned by players, don't add score
+	// vanilla doesn't seem to have this check, and we've added npc.s.givenAttritionScore for hacked spectres
+	/*
 	if ( victim.IsNPC() && !victim.IsTitan() )
 	{
 		entity bossPlayer = victim.GetBossPlayer()
@@ -202,6 +211,10 @@ bool function VictimIsValidForAITdmScore( entity victim )
 				return false
 		}
 	}
+	*/
+	// check whether this npc has given score or not
+	if ( "givenAttritionScore" in victim.s )
+		return false
 
 	// all checks passed
 	return true
@@ -229,6 +242,7 @@ void function SpawnIntroBatch_Threaded( int team )
 	
 	// mp_rise has weird droppod_start nodes, this gets around it
 	// To be more specific the teams aren't setup and some nodes are scattered in narnia
+	/*
 	if( GetMapName() == "mp_rise" )
 	{
 		entity spawnPoint
@@ -262,6 +276,14 @@ void function SpawnIntroBatch_Threaded( int team )
 			if ( node.GetTeam() == team )
 				podNodes.append( node )
 		}
+	}
+	*/
+
+	// Sort per team
+	foreach ( node in dropPodNodes )
+	{
+		if ( node.GetTeam() == team )
+			podNodes.append( node )
 	}
 
 	shipNodes = GetValidIntroDropShipSpawn( podNodes )
