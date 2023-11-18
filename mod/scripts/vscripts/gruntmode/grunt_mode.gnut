@@ -112,7 +112,8 @@ void function Modded_Gamemode_GruntMode_Init()
 {
 	BecomesGruntMode_Init() // init everything
 
-	SetSpawnpointGamemodeOverride( ATTRITION ) // use bounty hunt spawns as vanilla game has no spawns explicitly defined for aitdm
+	// this is incorrect. gamemode_tdm spawns are for AITdm
+	//SetSpawnpointGamemodeOverride( ATTRITION ) // use bounty hunt spawns as vanilla game has no spawns explicitly defined for aitdm
 
 	AddCallback_GameStateEnter( eGameState.Prematch, OnPrematchStart )
 	AddCallback_GameStateEnter( eGameState.Playing, OnPlaying )
@@ -402,7 +403,16 @@ void function HandleScoreForPlayerOrNPCKill( entity victim, entity attacker, var
 
 bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var damageInfo )
 {
+	// shouldn't be able to add score during other state after game logic fix.. just handle here
+	if ( !GamePlayingOrSuddenDeath() )
+		return false
+	
 	if( !IsValid( attacker ) )
+		return false
+	
+	// Team filter -- don't want Friendly Fire able to influence score
+	// make it a setting
+	if ( victim.GetTeam() == attacker.GetTeam() && !FriendlyFire_ShouldAddScoreOnFriendlyKill() )
 		return false
 
 	if( !attacker.IsNPC() && !attacker.IsPlayer() ) // not killed by any combat character
@@ -411,14 +421,9 @@ bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var 
 	if ( attacker == victim ) // suicide!
 		return false
 
-	// npc titan case
-	if ( victim.IsTitan() && victim.IsNPC() )
-	{
-		entity soul = victim.GetTitanSoul()
-		// victim is titan but their bossPlayer is attacker... usually happens when ejecting without taking damage
-		if ( IsValid( soul ) && GetPetTitanOwner( victim ) == attacker )
-			return false
-	}
+	// player owned npcs filter
+	if ( victim.GetOwner() == attacker || victim.GetBossPlayer() == attacker )
+		return false
 
 	// all checks passed
 	return true
@@ -427,6 +432,8 @@ bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var 
 bool function VictimIsValidForAITdmScore( entity victim )
 {
 	// if victim is a non-titan npc that owned by players, don't add score
+	// vanilla doesn't seem to have this check
+	/*
 	if ( victim.IsNPC() && !victim.IsTitan() )
 	{
 		entity bossPlayer = victim.GetBossPlayer()
@@ -442,6 +449,7 @@ bool function VictimIsValidForAITdmScore( entity victim )
 				return false
 		}
 	}
+	*/
 
 	// all checks passed
 	return true
