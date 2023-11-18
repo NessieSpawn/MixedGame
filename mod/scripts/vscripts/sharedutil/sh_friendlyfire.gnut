@@ -133,7 +133,11 @@ void function FriendlyFire_EnableFriendlyKillScoreCredit( bool enable )
 	file.killFriendlyScoreCredit = enable
 }
 
-bool FriendlyFire_ShouldAddScoreOnFriendlyKill()
+bool function FriendlyFire_ShouldAddScoreOnFriendlyKill()
 {
-	file.killFriendlyScoreCredit
+	// playlistvar overrides script!
+	if ( GetCurrentPlaylistVarInt( "friendly_kill_credit", 0 ) != 0 )
+		return true
+	
+	return file.killFriendlyScoreCredit
 }
