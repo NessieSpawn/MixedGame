@@ -173,7 +173,7 @@ void function GameModifier_Bleedout_Init()
     Bleedout_EnableExecutingBleedingPlayer( true ) // funny
 	//Bleedout_SetIncapShieldInvulnerable( true ) // op
 	//Bleedout_AllowInterruptSelfRes( false ) // meaning you can choose weather allow teammate revive you, complicated
-	SetShouldPlayerStartBleedoutFunc( GamemodeBleedout_PlayerDownedCheck ) // using this will also check shield health
+	SetShouldPlayerStartBleedoutFunc( ModifierBleedout_PlayerDownedCheck ) // using this will also check shield health
 	Bleedout_SetBleedoutDofEnabled( false ) // disables annoying dof
 	Bleedout_SetDownedGracePeriodEnabled( false ) // disable annoying sound
 
@@ -191,6 +191,8 @@ void function GameModifier_Bleedout_Init()
     SetWeaponDropsEnabled( false ) // bleedout uses USE so much, don't let players drop weapons
 	// modified function in _score.nut, override "KillPilot" with "EliminatePilot"
 	ScoreEvent_SetScoreEventNameOverride( "KillPilot", "EliminatePilot" )
+	// balance player earnmeter gain based on team score
+	EarnMeterMP_SetPassiveGainProgessEnable( true )
 
     // from pilot_shield_battery.gnut, shield battery main mechanic
     SetPilotBatteryUsageAllowed( true )
@@ -321,6 +323,15 @@ void function OnClientDisconnected( entity player )
 
 void function OnPlayerClassChanged( entity player )
 {
+	// class change will cancel out health update, needs to handle here
+	UpdateRespawnedPlayerHealthAndShield( player )
+
+    //print( "Running OnPlayerClassChanged()" )
+    thread Bleedout_HealthRegenThink( player )
+}
+
+void function UpdateRespawnedPlayerHealthAndShield( entity player )
+{
 	// health&shield update
 	if ( IsAlive( player ) ) // can't set health for a no-alive entity
 	{
@@ -332,9 +343,6 @@ void function OnPlayerClassChanged( entity player )
 			player.SetShieldHealth( BLEEDOUT_MODE_SHIELD_HEALTH )
 		}
 	}
-
-    //print( "Running OnPlayerClassChanged()" )
-    thread Bleedout_HealthRegenThink( player )
 }
 
 void function OnPlayerRespawned( entity player )
@@ -352,6 +360,12 @@ void function OnPlayerRespawned( entity player )
 
 void function OnPlayerGetsPilotLoadout( entity player, PilotLoadoutDef p )
 {
+	// adding only class change callback can't handle all cases 
+	// because we've reworked player class change after death and on respawn
+	// if they didn't enter kill replay and didn't change loadout class( changing pilot or kits that modify classmods )
+	// their class won't get changed on respawn, we need to handle again on loadout update
+	UpdateRespawnedPlayerHealthAndShield( player )
+
     // FUCKOFFCLOAK( player )
     // don't enable Nessy_EnableAllFunny_Init(), will conflict, use it's function instead
     ClearNessy( player )
@@ -961,7 +975,7 @@ void function GetShieldLeft( entity player )
 
 
 // Gamemode Functions!!!
-bool function GamemodeBleedout_PlayerDownedCheck( entity victim, var damageInfo )
+bool function ModifierBleedout_PlayerDownedCheck( entity victim, var damageInfo )
 {
 	bool isBypassShield = ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_BYPASS_SHIELD ) > 0
 	// doing a better check including shield health
