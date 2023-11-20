@@ -25,6 +25,7 @@ global function SuperSpectre_SetNukeExplosionDamageEffect
 global function SuperSpectre_SetSpawnerTickExplodeOnOwnerDeath // ticks will go explode if their owner reaper nuke or gibbed
 global function SuperSpectre_SetSpawnerTickMaxCount // decides how many ticks this reaper can own
 global function SuperSpectre_SetDoNukeBeforeDeath // reapers will do nuke before their actual death, similar to stalker overload. this makes score reward goes later, but their highlight and title stuffs won't be removed until nuke sequence ends
+global function SuperSpectre_SetDoBodyGroupUpdateOnDamage // adding back this vanilla removed feature and make it a setting
 //
 
 // shared utility
@@ -36,6 +37,7 @@ global function SuperSpectre_IsReaperDoingNukeSequence // returns true if this r
 // Super Spectre keeps an array of the minions it spawned.
 // Each of those minions has a reference back to it's "master."
 //==============================================================
+// nessie note: these're not used at all... spectre spawning now handled by purely script
 const FRAG_DRONE_BATCH_COUNT				= 10
 const FRAG_DRONE_IN_FRONT_COUNT				= 2
 const FRAG_DRONE_MIN_LAUNCH_COUNT			= 4
@@ -49,16 +51,18 @@ const SPAWN_FUSE_TIME						= 2.0	  	// How long after being fired before the spa
 const SPAWN_PROJECTILE_AIR_TIME				= 3.0    	// How long the spawn project will be in the air before hitting the ground.
 const SPECTRE_EXPLOSION_DMG_MULTIPLIER		= 1.2 		// +20%
 const DEV_DEBUG_PRINTS						= false
-// new adding, was in functions, need to use them for default values
+
+// new adding consts. was in functions, need to use them as default values
 const int MAX_TICKS = 4
 const int SUPER_SPECTRE_NUKE_DEATH_THRESHOLD = 300 // make it a file const
 
 // modified!!!
+// default values are from damagedef.txt
 struct ReaperNukeDamage
 {
 	int count = 8
 	float duration = 1.0
-	int damage = 85 //[$mp]
+	int damage = 85 //[$mp] value
 	int damageHeavyArmor = 700
 	int innerRadius = 330
 	int outerRadius = 430
@@ -77,8 +81,7 @@ struct
 	table<entity, bool> reaperDoingNukeSequence
 
 	// modified...
-	// so you can add nuke reapers without have to change their aisettings
-	array<entity> forceNukeReapers
+	array<entity> forceNukeReapers // so you can add nuke reapers without have to change their aisettings
 	table<entity, int> reaperNukeDamageThreshold
 	table<entity, bool> reaperForcedKilledByTitans
 	table<entity, bool> reaperAsNukeAttacker
@@ -86,8 +89,8 @@ struct
 	table<entity, ReaperNukeDamage> reaperNukeDamageOverrides
 	table<entity, bool> reaperMinionExplodeOwnerDeath
 	table<entity, int> reaperMinionMaxCount
-	// new nuke think to make it more like stalkers: do nuke before actual death
-	table<entity, bool> reaperDoNukeBeforeDeath
+	table<entity, bool> reaperDoNukeBeforeDeath // new nuke think to make it more like stalkers: do nuke before actual death
+	table<entity, bool> reaperDoBodyGroupUpdateOnDamage // adding back this vanilla removed feature and make it a setting
 	//
 } file
 
@@ -116,7 +119,9 @@ function AiSuperspectre_Init()
 
 	AddDeathCallback( "npc_super_spectre", SuperSpectreDeath )
 	AddDamageCallback( "npc_super_spectre", SuperSpectre_OnDamage )
+	// adding back this vanilla removed feature and make it a setting
 	//AddPostDamageCallback( "npc_super_spectre", SuperSpectre_PostDamage )
+	AddPostDamageCallback( "npc_super_spectre", SuperSpectre_PostDamage )
 
 	file.activeMinions_GlobalArrayIdx = CreateScriptManagedEntArray()
 
@@ -260,8 +265,8 @@ void function SuperSpectre_StartNukeSequence( entity npc, entity attacker = null
 	AI_CreateDangerousArea_DamageDef( damagedef_reaper_nuke, nukeFXInfoTarget, TEAM_INVALID, true, true )
 
 	// needs to do animations manually because nuke sequence is actually reaper's death activity
-	PlayDeathAnimByActivity( npc )
-	//PlayRandomReaperDeathAnim( npc )
+	//PlayDeathAnimByActivity( npc )
+	PlayRandomReaperDeathAnim( npc )
 	thread ReaperNukeSequenceFailSafe( npc ) // failsafe handler: detonate reaper after certain delay
 
 	// wait for nuke anim to signal
@@ -305,6 +310,7 @@ void function ReaperNukeSequenceFailSafe( entity npc )
 	}
 }
 
+// this can't intterupt reaper's attack anim...
 void function PlayDeathAnimByActivity( entity npc )
 {
 	npc.Anim_Stop()
@@ -324,10 +330,15 @@ void function PlayRandomReaperDeathAnim( entity npc )
 {
 	npc.Anim_Stop()
 	thread PlayAnim( npc, REAPER_NUKE_ANIMS[ RandomInt( REAPER_NUKE_ANIMS.len() ) ] )
+	npc.Anim_DisableSequenceTransition() // ignore blending, stops current attack anim stuffs immediately
 }
+// modified stuffs ends
 
 void function SuperSpectre_PostDamage( entity npc, var damageInfo )
 {
+	// adding back this vanilla removed feature and make it a setting
+	// with some modifications: lowerbody switch at 66% health, upperbody switch at 33% health, like cl_super_spectre.nut's healthFX ratio
+	/*
 	float switchRatio = 0.33
 	float ratio = HealthRatio( npc )
 	if ( ratio < switchRatio )
@@ -342,6 +353,29 @@ void function SuperSpectre_PostDamage( entity npc, var damageInfo )
 	npc.SetBodygroup( bodygroup, 1 )
 	bodygroup = npc.FindBodyGroup( "upperbody" )
 	npc.SetBodygroup( bodygroup, 1 )
+	*/
+
+	// this is actually doomed bodygroup like titans
+	if ( ShouldReaperDoDamagedBodyGroupUpdate( npc ) )
+	{
+		float ratio = HealthRatio( npc )
+		float newRatio = ( npc.GetHealth() - DamageInfo_GetDamage( damageInfo ) ) / npc.GetMaxHealth()
+		if ( ratio > 0.66 && newRatio < 0.66 ) // lower body switch
+		{
+			//print( "Reaper lower body broke!!!" )
+			int bodygroup = npc.FindBodyGroup( "lowerbody" )
+			//if ( bodygroup > 0 ) // bodygroup can be 0??? seems only -1 means invalid bodygroup
+			if ( bodygroup > -1 )
+				npc.SetBodygroup( bodygroup, 1 )
+		}
+		else if ( ratio > 0.33 && newRatio < 0.33 ) // upper body switch
+		{
+			//print( "Reaper upper body broke!!!" )
+			int bodygroup = npc.FindBodyGroup( "upperbody" )
+			if ( bodygroup > -1 )
+				npc.SetBodygroup( bodygroup, 1 )
+		}
+	}
 }
 
 void function SuperSpectreDeath( entity npc, var damageInfo )
@@ -1238,6 +1272,13 @@ void function SuperSpectre_SetDoNukeBeforeDeath( entity ent, bool doNukeBeforeDe
 	file.reaperDoNukeBeforeDeath[ ent ] = doNukeBeforeDeath
 }
 
+void function SuperSpectre_SetDoBodyGroupUpdateOnDamage( entity ent, bool updateBodyGroupOnDamage )
+{
+	if ( !( ent in file.reaperDoBodyGroupUpdateOnDamage ) )
+		file.reaperDoBodyGroupUpdateOnDamage[ ent ] <- false // default value
+	file.reaperDoBodyGroupUpdateOnDamage[ ent ] = updateBodyGroupOnDamage
+}
+
 // get modified settings
 int function GetNukeDeathThreshold( entity ent )
 {
@@ -1338,8 +1379,16 @@ bool function ShouldReaperDoNukeBeforeDeath( entity ent )
 	return file.reaperDoNukeBeforeDeath[ ent ]
 }
 
+// shared func
 bool function SuperSpectre_IsReaperDoingNukeSequence( entity ent )
 {
 	return file.reaperDoingNukeSequence[ ent ]
+}
+
+bool function ShouldReaperDoDamagedBodyGroupUpdate( entity ent )
+{
+	if ( !( ent in file.reaperDoBodyGroupUpdateOnDamage ) )
+		return false // default value
+	return file.reaperDoBodyGroupUpdateOnDamage[ ent ]
 }
 //
