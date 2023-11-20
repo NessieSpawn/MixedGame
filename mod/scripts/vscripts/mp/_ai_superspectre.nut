@@ -331,27 +331,48 @@ void function ReaperNukeSequenceFailSafe( entity npc )
 // bit more like death animation, they also can be delayed until reaper has nothing to do
 void function ReaperNukeSequenceThink( entity npc, entity nukeFXInfoTarget )
 {
+	// starting sequence and setup
+	EmitSoundOnEntity( nukeFXInfoTarget, "ai_reaper_nukedestruct_warmup_3p" )
 	PlayDeathAnimByActivity( npc ) // play the anim before think starts
+
+	// for fun
+	entity nukeBodyFX = PlayFXOnEntity( $"P_sup_spectre_warn_body", npc, "exp_torso_core_fx" )
+	nukeBodyFX.DisableHibernation()
 
 	npc.EndSignal( "OnDestroy" )
 	npc.EndSignal( "OnDeath" )
 	npc.EndSignal( "death_explosion" )
 
-	float failsafeTime = 5.0 // bit longer failsafe timer to make it more like death animations
-	float startTime = Time() // for debugging
+	// removed because we're adding initial time for nuke anim
+	//float failsafeTime = 5.0 // bit longer failsafe timer to make it more like death animations
+	float failsafeTime = 3.3
+	float startTime = Time()
 	float endTime = Time() + failsafeTime
 
-	bool playedSound = false
+	bool playedSound = true // we did sound above, here we mark it as true
 	while ( Time() < endTime )
 	{
+		// this must means reaper isn't actually playing animation, they got some schedule to do...
 		if ( !npc.Anim_IsActive() )
 		{
 			//print( "reaper still don't have anim active!" )
 			//print( "elapsed time: " + string( Time() - startTime ) )
 			PlayDeathAnimByActivity( npc ) // keep it trying...
+			npc.Anim_SetInitialTime( Time() - startTime ) // jump to the time nuke should start
+
+			// clean up sound, we do it again later
+			// removed because we're adding initial time for nuke anim
+			//StopSoundOnEntity( nukeFXInfoTarget, "ai_reaper_nukedestruct_warmup_3p" )
+			//playedSound = false
 		}
 
 		// animation succesfully function
+		// welp, seems script will recognize anim as active even after reaper failed to do so
+		// anim will restart after ~1.3s by code above, should be working fine
+		// but... sound fix doesn't seem very useful because of this
+		// it's always played right after reaper starts nuke, just like we place it in SuperSpectre_StartNukeSequence()
+		// removed because we're adding initial time for nuke anim
+		/*
 		if ( npc.Anim_IsActive() )
 		{
 			if ( !playedSound && IsValid( nukeFXInfoTarget ) ) // only do sound once no matter what's happening
@@ -362,6 +383,7 @@ void function ReaperNukeSequenceThink( entity npc, entity nukeFXInfoTarget )
 				playedSound = true
 			}
 		}
+		*/
 
 		WaitFrame()
 	}
