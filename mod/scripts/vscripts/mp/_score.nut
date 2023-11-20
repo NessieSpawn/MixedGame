@@ -57,8 +57,6 @@ void function Score_Init()
 
 	// modified
 	InitTitanKilledDialogues()
-	AddCallback_OnNPCKilled( CheckForAutoTitanDeath )
-	AddCallback_OnPlayerKilled( CheckForAutoTitanDeath )
 }
 
 // modified!!!
@@ -397,55 +395,6 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 		// wrap into this function
 		ScoreEvent_PlayerAssist( damageHistorySaver, attacker, "TitanAssist" )
 	}
-}
-
-// this can also handle npc killing another npc condition
-void function CheckForAutoTitanDeath( entity victim, entity attacker, var damageInfo )
-{
-	if ( !IsValid( victim ) || !victim.IsTitan() )
-		return
-
-	if ( !IsValid( attacker ) )
-		return
-
-	// obit
-	NotifyClientsOfTitanDeath( victim, attacker, damageInfo )
-}
-
-// titan killed remotecall. was previously be in _base_gametype_mp.gnut, which is bad
-void function NotifyClientsOfTitanDeath( entity victim, entity attacker, var damageInfo )
-{
-	if ( !IsValid( victim ) || !victim.IsTitan() )
-		return
-
-	// below are from SendEntityKilledEvent(), removed headshot checks
-	entity attacker = DamageInfo_GetAttacker( damageInfo )
-	// trigger_hurt is no longer networked, so the "attacker" fails to display obituaries
-	if ( attacker )
-	{
-		string attackerClassname = attacker.GetClassName()
-
-		if ( attackerClassname == "trigger_hurt" || attackerClassname == "trigger_multiple" )
-			attacker = GetEntByIndex( 0 ) // worldspawn
-	}
-
-	int attackerEHandle = victim.GetEncodedEHandle() // by default we just use victim's EHandle
-	// ServerCallback_OnTitanKilled() is not using "GetHeavyWeightEntityFromEncodedEHandle()"
-	// which means we can't pass a non-heavy weighted entity into it
-	// non-heavy weighted entity including projectile stuffs
-	// all movers, props, npcs and players are heavy weighted
-	if ( IsValid( attacker ) && !attacker.IsProjectile() )
-		attackerEHandle = attacker.GetEncodedEHandle()
-
-	int victimEHandle = victim.GetEncodedEHandle()
-	int scriptDamageType = DamageInfo_GetCustomDamageType( damageInfo )
-	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
-
-	if ( scriptDamageType & DF_VORTEX_REFIRE )
-		damageSourceId = eDamageSourceId.mp_titanweapon_vortex_shield
-
-	foreach ( player in GetPlayerArray() )
-		Remote_CallFunction_NonReplay( player, "ServerCallback_OnTitanKilled", attackerEHandle, victimEHandle, scriptDamageType, damageSourceId )
 }
 
 void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageInfo )

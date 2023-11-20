@@ -123,9 +123,6 @@ void function BaseGametype_Init_MPSP()
 	// was using AddCallback_OnPlayerKilled() and AddCallback_OnNPCKilled(), but these two won't get called if attacker invalid
 	AddDeathCallback( "player", HandleTitanDeathObit )
 	AddDeathCallback( "npc_titan", HandleTitanDeathObit )
-
-	// modified doomed state handle
-	AddCallback_OnTitanDoomed( HandleTitanDoomedObit )
 }
 
 void function SetIntermissionCamera( entity camera )
@@ -818,14 +815,6 @@ void function HandleTitanDeathObit( entity victim, var damageInfo )
 	if ( !IsValid( victim ) || !victim.IsTitan() )
 		return
 
-	// modified function in _titan_health.gnut, recovering ttf1 behavior: we do obit on doom but not on death for health loss titans
-	if ( !TitanHealth_GetSoulInfiniteDoomedState( victim.GetTitanSoul() ) )
-		return
-
-	// modified function in _codecallbacks_common.gnut
-	if ( EntityKilledEvent_IsDisabledForEntity( victim ) )
-		return
-
 	// obit
 	NotifyClientsOfTitanDeath( victim, damageInfo )
 }
@@ -874,15 +863,6 @@ void function NotifyClientsOfTitanDeath( entity victim, var damageInfo )
 
 	foreach ( player in GetPlayerArray() )
 		Remote_CallFunction_NonReplay( player, "ServerCallback_OnTitanKilled", attackerEHandle, victimEHandle, scriptDamageType, damageSourceId )
-}
-
-// this is a modified case for doomed health loss titans: fake ttf1 behavior, do obit on doom instead of on death
-void function HandleTitanDoomedObit( entity titan, var damageInfo )
-{
-	// obit
-	// modified function in _titan_health.gnut, recovering ttf1 behavior: we do obit on doom but not on death for health loss titans
-	if ( !TitanHealth_GetSoulInfiniteDoomedState( titan.GetTitanSoul() ) )
-		NotifyClientsOfTitanDeath( titan, damageInfo )
 }
 
 // modified here!!!
