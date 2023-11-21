@@ -98,7 +98,11 @@ global function DevPrintAllStatusEffectsOnEnt
 	// below for modified weapons setup their unique OnDamage effects
 	global function PROTO_Flak_Rifle_DamagedPlayerOrNPC
 	global function TripleThreatGrenade_DamagedPlayerOrNPC
-	global function VanguardEnergySiphon_DamagedPlayerOrNPC
+	// now moving everything about monarch into mp_titanweapon_stun_laser.nut because we've globalized Electricity_DamagedPlayerOrNPC()
+	//global function VanguardEnergySiphon_DamagedPlayerOrNPC
+
+	// global settings: emp affects shield
+	global function WeaponUtility_SetEMPAffectsShieldDamageScale // note that we also have a modified parameter in EMPGrenade_AffectsShield(), this scale multiply with that given value
 #endif //SERVER
 #if CLIENT
 	global function GlobalClientEventHandler
@@ -116,13 +120,18 @@ global const PROJECTILE_NOT_LAG_COMPENSATED = false
 
 const float EMP_SEVERITY_SLOWTURN = 0.35
 const float EMP_SEVERITY_SLOWMOVE = 0.50
-const float LASER_STUN_SEVERITY_SLOWTURN = 0.20
-const float LASER_STUN_SEVERITY_SLOWMOVE = 0.30
+// modified settings
+global const float EMP_AFFECTS_SHIELD_SCALE = 0.50
+
+// now moving everything about monarch into mp_titanweapon_stun_laser.nut because we've globalized Electricity_DamagedPlayerOrNPC()
+//const float LASER_STUN_SEVERITY_SLOWTURN = 0.20
+//const float LASER_STUN_SEVERITY_SLOWMOVE = 0.30
 
 const asset FX_EMP_BODY_HUMAN			= $"P_emp_body_human"
 const asset FX_EMP_BODY_TITAN			= $"P_emp_body_titan"
-const asset FX_VANGUARD_ENERGY_BODY_HUMAN		= $"P_monarchBeam_body_human"
-const asset FX_VANGUARD_ENERGY_BODY_TITAN		= $"P_monarchBeam_body_titan"
+// now moving everything about monarch into mp_titanweapon_stun_laser.nut because we've globalized Electricity_DamagedPlayerOrNPC()
+//const asset FX_VANGUARD_ENERGY_BODY_HUMAN		= $"P_monarchBeam_body_human"
+//const asset FX_VANGUARD_ENERGY_BODY_TITAN		= $"P_monarchBeam_body_titan"
 const SOUND_EMP_REBOOT_SPARKS = "marvin_weld"
 const FX_EMP_REBOOT_SPARKS = $"weld_spark_01_sparksfly"
 const EMP_GRENADE_BEAM_EFFECT	= $"wpn_arc_cannon_beam"
@@ -170,6 +179,13 @@ struct
 
 	// add fix for thermite sound
 	table<entity, float> entNextThermiteSoundAllowedTime
+
+	// for fun: we handle parented entity gets destroyed
+	// already have ent.e.attachedEnts in entityStruct, using a bit diffirent name
+	table< entity, array<entity> > entStickyAttachedEnts
+
+	// modified settings
+	float empAffectsShieldDamageScale = 1.0  // note that we also have a modified parameter in EMPGrenade_AffectsShield(), this scale multiply with that given value
 } file
 
 global int HOLO_PILOT_TRAIL_FX
@@ -215,8 +231,9 @@ function WeaponUtility_Init()
 	PrecacheParticleSystem( EMP_GRENADE_BEAM_EFFECT )
 	PrecacheParticleSystem( FX_EMP_BODY_TITAN )
 	PrecacheParticleSystem( FX_EMP_BODY_HUMAN )
-	PrecacheParticleSystem( FX_VANGUARD_ENERGY_BODY_HUMAN )
-	PrecacheParticleSystem( FX_VANGUARD_ENERGY_BODY_TITAN )
+	// now moving everything about monarch into mp_titanweapon_stun_laser.nut because we've globalized Electricity_DamagedPlayerOrNPC()
+	//PrecacheParticleSystem( FX_VANGUARD_ENERGY_BODY_HUMAN )
+	//PrecacheParticleSystem( FX_VANGUARD_ENERGY_BODY_TITAN )
 	PrecacheParticleSystem( FX_EMP_REBOOT_SPARKS )
 
 	PrecacheImpactEffectTable( CLUSTER_ROCKET_FX_TABLE )
@@ -739,8 +756,16 @@ bool function PlantStickyEntityOnWorldThatBouncesOffWalls( entity ent, table col
 	//if ( hitEnt && ( hitEnt.IsWorld() || hitEnt.HasPusherRootParent() ) )
 	if ( hitEnt )
 	{
-		if( hitEnt.GetClassName() == "script_mover" ) // better not stick to movers
+		// fix for map props: we allow any valid entity in level.stickyClasses
+		// just like PlantStickyEntity() checks( which wrapped into function EntityCanHaveStickyEnts() )
+		//if ( !hitEnt.IsWorld() && (!hitEnt.IsTitan() || !allowEntityStick) )
+		if ( ( !hitEnt.IsWorld() && !hitEnt.HasPusherRootParent() ) // vanilla check
+			 && !( hitEnt.GetClassName() in level.stickyClasses ) // new adding check
+			)
 			return false
+		// this modified check is kinda hardcoded, removed
+		//if( hitEnt.GetClassName() == "script_mover" ) // better not stick to movers
+		//	return false
 		if( hitEnt.IsPlayer() || hitEnt.IsNPC() )
 			return false
 		float dot = expect vector( collisionParams.normal ).Dot( Vector( 0, 0, 1 ) )
@@ -867,10 +892,13 @@ bool function PlantStickyGrenade( entity ent, vector pos, vector normal, entity 
 		entClassname = hitEnt.GetClassName()
 	else
 		entClassname = hitEnt.GetSignifierName() // Can return null
+	
+	// fix for map props: we allow any valid entity in level.stickyClasses
+	// just like PlantStickyEntity() checks( which wrapped into function EntityCanHaveStickyEnts() )
 	//if ( !hitEnt.IsWorld() && (!hitEnt.IsTitan() || !allowEntityStick) )
-	if ( !hitEnt.IsWorld() && 
-		 (!hitEnt.IsTitan() || !allowEntityStick) &&
-		 !( entClassname in level.stickyClasses ) // new adding check
+	if ( !hitEnt.IsWorld() 
+		 && (!hitEnt.IsTitan() || !allowEntityStick) 
+		 && !( entClassname in level.stickyClasses ) // new adding check
 		)
 		return false
 
@@ -940,11 +968,14 @@ bool function PlantSuperStickyGrenade( entity ent, vector pos, vector normal, en
 		entClassname = hitEnt.GetClassName()
 	else
 		entClassname = hitEnt.GetSignifierName() // Can return null
+
+	// fix for map props: we allow any valid entity in level.stickyClasses
+	// just like PlantStickyEntity() checks( which wrapped into function EntityCanHaveStickyEnts() )
 	//if ( !hitEnt.IsWorld() && !hitEnt.IsPlayer() && !hitEnt.IsNPC() )
-	if ( !hitEnt.IsWorld() && 
-		 !hitEnt.IsPlayer() && 
-		 !hitEnt.IsNPC() &&
-		 !( entClassname in level.stickyClasses ) // new adding check
+	if ( !hitEnt.IsWorld() 
+		 && !hitEnt.IsPlayer() 
+		 && !hitEnt.IsNPC() 
+		 && !( entClassname in level.stickyClasses ) // new adding check
 		)
 		return false
 
@@ -989,15 +1020,68 @@ void function HandleDisappearingParent( entity ent, entity parentEnt )
 	parentEnt.EndSignal( "OnDeath" )
 	ent.EndSignal( "OnDestroy" )
 
+	// wants to add something fun here: we handle parented entity gets destroyed
+	parentEnt.EndSignal( "OnDestroy" ) // needs to track parent ent destroy
+	// already have ent.e.attachedEnts in entityStruct, using a bit diffirent name
+	if ( !( parentEnt in file.entStickyAttachedEnts ) )
+		file.entStickyAttachedEnts[ parentEnt ] <- []
+
+	ArrayRemoveInvalid( file.entStickyAttachedEnts[ parentEnt ] )
+	// if no sticky ent attached yet, it must means we've removed destroyCallback in OnThreadEnd()
+	if ( file.entStickyAttachedEnts[ parentEnt ].len() == 0 )
+	{
+		//print( "adding destroyed callback for " + string( parentEnt ) )
+		AddEntityDestroyedCallback( parentEnt, OnStickyAttachedParentDestroy )
+	}
+	
+	file.entStickyAttachedEnts[ parentEnt ].append( ent )
+
 	OnThreadEnd(
-	function() : ( ent )
+	// modified to handle parentEnt
+	//function() : ( ent )
+		function(): ( ent, parentEnt )
 		{
-			ent.ClearParent()
+			// vanilla missing this validation check
+			// ( did that means a entity with childs getting destroyed won't signal their childs' destroy? )
+			if ( IsValid( ent ) )
+				ent.ClearParent()
+			
+			if ( IsValid( parentEnt ) )
+			{
+				ArrayRemoveInvalid( file.entStickyAttachedEnts[ parentEnt ] )
+				// if no sticky ent attached, we could remove destroy callbacks
+				//print( string( parentEnt ) + " has " + string( file.entStickyAttachedEnts[ parentEnt ].len() ) + " sticky attached ents left" )
+				if ( file.entStickyAttachedEnts[ parentEnt ].len() == 0 )
+				{
+					//print( string( parentEnt ) + " has removed all their sticky parented ents!" )
+					RemoveEntityDestroyedCallback( parentEnt, OnStickyAttachedParentDestroy ) // modified function in _base_gametype.gnut: removing entity destroyed callback
+				}
+			}
 		}
 	)
 
 	parentEnt.WaitSignal( "StartPhaseShift" )
 }
+
+// for handling parent destroy, for fun
+function OnStickyAttachedParentDestroy( parentEnt )
+{
+	expect entity( parentEnt )
+
+	if ( parentEnt in file.entStickyAttachedEnts )
+	{
+		ArrayRemoveInvalid( file.entStickyAttachedEnts[ parentEnt ] )
+		//print( "parentEnt: " + string( parentEnt ) )
+		foreach ( stickyEnt in file.entStickyAttachedEnts[ parentEnt ] )
+		{
+			//print( "sticky attached ent: " + string( stickyEnt ) )
+			if ( IsValid( stickyEnt ) && stickyEnt.GetParent() == parentEnt )
+				stickyEnt.ClearParent()
+			file.entStickyAttachedEnts[ parentEnt ].removebyvalue( stickyEnt )
+		}
+	}
+}
+
 #else
 void function HandleDisappearingParent( entity ent, entity parentEnt )
 {
@@ -3107,22 +3191,22 @@ void function EMP_DamagedPlayerOrNPC( entity ent, var damageInfo )
 	Electricity_DamagedPlayerOrNPC( ent, damageInfo, FX_EMP_BODY_HUMAN, FX_EMP_BODY_TITAN, EMP_SEVERITY_SLOWTURN, EMP_SEVERITY_SLOWMOVE )
 }
 
+// now moving everything about monarch into mp_titanweapon_stun_laser.nut because we've globalized Electricity_DamagedPlayerOrNPC()
+/*
 void function VanguardEnergySiphon_DamagedPlayerOrNPC( entity ent, var damageInfo )
 {
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
-	//if ( IsValid( attacker ) && attacker.GetTeam() == ent.GetTeam() )
-	// we added friendly fire, do a new check now!
-	if( !IsValid( attacker ) ) 
+	if ( IsValid( attacker ) && attacker.GetTeam() == ent.GetTeam() )
 		return
-	// other checks left for function calls this to modify
 
-	Electricity_DamagedPlayerOrNPC( ent, damageInfo, FX_VANGUARD_ENERGY_BODY_HUMAN, FX_VANGUARD_ENERGY_BODY_TITAN, LASER_STUN_SEVERITY_SLOWTURN, LASER_STUN_SEVERITY_SLOWMOVE )
+	Elecriticy_DamagedPlayerOrNPC( ent, damageInfo, FX_VANGUARD_ENERGY_BODY_HUMAN, FX_VANGUARD_ENERGY_BODY_TITAN, LASER_STUN_SEVERITY_SLOWTURN, LASER_STUN_SEVERITY_SLOWMOVE )
 }
+*/
 
 // this function has been renamed. respawn used a wrong name for it( Elecricity_DamagedPlayerOrNPC )
 // parameter has been modified: adding modifiable duration and strength
 //void function Electricity_DamagedPlayerOrNPC( entity ent, var damageInfo, asset humanFx, asset titanFx, float slowTurn, float slowMove )
-void function Electricity_DamagedPlayerOrNPC( entity ent, var damageInfo, asset humanFx, asset titanFx, float slowTurn, float slowMove, float minDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MIN, float maxDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MAX, float maxFadeoutDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_FADE, float minEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MIN, float maxEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MAX )
+void function Electricity_DamagedPlayerOrNPC( entity ent, var damageInfo, asset humanFx, asset titanFx, float slowTurn, float slowMove, float minDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MIN, float maxDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MAX, float maxFadeoutDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_FADE, float minEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MIN, float maxEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MAX, float affectsShieldScale = EMP_AFFECTS_SHIELD_SCALE )
 {
 	if ( !IsValid( ent ) )
 		return
@@ -3229,11 +3313,11 @@ void function Electricity_DamagedPlayerOrNPC( entity ent, var damageInfo, asset 
 	{
 		// modified: adding duration and strength parameter
 		//thread EMPGrenade_EffectsPlayer( ent, damageInfo )
-		thread EMPGrenade_EffectsPlayer( ent, damageInfo, minDuration, maxDuration, maxFadeoutDuration, minEffectStrength, maxEffectStrength )
+		thread EMPGrenade_EffectsPlayer( ent, damageInfo, minDuration, maxDuration, maxFadeoutDuration, minEffectStrength, maxEffectStrength, affectsShieldScale )
 	}
 	else if ( ent.IsTitan() )
 	{
-		EMPGrenade_AffectsShield( ent, damageInfo )
+		EMPGrenade_AffectsShield( ent, damageInfo, affectsShieldScale )
 		#if MP
 		// nessie note: why is "2.5", "1.0" hardcoded here???
 		// it's not even using existing const???
@@ -3503,10 +3587,15 @@ function EMP_FX( asset effect, entity ent, string tag, float duration )
 	}
 }
 
-function EMPGrenade_AffectsShield( entity titan, damageInfo )
+// modified to add more parameter
+//function EMPGrenade_AffectsShield( entity titan, damageInfo )
+void function EMPGrenade_AffectsShield( entity titan, var damageInfo, float shieldDamageScale = EMP_AFFECTS_SHIELD_SCALE )
 {
 	int shieldHealth = titan.GetTitanSoul().GetShieldHealth()
-	int shieldDamage = int( titan.GetTitanSoul().GetShieldHealthMax() * 0.5 )
+	// modified to add more parameter and global settings handle
+	//int shieldDamage = int( titan.GetTitanSoul().GetShieldHealthMax() * 0.5 )
+	float affectsShieldFrac = shieldDamageScale * file.empAffectsShieldDamageScale
+	int shieldDamage = int( titan.GetTitanSoul().GetShieldHealthMax() * affectsShieldFrac )
 
 	titan.GetTitanSoul().SetShieldHealth( maxint( 0, shieldHealth - shieldDamage ) )
 
@@ -3517,6 +3606,12 @@ function EMPGrenade_AffectsShield( entity titan, damageInfo )
 		if ( attacker && attacker.IsPlayer() )
 			EmitSoundOnEntityOnlyToPlayer( attacker, attacker, "titan_energyshield_down" )
 	}
+}
+
+// global settings: emp affects shield
+void function WeaponUtility_SetEMPAffectsShieldDamageScale( float scale )
+{
+	file.empAffectsShieldDamageScale = scale
 }
 
 // parameter has been modified: adding modifiable duration
@@ -3552,7 +3647,7 @@ void function EMPGrenade_AffectsAccuracy( entity npcTitan, float duration = EMP_
 
 // parameter has been modified: adding modifiable duration and strength
 //function EMPGrenade_EffectsPlayer( entity player, damageInfo )
-void function EMPGrenade_EffectsPlayer( entity player, var damageInfo, float minDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MIN, float maxDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MAX, float maxFadeoutDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_FADE, float minEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MIN, float maxEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MAX )
+void function EMPGrenade_EffectsPlayer( entity player, var damageInfo, float minDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MIN, float maxDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_DURATION_MAX, float maxFadeoutDuration = EMP_GRENADE_PILOT_SCREEN_EFFECTS_FADE, float minEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MIN, float maxEffectStrength = EMP_GRENADE_PILOT_SCREEN_EFFECTS_MAX, float affectsShieldScale = EMP_AFFECTS_SHIELD_SCALE )
 {
 	player.Signal( "OnEMPPilotHit" )
 	player.EndSignal( "OnEMPPilotHit" )
@@ -3587,7 +3682,7 @@ void function EMPGrenade_EffectsPlayer( entity player, var damageInfo, float min
 		// Hit player should do EMP screen effects locally
 		Remote_CallFunction_Replay( player, "ServerCallback_TitanCockpitEMP", duration )
 
-		EMPGrenade_AffectsShield( player, damageInfo )
+		EMPGrenade_AffectsShield( player, damageInfo, affectsShieldScale )
 
 		Remote_CallFunction_Replay( player, "ServerCallback_TitanEMP", strength, duration, fadeoutDuration )
 	}
