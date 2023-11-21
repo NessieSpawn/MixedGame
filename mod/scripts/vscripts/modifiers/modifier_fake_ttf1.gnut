@@ -50,9 +50,11 @@ const array<string> CONNECTING_NOTIFICATIONS =
 	ANSI_COLOR_ORANGE + "Titan has reduced un-doomed max health. Doomed health is increased, but it loss over time" + ANSI_COLOR_END,
     ANSI_COLOR_ORANGE + "Titan comes with faster charge regen and +1 more charge. Faster core build. Turbo Engine will be replaced with Over Core" + ANSI_COLOR_END,
     ANSI_COLOR_ORANGE + "Titan starts regen shield instead of fully-recharge after getting a battery pack or upgrading" + ANSI_COLOR_END,
-    //ANSI_COLOR_BLUE + "铁驭生命值为1.25倍，自带快速恢复血量（若已装备快速恢复将获得强力电池）" + ANSI_COLOR_END,
     ANSI_COLOR_BLUE + "Pilot has 1.25x health. Fast Regen will be replaced with Power Cell" + ANSI_COLOR_END,
     ANSI_COLOR_BLUE + "Pilot Anti-Titan Weapons have infinite stockpile" + ANSI_COLOR_END,
+    ANSI_COLOR_RED + "Northstar has nerfed damage and reload time" + ANSI_COLOR_END,
+    ANSI_COLOR_RED + "Monarch has nerfed reload time, energy thief execution is disabled" + ANSI_COLOR_END,
+    ANSI_COLOR_RED + "Fix sword core pull-out animation and switch weapon bug" + ANSI_COLOR_END,
 ]
 
 // hard to control.. respawn almost didn't add any support for ttf1-like core meter
@@ -102,6 +104,16 @@ void function GameModifier_Fake_Titanfall1_Init()
     // damage effect
     TitanHealth_EnableHealthChickletFX( true ) // modified function in _titan_triple_health.gnut, enable segment lose effect
     Titan_EnableStaggerOnRepeatDamage( true ) // modified in sh_titan.gnut, enable stagger on repeat damage
+
+    // modified: weapon global settings
+    //WeaponUtility_SetEMPAffectsShieldDamageScale( 0.7 ) // nerf emp effects to only damage 35% of titan's max shield( by default it's 50% )
+
+    // balance
+    //TitanReplace_EnableNorthstarReBalance( true ) // to nerf northstar
+    //TitanReplace_EnableMonarchReBalance( true ) // also disables battery execution. to nerf monarch
+
+    // fix
+    //TitanReplace_EnableRoninCoreFix( true ) // fix ronin's sword core behavior
 
     // titan settings
     AddSpawnCallback( "npc_titan", OnTitanSpawned )
