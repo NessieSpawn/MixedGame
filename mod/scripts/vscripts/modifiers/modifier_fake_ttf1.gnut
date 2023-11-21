@@ -52,9 +52,9 @@ const array<string> CONNECTING_NOTIFICATIONS =
     ANSI_COLOR_ORANGE + "Titan starts regen shield instead of fully-recharge after getting a battery pack or upgrading" + ANSI_COLOR_END,
     ANSI_COLOR_BLUE + "Pilot has 1.25x health. Fast Regen will be replaced with Power Cell" + ANSI_COLOR_END,
     ANSI_COLOR_BLUE + "Pilot Anti-Titan Weapons have infinite stockpile" + ANSI_COLOR_END,
-    ANSI_COLOR_RED + "Northstar has nerfed damage and reload time" + ANSI_COLOR_END,
-    ANSI_COLOR_RED + "Monarch has nerfed reload time, energy thief execution is disabled" + ANSI_COLOR_END,
-    ANSI_COLOR_RED + "Fix sword core pull-out animation and switch weapon bug" + ANSI_COLOR_END,
+    //ANSI_COLOR_RED + "Northstar has nerfed damage and reload time" + ANSI_COLOR_END,
+    //ANSI_COLOR_RED + "Monarch has nerfed reload time, energy thief execution is disabled" + ANSI_COLOR_END,
+    //ANSI_COLOR_RED + "Fix sword core pull-out animation and switch weapon bug" + ANSI_COLOR_END,
 ]
 
 // hard to control.. respawn almost didn't add any support for ttf1-like core meter
