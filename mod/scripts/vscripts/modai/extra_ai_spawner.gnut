@@ -106,8 +106,8 @@ const table<string, asset> GUNSHIP_FLIGHT_TRAIL_EFFECTS =
 // gunship jet
 const table<string, asset> GUNSHIP_JET_BURST_EFFECTS = 
 {
-	["L_exhaust_rear_1"]	= $"veh_hornet_jet_full",
-	["R_exhaust_rear_1"]	= $"veh_hornet_jet_full",
+	//["L_exhaust_rear_1"]	= $"veh_hornet_jet_full", // not very noticeable
+	//["R_exhaust_rear_1"]	= $"veh_hornet_jet_full", // not very noticeable
 	["L_exhaust_rear_1"]	= $"veh_jetwash_exit_eng_blast",
 	["R_exhaust_rear_1"]	= $"veh_jetwash_exit_eng_blast",
 }
@@ -3433,7 +3433,16 @@ void function ExtraSpawner_NPCTitanDrops( entity titan, bool standUp = true )
 		HideName( titan )
 		RemoveMinimapForNPC( titan )
 		// move it to the sky so player won't notice it's here
-		titan.SetOrigin( origin + < 0, 0, 10000 > )
+		titan.SetOrigin( origin + < 0, 0, 25000 > )
+		// needs to temp stop physics so it won't drop to ground due to gravity
+		// needs a parent or we can't clear its StopPhysics() state( which gets cleared on ClearParent() )
+		entity titanParentInfo = CreateEntity( "info_target" )
+		titanParentInfo.kv.spawnflags = SF_INFOTARGET_ALWAYS_TRANSMIT_TO_CLIENT // needs to transmit to client or networked entities can't parent with it
+		titanParentInfo.SetOrigin( origin + < 0, 0, 25000 > )
+		DispatchSpawn( titanParentInfo )
+		titan.SetVelocity( Vector( 0, 0, 0 ) )
+		titan.SetParent( titanParentInfo )
+		//titan.StopPhysics() // can't be cleared. don't know how projectiles do that after HandleDisappearingParent
 
 		// dont let AI titan get enemies while dropping. Don't do trigger checks, become invulnerable
 		// cleanup handled by NPCTitanHotdrops()
@@ -3480,6 +3489,10 @@ void function ExtraSpawner_NPCTitanDrops( entity titan, bool standUp = true )
 		wait WARPFALL_FX_DELAY
 
 		// in _replacement_titans.gnut titan spawns here
+		// restore physics
+		titan.ClearParent()
+		if ( IsValid( titanParentInfo ) )
+			titanParentInfo.Destroy()
 		// restore visibility
 		titan.ClearInvulnerable() // not cleaned by NPCTitanHotdrops() but was added by ExtraSpawner_DisableSensingForNPC(), needs to clean up
 		if ( titan.IsFrozen() )
@@ -4997,8 +5010,9 @@ void function NPCPilotEjectingAnimation( entity pilot )
 	while( Time() < failSafeTime )
 	{
 		// now changing to better think
-		//if ( pilot.IsOnGround() )
-		if ( IsPilotNearGround( pilot ) )
+		// removed. nuke eject can throw them really high and trace to something not necessary
+		//if ( IsPilotNearGround( pilot ) )
+		if ( pilot.IsOnGround() )
 			break
 
 		// anim play think
