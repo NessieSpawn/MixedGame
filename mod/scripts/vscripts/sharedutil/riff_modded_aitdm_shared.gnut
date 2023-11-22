@@ -20,7 +20,7 @@ const int MODDED_AITDM_REAPER_SPAWN_SCORE = 180
 const int MODDED_AITDM_TITAN_SPAWN_CORE = 250
 
 // RNG
-const float MODDED_AITDM_BOSS_TITAN_REPLACE_CHANCE = 0.30 // 33%
+const float MODDED_AITDM_BOSS_TITAN_REPLACE_CHANCE = 0.25
 
 void function Riff_Modded_Attrition_Shared_Init()
 {
