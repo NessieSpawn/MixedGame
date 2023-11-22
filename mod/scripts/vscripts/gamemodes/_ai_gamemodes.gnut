@@ -161,7 +161,6 @@ void function HotDrop_Spawnpoint( vector origin, int team, float impactTime, boo
 
 	// so enemy npcs will mostly avoid them
 	// welp, vanilla attrition doesn't seem to have such behavior
-	// guess I'll leave it for only my modified contents( extra_ai_spawner.gnut )
 	/*
 	entity damageAreaInfo
 	if ( damageDef > -1 )
