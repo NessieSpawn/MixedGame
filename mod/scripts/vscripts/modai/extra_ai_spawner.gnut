@@ -85,7 +85,9 @@ global function ExtraSpawner_StopDefaultHandler // can't stop squad handler. may
 
 // settings func
 global function ExtraSpawner_SetNPCDamageHistoryLifeTime
-
+global function ExtraSpawner_SetNPCPilotBulletDamageScale
+global function ExtraSpawner_SetNPCPilotMaxDPSTaken
+global function ExtraSpawner_SetProwlerMeleeDamageScale
 
 // these consts are no need to change
 const asset CAREPACKAGE_MODEL = $"models/vehicle/escape_pod/escape_pod.mdl"
@@ -132,8 +134,12 @@ global function PrintPrimaryAttackSignal
 // npc pilot health
 const int NPC_PILOT_MAX_HEALTH = 750
 const int NPC_PILOT_MAX_HEALTH_BOSS = 1000
+
 // damage dealt by pilot multiplyer
-const float NPC_PILOT_DAMAGE_MULTIPLIER = 2.0
+// this is now served as default value, can be modified by other files through ExtraSpawner_SetNPCPilotBulletDamageScale()
+// we may enable npc headshots and in that case, needs to reduce pilot damage dealt
+const float NPC_PILOT_BULLET_DAMAGE_MULTIPLIER = 2.0
+
 // pilot specific damage adjustments
 // hardcode version
 /*
@@ -142,17 +148,21 @@ const int NPC_TITAN_MELEE_DAMAGE_NPC_PILOT = 300
 const int TITAN_SOWRD_DAMAGE_NPC_PILOT = 250
 const int TITAN_STEPPING_ON_DAMAGE_NPC_PILOT = 250
 */
+
 // graph capped version
 // WIP
+
 // DPS versions
 const int NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND = 300 // pilots will only take 300 dmg per second
 
 // damage dealt by prowler multiplyer
 // base damage for MP: claw: 80, pounce: 100
-const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.5
+// this is now served as default value, can be modified by other files through ExtraSpawner_SetProwlerMeleeDamageScale()
+const float PROWLER_MELEE_DAMAGE_MULTIPLIER = 0.5
 // damage dealt by prowler to heavy armor units multiplyer
 // base damage for MP: claw: 60-80, pounce: 100
-const float NPC_PROWLER_DAMAGE_MULTIPLIER_HEAVYARMOR = 6.0
+// this is now served as default value, can be modified by other files through ExtraSpawner_SetProwlerMeleeDamageScale()
+const float PROWLER_MELEE_DAMAGE_MULTIPLIER_HEAVYARMOR = 6.0
 
 // care package
 const float CARE_PACKAGE_MESSAGE_INTERVAL = 3.0 // prevent care package spamming message
@@ -312,6 +322,16 @@ struct
 	float npcDamageHistoryLifeTime = NPC_HEALTH_HISTORY_FALLOFF_END
 	// for fake minimap icon system
 	table<entity, entity> npcOwnedFakeMapIconEnt
+	// shared minimap think with minion, attached ents ETC.
+	table<entity, bool> entEnabledMinimapIcon
+	// npc damage multiplier
+	table<entity, float> npcPilotBulletDamageScale
+	table<entity, int> npcPilotMaxDPSTaken
+	table<entity, float> prowlerMeleeDamageScale
+	table<entity, float> prowlerMeleeDamageScaleHeavyArmor
+	// for updating tick's projectile model, minimap icon stuffs
+	table<entity, bool> fragDroneProjectileUpdatedModel
+	array<string> reaperSquadFromExtraSpawner
 } file
 
 void function ExtraAISpawner_Init()
@@ -354,6 +374,8 @@ void function ExtraAISpawner_Init()
 	
 	AddCallback_OnNpcPilotBecomesTitan( OnNpcPilotBecomesTitan )
 	AddCallback_OnNpcTitanBecomesPilot( OnNpcTitanBecomesPilot )
+	// modified callback in _ai_pilots.gnut
+	AddCallback_OnNPCPilotStartsEmbarkSequence( OnNPCPilotStartsEmbarkSequence )
 	
 	AddCallback_OnNPCKilled( OnNPCKilled )
 
@@ -375,6 +397,11 @@ void function ExtraAISpawner_Init()
 	// this is hardcoded because hornet model is easier to be hit than straton
 	// using team-based model is bad, better pick a random one
 	AddSpawnCallback( "npc_gunship", OnGunshipSpawned )
+
+	// add script minimap icon management for ticks
+	// this callback is from modified _ai_superspectre.nut
+	AddCallback_OnReaperLaunchedFragDroneSpawned( OnLaunchedFragDroneSpawned )
+	AddCallback_EntityChangedTeam( "npc_super_spectre", OnReaperChangeTeam )
 
 	// for debugging
 	#if EXTRA_SPAWNER_DEBUG
@@ -490,6 +517,82 @@ void function OnGunshipSpawned( entity gunship )
 	{
 		gunship.SetValueForModelKey( gunshipModel )
 		gunship.SetModel( gunshipModel )
+	}
+}
+
+void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fragDrone, string droneSettings )
+{
+	if ( !IsValid( reaper ) ) // reaper can be destroyed before frag drone can arm
+		return
+
+	bool ownerReaperSpawnedByExtraSpawer = false
+	// drone can still be projectile 
+	if ( IsValid( nade ) && !( nade in file.fragDroneProjectileUpdatedModel ) )
+	{
+		entity ownerReaper = nade.GetOwner() // nades have ownership
+		// ensure this reaper is spawned by extra spawner!
+		if ( IsValid( ownerReaper ) && ExtraSpawner_IsNPCSpawnedFromExtraSpawner( ownerReaper ) )
+		{
+			// modified for better models, hardcoded for now
+			if ( droneSettings != "npc_frag_drone" ) // not sp ticks?
+				nade.SetModel( $"models/weapons/sentry_frag/sentry_frag_proj.mdl" ) // should use sentry frag drone model
+			file.fragDroneProjectileUpdatedModel[ nade ] <- true // add mark so we don't update model again on next call
+		}
+	}
+	
+	if ( IsValid( fragDrone ) )
+	{
+		// for ticks themselves, use squad to identify whether they're spawned by extra spawner or not
+		string squad = expect string( fragDrone.kv.squadname )
+		if ( file.reaperSquadFromExtraSpawner.contains( squad ) ) // do spawned by extra spawner!
+		{
+			//print( "tick: " + string( fragDrone ) )
+			//print( "have squad from extra spawner!" )
+			// find owner reaper
+			entity ownerReaper
+			foreach ( reaper in GetNPCArrayByClass( "npc_super_spectre" ) )
+			{
+				if ( reaper.kv.squadname == squad )
+				{
+					ownerReaper = reaper
+					break
+				}
+			}
+			//print( "ownerReaper: " + string( reaper ) )
+			// start setup
+			ExtraSpawner_SetUpSpawnedNPC( fragDrone ) // mark this tick as spawned by extra spawner
+			if ( !IsValid( ownerReaper ) || EntHasMinimapIconEnabled( ownerReaper ) )
+				AddMinimapForNPC( fragDrone ) // add minimap icon tracking if their owner reaper has icon, or owner reaper has been destroyed
+		}
+	}
+}
+
+void function OnReaperChangeTeam( entity reaper )
+{
+	// maybe we should handle all reapers, but in this file all the stuffs are handled only for extra spawner npcs
+	if ( !ExtraSpawner_IsNPCSpawnedFromExtraSpawner( reaper ) )
+		return
+
+	if ( reaper.ai.activeMinionEntArrayID > 0 )
+	{
+		foreach ( entity ent in GetScriptManagedEntArray( reaper.ai.activeMinionEntArrayID ) )
+		{
+			// should kill all their owned ticks on changing team
+			// otherwise reaper can have ticks from different team in their squad
+			// which can crash the server
+			if ( IsValid( ent ) ) 
+			{
+				if ( ent.IsNPC() && ent.ai.fragDroneArmed )
+					ent.Signal( "SuicideSpectreExploding" )
+				else // minion still a grenade, or not armed ready yet... just destroy
+				{
+					if ( ent.IsProjectile() )
+						ent.Destroy()
+					else if ( ent.IsNPC() && !ent.ai.fragDroneArmed )
+						ent.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+				}
+			}
+		}
 	}
 }
 
@@ -2805,6 +2908,7 @@ void function TrackDialogueSpeakerDeath( entity guy, string dialogue, float debo
 }
 
 // this array is hardcoded, it contains all npcs that can show themselves on map
+// from cl_minimap.nut
 // if we handled a npc that can't create it's minimap icon, we create a fake icon using other npcs
 const array<string> MAP_ICON_VAILD_NPC_CLASS =
 [
@@ -2827,6 +2931,12 @@ const array<string> MAP_ICON_DISABLED_NPC_CLASS =
 [
 	"npc_marvin",
 ]
+
+// npcs within this table will add different offset for their fake map icon
+const table<string, vector> NPC_FAKE_MAP_ICON_OFFSET =
+{
+	["npc_prowler"]		= < 0, 0, 100 > // prowlers has special hull type, needs change offset
+}
 
 // npc minimap setup
 void function AddMinimapForNPC( entity guy )
@@ -2854,7 +2964,10 @@ void function AddMinimapForNPC_FailsafeToCreateFakeMapIcon( entity guy )
 	else if ( !MAP_ICON_DISABLED_NPC_CLASS.contains( className ) ) // ents in this array never gets setup
 	{
 		// using a hacky way: add a tracked npc as fake npc
-		CreateNPCAsFakeMapIconForNPC( guy, "npc_soldier" )
+		if ( className in NPC_FAKE_MAP_ICON_OFFSET )
+			CreateNPCAsFakeMapIconForNPC( guy, "npc_soldier", "ORIGIN", < 0, 0, 180 >, NPC_FAKE_MAP_ICON_OFFSET[ className ] )
+		else
+			CreateNPCAsFakeMapIconForNPC( guy, "npc_soldier" )
 	}
 }
 
@@ -2866,6 +2979,23 @@ void function SetUpGenericNPCMiniMapIcon( entity mapIcon )
 	foreach ( entity player in GetPlayerArray() )
 		mapIcon.Minimap_AlwaysShow( 0, player )
 	mapIcon.Minimap_SetHeightTracking( true )
+
+	// in-file checks
+	entity mapIconOwner = GetFakeMinimapIconOwner( mapIcon )
+	if ( IsValid( mapIconOwner ) ) // consider this is a fake mapicon, we track their owner instead
+		mapIcon = mapIconOwner
+	
+	if ( !( mapIcon in file.entEnabledMinimapIcon ) )
+		file.entEnabledMinimapIcon[ mapIcon ] <- false // init
+	file.entEnabledMinimapIcon[ mapIcon ] = true // mark as we've enabled map icon for this entity
+}
+
+bool function EntHasMinimapIconEnabled( entity mapIcon )
+{
+	if ( !( mapIcon in file.entEnabledMinimapIcon ) )
+		return false
+	
+	return file.entEnabledMinimapIcon[ mapIcon ]
 }
 
 void function SetUpGamemodeSpecificMiniMapIcon( entity guy )
@@ -2887,6 +3017,8 @@ void function SetUpGamemodeSpecificMiniMapIcon( entity guy )
 
 void function RemoveMinimapForNPC( entity guy )
 {
+	//print( "RUNNING RemoveMinimapForNPC() for " + string( guy ) )
+
 	if ( !IsAlive( guy ) )
 		return
 	
@@ -2907,6 +3039,14 @@ void function DisableNPCMiniMapIcon( entity mapIcon )
 	foreach ( entity player in GetPlayerArray() )
 		mapIcon.Minimap_Hide( 0, player )
 	mapIcon.Minimap_SetHeightTracking( false )
+
+	// in-file checks
+	entity mapIconOwner = GetFakeMinimapIconOwner( mapIcon )
+	if ( IsValid( mapIconOwner ) ) // consider this is a fake mapicon, we track their owner instead
+		mapIcon = mapIconOwner
+	
+	if ( mapIcon in file.entEnabledMinimapIcon )
+		file.entEnabledMinimapIcon[ mapIcon ] = false // mark as we've disabled map icon for this entity
 }
 
 // so you can set up a titan without have to make a npc pilot embarking it
@@ -3201,10 +3341,11 @@ void function ExtraSpawner_SquadHandler( array<entity> guys )
 	foreach ( guy in guys )
 	{
 		// add map
+		//AddMinimapForNPC( guy )
 		// if we can't handle this npc's map, generate fake map icon ent for them
 		// welp this can't be handled properly, there're something like prowlers always rotates their attachments
-		//AddMinimapForNPC_FailsafeToCreateFakeMapIcon( guy )
-		AddMinimapForNPC( guy )
+		// reworked to add less offset, rotate map icon npc to upside-down
+		AddMinimapForNPC_FailsafeToCreateFakeMapIcon( guy )
 
 		guy.EnableNPCFlag( NPC_ALLOW_PATROL | NPC_ALLOW_INVESTIGATE | NPC_ALLOW_HAND_SIGNALS | NPC_ALLOW_FLEE )
 		if ( hasHeavyArmorWeapon ) // squads won't flee if they got heavy armor weapon
@@ -3345,12 +3486,12 @@ entity function ExtraSpawner_SpawnTitan( vector pos, vector rot, int team, bool 
 	if ( loadoutFunction != null ) // modded titan!!
 		loadoutFunction( titan )
 
-	thread ExtraSpawner_NPCTitanDrops( titan, standUp )
-
 	if ( titanHandler != null )
 		thread titanHandler( titan )
 	else if ( GetNPCHandlerForClass( "npc_titan" ) != null )
 		thread GetNPCHandlerForClass( "npc_titan" )( titan )
+	
+	thread ExtraSpawner_NPCTitanDrops( titan, standUp )
 
 	return titan
 }
@@ -3460,10 +3601,6 @@ entity function ExtraSpawner_SpawnBossTitan( vector pos, vector rot, int team, s
 	if ( loadoutFunction != null ) // modded titan!!
 		loadoutFunction( titan )
 
-	// titan spawn with intro don't have to hotdrop
-	if ( titanType != TITAN_MERC )
-		thread ExtraSpawner_NPCTitanDrops( titan )
-
 	// we'll do intro, show again after DispatchSpawn(). ShowName() is handled in intro
 	if ( titanType == TITAN_MERC )
 		titan.Show()
@@ -3471,6 +3608,10 @@ entity function ExtraSpawner_SpawnBossTitan( vector pos, vector rot, int team, s
 	// titan handler
 	if ( GetNPCHandlerForClass( "npc_titan" ) != null )
 		thread GetNPCHandlerForClass( "npc_titan" )( titan )
+	
+	// titan spawn with intro don't have to hotdrop
+	if ( titanType != TITAN_MERC )
+		thread ExtraSpawner_NPCTitanDrops( titan )
 
 	return titan
 }
@@ -3666,8 +3807,6 @@ entity function ExtraSpawner_SpawnTitanBT( vector pos, vector rot, int team, voi
 	string squadName = MakeSquadName( titan.GetTeam(), UniqueString( "buddy" ) )
 	SetSquad( titan, squadName )
 
-	thread ExtraSpawner_NPCTitanDrops( titan )
-
 	titan.TakeWeaponNow( "mp_titanweapon_xo16_shorty" ) // don't use a one-shot killing xo16!
 	titan.GiveWeapon( "mp_titanweapon_xo16_vanguard" )
 	titan.GetOffhandWeapon( OFFHAND_SPECIAL ).AddMod( "slow_recovery_vortex" ) // fix mod
@@ -3680,6 +3819,7 @@ entity function ExtraSpawner_SpawnTitanBT( vector pos, vector rot, int team, voi
 	else if ( GetNPCHandlerForClass( "npc_titan" ) != null )
 		thread GetNPCHandlerForClass( "npc_titan" )( titan )
 
+	thread ExtraSpawner_NPCTitanDrops( titan )
 
 	return titan
 }
@@ -5076,6 +5216,8 @@ void function NPCPilotEjectingAnimation( entity pilot )
 	pilot.EndSignal( "OnDestroy" )
 	pilot.EndSignal( "OnDeath" )
 	
+	if ( !pilot.ContextAction_IsBusy() )
+		pilot.ContextAction_SetBusy()
 	pilot.Anim_ScriptedPlayActivityByName( "ACT_FALL", true, 0.2 )
 	pilot.SetNPCPriorityOverride( 10 ) // npc titans aim bad at mid-air targets. don't let them do so
 
@@ -5085,6 +5227,8 @@ void function NPCPilotEjectingAnimation( entity pilot )
 		{
 			if ( IsValid( pilot ) )
 			{
+				if ( pilot.ContextAction_IsBusy() )
+					pilot.ContextAction_ClearBusy()
 				pilot.Anim_Stop()
 				if ( IsAlive( pilot ) )
 					pilot.ClearNPCPriorityOverride()
@@ -5153,6 +5297,13 @@ bool function IsPilotNearGround( entity pilot )
 		return false
 
 	return true
+}
+
+// modified callbacks
+void function OnNPCPilotStartsEmbarkSequence( entity pilot, entity titan, var embarkSet )
+{
+	if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( pilot ) )
+		RemoveMinimapForNPC( pilot ) // remove minimap icon(currently using fake one) for embarking npc pilots
 }
 
 // modified things
@@ -5230,19 +5381,37 @@ void function NPCPilotDamageAdjustments( entity pilot, var damageInfo )
 	// we'll store it manually
 	// get DPS( excluded current damage because we store it later )
 	int dpsTaken = int( GetTotalDamageTakenInTime( pilot, 1.0 ) )
+	int maxDPSTaken = GetNPCPilotMaxDPSTaken( pilot )
 	// debug
 	//print( "dpsTaken: " + string( dpsTaken ) )
-	if ( dpsTaken >= NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND )
+	if ( dpsTaken >= maxDPSTaken )
 		DamageInfo_SetDamage( damageInfo, 0 )
 	else
 	{
-		int maxDamage = NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND - dpsTaken
+		int maxDamage = maxDPSTaken - dpsTaken
 		int currentDamage = int( DamageInfo_GetDamage( damageInfo ) )
 		DamageInfo_SetDamage( damageInfo, min( currentDamage, maxDamage ) )
 	}
 
 	// debug
 	//print( "npc pilot modified damage: " + string( DamageInfo_GetDamage( damageInfo ) ) )
+}
+
+// settings func
+void function ExtraSpawner_SetNPCPilotMaxDPSTaken( entity pilot, int maxDPS )
+{
+	if ( !( pilot in file.npcPilotMaxDPSTaken ) )
+		file.npcPilotMaxDPSTaken[ pilot ] <- NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND
+
+	file.npcPilotMaxDPSTaken[ pilot ] = maxDPS
+}
+
+int function GetNPCPilotMaxDPSTaken( entity pilot )
+{
+	if ( !( pilot in file.npcPilotMaxDPSTaken ) )
+		return NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND
+
+	return file.npcPilotMaxDPSTaken[ pilot ]
 }
 
 void function NPCPilotDamageModifier( entity victim, var damageInfo )
@@ -5252,15 +5421,32 @@ void function NPCPilotDamageModifier( entity victim, var damageInfo )
         return
 	if( !attacker.IsNPC() )
 		return
-	if ( !ExtraSpawner_IsNPCSpawnedFromExtraSpawner( victim ) ) // pilot spawning from other files!
+	if ( !ExtraSpawner_IsNPCSpawnedFromExtraSpawner( attacker ) ) // pilot spawning from other files!
 		return
 	
 	// not a heavy armor target, hit by bullet
 	// make npc pilots powerful?
 	if ( victim.GetArmorType() != ARMOR_TYPE_HEAVY && DamageInfo_GetCustomDamageType( damageInfo ) & DF_BULLET )
 	{
-		DamageInfo_ScaleDamage( damageInfo, NPC_PILOT_DAMAGE_MULTIPLIER )
+		DamageInfo_ScaleDamage( damageInfo, GetNPCPilotBulletDamageScale( attacker ) )
 	}
+}
+
+// settings func
+void function ExtraSpawner_SetNPCPilotBulletDamageScale( entity pilot, float scale )
+{
+	if ( !( pilot in file.npcPilotBulletDamageScale ) )
+		file.npcPilotBulletDamageScale[ pilot ] <- NPC_PILOT_BULLET_DAMAGE_MULTIPLIER
+
+	file.npcPilotBulletDamageScale[ pilot ] = scale
+}
+
+float function GetNPCPilotBulletDamageScale( entity pilot )
+{
+	if ( !( pilot in file.npcPilotBulletDamageScale ) )
+		return NPC_PILOT_BULLET_DAMAGE_MULTIPLIER
+
+	return file.npcPilotBulletDamageScale[ pilot ]
 }
 
 void function ProwlerMeleeDamageModifier( entity victim, var damageInfo )
@@ -5293,9 +5479,9 @@ void function ProwlerMeleeDamageModifier( entity victim, var damageInfo )
 		heavyArmorTarget = true
 
 	if ( heavyArmorTarget )
-		damageScale *= NPC_PROWLER_DAMAGE_MULTIPLIER_HEAVYARMOR
+		damageScale *= GetProwlerMeleeDamageScale( attacker, true )
 	else if ( nerfDamage )
-		damageScale *= NPC_PROWLER_DAMAGE_MULTIPLIER
+		damageScale *= GetProwlerMeleeDamageScale( attacker )
 	
 	if ( victim in file.isProwlerSquadmate ) // prowler squad specific
 	{
@@ -5305,6 +5491,37 @@ void function ProwlerMeleeDamageModifier( entity victim, var damageInfo )
 	}
 
 	DamageInfo_ScaleDamage( damageInfo, damageScale )
+}
+
+void function ExtraSpawner_SetProwlerMeleeDamageScale( entity prowler, float damageScale, float damageHeavyArmorScale = -1 )
+{
+	if ( !( prowler in file.prowlerMeleeDamageScale ) )
+		file.prowlerMeleeDamageScale[ prowler ] <- PROWLER_MELEE_DAMAGE_MULTIPLIER
+	file.prowlerMeleeDamageScale[ prowler ] = damageScale
+
+	// default is we don't modify heavy armor damage
+	if ( damageHeavyArmorScale > -1 )
+	{
+		if ( !( prowler in file.prowlerMeleeDamageScaleHeavyArmor ) )
+			file.prowlerMeleeDamageScaleHeavyArmor[ prowler ] <- PROWLER_MELEE_DAMAGE_MULTIPLIER_HEAVYARMOR
+		file.prowlerMeleeDamageScaleHeavyArmor[ prowler ] = damageHeavyArmorScale
+	}
+}
+
+float function GetProwlerMeleeDamageScale( entity prowler, bool isHeavyArmorTarget = false )
+{
+	if ( isHeavyArmorTarget )
+	{
+		if ( !( prowler in file.prowlerMeleeDamageScaleHeavyArmor ) )
+			return PROWLER_MELEE_DAMAGE_MULTIPLIER_HEAVYARMOR
+
+		return file.prowlerMeleeDamageScaleHeavyArmor[ prowler ]
+	}
+
+	if ( !( prowler in file.prowlerMeleeDamageScale ) )
+		return PROWLER_MELEE_DAMAGE_MULTIPLIER
+
+	return file.prowlerMeleeDamageScale[ prowler ]
 }
 
 void function ExtraSpawner_PilotHandler( entity pilot )
@@ -5322,8 +5539,7 @@ void function ExtraSpawner_PilotHandler( entity pilot )
 	// show on enemy radar, unfortunatelly cl_minimap won't track npc_pilot_elite
 	//AddMinimapForNPC( pilot )
 	// using a hacky way: add a tracked npc as fake npc
-	// welp that won't work, their attachments always rotating
-	//CreateNPCAsFakeMapIconForNPC( pilot, "npc_soldier" )
+	CreateNPCAsFakeMapIconForNPC( pilot, "npc_soldier" )
 
 	wait 3 // initial wait before pilots disembark from droppod or drop from ejecting
 	
@@ -5703,6 +5919,10 @@ void function ExtraSpawner_SpawnReaperCanLaunchTicks( vector pos, vector rot, in
 	// setup spawn
 	SetSpawnOption_Warpfall( reaper )
 	SetSpawnOption_AISettings( reaper, reaperSettings )
+	// make squad so we can identify their tick's spawn source
+	string squad = MakeSquadName( team, UniqueString( "drone_spawn_reaper" ) )
+	file.reaperSquadFromExtraSpawner.append( squad ) // ticks can get squad message
+	SetSpawnOption_SquadName( reaper, squad )
 	
 	HideName( reaper ) // prevent flash a name onto it
 	//local collisionGroup = reaper.kv.CollisionGroup
@@ -5878,12 +6098,14 @@ void function ExtraSpawner_ReaperHandler( entity reaper )
 // welp this works pretty bad, because spawned npc still have collision with current npc
 // to avoid that... try to set this npc to very high into sky, handled by parameter "offset"
 // welp that doesn't work well either, attachments are always rotating
-entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClass, string attachment = "ORIGIN", vector offset = < 0, 0, 2500 > )
+// temp find a solution is that we rotate npc to make them upside down, and add very little offset
+entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClass, string attachment = "ORIGIN", vector angles = < 0, 0, 180 >, vector offset = < 0, 0, -30 > )
 {
 	entity mapIconNPC = CreateEntity( fakeIconNPCClass )
 	mapIconNPC.Freeze() // don't let it do anything
 
 	DispatchSpawn( mapIconNPC )
+	TakeAllWeapons( mapIconNPC )
 
 	// handle invulnerablility and freeze inside function
 	// this also disables trigger checks and make npc take less CPU load
@@ -5895,6 +6117,7 @@ entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClas
 
 	mapIconNPC.SetOwner( npc ) // disable collision against owner, but not good enough
 	mapIconNPC.SetParent( npc, attachment )
+	mapIconNPC.SetAngles( angles ) // face to ground
 	mapIconNPC.SetOrigin( offset ) // so nobody can see them
 	mapIconNPC.NotSolid()
 	mapIconNPC.kv.CollisionGroup = 0
@@ -5986,4 +6209,22 @@ void function SetNPCFakeMinimapIconEnt( entity npc, entity mapIcon )
 		file.npcOwnedFakeMapIconEnt[ npc ] <- null // init
 
 	file.npcOwnedFakeMapIconEnt[ npc ] = mapIcon
+}
+
+entity function GetFakeMinimapIconOwner( entity mapIcon )
+{
+	bool mapIconRegistered = false
+	foreach ( npc, otherMapIcon in file.npcOwnedFakeMapIconEnt )
+	{
+		if ( otherMapIcon == mapIcon )
+		{
+			mapIconRegistered = true
+			break
+		}
+	}
+	// if we can't find this mapIcon entity from table, just return null
+	if ( !mapIconRegistered )
+		return null
+	
+	return mapIcon.GetOwner()
 }
