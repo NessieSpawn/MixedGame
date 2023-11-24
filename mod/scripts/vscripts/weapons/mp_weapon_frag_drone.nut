@@ -1,3 +1,4 @@
+untyped // so we can use entity.s
 global function OnProjectileCollision_weapon_frag_drone
 global function OnProjectileExplode_weapon_frag_drone
 global function OnWeaponAttemptOffhandSwitch_weapon_frag_drone
@@ -156,7 +157,7 @@ void function OnProjectileExplode_weapon_frag_drone( entity projectile )
 			if ( "savedSquadName" in projectile.s )
 				squad = expect string( projectile.s.savedSquadName )
 			else // failsafe, or we're not setting up squad but called this OnProjectileCollision calllback
-				squad = expect string( npc.kv.squadname )
+				squad = expect string( owner.kv.squadname )
 
 			if ( squad != "" )
 				SetSpawnOption_SquadName( drone, squad )
