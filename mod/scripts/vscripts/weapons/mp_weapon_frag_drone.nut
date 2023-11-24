@@ -8,6 +8,9 @@ global function MpWeaponFragDrone_Init
 // modified callbacks
 global function OnWeaponTossPrep_weapon_frag_drone
 global function OnWeaponPrimaryAttack_weapon_frag_drone
+#if SERVER
+global function OnWeaponNPCTossGrenade_weapon_frag_drone
+#endif
 
 // modified: drone_spawner_anm
 const array<string> VALID_DRONE_TYPES = 
@@ -103,15 +106,28 @@ var function OnWeaponTossReleaseAnimEvent_weapon_frag_drone( entity weapon, Weap
 	return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
 }
 
+// modified callback
+#if SERVER
+void function OnWeaponNPCTossGrenade_weapon_frag_drone( entity weapon, entity nade )
+{
+	// generic setup
+	Grenade_OnPlayerNPCTossGrenade_Common( weapon, nade )
+
+	// here goes some vanilla missing behavior: we save squad here and apply it on tick spawn
+	entity owner = nade.GetThrower()
+	if ( IsValid( owner ) && owner.IsNPC() )
+		nade.s.savedSquadName <- owner.kv.squadname
+}
+#endif
 
 void function OnProjectileExplode_weapon_frag_drone( entity projectile )
 {
 	#if SERVER
-			vector origin = projectile.GetOrigin()
-			entity owner = projectile.GetThrower()
+		vector origin = projectile.GetOrigin()
+		entity owner = projectile.GetThrower()
 
-			if ( !IsValid( owner ) )
-				return
+		if ( !IsValid( owner ) )
+			return
 
 		array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
@@ -130,6 +146,22 @@ void function OnProjectileExplode_weapon_frag_drone( entity projectile )
 			SetSpawnOption_AISettings( drone, "npc_frag_drone" )
 		else
 			SetSpawnOption_AISettings( drone, "npc_frag_drone_throwable" )
+		
+		// here goes modified behavior: we add squad if it's spawned by npc
+		// welp there's actually delayed very much, may needs to setup on throw
+		if ( owner.IsNPC() )
+		{
+			string squad = ""
+			// setup squad on throw version
+			if ( "savedSquadName" in projectile.s )
+				squad = expect string( projectile.s.savedSquadName )
+			else // failsafe, or we're not setting up squad but called this OnProjectileCollision calllback
+				squad = expect string( npc.kv.squadname )
+
+			if ( squad != "" )
+				SetSpawnOption_SquadName( drone, squad )
+		}
+
 		DispatchSpawn( drone )
 
 		vector ornull clampedPos = NavMesh_ClampPointForAIWithExtents( origin, drone, < 20, 20, 36 > )
