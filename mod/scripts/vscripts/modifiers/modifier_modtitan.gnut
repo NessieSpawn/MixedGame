@@ -35,11 +35,11 @@ const string ANSI_COLOR_YELLOW = "\x1b[38;5;11m"
 // notifications, hardcoded
 const array<string> CONNECTING_MESSAGES =
 [
-    ANSI_COLOR_YELLOW + "本服务器为娱乐服务器，请多多包容其余玩家。" + ANSI_COLOR_END + ANSI_COLOR_BLUE + "目前不保证平衡性，稳定性正在测试" + ANSI_COLOR_END,
-    "使用至尊泰坦以切换至mod泰坦，帝王装备边境帝王皮肤以切换，共七种mod泰坦",
-    "泰坦死亡或被处决后其武器会掉落在地面，可以拾取以切换至对应技能组。拾取到的帝王技能组不可以升级" + ANSI_COLOR_ORANGE,
-    ANSI_COLOR_BLUE + "在使用mod泰坦时，可以在聊天框输入" + ANSI_COLOR_END + ANSI_COLOR_RED + " !help_curtitan " + ANSI_COLOR_END + ANSI_COLOR_BLUE + "来获取该泰坦的简介，或输入" +  ANSI_COLOR_RED + " !help_menu " +  ANSI_COLOR_END + ANSI_COLOR_BLUE + "查询泰坦简介目录" + ANSI_COLOR_END,
-    ANSI_COLOR_BLUE + "在聊天框输入" + ANSI_COLOR_END + ANSI_COLOR_RED + " !help_game " + ANSI_COLOR_END + ANSI_COLOR_BLUE + "获取更多游戏模式介绍" + ANSI_COLOR_END,
+    //ANSI_COLOR_YELLOW + "本服务器为娱乐服务器，请多多包容其余玩家。" + ANSI_COLOR_END + ANSI_COLOR_BLUE + "目前不保证平衡性，稳定性正在测试" + ANSI_COLOR_END,
+    //"使用至尊泰坦以切换至mod泰坦，帝王装备边境帝王皮肤以切换，共七种mod泰坦",
+    //"泰坦死亡或被处决后其武器会掉落在地面，可以拾取以切换至对应技能组。拾取到的帝王技能组不可以升级" + ANSI_COLOR_ORANGE,
+    //ANSI_COLOR_BLUE + "在使用mod泰坦时，可以在聊天框输入" + ANSI_COLOR_END + ANSI_COLOR_RED + " !help_curtitan " + ANSI_COLOR_END + ANSI_COLOR_BLUE + "来获取该泰坦的简介，或输入" +  ANSI_COLOR_RED + " !help_menu " +  ANSI_COLOR_END + ANSI_COLOR_BLUE + "查询泰坦简介目录" + ANSI_COLOR_END,
+    //ANSI_COLOR_BLUE + "在聊天框输入" + ANSI_COLOR_END + ANSI_COLOR_RED + " !help_game " + ANSI_COLOR_END + ANSI_COLOR_BLUE + "获取更多游戏模式介绍" + ANSI_COLOR_END,
 ]
 
 void function OnClientConnected( entity player )
