@@ -7,7 +7,7 @@ void function GameModifier_Mod_Titans_Init()
     TitanReplace_SetEnabled( true )
     TitanPick_EnableWeaponDrops( true )
     BTReplace_SetEnabled( true )
-    TitanRespawnProtection_SetEnabled( true )
+    //TitanRespawnProtection_SetEnabled( true )
     
     // balance
     TitanReplace_EnableNorthstarReBalance( true ) // to nerf northstar
