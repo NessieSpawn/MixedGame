@@ -2424,7 +2424,8 @@ string function AtlasWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "atlas_40mm" ) )
         return ""
 
-	return "天圖 技能組"
+	//return "天圖 技能組"
+	return "ATLAS Loadout"
 }
 
 // ronin
@@ -2671,7 +2672,8 @@ string function StryderWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "stryder_xo16" ) )
 		return ""
 
-	return "游俠 技能組"
+	//return "游俠 技能組"
+	return "STRYDER Loadout"
 }
 
 // scorch
@@ -2941,7 +2943,8 @@ string function OgreWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "ogre_triplethreat" ) )
 		return ""
 
-	return "巨妖 技能組"
+	//return "巨妖 技能組"
+	return "OGRE Loadout"
 	/* // unused
 	if ( mods.contains( "rolling_rounds" ) )
 		return "三連環榴彈【滾動彈藥】"
@@ -2994,7 +2997,8 @@ string function GunnerBisonWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "gunner_bison_xo16" ) )
 		return ""
 
-	return "野牛 技能組"
+	//return "野牛 技能組"
+	return "BISON Loadout"
 }
 
 void function SwitchOffGunnerBisonLoadout( entity titan )
@@ -3267,7 +3271,8 @@ string function ArchonWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "storm_launcher" ) )
 		return ""
 
-	return "執政官 技能組"
+	//return "執政官 技能組"
+	return "ARCHON Loadout"
 }
 
 // brute
@@ -3309,7 +3314,8 @@ string function BruteWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "brute_rocket" ) )
 		return ""
 
-	return "野獸 技能組"
+	//return "野獸 技能組"
+	return "BRUTE Loadout"
 }
 
 // brute4(modded)
@@ -3355,7 +3361,8 @@ string function ModdedBrute4WeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "brute4_quad_rocket" ) )
 		return ""
 
-	return "野獸四號 技能組"
+	//return "野獸四號 技能組"
+	return "BRUTE4 Loadout"
 	/* // unused
 	if( mods.contains( "straight_shot" ) )
 		return "四段火箭(野獸四號) [直射系統]"
@@ -3405,7 +3412,8 @@ string function ModdedArchonWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "archon_arc_cannon" ) )
 		return ""
 
-	return "執政官 技能組"
+	//return "執政官 技能組"
+	return "ARCHON Loadout"
 	/* // unused
 	if ( mods.contains( "capacitor" ) )
 		return "電弧機炮 [電容器]"
