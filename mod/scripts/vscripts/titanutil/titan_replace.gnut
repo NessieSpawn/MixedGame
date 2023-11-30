@@ -237,22 +237,22 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 				break
 
 			case $"models/titans/medium/titan_medium_tone_prime.mdl":
-				SendHudMessage(player, "已启用天图泰坦装备，取消至尊泰坦以使用原版强力",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1)
+				//SendHudMessage(player, "已启用天图泰坦装备，取消至尊泰坦以使用原版强力",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1)
 				TitanReplace_BecomeAtlas( titan, false, true )
 				break
 
 			case $"models/titans/heavy/titan_heavy_legion_prime.mdl":
-				SendHudMessage(player, "已启用巨妖泰坦装备，取消至尊泰坦以使用原版军团",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+				//SendHudMessage(player, "已启用巨妖泰坦装备，取消至尊泰坦以使用原版军团",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 				TitanReplace_BecomeOgre( titan, false, true )
 				break
 
 			case $"models/titans/light/titan_light_ronin_prime.mdl":
-				SendHudMessage(player, "已启用游侠泰坦装备，取消至尊泰坦以使用原版浪人",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+				//SendHudMessage(player, "已启用游侠泰坦装备，取消至尊泰坦以使用原版浪人",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 				TitanReplace_BecomeStryder( titan, false, true )
 				break
 
 			case $"models/titans/heavy/titan_heavy_scorch_prime.mdl":
-				SendHudMessage(player, "已启用野牛泰坦装备，取消至尊泰坦以使用原版烈焰",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+				//SendHudMessage(player, "已启用野牛泰坦装备，取消至尊泰坦以使用原版烈焰",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 				if ( file.useGunnerBison ) // bison vairant
 				{
 					// Gunner Bison
@@ -266,12 +266,12 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 				break
 
 			case $"models/titans/medium/titan_medium_ion_prime.mdl":
-				SendHudMessage(player, "已启用执政官泰坦装备，取消至尊泰坦以使用原版离子",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+				//SendHudMessage(player, "已启用执政官泰坦装备，取消至尊泰坦以使用原版离子",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 				TitanReplace_BecomeArchon( titan, false, true )
 				break
 			
 			case $"models/titans/light/titan_light_northstar_prime.mdl":
-				SendHudMessage(player, "已启用野兽泰坦装备，取消至尊泰坦以使用原版北极星",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+				//SendHudMessage(player, "已启用野兽泰坦装备，取消至尊泰坦以使用原版北极星",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 				TitanReplace_BecomeBrute( titan, false, true )
 				break
 		}
@@ -370,7 +370,7 @@ void function TitanReplace_BecomeIon( entity titan, bool isPickup = false, bool 
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -383,7 +383,7 @@ void function TitanReplace_BecomeIon( entity titan, bool isPickup = false, bool 
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 離子 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 離子 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
 				player.SetTitle( "#TITAN_ION" )
 			}
 
@@ -502,7 +502,7 @@ void function TitanReplace_BecomeTone( entity titan, bool isPickup = false, bool
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -515,7 +515,7 @@ void function TitanReplace_BecomeTone( entity titan, bool isPickup = false, bool
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 強力 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 強力 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
 				player.SetTitle( "#TITAN_TONE" )
 			}
 
@@ -634,7 +634,7 @@ void function TitanReplace_BecomeAtlas( entity titan, bool isPickup = false, boo
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -647,7 +647,7 @@ void function TitanReplace_BecomeAtlas( entity titan, bool isPickup = false, boo
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 天圖 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 天圖 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#CHASSIS_ATLAS_NAME" )
 			}
 
@@ -735,7 +735,7 @@ void function TitanReplace_BecomeRonin( entity titan, bool isPickup = false, boo
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -748,7 +748,7 @@ void function TitanReplace_BecomeRonin( entity titan, bool isPickup = false, boo
 
 			if( !isSpawning ) // got loadout switch
 			{
-           		SendHudMessage( player, "更換至 浪人 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+           		//SendHudMessage( player, "更換至 浪人 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#TITAN_RONIN" )
 			}
 
@@ -867,7 +867,7 @@ void function TitanReplace_BecomeNorthstar( entity titan, bool isPickup = false,
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
             
@@ -880,7 +880,7 @@ void function TitanReplace_BecomeNorthstar( entity titan, bool isPickup = false,
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 北極星 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 北極星 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#TITAN_NORTHSTAR" )
 			}
 
@@ -1002,7 +1002,7 @@ void function TitanReplace_BecomeStryder( entity titan, bool isPickup = false, b
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1015,7 +1015,7 @@ void function TitanReplace_BecomeStryder( entity titan, bool isPickup = false, b
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 游俠 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 游俠 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#CHASSIS_STRYDER_NAME" )
 			}
 
@@ -1113,7 +1113,7 @@ void function TitanReplace_BecomeScorch( entity titan, bool isPickup = false, bo
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1127,7 +1127,7 @@ void function TitanReplace_BecomeScorch( entity titan, bool isPickup = false, bo
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 烈焰 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 烈焰 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#TITAN_SCORCH" )
 			}
 
@@ -1248,7 +1248,7 @@ void function TitanReplace_BecomeLegion( entity titan, bool isPickup = false, bo
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1262,7 +1262,7 @@ void function TitanReplace_BecomeLegion( entity titan, bool isPickup = false, bo
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 軍團 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 軍團 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#TITAN_LEGION" )
 			}
 
@@ -1375,7 +1375,7 @@ void function TitanReplace_BecomeOgre( entity titan, bool isPickup = false, bool
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1388,7 +1388,7 @@ void function TitanReplace_BecomeOgre( entity titan, bool isPickup = false, bool
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 巨妖 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 巨妖 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#CHASSIS_OGRE_NAME" )
 			}
 
@@ -1468,7 +1468,7 @@ void function TitanReplace_BecomeBison( entity titan, bool isPickup = false, boo
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1483,7 +1483,7 @@ void function TitanReplace_BecomeBison( entity titan, bool isPickup = false, boo
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 野牛 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 野牛 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#NPC_TITAN_OGRE_FIGHTER" )
 			}
 
@@ -1549,7 +1549,7 @@ void function TitanReplace_BecomeGunnerBison( entity titan, bool isPickup = fals
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1562,7 +1562,7 @@ void function TitanReplace_BecomeGunnerBison( entity titan, bool isPickup = fals
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 野牛 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 野牛 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#NPC_TITAN_OGRE_FIGHTER" )
 			}
 
@@ -1662,7 +1662,7 @@ void function TitanReplace_BecomeMonarch( entity titan, bool isPickup = false, b
 		{
             if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1675,7 +1675,7 @@ void function TitanReplace_BecomeMonarch( entity titan, bool isPickup = false, b
 
 			if( !isSpawning ) // got loadout switch
 			{
-            	SendHudMessage( player, "更換至 帝王 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+            	//SendHudMessage( player, "更換至 帝王 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
             	player.SetTitle( "#TITAN_VANGUARD" )
 			}
 
@@ -1806,7 +1806,7 @@ void function TitanReplace_BecomeArchon( entity titan, bool isPickup = false, bo
 		{
 			if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 			
@@ -1819,7 +1819,7 @@ void function TitanReplace_BecomeArchon( entity titan, bool isPickup = false, bo
 
 			if( !isSpawning ) // got loadout switch
 			{
-				SendHudMessage( player, "更換至 執政官 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "更換至 執政官 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
 				player.SetTitle( "#NPC_TITAN_AUTO_STRYDER_ARC" )
 			}
 
@@ -1894,7 +1894,7 @@ void function TitanReplace_BecomeBrute( entity titan, bool isPickup = false, boo
 		{
 			if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1907,7 +1907,7 @@ void function TitanReplace_BecomeBrute( entity titan, bool isPickup = false, boo
 
 			if( !isSpawning ) // got loadout switch
 			{
-				SendHudMessage( player, "更換至 野獸 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "更換至 野獸 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
 				player.SetTitle( "#NPC_TITAN_AUTO_STRYDER_ROCKET" )
 			}
 
@@ -1969,7 +1969,7 @@ void function TitanReplace_BecomeModdedBrute4( entity titan, bool isPickup = fal
 		{
 			if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -1982,7 +1982,7 @@ void function TitanReplace_BecomeModdedBrute4( entity titan, bool isPickup = fal
 
 			if( !isSpawning ) // got loadout switch
 			{
-				SendHudMessage( player, "更換至 野獸四號 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "更換至 野獸四號 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
 				player.SetTitle( "#NPC_TITAN_AUTO_ATLAS_ROCKETEER" )
 			}
 
@@ -2071,7 +2071,7 @@ void function TitanReplace_BecomeModdedArchon( entity titan, bool isPickup = fal
 		{
 			if( IsTitanCoreFiring( player ) )
             {
-                SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
+                //SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 0, 0, 3, 0 )
                 return
             }
 
@@ -2084,7 +2084,7 @@ void function TitanReplace_BecomeModdedArchon( entity titan, bool isPickup = fal
 			
 			if( !isSpawning ) // got loadout switch
 			{
-				SendHudMessage( player, "更換至 執政官 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "更換至 執政官 泰坦技能組" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
 				player.SetTitle( "#NPC_TITAN_AUTO_STRYDER_ARC" )
 			}
 
@@ -2270,6 +2270,8 @@ string function IonWeaponDisplayNameFunc( entity weapon )
 	if ( IsValid( core ) )
 		coreMods = core.GetMods()
 
+	string displayName = "ION Loadout"
+	/*
 	string displayName = "離子 技能組"
 	if ( SoulHasPassive( soul, ePassives.PAS_ION_WEAPON ) || primaryMods.contains( "pas_ion_weapon" ) )
 		displayName += "【纏結能量】"
@@ -2281,6 +2283,7 @@ string function IonWeaponDisplayNameFunc( entity weapon )
 		displayName += "【大型火砲】"
 	else if ( primaryMods.contains( "pas_ion_weapon_ads" ) )
 		displayName += "【折射鏡片】"
+	*/
 
 	return displayName
 }
@@ -2365,6 +2368,8 @@ string function ToneWeaponDisplayNameFunc( entity weapon )
 	if ( IsValid( antiRodeo ) )
 		antiRodeoMods = antiRodeo.GetMods()
 	
+	string displayName = "TONE Loadout"
+	/*
 	string displayName = "強力 技能組"
 	if ( primaryMods.contains( "pas_tone_weapon" ) )
         displayName += "【強化追蹤彈藥】"
@@ -2376,6 +2381,7 @@ string function ToneWeaponDisplayNameFunc( entity weapon )
 		displayName += "【脈衝回波】"
 	else if ( primaryMods.contains( "pas_tone_burst" ) )
 		displayName += "【連發填充器】"
+	*/
 
 	return displayName
 }
@@ -2510,6 +2516,8 @@ string function RoninWeaponDisplayNameFunc( entity weapon )
 	if ( IsValid( core ) )
 		coreMods = core.GetMods()
 
+	string displayName = "RONIN Loadout"
+	/*
 	string displayName = "浪人 技能組"
 	if ( primaryMods.contains( "pas_ronin_weapon" ) )
 		displayName += "【彈跳彈藥】"
@@ -2521,6 +2529,7 @@ string function RoninWeaponDisplayNameFunc( entity weapon )
 		displayName += "【高地戰士】"
 	else if ( antiRodeoMods.contains( "pas_ronin_phase" ) )
 		displayName += "【時間異常】"
+	*/
 
 	return displayName
 }
@@ -2606,6 +2615,8 @@ string function NorthstarWeaponDisplayNameFunc( entity weapon )
 	if ( IsValid( core ) )
 		coreMods = core.GetMods()
 
+	string displayName = "NORTHSTAR Loadout"
+	/*
 	string displayName = "北極星 技能組"
 	if ( primaryMods.contains( "pas_northstar_weapon" ) )
 		displayName += "【穿刺射擊】"
@@ -2617,6 +2628,7 @@ string function NorthstarWeaponDisplayNameFunc( entity weapon )
 		displayName += "【毒蛇推進器】"
 	else if ( primaryMods.contains( "pas_northstar_optics" ) )
 		displayName += "【威脅光鏡】"
+	*/
 
 	return displayName
 }
@@ -2744,6 +2756,8 @@ string function ScorchWeaponDisplayNameFunc( entity weapon )
 	if ( IsValid( core ) )
 		coreMods = core.GetMods()
 
+	string displayName = "SCORCH Loadout"
+	/*
 	string displayName = "烈焰 技能組"
 	if ( primaryMods.contains( "pas_scorch_weapon" ) )
 		displayName += "【野火投射器】"
@@ -2755,6 +2769,7 @@ string function ScorchWeaponDisplayNameFunc( entity weapon )
 		displayName += "【增強火力】"
 	else if ( coreMods.contains( "pas_scorch_flamecore" ) )
 		displayName += "【一片焦土】"
+	*/
 
 	return displayName
 }
@@ -2867,6 +2882,8 @@ string function LegionWeaponDisplayNameFunc( entity weapon )
 	if ( IsValid( core ) )
 		coreMods = core.GetMods()
 
+	string displayName = "LEGION Loadout"
+	/*
 	string displayName = "軍團 技能組"
 	if ( primaryMods.contains( "pas_legion_weapon" ) )
 		displayName += "【強化彈藥容量】"
@@ -2878,6 +2895,7 @@ string function LegionWeaponDisplayNameFunc( entity weapon )
 		displayName += "【輕合金】"
 	else if ( ordnanceMods.contains( "pas_legion_chargeshot" ) )
 		displayName += "【隱藏部件】"
+	*/
 
 	return displayName
 }
@@ -3105,7 +3123,9 @@ string function MonarchWeaponDisplayNameFunc( entity weapon )
 		antiRodeoMods = antiRodeo.GetMods()
 	
 	// mornach has variant mods
+	string displayName = "MONARCH Loadout"
 	// passives
+	/*
 	string passive = ""
 	if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) || specialMods.contains( "pas_vanguard_shield" ) )
 		passive = "防護罩放大器"
@@ -3155,6 +3175,7 @@ string function MonarchWeaponDisplayNameFunc( entity weapon )
 
 	if ( passive != "" || firstUpgrade != "" || secondUpgrade != "" || finalUpgrade != "" )
 		displayName += "】" // end
+	*/
 
 	return displayName
 }

@@ -559,12 +559,12 @@ function PickupDroppedTitanWeapon( weaponProp, player )
     
 	if( !canPickUp )
 	{
-		SendHudMessage( player, "當前機體不可更換裝備", -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
+		//SendHudMessage( player, "當前機體不可更換裝備", -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
 		return
 	}
 	if( IsTitanCoreFiring( player ) )
 	{
-		SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
+		//SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
 		return
 	}
 
