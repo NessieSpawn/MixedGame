@@ -44,8 +44,8 @@ const array<string> CONNECTING_MESSAGES =
 
 void function OnClientConnected( entity player )
 {
-    foreach ( string msg in CONNECTING_MESSAGES )
-        Chat_ServerPrivateMessage( player, msg, false, false )
+    //foreach ( string msg in CONNECTING_MESSAGES )
+    //    Chat_ServerPrivateMessage( player, msg, false, false )
 }
 
 const array<string> GAMEPLAY_HELP_MESSAGE =

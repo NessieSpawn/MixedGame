@@ -137,8 +137,8 @@ void function GameModifier_Fake_Titanfall1_Init()
 
 void function OnClientConnected( entity player )
 {
-	foreach ( string message in CONNECTING_NOTIFICATIONS )
-		Chat_ServerPrivateMessage( player, message, false, false )
+	//foreach ( string message in CONNECTING_NOTIFICATIONS )
+	//	Chat_ServerPrivateMessage( player, message, false, false )
 }
 
 void function SetUpFakeTTF1ScoreEvent()
