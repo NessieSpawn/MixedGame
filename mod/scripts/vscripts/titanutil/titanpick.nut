@@ -355,7 +355,7 @@ entity function TitanPick_TitanDropWeapon( entity titan, vector droppoint = DEFA
     if ( displayName == "" || !IsValid( weaponProp ) )
         return
 
-    weaponProp.SetUsable()
+    //weaponProp.SetUsable()
     weaponProp.SetUsableByGroup( "titan" )
     weaponProp.SetUsePrompts( "按住 %use% 以撿起 " + displayName, "按下 %use% 以撿起 " + displayName )
     weaponProp.SetScriptName( TITAN_DROPPED_WEAPON_SCRIPTNAME )
@@ -1000,7 +1000,7 @@ void function InitLoadoutDamageTable( string charaName )
 void function TitanPick_OnTitanDamageTarget( entity victim, var damageInfo )
 {
     entity attacker = DamageInfo_GetAttacker( damageInfo )
-    if ( IsValid( attacker ) )
+    if ( IsValid( attacker ) && attacker.IsTitan() )
     {
         float damageScale = TitanPick_GetTitanDamageScale( attacker )
         // debug
