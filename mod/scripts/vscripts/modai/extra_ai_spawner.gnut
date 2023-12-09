@@ -1294,7 +1294,7 @@ void function InitDefaultBossTitanList()
 		"Slone",										// pilot title. can't use localized string
 		$"models/humans/pilots/pilot_medium_reaper_f.mdl",		// character model, use mp pilot model: pulse blade female
 		BossLoadout_Generic_NoModelForMP, 				// generic loadout function for boss that has no pilot model for mp
-		7,												// skin index, unsure
+		7,												// skin index
 		11												// decal index
 	)
 
@@ -1311,7 +1311,7 @@ void function InitDefaultBossTitanList()
 		"Kane",											// pilot title. can't use localized string
 		$"models/humans/pilots/pilot_medium_stalker_m.mdl",		// character model, use mp pilot model: holopilot male
 		BossLoadout_Generic_NoModelForMP, 				// generic loadout function for boss that has no pilot model for mp
-		3,												// skin index, unsure
+		3,												// skin index
 		1												// decal index
 	)
 
@@ -1328,7 +1328,7 @@ void function InitDefaultBossTitanList()
 		"Viper",										// pilot title. can't use localized string
 		$"models/humans/pilots/pilot_medium_reaper_m.mdl",		// character model, use mp pilot model: pulse blade male
 		BossLoadout_Generic_NoModelForMP, 				// generic loadout function for boss that has no pilot model for mp
-		5,												// skin index, unsure
+		5,												// skin index
 		10												// decal index
 	)
 
@@ -1362,7 +1362,7 @@ void function InitDefaultBossTitanList()
 		"Richter",										// pilot title. can't use localized string
 		$"models/humans/pilots/pilot_heavy_drex_m.mdl",		// character model, use mp pilot model: cloak male
 		BossLoadout_Generic_NoModelForMP, 				// generic loadout function for boss that has no pilot model for mp
-		4,												// skin index, unsure
+		4,												// skin index
 		13												// decal index
 	)
 
@@ -1379,7 +1379,7 @@ void function InitDefaultBossTitanList()
 		"Blisk",										// pilot title. can't use localized string
 		$"models/Humans/heroes/imc_hero_blisk.mdl",		// character model
 		BossLoadout_Blisk, 								// loadout function: change core weapon
-		8,												// skin index, unsure
+		8,												// skin index
 		12												// decal index
 	)
 
@@ -1741,6 +1741,11 @@ void function NPCVanguard_SetUpTitan( entity titan, bool replacePilot = false )
 	// if we spawn an enemy buddy titan we'll crash
 	string squad = ExtraSpawner_MakeMarkedSquadName( titan.GetTeam(), UniqueString( "_buddy" ) )
 	SetSquad( titan, squad )
+
+	// make them always alert so they don't holster weapon after warpfall
+	// welp, seems they already got this due to setups in CommonNPCTitanOnSpawned()
+	// don't know why it don't work
+	titan.kv.alwaysalert = 1
 
 	// pick a random pilot setting!
 	NPCVanguardPilot pickedPilot = file.npcVanguardPilots[ RandomInt( file.npcVanguardPilots.len() ) ]

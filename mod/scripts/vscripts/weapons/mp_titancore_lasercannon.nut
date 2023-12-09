@@ -78,15 +78,20 @@ void function LaserCore_OnPlayedOrNPCKilled( entity victim, entity attacker, var
 	float remainingTime = laserCoreBonus + soul.GetCoreChargeExpireTime() - curTime
 	// I feel like this shouldn't be hardcoded here...
 	// change to get weapon settings. may make normal laser core's core regen less powerful, but that's respawn's fault, not mine
-	/*
+	// now uses setting to toggle it
+	bool doCoreFix = bool( GetCurrentPlaylistVarInt( "laser_core_fix", 0 ) ) || weapon.HasMod( "laser_core_fix" )
 	float duration
-	if ( weapon.HasMod( "pas_ion_lasercannon") )
-		duration = 5.0
-	else
-		duration = 3.0
-	*/
 	// modified version
-	float duration = weapon.GetWeaponSettingFloat( eWeaponVar.sustained_discharge_duration )
+	if ( doCoreFix )
+		duration = weapon.GetWeaponSettingFloat( eWeaponVar.sustained_discharge_duration )
+	else // vanilla behavior
+	{
+		if ( weapon.HasMod( "pas_ion_lasercannon") )
+			duration = 5.0
+		else
+			duration = 3.0
+	}
+
 	float coreFrac = min( 1.0, remainingTime / duration )
 	//Defensive fix for this sometimes resulting in a negative value.
 	if ( coreFrac > 0.0 )
@@ -96,7 +101,8 @@ void function LaserCore_OnPlayedOrNPCKilled( entity victim, entity attacker, var
 		soul.SetCoreChargeExpireTime( remainingTime + curTime )
 		// modified here: this causes core meter to have bad display effect, don't use it
 		// now updating it with TrackLaserCoreDuration()
-		//weapon.SetSustainedDischargeFractionForced( coreFrac ) 
+		if ( !doCoreFix ) // vanilla behavior toggle
+			weapon.SetSustainedDischargeFractionForced( coreFrac ) 
 	}
 }
 
@@ -188,7 +194,11 @@ bool function OnAbilityCharge_LaserCannon( entity weapon )
 	weapon.w.laserWorldModel.SetOrigin( origin )
 	weapon.w.laserWorldModel.SetAngles( angles - Vector(90,0,0)  )
 
-	weapon.w.laserWorldModel.SetParent( player, "PROPGUN", true, 0.0 )
+	// modified checks for non-atlas chassis using laser core
+	if ( !TitanShouldPlayAnimationForLaserCore( player ) )
+		weapon.w.laserWorldModel.SetParent( player, "CHESTFOCUS", true, 0.0 )
+	else // vanilla behavior
+		weapon.w.laserWorldModel.SetParent( player, "PROPGUN", true, 0.0 )
 	PlayFXOnEntity( FX_LASERCANNON_AIM, weapon.w.laserWorldModel, "muzzle_flash", null, null, 6, player )
 	PlayFXOnEntity( FX_LASERCANNON_AIM, weapon.w.laserWorldModel, "laser_canon_1", null, null, 6, player )
 	PlayFXOnEntity( FX_LASERCANNON_AIM, weapon.w.laserWorldModel, "laser_canon_2", null, null, 6, player )
@@ -198,12 +208,26 @@ bool function OnAbilityCharge_LaserCannon( entity weapon )
 	weapon.w.laserWorldModel.Anim_Play( "charge_seq" )
 
 	// check for npc executions to work!
+	// don't want it intterupt execution animations
 	//PrintFunc()
 	//print( "!player.Anim_IsActive(): " + string( !player.Anim_IsActive() ) )
 	if ( player.IsNPC() && !player.Anim_IsActive() )
 	{
 		player.SetVelocity( <0,0,0> )
-		player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK_START", true, 0.0 )
+		
+		// modified checks for animations, anti-crash
+		if ( TitanShouldPlayAnimationForLaserCore( player ) )
+		{
+			player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK_START", true, 0.0 )
+			// vanilla missing: needs these to make them unable to be set into other scripted animations( eg. being executed )
+			if ( !player.ContextAction_IsBusy() )
+				player.ContextAction_SetBusy()
+		}
+		else // other titans using it, could be bad... try to stop their movement for the duration of core
+		{
+			float coreDuration = weapon.GetWeaponSettingFloat( eWeaponVar.charge_time ) + weapon.GetWeaponSettingFloat( eWeaponVar.sustained_discharge_duration )
+			StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 1.0, coreDuration )
+		}
 	}
 #endif // #if SERVER
 
@@ -244,6 +268,7 @@ void function OnAbilityChargeEnd_LaserCannon( entity weapon )
 		player.Server_TurnOffhandWeaponsDisabledOff()
 
 	// check for npc executions to work!
+	// don't want it intterupt execution animations
 	//PrintFunc()
 	//print( "IsTitanCoreFiring( player ): " + string( IsTitanCoreFiring( player ) ) )
 	//print( "!player.Anim_IsActive(): " + string( !player.Anim_IsActive() ) )
@@ -286,7 +311,9 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 		EmitSoundOnEntityExceptToPlayer( player, player, "Titan_Core_Laser_FireStart_3P" )
 		EmitSoundOnEntityExceptToPlayer( player, player, "Titan_Core_Laser_FireBeam_3P" )
 		// modified here: we needs to update laser core's charged frac so it won't have issue displaying on HUD
-		thread TrackLaserCoreDuration( player, weapon )
+		bool doCoreFix = bool( GetCurrentPlaylistVarInt( "laser_core_fix", 0 ) ) || weapon.HasMod( "laser_core_fix" )
+		if ( doCoreFix )
+			thread TrackLaserCoreDuration( player, weapon )
 	}
 	else
 	{
@@ -295,12 +322,15 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 	}
 	
 	// check for npc executions to work!
+	// don't want it intterupt execution animations
 	//PrintFunc()
 	//print( "!player.Anim_IsActive(): " + string( !player.Anim_IsActive() ) )
 	if ( player.IsNPC() && !player.Anim_IsActive() )
 	{
 		player.SetVelocity( <0,0,0> )
-		player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK", true, 0.1 )
+		// modified checks for animations, anti-crash
+		if ( TitanShouldPlayAnimationForLaserCore( player ) )
+			player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK", true, 0.1 )
 	}
 
 	// thread LaserEndingWarningSound( weapon, player )
@@ -348,17 +378,55 @@ void function OnAbilityEnd_LaserCannon( entity weapon )
 	}
 
 	// check for npc executions to work!
+	// don't want it intterupt execution animations
 	//PrintFunc()
 	if ( player.IsNPC() && IsAlive( player ) )
 	{
 		player.SetVelocity( <0,0,0> )
-		player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK_END", true, 0.0 )
+
+		// modified checks for animations, anti-crash
+		if ( TitanShouldPlayAnimationForLaserCore( player ) )
+		{
+			player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK_END", true, 0.0 )
+			// vanilla missing: clean up context action state we set in OnAbilityCharge_LaserCannon()
+			if ( player.ContextAction_IsBusy() )
+				thread ClearContextActionStateAfterCoreAnimation( player )
+		}
 	}
 
 	StopSoundOnEntity( player, "Titan_Core_Laser_FireBeam_3P" )
 	StopSoundOnEntity( player, LASER_FIRE_SOUND_1P )
 	#endif
 }
+
+// modified functions
+#if SERVER
+// wants to limit animations to atlas-chassis only, in case we want to use it for other titans
+bool function TitanShouldPlayAnimationForLaserCore( entity titan )
+{
+	entity soul = titan.GetTitanSoul()
+	if ( IsValid( soul ) )
+	{
+		string titanType = GetSoulTitanSubClass( soul )
+		if ( titanType == "atlas" )
+			return true
+	}
+
+	return false
+}
+
+void function ClearContextActionStateAfterCoreAnimation( entity npc )
+{
+	npc.EndSignal( "OnDestroy" )
+
+	WaittillAnimDone( npc )
+	if ( npc.ContextAction_IsBusy() )
+	{
+		npc.ContextAction_ClearBusy()
+		print( "Cleaning up context action state for npc firing laser core" )
+	}
+}
+#endif
 
 #if SERVER
 void function LaserEndingWarningSound( entity weapon, entity player )
