@@ -36,13 +36,6 @@
             }
 		},
 		{
-			"Path": "/nessieutil/hacked_death_util.gnut",
-			"RunOn": "SERVER && MP",
-            "ServerCallback": {
-                "After": "Hacked_Death_Utility_Init"
-            }
-		},
-		{
 			"Path": "/nessieutil/modded_burnmods.gnut",
 			"RunOn": "SERVER && MP",
 			"ServerCallback": {
@@ -377,13 +370,13 @@
             }
 		},
 		{
-			"Path": "/sharedutil/riff_titancore_fix.gnut",
+			"Path": "/sharedutil/riff_titan_misc_fix.gnut",
 			"RunOn": "( CLIENT || SERVER ) && MP",
             "ServerCallback": {
-                "After": "Riff_TitanCore_Fix_Init"
+                "After": "Riff_TitanMiscellaneous_Fix_Init"
             },
 			"ClientCallback": {
-                "After": "Riff_TitanCore_Fix_Init"
+                "After": "Riff_TitanMiscellaneous_Fix_Init"
             }
 		},
 		{
