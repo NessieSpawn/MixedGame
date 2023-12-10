@@ -1556,9 +1556,6 @@ bool function IsValidNPCTarget( entity ent )
 		case "npc_turret_sentry":
 		case "npc_turret_mega":
 		case "npc_dropship":
-		// vanilla missing
-		case "npc_gunship":
-		case "npc_pilot_elite":
 			return true
 	}
 
