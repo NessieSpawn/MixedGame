@@ -187,15 +187,6 @@ void function MarkPlayers( entity imcMark, entity militiaMark )
 	
 	foreach ( entity player in GetPlayerArray() )
 		Remote_CallFunction_NonReplay( player, "SCB_MarkedChanged" )
-
-	if( file.isZombieMfd )
-	{
-		foreach ( entity player in GetPlayerArray() )
-		{
-			if( player == imcMark || player == militiaMark )
-				MakePlayerVIP( player )
-		}
-	}
 		
 	// wait until mark dies
 	table result = svGlobal.levelEnt.WaitSignal( "MarkKilled" )
