@@ -363,6 +363,8 @@ struct
 	table<entity, float> npcPilotPhaseHealthThreshold
 	// npc attacking management
 	table< entity, array<int> > npcDisabledAttackCapabilityFlags
+	// npc execution management
+	array<entity> npcVanguardChassisTitan
 } file
 
 void function ExtraAISpawner_Init()
@@ -396,11 +398,6 @@ void function ExtraAISpawner_Init()
 	RegisterSignal( "ScriptedNPCTitanCoreAbility" )
 	// npc pilot think
 	RegisterSignal( "ScriptedNPCPilotTacticalAbility" )
-	RegisterSignal( "NPCPilotActivatesCloak" )
-	RegisterSignal( "CloakTimeOut" )
-	RegisterSignal( "NPCPilotActivatesStim" )
-	RegisterSignal( "NPCPilotActivatesPhaseShift" )
-	RegisterSignal( "PilotWantsToPhase" )
 	// gunship 
 	RegisterSignal( "GunshipJetBurstEffect" )
 	GunshipPrecache()
@@ -1337,17 +1334,30 @@ bool function ExtraSpawner_IsValidExecutionTarget( entity attacker, entity targe
 		return false
 	
 	// only handle those who spawn from this file
+	// attacker case
+	if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( attacker ) )
+	{
+		if ( attacker.IsTitan() ) 
+		{
+			// vanguard chassis shouldn't execute players due their victim animation don't have suitable attachment
+			bool targetIsPlayer = IsValid( target ) && target.IsPlayer()
+			if ( file.npcVanguardChassisTitan.contains( attacker ) && targetIsPlayer )
+				return false
+		}
+	}
+
+	// target case
 	if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( target ) )
 	{
-		// npc target with core active can have bad animation while being executed
-		// usually happens for salvo core, but laser core seems working well? why?
-		// this cannot be solved by adding target.Anim_Stop() in _melee_synced_titan.gnut
-		// i don't know if it's a good idea to make them unable to be executed, just handle here
 		if ( target.IsTitan() ) 
 		{
 			entity soul = target.GetTitanSoul()
-			if ( IsValid( soul ) && TitanHasNpcPilot( target ) )
+			if ( IsValid( soul ) )
 			{
+				// npc target with core active can have bad animation while being executed
+				// usually happens for salvo core, but laser core seems working well? why?
+				// this cannot be solved by adding target.Anim_Stop() in _melee_synced_titan.gnut
+				// i don't know if it's a good idea to make them unable to be executed, just handle here
 				bool titanCoreInUse = TitanCoreInUse( target )
 				// also handle anim recover time for scripted core abilities
 				float timeSinceCoreExpire = Time() - SoulTitanCore_GetExpireTime( soul )
@@ -1357,6 +1367,11 @@ bool function ExtraSpawner_IsValidExecutionTarget( entity attacker, entity targe
 				if ( ( titanCoreInUse || titanCoreEndGracePeriod ) && target.Anim_IsActive() )
 					return false
 			}
+
+			// vanguard chassis shouldn't be executed by players for balancing they can't execute player
+			bool attackerIsPlayer = IsValid( attacker ) && attacker.IsPlayer()
+			if ( file.npcVanguardChassisTitan.contains( target ) && attackerIsPlayer )
+				return false
 		}
 
 		// npc pilot elite case
@@ -1673,6 +1688,7 @@ void function BossLoadout_Sarah( entity titan )
 	titan.GiveOffhandWeapon( "mp_titanweapon_heat_shield", OFFHAND_SPECIAL )
 	
 	// add salvo core for them, we've tried to fix npc usage
+	// works weird but still good enough to use, I think... laser core shouldn't be used for npcs though
 	//titan.GetOffhandWeapon( OFFHAND_EQUIPMENT ).AddMod( "npc_bt_balance" ) // balance core ability
 	titan.TakeOffhandWeapon( OFFHAND_EQUIPMENT )
 	titan.GiveOffhandWeapon( "mp_titancore_salvo_core", OFFHAND_EQUIPMENT )
@@ -1740,7 +1756,8 @@ void function InitNPCVanguardLoadouts()
 	ionLoadout.behaviorSelector = "behavior_titan"
 	ionLoadout.loadoutFunction = null
 	// add laser core for vanguard because we've tried to fix npc usage
-	//ionLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use laser core
+	// welp, should keep them banned... npc vanguard have firing spot and won't discard core meter after using
+	ionLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use laser core
 	file.npcVanguardLoadouts.append( ionLoadout )
 
 	// tone
@@ -1749,7 +1766,9 @@ void function InitNPCVanguardLoadouts()
 	toneLoadout.behaviorSelector = "behavior_titan_long_range"
 	toneLoadout.loadoutFunction = null
 	// add salvo core for vanguard because we've tried to fix npc usage
-	//toneLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use salvo core
+	// welp, should keep them banned... npc vanguard have weird firing spot and won't discard core meter after using
+	// but it's not that bad compare to laser core, guess I'll keep it for sarah
+	toneLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use salvo core
 	file.npcVanguardLoadouts.append( toneLoadout )
 
 	// ronin
@@ -1782,6 +1801,8 @@ void function InitNPCVanguardLoadouts()
 	legionLoadout.setFile = "titan_ogre_minigun"
 	legionLoadout.behaviorSelector = "behavior_titan_ogre_minigun"
 	// smart core has been scripted for npc titan to use
+	// maybe ban them because most of the core ability isn't usable for npc vanguard
+	// but I want to keep it valid, just for fun?
 	//legionLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // smart core is not added for npc usage from native code
 	legionLoadout.loadoutFunction = null
 	file.npcVanguardLoadouts.append( legionLoadout )
@@ -1792,7 +1813,8 @@ void function InitNPCVanguardLoadouts()
 	scorchLoadout.behaviorSelector = "behavior_titan_ogre_meteor"
 	scorchLoadout.loadoutFunction = null
 	// add flame core for vanguard because we've tried to fix npc usage
-	//scorchLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use flame core
+	// welp, should keep them banned... npc vanguard usually fail to fire, unless they randomized to a proper ACT_SPECIAL_ATTACK animation
+	scorchLoadout.lockedAbilities = [OFFHAND_EQUIPMENT] // BT can't use flame core
 	file.npcVanguardLoadouts.append( scorchLoadout )
 
 
@@ -1869,10 +1891,20 @@ void function NPCVanguard_SetUpTitan( entity titan, bool replacePilot = false )
 		}
 
 		PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, false )	// disable earnmeter smoke availability, they already have electric smoke
-		MeleeSyncedTitan_SetSoulCanBeExecuted( soul, false ) // cannot execute BT, they don't have enough animations
+		// here has been reworked: we mark file.npcVanguardChassisTitan for them
+		// in that case, they can't execute player titan and players can't execute them
+		// npc executing each other is possible
+		// reason why they can't execute player: their execution victim animation don't have camera attachment, which is pretty bad for players
+		// reason why player can't execute them: for balancing they can't execute player
+		// formerly nobody can execute them is because their victim animation don't have AE_MELEE_KILLED or other things a MP titan animation should have
+		// it's now worked around with more modifications in _melee_synced_titan.gnut
+		//MeleeSyncedTitan_SetSoulCanBeExecuted( soul, false ) // cannot execute BT, they don't have enough animations
 		Rodeo_SetTitanRodeoSequenceEnabled( titan, false ) // bt don't have battery on hatch, don't allow removing
 		MeleeSyncedTitan_SetSoulDoRandomExecution( soul, true ) // execution_bt is already random with bt, this is for random classic execution
 	}
+
+	// mark as vanguard chassis titan
+	file.npcVanguardChassisTitan.append( titan )
 }
 
 const float NPC_VANGUARD_SHIELD_REGEN_DELAY = 6.0 // taken from titan_buddy.set( sp uses 3.0 )
@@ -5133,9 +5165,21 @@ void function ExtraSpawner_StopNPCPilotTacticalAbility( entity pilot )
 
 void function InitDefaultScriptedNPCPilotTactical()
 {
+	// cloak
+	RegisterSignal( "NPCPilotActivatesCloak" )
+	RegisterSignal( "CloakTimeOut" )
 	ExtraSpawner_AddScriptedNPCPilotAbilityThink( "mp_ability_cloak", NPCPilotCloakThink )
+
+	// stim
+	RegisterSignal( "NPCPilotActivatesStim" )
 	ExtraSpawner_AddScriptedNPCPilotAbilityThink( "mp_ability_heal", NPCPilotStimThink )
+
+	// holopilot
 	ExtraSpawner_AddScriptedNPCPilotAbilityThink( "mp_ability_holopilot", NPCPilotHoloPilotThink )
+
+	// phase shift
+	RegisterSignal( "NPCPilotActivatesPhaseShift" )
+	RegisterSignal( "PilotWantsToPhase" )
 	ExtraSpawner_AddScriptedNPCPilotAbilityThink( "mp_ability_shifter", NPCPilotPhaseShiftThink )
 }
 
@@ -5987,7 +6031,7 @@ const float NPC_PILOT_PHASE_MASSIVE_DAMAGE_FRAC = 0.4 // if health about to take
 // npc pilots can't use shift well, give them some speed boost based on health left
 const float NPC_PILOT_PHASE_SPEED_BOOST_SEVERITY_MIN = 0.3 // first version uses 0.65, no-time-extention version uses 0.35
 const float NPC_PILOT_PHASE_SPEED_BOOST_SEVERITY_MAX = 0.6 // first version uses 1.35, no-time-extention version uses 0.8
-const float NPC_PILOT_PHASE_USE_TIME_EXTENTION = 1.5 // pilots can't use phase shift well... extend their use time for some bit
+const float NPC_PILOT_PHASE_USE_TIME_EXTENTION = 1.3 // pilots can't use phase shift well... extend their use time for some bit( was using 1.5 which might be annoying? )
 
 void function NPCPilotActivatesPhaseShift( entity pilot, entity weapon )
 {
