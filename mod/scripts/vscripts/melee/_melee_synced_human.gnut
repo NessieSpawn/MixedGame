@@ -104,10 +104,6 @@ struct PilotVsEnemyStruct
 	bool clearInvulnerable = false
 	bool wasCloaked = false
 	float cloakEndTime = 0.0
-
-	// for targets. they should be ignored while being executed
-	// breaks vanilla behavior but whatever
-	bool clearNoTarget = false
 }
 
 void function DisableCloakBeforeMelee( entity player, PilotVsEnemyStruct dataStruct )
@@ -313,10 +309,6 @@ void function MeleeThread_PilotVsEnemy_Target( SyncedMelee action, entity attack
 				{
 					target.ClearInvulnerable()
 				}
-				// targets should be ignored while being executed
-				// breaks vanilla behavior but whatever
-				if ( dataStruct.clearNoTarget )
-					target.SetNoTarget( false )
 
 				bool isAlive = IsAlive( target )
 
@@ -425,13 +417,6 @@ void function MeleeThread_PilotVsEnemy_Target( SyncedMelee action, entity attack
 	{
 		dataStruct.clearInvulnerable = true
 		target.SetInvulnerable()
-	}
-	// targets should be ignored while being executed
-	// breaks vanilla behavior but whatever
-	if ( !target.GetNoTarget() )
-	{
-		dataStruct.clearNoTarget = true
-		target.SetNoTarget( true )
 	}
 
 	if ( isAttackerRef )
