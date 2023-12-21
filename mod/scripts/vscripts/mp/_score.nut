@@ -55,8 +55,30 @@ void function Score_Init()
 	file.earn_meter_titan_multiplier = GetCurrentPlaylistVarFloat( "earn_meter_titan_multiplier", 1.0 )
 	file.earn_meter_pilot_overdrive = GetCurrentPlaylistVarInt( "earn_meter_pilot_overdrive", ePilotOverdrive.Enabled )
 
+	// little tweak for fun
+	AddCallback_OnPlayerRespawned( OnPlayerRespawned )
+	AddDeathCallback( "player", OnPlayerDeath )
+
 	// modified
 	InitTitanKilledDialogues()
+}
+
+void function OnPlayerRespawned( entity player )
+{
+	// reset killstreaks and stuff
+	player.s.currentKillstreak = 0
+	player.s.lastKillTime = 0.0
+	player.s.currentTimedKillstreak = 0
+	// npc&player mixed killstreaks
+	player.s.lastMixedKillTime = 0.0
+	player.s.currentMayhemKillstreak = 0
+	player.s.currentOnslaughtKillstreak = 0
+}
+
+void function OnPlayerDeath( entity player, var damageInfo )
+{
+	player.p.numberOfDeathsSinceLastKill++ // this is reset on kill
+	player.p.lastDeathTime = Time()
 }
 
 // modified!!!
@@ -189,7 +211,10 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 
 void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damageInfo )
 {
-	// reset killstreaks and stuff		
+	// reset killstreaks and stuff	
+	// moved to OnPlayerRespawned()
+	// though it's not vanilla behavior, having killstreak after death is funny( like for grenadier weapons )
+	/*
 	victim.s.currentKillstreak = 0
 	victim.s.lastKillTime = 0.0
 	victim.s.currentTimedKillstreak = 0
@@ -197,9 +222,13 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	victim.s.lastMixedKillTime = 0.0
 	victim.s.currentMayhemKillstreak = 0
 	victim.s.currentOnslaughtKillstreak = 0
+	*/
 	
+	// moving these to OnPlayerDeath(), because ScoreEvent_PlayerKilled() isn't always called
+	/*
 	victim.p.numberOfDeathsSinceLastKill++ // this is reset on kill
 	victim.p.lastDeathTime = Time()
+	*/
 	victim.p.lastKiller = attacker
 	victim.p.seekingRevenge = true
 	
@@ -287,7 +316,7 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	attacker.s.lastKillTime = Time() // update last kill time
 
 	// npc&player mixed killsteaks
-	UpdateMixedUntimedKillStreaks( attacker )
+	UpdateUntimedKillStreaks( attacker )
 	UpdateMixedTimedKillStreaks( attacker )
 
 	// assist. was previously be in _base_gametype_mp.gnut, which is bad. vanilla won't add assist on npc killing a player
@@ -299,7 +328,7 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 }
 
 // npc&player mixed killsteaks
-void function UpdateMixedUntimedKillStreaks( entity attacker )
+void function UpdateUntimedKillStreaks( entity attacker )
 {
 	// untimed killstreaks
 	attacker.s.currentKillstreak++
@@ -417,7 +446,7 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	
 	//if ( !victim.IsPlayer() )
 	//{
-		UpdateMixedUntimedKillStreaks( attacker )
+		UpdateUntimedKillStreaks( attacker )
 		UpdateMixedTimedKillStreaks( attacker )
 	//}
 
