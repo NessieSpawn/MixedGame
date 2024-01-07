@@ -919,6 +919,20 @@
                 "After": "Server_DisableRunAndGun_Init"
 			}
 		},
+		{
+			"Path": "/modweapons/modutility/_personal_turret.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "PersonalTurret_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_player_drone_throw.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "PlayerDroneThrow_Init"
+			}
+		},
 		// modded weapon utility end
 		// modded softball
 		{
@@ -1551,18 +1565,10 @@
 		},
 		{
 			"Path": "/modai/_ai_stim_drone.gnut",
-			"RunOn": "SERVER && MP"
+			"RunOn": "SERVER"
 		},
 		{
 			"Path": "/modai/_ai_repair_drone.gnut",
-			"RunOn": "SERVER"
-		},
-		{
-			"Path": "/modai/_ai_personal_turret.gnut",
-			"RunOn": "SERVER"
-		},
-		{
-			"Path": "/modai/_ai_player_drone_throw.gnut",
 			"RunOn": "SERVER"
 		},
 		{
@@ -1574,9 +1580,16 @@
 		},
 		{
 			"Path": "/modai/_ai_fake_suicide_spectres.gnut",
-			"RunOn": "SERVER && MP",
+			"RunOn": "SERVER",
 			"ServerCallback": {
                 "After": "FakeSuicideSpectres_Init"
+            }
+		},
+		{
+			"Path": "/modai/_ai_sentry_turret_placement.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+                "After": "AiSentryTurretPlacement_Init"
             }
 		},
 		// modded ai utilities end
