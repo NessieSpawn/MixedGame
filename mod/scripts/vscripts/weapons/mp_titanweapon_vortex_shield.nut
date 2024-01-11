@@ -28,8 +28,9 @@ function MpTitanweaponVortexShield_Init()
 {
 	VortexShieldPrecache()
 
-	RegisterSignal( "DisableAmpedVortex" )
-	RegisterSignal( "FireAmpedVortexBullet" )
+	// to fix bad vortex refiring, this is removed
+	//RegisterSignal( "DisableAmpedVortex" )
+	//RegisterSignal( "FireAmpedVortexBullet" )
 }
 
 function VortexShieldPrecache()
@@ -104,8 +105,11 @@ void function OnWeaponActivate_titanweapon_vortex_shield( entity weapon )
 	}
 
 	#if SERVER
+		// to fix bad vortex refiring, this is removed
+		/*
 		if ( weapon.GetWeaponSettingBool( eWeaponVar.is_burn_mod ) )
 			thread AmpedVortexRefireThink( weapon )
+		*/
 	#endif
 }
 
@@ -118,8 +122,9 @@ void function OnWeaponDeactivate_titanweapon_vortex_shield( entity weapon )
 	// vanilla behavior
 	EndVortex( weapon )
 
-	if ( weapon.GetWeaponSettingBool( eWeaponVar.is_burn_mod ) )
-		weapon.Signal( "DisableAmpedVortex" )
+	// to fix bad vortex refiring, this is removed
+	//if ( weapon.GetWeaponSettingBool( eWeaponVar.is_burn_mod ) )
+	//	weapon.Signal( "DisableAmpedVortex" )
 }
 
 void function OnWeaponCustomActivityStart_titanweapon_vortex_shield( entity weapon )
@@ -181,6 +186,8 @@ function StartVortex( entity weapon )
 	#endif
 }
 
+// to fix bad vortex refiring, this is removed
+/*
 // this needs to rework and should be fully handled by VortexReflectAttack()
 function AmpedVortexRefireThink( entity weapon )
 {
@@ -201,6 +208,7 @@ function AmpedVortexRefireThink( entity weapon )
 		}
 	}
 }
+*/
 
 function ForceReleaseOnPlayerEject( entity weapon )
 {
@@ -278,6 +286,8 @@ bool function OnWeaponVortexHitBullet_titanweapon_vortex_shield( entity weapon, 
 		// tempfix ttf2 vanilla behavior: burn mod vortex shield
 		// never try to catch a burn mod vortex's refiring bullets if we're using burn mod vortex shield
 		// otherwise it may cause infinite refire and crash the server( indicates by SCRIPT ERROR Failed to Create Entity "info_particle_system", the failure is because we've created so much entities due to infinite refire )
+		// tried to fully fix amped vortex, this fix is no longer needed
+		/*
 		if ( weapon.HasMod( "burn_mod_titan_vortex_shield" ) && attackerWeapon.HasMod( "burn_mod_titan_vortex_shield" ) )
 		{
 			// build impact data
@@ -291,6 +301,7 @@ bool function OnWeaponVortexHitBullet_titanweapon_vortex_shield( entity weapon, 
 			Vortex_SpawnShieldPingFX( weapon, impactData )
 			return true
 		}
+		*/
 		//
 
 		return TryVortexAbsorb( vortexSphere, attacker, origin, damageSourceID, attackerWeapon, attackerWeaponName, "hitscan", null, damageType, weapon.HasMod( "burn_mod_titan_vortex_shield" ) )
@@ -324,6 +335,8 @@ bool function OnWeaponVortexHitProjectile_titanweapon_vortex_shield( entity weap
 		// never try to catch a burn mod vortex's refiring bullets if we're using burn mod vortex shield
 		// otherwise it may cause infinite refire and crash the server( indicates by SCRIPT ERROR Failed to Create Entity "info_particle_system", the failure is because we've created so much entities due to infinite refire )
 		// if a projectile is fired by amped vortex, can get it in projectile.ProjectileGetMods()
+		// tried to fully fix amped vortex, this fix is no longer needed
+		/*
 		if ( weapon.HasMod( "burn_mod_titan_vortex_shield" ) && projectile.ProjectileGetMods().contains( "burn_mod_titan_vortex_shield" ) )
 		{
 			// build impact data
@@ -337,6 +350,7 @@ bool function OnWeaponVortexHitProjectile_titanweapon_vortex_shield( entity weap
 			Vortex_SpawnShieldPingFX( weapon, impactData )
 			return true
 		}
+		*/
 		//
 
 		return TryVortexAbsorb( vortexSphere, attacker, contactPos, damageSourceID, projectile, weaponName, "projectile", projectile, null, weapon.HasMod( "burn_mod_titan_vortex_shield" ) )
@@ -352,8 +366,14 @@ var function OnWeaponPrimaryAttack_titanweapon_vortex_shield( entity weapon, Wea
 	// vanilla behavior
 	local hasBurnMod = weapon.GetWeaponSettingBool( eWeaponVar.is_burn_mod )
 	int bulletsFired
+	// modified here: burn mod has been reworked to fire back each impact data after 1 frame
+	// still needs to fire back remaining data manually on release
+	// but keep return value to be 1, so that we can play it's firing animation
 	if ( hasBurnMod )
+	{
+		VortexPrimaryAttack( weapon, attackParams )
 		bulletsFired = 1
+	}
 	else
 		bulletsFired = VortexPrimaryAttack( weapon, attackParams )
 	// only play the release/refire endcap sounds if we started with charge remaining
@@ -366,6 +386,9 @@ var function OnWeaponPrimaryAttack_titanweapon_vortex_shield( entity weapon, Wea
 			weapon.s.lastFireTime = Time()
 			if ( hasBurnMod )
 			{
+				// removing burnmod specific sounds -- they're not implemented good enough in tf2
+				// though.. this can't impact clients those are not installed the script
+				// let's play it on server-side
 				attackSound1p = "Vortex_Shield_Deflect_Amped"
 				attackSound3p = "Vortex_Shield_Deflect_Amped"
 			}
@@ -378,14 +401,32 @@ var function OnWeaponPrimaryAttack_titanweapon_vortex_shield( entity weapon, Wea
 
 		//printt( "SFX attack sound:", attackSound )
 		weapon.EmitWeaponSound_1p3p( attackSound1p, attackSound3p )
+
+		// server-side sound fix
+		#if SERVER
+			if ( hasBurnMod )
+			{
+				entity owner = weapon.GetWeaponOwner()
+				if ( IsValid( owner ) && owner.IsPlayer() )
+				{
+					EmitSoundOnEntityOnlyToPlayer( weapon, owner, "vortex_shield_throw_1P" )
+					EmitSoundOnEntityExceptToPlayer( weapon, owner, "vortex_shield_throw_3P" )
+				}
+				else
+					EmitSoundOnEntity( weapon, "vortex_shield_throw_3P" )
+			}
+		#endif
 	}
 
 	DestroyVortexSphereFromVortexWeapon( weapon )  // sphere ent holds networked ammo count, destroy it after predicted firing is done
 
 	if ( hasBurnMod )
 	{
-		FadeOutSoundOnEntity( weapon, "vortex_shield_start_amped_1P", 0.15 )
-		FadeOutSoundOnEntity( weapon, "vortex_shield_start_amped_3P", 0.15 )
+		// removing burnmod specific sounds -- they're not used in tf2
+		//FadeOutSoundOnEntity( weapon, "vortex_shield_start_amped_1P", 0.15 )
+		//FadeOutSoundOnEntity( weapon, "vortex_shield_start_amped_3P", 0.15 )
+		FadeOutSoundOnEntity( weapon, "vortex_shield_start_1P", 0.15 )
+		FadeOutSoundOnEntity( weapon, "vortex_shield_start_3P", 0.15 )
 	}
 	else
 	{

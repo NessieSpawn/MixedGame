@@ -8,6 +8,12 @@ global function EnableVortexSphere
 // northstar modified utility
 global function RegisterNewVortexIgnoreClassname
 global function RegisterNewVortexIgnoreClassnames
+// mods ignoring
+global function RegisterNewVortexIgnoreWeaponMod
+global function RegisterNewVortexIgnoreWeaponMods
+// let modded vortex weapon get what we ignoring
+global function GetVortexIgnoreClassnames
+global function GetVortexIgnoreWeaponMods
 //
 #if SERVER
 global function ValidateVortexImpact
@@ -86,12 +92,17 @@ global const VORTEX_REFIRE_GRENADE				= "grenade"
 global const VORTEX_REFIRE_GRENADE_LONG_FUSE	= "grenade_long_fuse"
 
 // northstar modified utility
+// const VortexIgnoreClassnames
 table<string, bool> VortexIgnoreClassnames = {
 	["mp_titancore_flame_wave"] = true,
 	["mp_ability_grapple"] = true,
 	["mp_ability_shifter"] = true,
 }
 //
+
+// modified utility: allow ignore specific weapon mod
+// vanilla should be empty
+table<string, bool> VortexIgnoreWeaponMods
 
 // nessie modified utility
 global function Vortex_GetRefiredProjectileMods
@@ -123,18 +134,6 @@ global function Vortex_WeaponOrProjectileHasImpactDataOverride
 global function Vortex_GetImpactDataOverrideFromWeaponOrProjectile
 
 
-// vortex nerf: drain on impact no matter what it catches
-// THESE are hardcoded, should be in callbacks like AddCallback_VortexDrainedByImpact()
-const float VORTEX_DRAIN_ON_PROJECTILE_HIT_ALWAYS = 0.045 // use this amount of drain if the projectile has no "vortex_drain"
-// projectile shotgun being refired will deal it's original damage
-// mostly the damage is pretty low so we scale down cost
-const float VORTEX_DRAIN_PROJECTILE_SHOTGUN_FRAC = 0.3
-
-const float VORTEX_DRAIN_ON_BULLET_HIT_ALWAYS = 0.03 // use this amount of drain if the weapon has no "vortex_drain"
-// bullet shotgun being refired by vortex shield can still deal full damage
-// no need to check for it
-
-
 // respawn messy functions rework
 #if SERVER
 global function Vortex_CalculateBulletHitDamage
@@ -145,9 +144,7 @@ global function Vortex_CalculateProjectileHitDamage
 global function Vortex_SetWeaponVortexColorUpdateFunc
 global function Vortex_ClearWeaponVortexColorUpdateFunc
 
-
-// modified callbacks
-/* // wip
+// global callbacks when something hits vortex...
 global function AddCallback_OnVortexHitBullet
 global function AddCallback_OnVortexHitProjectile
 
@@ -160,13 +157,16 @@ global function RunEntityCallbacks_OnVortexHitBullet
 // this will run all callbacks from vortexHitProjectileCallbacks, and entityVortexHitProjectileCallbacks specified for current entity
 global function RunEntityCallbacks_OnVortexHitProjectile
 
+// modified callbacks
+#if SERVER
 global function AddCallback_VortexDrainedByImpact
 
-// modified function callbacks
-global function AddCallback_CalculateBulletHitDamage
-global function AddCallback_CalculateProjectileHitDamage
-*/
+global function AddCallback_CalculateVortexBulletHitDamage
+global function AddCallback_CalculateVortexProjectileHitDamage
 
+global function AddCallback_OnProjectileRefiredByVortex_ClassName // allows specific projectile being fired to trigger callback
+global function RunCallback_OnProjectileRefiredByVortex_ClassName // run callback for specific classname
+#endif
 
 // WIP: basic behavior override
 struct VortexBehaviorOverride
@@ -203,11 +203,17 @@ struct
 	// respawn hardcode turns to settings
 	table<entity, void functionref( entity weapon, var sphereClientFXHandle = null )> vortexWeaponColorUpdateFunc
 
-	// wip
-	array< bool functionref( entity weapon, entity vortexSphere, var damageInfo ) > vortexHitBulletCallbacks
-	array< bool functionref( entity weapon, entity vortexSphere, entity attacker, entity projectile, vector contactPos ) > vortexHitProjectileCallbacks
-	table< entity, array< bool functionref( entity weapon, entity vortexSphere, var damageInfo ) > > entityVortexHitBulletCallbacks
-	table< entity, array< bool functionref( entity weapon, entity vortexSphere, entity attacker, entity projectile, vector contactPos ) > > entityVortexHitProjectileCallbacks
+	array< void functionref( entity weapon, entity vortexSphere, var damageInfo ) > vortexHitBulletCallbacks
+	array< void functionref( entity weapon, entity vortexSphere, entity attacker, entity projectile, vector contactPos ) > vortexHitProjectileCallbacks
+	
+	table< entity, array< void functionref( entity weapon, entity vortexSphere, var damageInfo ) > > entityVortexHitBulletCallbacks
+	table< entity, array< void functionref( entity weapon, entity vortexSphere, entity attacker, entity projectile, vector contactPos ) > > entityVortexHitProjectileCallbacks
+
+	array< float functionref( entity vortexWeapon, entity weapon, entity projectile, var damageType, float drainAmount ) > vortexDrainByImpactCallbacks
+	array< float functionref( entity vortexSphere, var damageInfo, float damage ) > calculateVortexBulletHitDamageCallbacks
+	array< float functionref( entity vortexSphere, entity attacker, entity projectile, float damage ) > calculateVortexProjectileHitDamageCallbacks
+
+	table< string, array< void functionref( entity projectile, entity vortexWeapon ) > > onProjectileRefiredByVortexCallbacks_ClassName
 } file
 //
 
@@ -224,6 +230,43 @@ void function RegisterNewVortexIgnoreClassname(string classname, bool shouldigno
 	VortexIgnoreClassnames[classname] <- shouldignore
 }
 //
+
+// modified utilities
+void function RegisterNewVortexIgnoreWeaponMods( table<string, bool> classTable )
+{
+	foreach( string modname, bool shouldignore in classTable )
+	{
+		RegisterNewVortexIgnoreWeaponMod( modname, shouldignore )
+	}
+}
+void function RegisterNewVortexIgnoreWeaponMod( string modname, bool shouldignore )
+{
+	VortexIgnoreWeaponMods[ modname ] <- shouldignore
+}
+
+array<string> function GetVortexIgnoreClassnames()
+{
+	array<string> ignoreArray
+	foreach( string classname, bool shouldignore in VortexIgnoreClassnames )
+	{
+		if ( shouldignore && !ignoreArray.contains( classname ) )
+			ignoreArray.append( classname )
+	}
+
+	return ignoreArray
+}
+
+array<string> function GetVortexIgnoreWeaponMods()
+{
+	array<string> ignoreArray
+	foreach( string modname, bool shouldignore in VortexIgnoreWeaponMods )
+	{
+		if ( shouldignore && !ignoreArray.contains( modname ) )
+			ignoreArray.append( modname )
+	}
+
+	return ignoreArray
+}
 
 // nessie modified utility
 array<string> function Vortex_GetRefiredProjectileMods( entity projectile )
@@ -515,6 +558,10 @@ float function Vortex_CalculateBulletHitDamage( entity vortexSphere, var damageI
 	ShieldDamageModifier damageModifier = GetShieldDamageModifier( vortexSphere, damageInfo )
 	damage *= damageModifier.damageScale
 
+	// run callbacks
+	foreach ( callbackFunc in file.calculateVortexBulletHitDamageCallbacks )
+		damage = callbackFunc( vortexSphere, damageInfo, damage ) // update damage on each call
+
 	return damage
 }
 
@@ -529,6 +576,10 @@ float function Vortex_CalculateProjectileHitDamage( entity vortexSphere, entity 
 		damage = HandleWeakToPilotWeapons( vortexSphere, projectile.ProjectileGetWeaponClassName(), damage )
 		damage = damage + CalculateTitanSniperExtraDamage( projectile, vortexSphere )
 	}
+
+	// run callbacks
+	foreach ( callbackFunc in file.calculateVortexProjectileHitDamageCallbacks )
+		damage = callbackFunc( vortexSphere, attacker, projectile, damage ) // update damage on each call
 
 	return damage
 }
@@ -559,7 +610,109 @@ void functionref( entity weapon, var sphereClientFXHandle = null ) function GetW
 	return file.vortexWeaponColorUpdateFunc[ weapon ]
 }
 
-// WIP: modified callbacks
+// modded callbacks
+void function AddCallback_OnVortexHitBullet( void functionref( entity weapon, entity vortexSphere, var damageInfo ) callbackFunc )
+{
+	if ( !file.vortexHitBulletCallbacks.contains( callbackFunc ) )
+		file.vortexHitBulletCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_OnVortexHitProjectile( void functionref( entity weapon, entity vortexSphere, entity attacker, entity projectile, vector contactPos ) callbackFunc )
+{
+	if ( !file.vortexHitProjectileCallbacks.contains( callbackFunc ) )
+		file.vortexHitProjectileCallbacks.append( callbackFunc )
+}
+
+void function AddEntityCallback_OnVortexHitBullet( entity vortexSphere, void functionref( entity weapon, entity vortexSphere, var damageInfo ) callbackFunc )
+{
+	if ( !( vortexSphere in file.entityVortexHitBulletCallbacks ) )
+		file.entityVortexHitBulletCallbacks[ vortexSphere ] <- []
+
+	if ( !file.entityVortexHitBulletCallbacks[ vortexSphere ].contains( callbackFunc ) )
+		file.entityVortexHitBulletCallbacks[ vortexSphere ].append( callbackFunc )
+}
+
+void function AddEntityCallback_OnVortexHitProjectile( entity vortexSphere, void functionref( entity weapon, entity vortexSphere, entity attacker, entity projectile, vector contactPos ) callbackFunc )
+{
+	if ( !( vortexSphere in file.entityVortexHitProjectileCallbacks ) )
+		file.entityVortexHitProjectileCallbacks[ vortexSphere ] <- []
+
+	if ( !file.entityVortexHitProjectileCallbacks[ vortexSphere ].contains( callbackFunc ) )
+		file.entityVortexHitProjectileCallbacks[ vortexSphere ].append( callbackFunc )
+}
+
+// this will run all callbacks from vortexHitBulletCallbacks, and entityVortexHitBulletCallbacks specified for current entity
+void function RunEntityCallbacks_OnVortexHitBullet( entity vortexSphere, entity weapon, var damageInfo )
+{
+	foreach ( callbackFunc in file.vortexHitBulletCallbacks )
+	{
+		callbackFunc( weapon, vortexSphere, damageInfo )
+	}
+	
+	if ( vortexSphere in file.entityVortexHitBulletCallbacks )
+	{
+		foreach ( callbackFunc in file.entityVortexHitBulletCallbacks[ vortexSphere ] )
+		{
+			callbackFunc( weapon, vortexSphere, damageInfo )
+		}
+	}
+}
+
+// this will run all callbacks from vortexHitProjectileCallbacks, and entityVortexHitProjectileCallbacks specified for current entity
+void function RunEntityCallbacks_OnVortexHitProjectile( entity vortexSphere, entity weapon, entity attacker, entity projectile, vector contactPos )
+{
+	foreach ( callbackFunc in file.vortexHitProjectileCallbacks )
+	{
+		callbackFunc( weapon, vortexSphere, attacker, projectile, contactPos )
+	}
+	
+	if ( vortexSphere in file.entityVortexHitProjectileCallbacks )
+	{
+		foreach ( callbackFunc in file.entityVortexHitProjectileCallbacks[ vortexSphere ] )
+		{
+			callbackFunc( weapon, vortexSphere, attacker, projectile, contactPos )
+		}
+	}
+}
+
+#if SERVER
+// modded callbacks
+void function AddCallback_VortexDrainedByImpact( float functionref( entity vortexWeapon, entity weapon, entity projectile, var damageType, float drainAmount ) callbackFunc )
+{
+	if ( !file.vortexDrainByImpactCallbacks.contains( callbackFunc ) )
+		file.vortexDrainByImpactCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_CalculateVortexBulletHitDamage( float functionref( entity vortexSphere, var damageInfo, float damage ) callbackFunc )
+{
+	if ( !file.calculateVortexBulletHitDamageCallbacks.contains( callbackFunc ) )
+		file.calculateVortexBulletHitDamageCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_CalculateVortexProjectileHitDamage( float functionref( entity vortexSphere, entity attacker, entity projectile, float damage ) callbackFunc )
+{
+	if ( !file.calculateVortexProjectileHitDamageCallbacks.contains( callbackFunc ) )
+		file.calculateVortexProjectileHitDamageCallbacks.append( callbackFunc )
+}
+
+void function AddCallback_OnProjectileRefiredByVortex_ClassName( string className, void functionref( entity projectile, entity vortexWeapon ) callbackFunc )
+{
+	if ( !( className in file.onProjectileRefiredByVortexCallbacks_ClassName ) )
+		file.onProjectileRefiredByVortexCallbacks_ClassName[ className ] <- []
+	
+	if ( !file.onProjectileRefiredByVortexCallbacks_ClassName[ className ].contains( callbackFunc ) )
+		file.onProjectileRefiredByVortexCallbacks_ClassName[ className ].append( callbackFunc )
+}
+
+void function RunCallback_OnProjectileRefiredByVortex_ClassName( string className, entity projectile, entity vortexWeapon )
+{
+	if ( !( className in file.onProjectileRefiredByVortexCallbacks_ClassName ) )
+		return
+
+	foreach ( callbackFunc in file.onProjectileRefiredByVortexCallbacks_ClassName[ className ] )
+		callbackFunc( projectile, vortexWeapon )
+}
+#endif // SERVER
 
 table vortexImpactWeaponInfo
 
@@ -580,6 +733,10 @@ function Vortex_Init()
 	RegisterSignal( "VortexAbsorbed" )
 	RegisterSignal( "VortexFired" )
 	RegisterSignal( "Script_OnDamaged" )
+
+	// fixing instal vortex refire for tf2
+	// delay 1 frame to fire back if we're not collecting more bullets/projectiles
+	RegisterSignal( "DelayedVortexFireBack" )
 }
 
 #if SERVER
@@ -970,15 +1127,31 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 	if ( weaponName in VortexIgnoreClassnames && VortexIgnoreClassnames[weaponName] )
 		return false
 
+	// modded utility
+	entity weaponOrProjectile = impactType == "hitscan" ? weapon : projectile
+	// weapon mods check
+	if ( IsValid( weaponOrProjectile ) )
+	{
+		array<string> mods = weaponOrProjectile.IsProjectile() ? Vortex_GetRefiredProjectileMods( weaponOrProjectile ) : weaponOrProjectile.GetMods()
+		foreach ( string mod in mods )
+		{
+			if ( mod in VortexIgnoreWeaponMods && VortexIgnoreWeaponMods[ mod ] )
+				return false
+		}
+	}
+	//
+
 	entity vortexWeapon = vortexSphere.GetOwnerWeapon()
 	entity owner = vortexWeapon.GetWeaponOwner()
 
 	// keep cycling the oldest hitscan bullets out
+	// modified here: we've reworked amped refire, they also needs clamp now
+	// welp this will cause crash, guess I'll just stop adding bullets/projectiles into sphere to avoid issue
 	if( !reflect )
 	{
 		if ( impactType == "hitscan" )
 			Vortex_ClampAbsorbedBulletCount( vortexWeapon )
-		else
+		else if ( impactType == "projectile" ) // changed to use else if() case
 			Vortex_ClampAbsorbedProjectileCount( vortexWeapon )
 	}
 
@@ -1024,7 +1197,8 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 
 		// Max projectile stat tracking
 		int projectilesInVortex = 1
-		projectilesInVortex += vortexWeapon.w.vortexImpactData.len()
+		//projectilesInVortex += vortexWeapon.w.vortexImpactData.len()
+		projectilesInVortex += expect int( Vortex_GetAllImpactEvents( vortexWeapon ).len() )
 
 		if ( IsValid( owner ) && owner.IsPlayer() )
 		{
@@ -1058,9 +1232,8 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 			EmitSoundAtPosition( TEAM_UNASSIGNED, origin, impact_sound_3p )
 	}
 
-	// modified to add callbacks
+	// modified to add callback compatible
 	//local impactData = Vortex_CreateImpactEventData( vortexWeapon, attacker, origin, damageSourceID, weaponName, impactType )
-	entity weaponOrProjectile = impactType == "hitscan" ? weapon : projectile
 	local impactData = Vortex_CreateImpactEventData( vortexWeapon, attacker, origin, damageSourceID, weaponName, impactType, weaponOrProjectile )
 
 	VortexDrainedByImpact( vortexWeapon, weapon, projectile, damageType )
@@ -1078,12 +1251,28 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 
 	Vortex_StoreImpactEvent( vortexWeapon, impactData )
 
-	VortexImpact_PlayAbsorbedFX( vortexWeapon, impactData )
-
-	if ( impactType == "hitscan" )
-		vortexSphere.AddBulletToSphere();
+	// modified here: if we're gonna reflect the impact immediately, shouldn't do absorbed FX
+	// only needs to ping shield once
+	if ( !reflect )
+		VortexImpact_PlayAbsorbedFX( vortexWeapon, impactData )
 	else
-		vortexSphere.AddProjectileToSphere();
+		Vortex_SpawnShieldPingFX( vortexWeapon, impactData )
+
+	// modified here: just stop adding bullets/projectiles into sphere if we wanted to reflect
+	if ( !reflect )
+	{
+		if ( impactType == "hitscan" )
+			vortexSphere.AddBulletToSphere();
+		else if ( impactType == "projectile" ) // changed to use else if() case
+			vortexSphere.AddProjectileToSphere();
+	}
+	else // amped refire needs modified logic... they won't use client-side prediction so feel free to use serverside-only variables
+	{
+		if ( impactType == "hitscan" )
+			AddVortexWeaponAmpedBulletCount( vortexWeapon )
+		else if ( impactType == "projectile" ) // changed to use else if() case
+			AddVortexWeaponAmpedProjectileCount( vortexWeapon )
+	}
 
 	// nessie note: I don't think this works best for shotgun bullets...
 	// legion's power shot won't be handled, amped vortex refire also ignore this
@@ -1101,6 +1290,8 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 		// the error indicates by SCRIPT ERROR Failed to Create Entity "info_particle_system", the failure is because we've created so much entities due to infinite refire
 		// maybe also need to rework AmpedVortexRefireThink()? it fire back with script fps limit( triggers after WaitSignal() )
 		
+		// reworked here: delay 1 frame before refiring
+		/*
 		local attackParams = {}
 		attackParams.pos <- owner.EyePosition()
 		attackParams.dir <- owner.GetPlayerOrNPCViewVector()
@@ -1115,13 +1306,84 @@ bool function TryVortexAbsorb( entity vortexSphere, entity attacker, vector orig
 
 		while ( vortexSphere.GetProjectileAbsorbedCount() > 0 )
 			vortexSphere.RemoveProjectileFromSphere();
+		*/
+
+		// fixing instal vortex refire for tf2
+		// delay 1 frame to fire back if we're not collecting more bullets/projectiles
+		thread DelayedVortexFireBack( owner, vortexWeapon, impactData, impactType, vortexSphere )
 	}
 
 	return true
 }
+
+void function DelayedVortexFireBack( entity owner, entity vortexWeapon, impactData, string impactType, entity vortexSphere = null )
+{
+	//print( "RUNNING DelayedVortexFireBack()" )
+	owner.EndSignal( "OnDestroy" )
+	owner.EndSignal( "OnDeath" )
+	vortexWeapon.EndSignal( "OnDestroy" )
+	// now we don't stack refire, just fire back each impact data individually
+	//vortexWeapon.Signal( "DelayedVortexFireBack" )
+	//vortexWeapon.EndSignal( "DelayedVortexFireBack" ) // stack refire if we taking fire within 1 frame
+	// can still fire back after vortexSphere being destroyed, only needs weapon's data
+
+	// mp_titanweapon_vortex_shield.gnut has been modified
+	// it now fires back remaining impact data even when having burn mod
+	// so after firing by that, this function should be ended
+	vortexWeapon.EndSignal( "VortexFired" )
+
+	// clean up
+	OnThreadEnd
+	(
+		function(): ( vortexWeapon )
+		{
+			if ( IsValid( vortexWeapon ) )
+			{
+				// these clean-ups now handled by VortexPrimaryAttack()
+				//Vortex_CleanupImpactAbsorbFX( vortexWeapon )
+				//Vortex_ClearImpactEventData( vortexWeapon )
+			}
+		}
+	)
+
+	WaitFrame()
+	// we may clamp out current impactData, needs re-exam after delay
+	// removed: no longer needs clamp
+	//if ( !Vortex_GetAllImpactEvents( vortexWeapon ).contains( impactData ) )
+	//	return
+
+	WeaponPrimaryAttackParams attackParams
+	attackParams.pos = owner.EyePosition()
+	attackParams.dir = owner.GetPlayerOrNPCViewVector()
+
+	VortexReflectAttack( vortexWeapon, attackParams, impactData, impactType )
+
+	// clean up after firing
+	Vortex_RemoveImpactEvent( vortexWeapon, impactData )
+
+	// we've stopped adding bullet/projectiles to sphere when reflecting, no need to do this
+	/*
+	if ( IsValid( vortexSphere ) )
+	{
+		if ( impactType == "hitscan" )
+			vortexSphere.RemoveBulletFromSphere()
+		else if ( impactType == "projectile" ) // changed to use else if() case
+			vortexSphere.RemoveProjectileFromSphere()
+	}
+	*/
+
+	// amped refire needs modified logic... they won't use client-side prediction so feel free to use serverside-only variables
+	if ( impactType == "hitscan" )
+		RemoveVortexWeaponAmpedBulletCount( vortexWeapon )
+	else if ( impactType == "projectile" ) // changed to use else if() case
+		RemoveVortexWeaponAmpedProjectileCount( vortexWeapon )
+	
+}
 #endif // SERVER
 
-function VortexDrainedByImpact( entity vortexWeapon, entity weapon, entity projectile, damageType )
+// changed damageType parameter to be var type so we can better handle callbacks
+//function VortexDrainedByImpact( entity vortexWeapon, entity weapon, entity projectile, damageType )
+function VortexDrainedByImpact( entity vortexWeapon, entity weapon, entity projectile, var damageType )
 {
 	if ( vortexWeapon.HasMod( "unlimited_charge_time" ) )
 		return
@@ -1132,38 +1394,17 @@ function VortexDrainedByImpact( entity vortexWeapon, entity weapon, entity proje
 	if ( projectile )
 	{
 		amount = projectile.GetProjectileWeaponSettingFloat( eWeaponVar.vortex_drain )
-		// vortex nerf: drain on impact no matter what it catches
-		if( vortexWeapon.HasMod( "impact_drain_vortex" ) )
-		{
-			if ( amount == 0 ) // only do default drain if we have no drain from projectile
-			{
-				// debug
-				//print( "Attacker weapon has no vortex_drain, using default value" )
-				
-				amount = VORTEX_DRAIN_ON_PROJECTILE_HIT_ALWAYS
-				// projectile shotgun check
-				#if SERVER
-					if ( IsProjectileShotgunPellets( projectile ) )
-						amount *= VORTEX_DRAIN_PROJECTILE_SHOTGUN_FRAC
-				#endif // SERVE
-			}
-		}
 	}
 	else
 	{
 		amount = weapon.GetWeaponSettingFloat( eWeaponVar.vortex_drain )
-		// vortex nerf: drain on impact no matter what it catches
-		if( vortexWeapon.HasMod( "impact_drain_vortex" ) )
-		{
-			if ( amount == 0 ) // only do default drain if we have no drain from weapon
-			{
-				// debug
-				//print( "Attacker weapon has no vortex_drain, using default value" )
-
-				amount = VORTEX_DRAIN_ON_BULLET_HIT_ALWAYS
-			}
-		}
 	}
+
+	// run modified callbacks here
+	// update amount on each call
+	foreach ( callbackFunc in file.vortexDrainByImpactCallbacks )
+		amount = callbackFunc( vortexWeapon, weapon, projectile, damageType, amount )
+	//
 
 	if ( amount <= 0.0 )
 		return
@@ -1180,40 +1421,6 @@ function VortexDrainedByImpact( entity vortexWeapon, entity weapon, entity proje
 		vortexWeapon.SetWeaponChargeFraction( frac )
 	}
 }
-
-// modified
-#if SERVER
-// projectile shotgun check
-bool function IsProjectileShotgunPellets( entity projectile )
-{
-	entity owner = projectile.GetOwner()
-	if ( !IsValid( owner ) ) // projectile don't have a valid owner?
-		return false
-	if ( projectile.GetClassName() != "crossbow_bolt" ) // not a bolt projectile?
-		return false
-
-	// if there're any other projectile with the same owner created at the same time
-	// we consider them as a shotgun blast projectile
-	float creationTime = projectile.GetProjectileCreationTime()
-	foreach ( entity otherProj in GetProjectileArray() )
-	{
-		if ( otherProj == projectile )
-			continue
-		if ( otherProj.GetClassName() != "crossbow_bolt" )
-			continue
-		
-		if ( projectile.GetOwner() == owner && projectile.GetProjectileCreationTime() == creationTime )
-		{
-			// debug
-			//print( "This is a projectile shotgun pellet!" )
-
-			return true
-		}
-	}
-
-	return false
-}
-#endif // SERVER
 
 function VortexSlowOwnerFromAttacker( entity player, entity attacker, vector velocity, float multiplier )
 {
@@ -1316,6 +1523,12 @@ function Vortex_CreateImpactEventData( entity vortexWeapon, entity attacker, vec
 	impactData.explosionradius		<- null
 	impactData.explosion_damage		<- null
 	impactData.impact_effect_table	<- -1
+
+	// rework respawn's bad think in Vortex_FireBackGrenade()
+	// store in data so we can modify them with weapon mods
+	impactData.grenade_ignition_time <- null
+	impactData.grenade_fuse_time <- null
+
 	// -- everything from here down relies on being able to read a megaweapon file
 	if ( !( impactData.weaponName in vortexImpactWeaponInfo ) )
 	{
@@ -1353,6 +1566,11 @@ function Vortex_CreateImpactEventData( entity vortexWeapon, entity attacker, vec
 	if ( impactData.explosion_damage == null )
 		impactData.explosion_damage		= vortexImpactWeaponInfo[ impactData.weaponName ].explosion_damage
 	impactData.impact_effect_table	= vortexImpactWeaponInfo[ impactData.weaponName ].impact_effect_table
+
+	// rework respawn's bad think in Vortex_FireBackGrenade()
+	// here we store default value
+	impactData.grenade_ignition_time <- vortexImpactWeaponInfo[ impactData.weaponName ].grenade_ignition_time
+	impactData.grenade_fuse_time <- vortexImpactWeaponInfo[ impactData.weaponName ].grenade_fuse_time
 
 	// modified
 	if ( IsValid( weaponOrProjectile ) )
@@ -1394,6 +1612,10 @@ function Vortex_CreateImpactEventData( entity vortexWeapon, entity attacker, vec
 			// convert asset to string
 			string impactFXName = GetImpactTableNameFromWeaponOrProjectile( weaponOrProjectile ) // shared from _unpredicted_impact_fix.gnut
 			impactData.impact_effect_table = impactFXName
+
+			// rework these hardcoded stuffs to be mod
+			impactData.grenade_ignition_time = weaponOrProjectile.GetProjectileWeaponSettingFloat( eWeaponVar.grenade_ignition_time )
+			impactData.grenade_fuse_time = weaponOrProjectile.GetProjectileWeaponSettingFloat( eWeaponVar.grenade_fuse_time )
 		}
 
 		// saving mods
@@ -1584,6 +1806,10 @@ function Vortex_CleanupImpactAbsorbFX( entity vortexWeapon )
 
 function Vortex_ImpactData_KillAbsorbFX( impactData )
 {
+	// modified: we now allow null absorb effect for amped vortex
+	// add validation check
+	if ( impactData.fxEnt_absorb == null )
+		return
 	foreach ( fxRef in impactData.fxEnt_absorb )
 	{
 		if ( !IsValid( fxRef ) )
@@ -1647,8 +1873,10 @@ int function VortexPrimaryAttack( entity vortexWeapon, WeaponPrimaryAttackParams
 
 		foreach ( impactData in unpredictedRefires )
 		{
-			table fakeAttackParams = {pos = attackParams.pos, dir = attackParams.dir, firstTimePredicted = attackParams.firstTimePredicted, burstIndex = attackParams.burstIndex}
-			bool didFire = DoVortexAttackForImpactData( vortexWeapon, fakeAttackParams, impactData, totalAttempts )
+			// rework all attackParams to be typed...
+			//table fakeAttackParams = {pos = attackParams.pos, dir = attackParams.dir, firstTimePredicted = attackParams.firstTimePredicted, burstIndex = attackParams.burstIndex}
+			//bool didFire = DoVortexAttackForImpactData( vortexWeapon, fakeAttackParams, impactData, totalAttempts )
+			bool didFire = DoVortexAttackForImpactData( vortexWeapon, attackParams, impactData, totalAttempts )
 			if ( didFire )
 				totalfired++
 			totalAttempts++
@@ -1673,6 +1901,11 @@ int function VortexPrimaryAttack( entity vortexWeapon, WeaponPrimaryAttackParams
 int function Vortex_FireBackBullets( entity vortexWeapon, WeaponPrimaryAttackParams attackParams )
 {
 	int bulletCount = GetBulletsAbsorbedCount( vortexWeapon )
+	// server modification here: always use amped bullet count if it's not 0
+	#if SERVER
+		if ( GetAmpedBulletsAbsorbedCount( vortexWeapon ) > 0 )
+			bulletCount = GetAmpedBulletsAbsorbedCount( vortexWeapon )
+	#endif
 
 	// nessie note: I don't think this works best for shotgun bullets...
 	// legion's power shot won't be handled, amped vortex refire also ignore this
@@ -1693,9 +1926,10 @@ int function Vortex_FireBackBullets( entity vortexWeapon, WeaponPrimaryAttackPar
 		float radius = LOUD_WEAPON_AI_SOUND_RADIUS_MP;
 		vortexWeapon.EmitWeaponNpcSound( radius, 0.2 )
 		int damageType = damageTypes.shotgun | DF_VORTEX_REFIRE
-		if ( bulletCount == 1 ) // wait respawn you serious? 1 bullet can be refired to any distance?
-			vortexWeapon.FireWeaponBullet( attackParams.pos, attackParams.dir, bulletCount, damageType )
-		else
+		// removing 1-bullet fireback, always do ShotgunBlast
+		//if ( bulletCount == 1 ) // wait respawn you serious? 1 bullet can be refired to any distance?
+		//	vortexWeapon.FireWeaponBullet( attackParams.pos, attackParams.dir, bulletCount, damageType )
+		//else
 			ShotgunBlast( vortexWeapon, attackParams.pos, attackParams.dir, bulletCount, damageType )
 	}
 
@@ -1703,9 +1937,11 @@ int function Vortex_FireBackBullets( entity vortexWeapon, WeaponPrimaryAttackPar
 }
 
 #if SERVER
-bool function Vortex_FireBackExplosiveRound( vortexWeapon, attackParams, impactData, sequenceID )
+// rework vortexWeapon and attackParams to be typed...
+//bool function Vortex_FireBackExplosiveRound( vortexWeapon, attackParams, impactData, sequenceID )
+bool function Vortex_FireBackExplosiveRound( entity vortexWeapon, WeaponPrimaryAttackParams attackParams, impactData, sequenceID )
 {
-	expect entity( vortexWeapon )
+	//expect entity( vortexWeapon )
 
 	// common projectile data
 	float projSpeed		= 8000.0
@@ -1728,15 +1964,19 @@ bool function Vortex_FireBackExplosiveRound( vortexWeapon, attackParams, impactD
 	{
 		bolt.kv.gravity = 0.3
 
-		Vortex_ProjectileCommonSetup( bolt, impactData )
+		// modified: add vortexWeapon parameter
+		//Vortex_ProjectileCommonSetup( bolt, impactData )
+		Vortex_ProjectileCommonSetup( bolt, impactData, vortexWeapon )
 	}
 
 	return true
 }
 
-bool function Vortex_FireBackProjectileBullet( vortexWeapon, attackParams, impactData, sequenceID )
+// rework vortexWeapon and attackParams to be typed...
+//bool function Vortex_FireBackProjectileBullet( vortexWeapon, attackParams, impactData, sequenceID )
+bool function Vortex_FireBackProjectileBullet( entity vortexWeapon, WeaponPrimaryAttackParams attackParams, impactData, sequenceID )
 {
-	expect entity( vortexWeapon )
+	//expect entity( vortexWeapon )
 
 	// common projectile data
 	float projSpeed		= 12000.0
@@ -1760,7 +2000,9 @@ bool function Vortex_FireBackProjectileBullet( vortexWeapon, attackParams, impac
 	{
 		bolt.kv.gravity = 0.0
 
-		Vortex_ProjectileCommonSetup( bolt, impactData )
+		// modified: add vortexWeapon parameter
+		//Vortex_ProjectileCommonSetup( bolt, impactData )
+		Vortex_ProjectileCommonSetup( bolt, impactData, vortexWeapon )
 	}
 
 	return true
@@ -1791,9 +2033,11 @@ vector function Vortex_GenerateRandomRefireVector( entity vortexWeapon, float ve
 	return fireVec
 }
 
-bool function Vortex_FireBackRocket( vortexWeapon, attackParams, impactData, sequenceID )
+// rework vortexWeapon and attackParams to be typed...
+//bool function Vortex_FireBackRocket( vortexWeapon, attackParams, impactData, sequenceID )
+bool function Vortex_FireBackRocket( entity vortexWeapon, WeaponPrimaryAttackParams attackParams, impactData, sequenceID )
 {
-	expect entity( vortexWeapon )
+	//expect entity( vortexWeapon )
 
 	// TODO prediction for clients
 	Assert( IsServer() )
@@ -1804,24 +2048,32 @@ bool function Vortex_FireBackRocket( vortexWeapon, attackParams, impactData, seq
 	{
 		rocket.kv.lifetime = RandomFloatRange( 2.6, 3.5 )
 
-		InitMissileForRandomDriftForVortexLow( rocket, expect vector( attackParams.pos ), expect vector( attackParams.dir ) )
+		//InitMissileForRandomDriftForVortexLow( rocket, expect vector( attackParams.pos ), expect vector( attackParams.dir ) )
+		InitMissileForRandomDriftForVortexLow( rocket, attackParams.pos, attackParams.dir )
 
-		Vortex_ProjectileCommonSetup( rocket, impactData )
+		// modified: add vortexWeapon parameter
+		//Vortex_ProjectileCommonSetup( rocket, impactData )
+		Vortex_ProjectileCommonSetup( rocket, impactData, vortexWeapon )
 	}
 
 	return true
 }
 
-bool function Vortex_FireBackGrenade( entity vortexWeapon, attackParams, impactData, int attackSeedCount, float baseFuseTime )
+// rework all attackParams to be typed...
+//bool function Vortex_FireBackGrenade( entity vortexWeapon, attackParams, impactData, int attackSeedCount, float baseFuseTime )
+bool function Vortex_FireBackGrenade( entity vortexWeapon, WeaponPrimaryAttackParams attackParams, impactData, int attackSeedCount, float baseFuseTime )
 {
 	float x = RandomFloatRange( -0.2, 0.2 )
 	float y = RandomFloatRange( -0.2, 0.2 )
 	float z = RandomFloatRange( -0.2, 0.2 )
 
-	vector velocity = ( expect vector( attackParams.dir ) + Vector( x, y, z ) ) * 1500
+	//vector velocity = ( expect vector( attackParams.dir ) + Vector( x, y, z ) ) * 1500
+	vector velocity = ( attackParams.dir + Vector( x, y, z ) ) * 1500
 	vector angularVelocity = Vector( RandomFloatRange( -1200, 1200 ), 100, 0 )
 
-	bool hasIgnitionTime = vortexImpactWeaponInfo[ impactData.weaponName ].grenade_ignition_time > 0
+	// rework these hardcoded stuffs, now handled by impactData
+	//bool hasIgnitionTime = vortexImpactWeaponInfo[ impactData.weaponName ].grenade_ignition_time > 0
+	bool hasIgnitionTime = impactData.grenade_ignition_time != null && impactData.grenade_ignition_time > 0
 	float fuseTime = hasIgnitionTime ? 0.0 : baseFuseTime
 	const int HARDCODED_DAMAGE_TYPE = (damageTypes.explosive | DF_VORTEX_REFIRE)
 
@@ -1829,15 +2081,23 @@ bool function Vortex_FireBackGrenade( entity vortexWeapon, attackParams, impactD
 	if ( grenade )
 	{
 		Grenade_Init( grenade, vortexWeapon )
-		Vortex_ProjectileCommonSetup( grenade, impactData )
+		// modified: add vortexWeapon parameter
+		//Vortex_ProjectileCommonSetup( grenade, impactData )
+		Vortex_ProjectileCommonSetup( grenade, impactData, vortexWeapon )
 		if ( hasIgnitionTime )
-			grenade.SetGrenadeIgnitionDuration( vortexImpactWeaponInfo[ impactData.weaponName ].grenade_ignition_time )
+		{
+			// rework these hardcoded stuffs, now handled by impactData
+			//grenade.SetGrenadeIgnitionDuration( vortexImpactWeaponInfo[ impactData.weaponName ].grenade_ignition_time )
+			grenade.SetGrenadeIgnitionDuration( impactData.grenade_ignition_time )
+		}
 	}
 
 	return (grenade ? true : false)
 }
 
-bool function DoVortexAttackForImpactData( entity vortexWeapon, attackParams, impactData, int attackSeedCount )
+// rework all attackParams to be typed...
+//bool function DoVortexAttackForImpactData( entity vortexWeapon, attackParams, impactData, int attackSeedCount )
+bool function DoVortexAttackForImpactData( entity vortexWeapon, WeaponPrimaryAttackParams attackParams, impactData, int attackSeedCount )
 {
 	bool didFire = false
 	switch ( impactData.refireBehavior )
@@ -1869,7 +2129,9 @@ bool function DoVortexAttackForImpactData( entity vortexWeapon, attackParams, im
 	return didFire
 }
 
-function Vortex_ProjectileCommonSetup( entity projectile, impactData )
+// modified: add vortexWeapon parameter, so we can run callbacks
+//function Vortex_ProjectileCommonSetup( entity projectile, impactData )
+function Vortex_ProjectileCommonSetup( entity projectile, impactData, entity vortexWeapon = null )
 {
 	// custom tag it so it shows up correctly if it hits another vortex sphere
 	projectile.s.originalDamageSource <- impactData.damageSourceID
@@ -1884,7 +2146,9 @@ function Vortex_ProjectileCommonSetup( entity projectile, impactData )
 	else // default
 		projectile.SetModel( GetWeaponInfoFileKeyFieldAsset_Global( impactData.weaponName, "projectilemodel" ) )
 
-	projectile.SetWeaponClassName( impactData.weaponName )  // causes the projectile to use its normal trail FX
+	//projectile.SetWeaponClassName( impactData.weaponName )  // causes the projectile to use its normal trail FX
+	string weaponName = expect string( impactData.weaponName )
+	projectile.SetWeaponClassName( weaponName )
 
 	// modified: fix for trails
 	if ( "projectileTrail" in impactData )
@@ -1904,6 +2168,9 @@ function Vortex_ProjectileCommonSetup( entity projectile, impactData )
 			typedArray.append( expect string( mod ) )
 		file.vortexRefiredProjectileMods[ projectile ] <- typedArray
 	}
+
+	// modified: run callbacks
+	RunCallback_OnProjectileRefiredByVortex_ClassName( weaponName, projectile, vortexWeapon )
 }
 
 // delay one frame, so client themselves can see it
@@ -1959,6 +2226,73 @@ int function GetProjectilesAbsorbedCount( entity vortexWeapon )
 
 	return vortexSphere.GetProjectileAbsorbedCount()
 }
+
+// reworked amped vortex: they won't use any predicted refire, feel free to use serverside-only variables
+#if SERVER
+int function GetAmpedBulletsAbsorbedCount( entity vortexWeapon )
+{
+	if ( !vortexWeapon )
+		return 0
+	
+	if ( !( "ampedBulletCount" in vortexWeapon.s ) )
+		return 0
+
+	return expect int( vortexWeapon.s.ampedBulletCount )
+}
+
+int function GetAmpedProjectilesAbsorbedCount( entity vortexWeapon )
+{
+	if ( !vortexWeapon )
+		return 0
+	
+	if ( !( "ampedProjectileCount" in vortexWeapon.s ) )
+		return 0
+
+	return expect int( vortexWeapon.s.ampedProjectileCount )
+}
+
+void function AddVortexWeaponAmpedBulletCount( entity vortexWeapon )
+{
+	if ( "ampedBulletCount" in vortexWeapon.s )
+		vortexWeapon.s.ampedBulletCount++
+	else
+		vortexWeapon.s.ampedBulletCount <- 1
+}
+
+void function RemoveVortexWeaponAmpedBulletCount( entity vortexWeapon )
+{
+	if ( !( "ampedBulletCount" in vortexWeapon.s ) )
+		return
+	
+	if ( vortexWeapon.s.ampedBulletCount <= 0 )
+	{
+		vortexWeapon.s.ampedBulletCount = 0
+		return
+	}
+	vortexWeapon.s.ampedBulletCount--
+}
+
+void function AddVortexWeaponAmpedProjectileCount( entity vortexWeapon )
+{
+	if ( "ampedProjectileCount" in vortexWeapon.s )
+		vortexWeapon.s.ampedProjectileCount++
+	else
+		vortexWeapon.s.ampedProjectileCount <- 1
+}
+
+void function RemoveVortexWeaponAmpedProjectileCount( entity vortexWeapon )
+{
+	if ( !( "ampedProjectileCount" in vortexWeapon.s ) )
+		return
+	
+	if ( vortexWeapon.s.ampedProjectileCount <= 0 )
+	{
+		vortexWeapon.s.ampedProjectileCount = 0
+		return
+	}
+	vortexWeapon.s.ampedProjectileCount--
+}
+#endif // SERVER
 
 #if SERVER
 function Vortex_GetProjectileImpacts( entity vortexWeapon )
@@ -2321,8 +2655,11 @@ bool function CodeCallback_OnVortexHitBullet( entity weapon, entity vortexSphere
 		#if SERVER
 		DamageInfo_ScaleDamage( damageInfo, AMPED_DAMAGE_SCALAR )
 		#endif
-		return false
+		return false // I think this means bullet won't be absorbed?
 	}
+
+	// run modified callbacks
+	RunEntityCallbacks_OnVortexHitBullet( vortexSphere, weapon, damageInfo )
 
 	return true
 }
@@ -2550,6 +2887,9 @@ bool function CodeCallback_OnVortexHitProjectile( entity weapon, entity vortexSp
 		return false
 	}
 
+	// run modified callbacks
+	RunEntityCallbacks_OnVortexHitProjectile( vortexSphere, weapon, attacker, projectile, contactPos )
+
 	return true
 }
 
@@ -2612,8 +2952,12 @@ float function HandleWeakToPilotWeapons( entity vortexSphere, string weaponName,
 }
 #endif
 
+// to fix bad vortex refiring, this function has been reworked
+// after reworking, this function only fires back 1 impactdata each time
+
 // ???: reflectOrigin not used
-int function VortexReflectAttack( entity vortexWeapon, attackParams, vector reflectOrigin )
+//int function VortexReflectAttack( entity vortexWeapon, attackParams, vector reflectOrigin )
+int function VortexReflectAttack( entity vortexWeapon, WeaponPrimaryAttackParams attackParams, impactData, string impactType )
 {
 	entity vortexSphere = vortexWeapon.GetWeaponUtilityEntity()
 	if ( !vortexSphere )
@@ -2623,13 +2967,17 @@ int function VortexReflectAttack( entity vortexWeapon, attackParams, vector refl
 		Assert( vortexSphere )
 	#endif
 
-	int totalfired = 0
-	int totalAttempts = 0
+	// modified: this function only fires back 1 impactdata each time
+	//int totalfired = 0
+	//int totalAttempts = 0
 
+	// this function won't destroy or disable vortex
+	/*
 	bool forceReleased = false
 	// in this case, it's also considered "force released" if the charge time runs out
 	if ( vortexWeapon.IsForceRelease() || vortexWeapon.GetWeaponChargeFraction() == 1 )
 		forceReleased = true
+	*/
 
 	//Requires code feature to properly fire tracers from offset positions.
 	//if ( vortexWeapon.GetWeaponSettingBool( eWeaponVar.is_burn_mod ) )
@@ -2641,8 +2989,18 @@ int function VortexReflectAttack( entity vortexWeapon, attackParams, vector refl
 	// but with modified script FPS, the reflecting maybe still fast enough to fire back per event( catching shotgunblast will still work )
 
 	//Remove the below script after FireWeaponBulletBroadcast
+	// reworked here: add back predicted refire, we've removed AmpedVortexRefireThink()
+	// reworked again here: always fire back 1 bullet
 	//local bulletsFired = Vortex_FireBackBullets( vortexWeapon, attackParams )
+	//int bulletsFired = Vortex_FireBackBullets( vortexWeapon, attackParams )
+	if ( impactType == "hitscan" )
+	{
+		int damageType = damageTypes.shotgun | DF_VORTEX_REFIRE
+		ShotgunBlast( vortexWeapon, attackParams.pos, attackParams.dir, 1, damageType )
+	}
+
 	//totalfired += bulletsFired
+	/*
 	int bulletCount = GetBulletsAbsorbedCount( vortexWeapon )
 	if ( bulletCount > 0 )
 	{
@@ -2650,14 +3008,18 @@ int function VortexReflectAttack( entity vortexWeapon, attackParams, vector refl
 			vortexWeapon.s.ampedBulletCount++
 		else
 			vortexWeapon.s.ampedBulletCount <- 1
-		vortexWeapon.Signal( "FireAmpedVortexBullet" )
+		// to fix bad vortex refiring, this is removed
+		//vortexWeapon.Signal( "FireAmpedVortexBullet" )
 		totalfired += 1
 	}
+	*/
 
 	// UNPREDICTED REFIRES
 	#if SERVER
 		//printt( "server: force released?", forceReleased )
 
+		// reworked here fire back the specific impact data we passed in
+		/*
 		local unpredictedRefires = Vortex_GetProjectileImpacts( vortexWeapon )
 
 		// HACK we don't actually want to refire them with a spiral but
@@ -2672,13 +3034,25 @@ int function VortexReflectAttack( entity vortexWeapon, attackParams, vector refl
 				totalfired++
 			totalAttempts++
 		}
+		*/
+
+		if ( impactType == "projectile" )
+		{
+			// last parameter "attackSeedCount" is no where used
+			bool didFire = DoVortexAttackForImpactData( vortexWeapon, attackParams, impactData, -1 )
+			if ( !didFire ) // firing failed
+				return 0 // don't do following think, return 0
+		}
 	#endif
 
-	SetVortexAmmo( vortexWeapon, 0 )
-	vortexWeapon.Signal( "VortexFired" )
+	// removing SetVortexAmmo(), don't know how it works
+	//SetVortexAmmo( vortexWeapon, 0 )
+	// no need to signal things that can end certain thread
+	//vortexWeapon.Signal( "VortexFired" )
 
 #if SERVER
-	vortexSphere.ClearAllBulletsFromSphere()
+	// no longer needed, handled by DelayedVortexFireBack()
+	//vortexSphere.ClearAllBulletsFromSphere()
 #endif
 
 	/*
@@ -2688,5 +3062,7 @@ int function VortexReflectAttack( entity vortexWeapon, attackParams, vector refl
 		DisableVortexSphereFromVortexWeapon( vortexWeapon )
 	*/
 
-	return totalfired
+	// modified: this function only fires back 1 impactdata each time
+	//return totalfired
+	return 1
 }

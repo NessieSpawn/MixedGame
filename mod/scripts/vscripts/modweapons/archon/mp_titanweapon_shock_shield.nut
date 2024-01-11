@@ -29,17 +29,21 @@ const SHOCK_HOLD_EFFECT = $"arcTrap_CH_arcs_large"
 const SHOCK_RELEASE_EFFECT_FP = $"P_wpn_muzzleflash_epg_FP"
 const SHOCK_RELEASE_EFFECT = $"P_wpn_muzzleflash_epg"
 
-// shock shield color: keep light blue colored
+// shock shield color: keep purple colored
 const SHOCK_SHIELD_VORTEX_COLOR = < 155, 155, 200 >
 const SHOCK_SHIELD_VORTEX_COLOR_KIT = < 155, 155, 255 >
 
+// modified: use data shared from modified _vortex.nut
+// welp, seems no where uses this because shock shield won't refire projectile
+// if whenever needs to use it, be sure to use GetVortexIgnoreClassnames() and GetVortexIgnoreWeaponMods()
+/*
 const VortexIgnoreClassnames = {
 	["mp_titancore_flame_wave"] = true,
 	["mp_ability_grapple"] = true,
 	["mp_ability_flame_wave"] = true,
 	["mp_titancore_storm_core"] = true,
 }
-
+*/
 
 // we're now setup stuffs in mod.json, return type should be void
 void function MpTitanWeaponShockShield_Init()
@@ -157,17 +161,11 @@ void function OnWeaponActivate_titanweapon_shock_shield( entity weapon )
 		Assert( !( "isVortexing" in weaponOwner.s ), "NPC trying to vortex before cleaning up last vortex" )
 		StartVortex( weapon )
 	}
-
-	#if SERVER
-		thread AmpedVortexRefireThink( weapon )
-	#endif
 }
 
 void function OnWeaponDeactivate_titanweapon_shock_shield( entity weapon )
 {
 	EndVortex( weapon )
-
-	weapon.Signal( "DisableAmpedVortex" )
 }
 
 void function OnWeaponCustomActivityStart_titanweapon_shock_shield( entity weapon )
@@ -221,25 +219,6 @@ function StartVortex( entity weapon )
 	#if CLIENT
 		weapon.s.lastUseTime = Time()
 	#endif
-}
-
-function AmpedVortexRefireThink( entity weapon )
-{
-	entity weaponOwner = weapon.GetWeaponOwner()
-	weapon.EndSignal( "DisableAmpedVortex" )
-	weapon.EndSignal( "OnDestroy" )
-	weaponOwner.EndSignal( "OnDestroy" )
-
-	for ( ;; )
-	{
-		weapon.WaitSignal( "FireAmpedVortexBullet" )
-
-		if ( IsValid( weaponOwner )	)
-		{
-			ShotgunBlast( weapon, weaponOwner.EyePosition(), weaponOwner.GetPlayerOrNPCViewVector(), expect int( weapon.s.ampedBulletCount ), damageTypes.shotgun | DF_VORTEX_REFIRE )
-			weapon.s.ampedBulletCount = 0
-		}
-	}
 }
 
 function ForceReleaseOnPlayerEject( entity weapon )
