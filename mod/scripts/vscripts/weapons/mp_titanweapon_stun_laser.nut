@@ -138,14 +138,23 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 			if ( IsValid( soul ) )
 			{
 				int shieldRestoreAmount = 750
+				// NOTE here: respawn mess things up by checking target's titan soul passive
+				// so if we want to handle weapon, needs to get target's weapon here
 				//if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) ) // respawn messed this up
-				if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) || weapon.HasMod( "pas_vanguard_shield" ) ) 
+				// removed, this method gets attacker's weapon
+				//if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) || weapon.HasMod( "pas_vanguard_shield" ) ) 
+				bool shouldDoAmpedRegen = SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD )
+				entity targetStunLaser = GetStunLaserWeapon( target )
+				if ( !shouldDoAmpedRegen && IsValid( targetStunLaser ) )
+					shouldDoAmpedRegen = targetStunLaser.HasMod( "pas_vanguard_shield" )
+				if ( shouldDoAmpedRegen )
 					shieldRestoreAmount = int( 1.25 * shieldRestoreAmount )
 
-				float shieldAmount = min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() )
-				shieldRestoreAmount = soul.GetShieldHealthMax() - int( shieldAmount )
+				float shieldAmount = min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) )
+				shieldRestoreAmount = GetShieldHealthMaxWithFix( soul ) - int( shieldAmount )
 
-				soul.SetShieldHealth( shieldAmount )
+				//soul.SetShieldHealth( shieldAmount )
+				SetShieldHealthWithFix( soul, shieldAmount )
 
 				if ( file.stunHealCallback != null && shieldRestoreAmount > 0 )
 					file.stunHealCallback( attacker, target, shieldRestoreAmount )
@@ -187,7 +196,8 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 			//if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) ) // respawn messed this up
 			if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) || weapon.HasMod( "pas_vanguard_shield" ) )
 				shieldRestoreAmount = int( 1.25 * shieldRestoreAmount )
-			soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
+			//soul.SetShieldHealth( min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
+			SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
 		}
 		if ( attacker.IsPlayer() )
 			MessageToPlayer( attacker, eEventNotifications.VANGUARD_ShieldGain, attacker )
