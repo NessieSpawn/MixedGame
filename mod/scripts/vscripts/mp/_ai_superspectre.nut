@@ -189,7 +189,9 @@ bool function DamageShouldStartReaperNuke( entity npc, var damageInfo )
 {
 	// general check
 	// this ignores interruptable state check because we will handle animations manually
-	if ( !SuperSpectreCanStartNukeSequence( npc, damageInfo, true ) )
+	// seems no need to ignore interruptable for reapers? that only happens when they're preparing an mega jump
+	//if ( !SuperSpectreCanStartNukeSequence( npc, damageInfo, true ) )
+	if ( !SuperSpectreCanStartNukeSequence( npc, damageInfo ) )
 		return false
 
 	// nuke before death check
@@ -363,7 +365,8 @@ void function ReaperNukeSequenceThink( entity npc, entity nukeFXInfoTarget )
 {
 	// starting sequence and setup
 	EmitSoundOnEntity( nukeFXInfoTarget, "ai_reaper_nukedestruct_warmup_3p" )
-	PlayDeathAnimByActivity( npc ) // play the anim before think starts
+	if ( npc.IsInterruptable() ) // nuke before death now ignores interruptable check, needs to manually handle
+		PlayDeathAnimByActivity( npc ) // play the anim before think starts
 
 	// for fun
 	entity nukeBodyFX = PlayFXOnEntity( $"P_sup_spectre_warn_body", npc, "exp_torso_core_fx" )
