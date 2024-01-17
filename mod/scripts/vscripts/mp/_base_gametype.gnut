@@ -599,13 +599,18 @@ function HandleLocationBasedDamage( entity ent, var damageInfo )
 	else if ( DamageInfo_GetInflictor( damageInfo ) && (DamageInfo_GetInflictor( damageInfo ) instanceof CProjectile ) )
 		weaponName = DamageInfo_GetInflictor( damageInfo ).ProjectileGetWeaponClassName()
 
+	// modified shield health check
+	bool entHasShield = GetShieldHealthWithFix( ent ) > 0 && GetShieldHealthMaxWithFix( ent ) > 0
+
 	if ( ent.IsTitan() )
 	{
 		damageMult_location = GetCriticalScaler( ent, damageInfo )
 	}
 	else if ( IsSuperSpectre( ent ) )
 	{
-		if ( CritWeaponInDamageInfo( damageInfo ) && IsCriticalHit( attacker, ent, DamageInfo_GetHitBox( damageInfo ), DamageInfo_GetDamage( damageInfo ), DamageInfo_GetDamageType( damageInfo ) ) )
+		// change to handle scripted shield check
+		//if ( CritWeaponInDamageInfo( damageInfo ) && IsCriticalHit( attacker, ent, DamageInfo_GetHitBox( damageInfo ), DamageInfo_GetDamage( damageInfo ), DamageInfo_GetDamageType( damageInfo ) ) )
+		if ( CritWeaponInDamageInfo( damageInfo ) && IsCriticalHit_WithScriptedShieldCheck( attacker, ent, DamageInfo_GetHitBox( damageInfo ), DamageInfo_GetDamage( damageInfo ), DamageInfo_GetDamageType( damageInfo ) ) )
 		{
 			damageMult_location = GetCriticalScaler( ent, damageInfo )
 			DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
@@ -614,11 +619,15 @@ function HandleLocationBasedDamage( entity ent, var damageInfo )
 	else if ( IsStalker( ent ) )
 	{
 		// note: stalker location based damage is done in _ai_stalker.gnut.
-		switch ( hitGroup )
+		// nessie modify: want to add stalker shield system, add shield health check here
+		if ( !entHasShield )
 		{
-			case HITGROUP_GEAR:
-				DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
-				break
+			switch ( hitGroup )
+			{
+				case HITGROUP_GEAR:
+					DamageInfo_AddCustomDamageType( damageInfo, DF_CRITICAL )
+					break
+			}
 		}
 	}
 	else if ( isValidHeadShot )
@@ -652,6 +661,7 @@ function PlayerDamageFeedback( entity ent, damageInfo )
 
 	//int customDamageType = DamageInfo_GetCustomDamageType( damageInfo )
 
+	// though this one isn't handled by client-side
 	if ( IsMaxRangeShot( damageInfo ) )
 	{
 		//customDamageType = customDamageType | DF_MAX_RANGE
