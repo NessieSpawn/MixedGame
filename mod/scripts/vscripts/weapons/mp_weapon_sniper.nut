@@ -143,8 +143,10 @@ int function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams at
 		}
 		else // vanilla behavior
 		{
-			entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir, boltSpeed, damageFlags, damageFlags, playerFired, 0 )
+			// modified to add explosionFlags
+			//entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir, boltSpeed, damageFlags, damageFlags, playerFired, 0 )
 			//bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir, 1.0, damageFlags, damageFlags, playerFired, 0 )
+			entity bolt = weapon.FireWeaponBolt( attackParams.pos, attackParams.dir, boltSpeed, damageFlags, explosionFlags, playerFired, 0 )
 
 			if ( bolt != null )
 			{
@@ -259,7 +261,7 @@ void function OnProjectileCollision_weapon_sniper( entity projectile, vector pos
 			titanDamage,													// heavy armor damage
 			explosionInnerRadius,											// inner radius
 			explosionRadius,												// outer radius
-			SF_ENVEXPLOSION_NO_NPC_SOUND_EVENT,								// explosion flags
+			SF_ENVEXPLOSION_MASK_BRUSHONLY,									// explosion flags
 			0, 																// distanceFromAttacker
 			explosionForce, 												// explosionForce
 			damageFlags,													// damage flags
