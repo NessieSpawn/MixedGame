@@ -178,7 +178,9 @@ void function OnProjectileCollision_weapon_tether( entity projectile, vector pos
 
 			array<entity> ziplineEnts = [ziplineAnchor, tetherEndEntForOthers, tetherEndEntForPlayer, tetherRopeForPlayer, tetherRopeForOthers]
 
-			AddTitanTether( owner, ziplineAnchor, hitEnt, ziplineEnts, ziplineAnchor, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether, canTetherPilot )
+			// keep vanilla behavior for this branch
+			//AddTitanTether( owner, ziplineAnchor, hitEnt, ziplineEnts, ziplineAnchor, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether, canTetherPilot )
+			AddTitanTether( owner, ziplineAnchor, hitEnt, ziplineEnts, ziplineAnchor, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether )
 
 			if ( hitEnt.IsPlayer() )
 			{
@@ -351,7 +353,9 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 
 			projectile.proj.tetherAttached = true
 
-			AddTitanTether( owner, projectile, titan, tetherEnts, projectile, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether, canTetherPilot )
+			// keep vanilla behavior for this branch
+			//AddTitanTether( owner, projectile, titan, tetherEnts, projectile, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether, canTetherPilot )
+			AddTitanTether( owner, projectile, titan, tetherEnts, projectile, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether )
 
 			if ( titan.IsPlayer() )
 				thread TetherFlyIn( projectile, tetherEndEntForPlayer, tetherRopeForPlayer, owner )

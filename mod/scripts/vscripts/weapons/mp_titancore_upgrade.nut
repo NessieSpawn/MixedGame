@@ -77,16 +77,20 @@ void function UpgradeCore_Init()
 	PrecacheParticleSystem( LASER_CHAGE_FX_1P )
 	PrecacheParticleSystem( LASER_CHAGE_FX_3P )
 
-	
+	// remove for this branch
+	/*
 	#if SERVER
 		// modified init
 		AddSoulInitFunc( InitUpgradeCoreTitanSoul )
 		// modified function in sv_earn_meter.gnut, to get rid of maelstrom hardcode
 		AddCallback_OnGiveOffhandElectricSmoke( UpgradeCoreOffhandElectricSmoke )
 	#endif
+	*/
 }
 
 // modified callbacks
+// remove for this branch
+/*
 #if SERVER
 // init
 void function InitUpgradeCoreTitanSoul( entity soul )
@@ -118,7 +122,8 @@ void function UpgradeCoreOffhandElectricSmoke( entity titan, bool startWithSmoke
 		}
 	}
 }
-#endif
+#endi
+*/
 
 #if SERVER
 var function OnWeaponNpcPrimaryAttack_UpgradeCore( entity weapon, WeaponPrimaryAttackParams attackParams )
@@ -133,8 +138,11 @@ var function OnWeaponNpcPrimaryAttack_UpgradeCore( entity weapon, WeaponPrimaryA
 var function OnWeaponPrimaryAttack_UpgradeCore( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "shield_core" ) )
 		return OnAbilityStart_Shield_Core( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -257,11 +265,13 @@ void function UpgradeCoreThink( entity weapon, float coreDuration )
 		EmitSoundOnEntity( owner, "Titan_Monarch_Smart_Core_Activated_3P" )
 	
 	entity soul = owner.GetTitanSoul()
+	// use vanilla behavior for this branch
 	//SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
 	// adding settings that allows shield regen amount to be modified
-	int shieldRegen = int( GetShieldHealthMaxWithFix( soul ) * file.shieldRegenScale )
-    //soul.SetShieldHealth( min( soul.GetShieldHealthMax(), soul.GetShieldHealth() + shieldRegen ) )
-	SetShieldHealthWithFix( soul, min( GetShieldHealthMaxWithFix( soul ), GetShieldHealthWithFix( soul ) + shieldRegen ) )
+	//int shieldRegen = int( GetShieldHealthMaxWithFix( soul ) * file.shieldRegenScale )
+    int shieldRegen = int( soul.GetShieldHealthMax() * file.shieldRegenScale )
+	soul.SetShieldHealth( min( soul.GetShieldHealthMax(), soul.GetShieldHealth() + shieldRegen ) )
+	//SetShieldHealthWithFix( soul, min( GetShieldHealthMaxWithFix( soul ), GetShieldHealthWithFix( soul ) + shieldRegen ) )
 
 	OnThreadEnd(
 	function() : ( weapon, owner, soul )
@@ -774,8 +784,11 @@ bool function Upgrade_XO16BattleRifle( entity titan )
 bool function OnCoreCharge_UpgradeCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "shield_core" ) )
 		return OnCoreCharge_Shield_Core( weapon )
+#endif
 
 	return true
 }
@@ -783,8 +796,11 @@ bool function OnCoreCharge_UpgradeCore( entity weapon )
 void function OnCoreChargeEnd_UpgradeCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "shield_core" ) )
 		return OnCoreChargeEnd_Shield_Core( weapon )
+#endif
 }
 //
 

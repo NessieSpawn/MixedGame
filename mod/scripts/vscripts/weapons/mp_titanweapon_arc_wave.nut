@@ -57,8 +57,11 @@ void function OnWeaponDeactivate_titanweapon_arcwave( entity weapon )
 var function OnWeaponPrimaryAttack_titanweapon_arc_wave( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "stryder_fire_wave" ) )
 		return OnWeaponPrimaryAttack_titanweapon_fire_wave( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	entity weaponOwner = weapon.GetWeaponOwner()
@@ -124,8 +127,11 @@ void function BeginEmpWave( entity projectile, WeaponPrimaryAttackParams attackP
 var function OnWeaponNpcPrimaryAttack_titanweapon_arc_wave( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "stryder_fire_wave" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_fire_wave( weapon, attackParams )
+	*/
 
 	// vanilla behavior
 	const float FUSE_TIME = 99.0

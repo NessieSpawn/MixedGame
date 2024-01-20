@@ -96,10 +96,13 @@ var function OnWeaponPrimaryAttack_DoNothing( entity weapon, WeaponPrimaryAttack
 bool function OnCoreCharge_Shift_Core( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "dash_core" ) )
 		return OnCoreCharge_Dash_Core( weapon )
 	if ( weapon.HasMod( "berserker_core" ) )
 		return OnCoreCharge_Berserker_Core( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -139,10 +142,13 @@ bool function OnCoreCharge_Shift_Core( entity weapon )
 void function OnCoreChargeEnd_Shift_Core( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "dash_core" ) )
 		return OnCoreChargeEnd_Dash_Core( weapon )
 	if ( weapon.HasMod( "berserker_core" ) )
 		return OnCoreChargeEnd_Berserker_Core( weapon )
+#endif
 	//
 
 	// vanilla behavior	
@@ -174,10 +180,13 @@ void function RestoreWeapon( entity owner, entity weapon )
 var function OnAbilityStart_Shift_Core( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "dash_core" ) )
 		return OnAbilityStart_Dash_Core( weapon, attackParams )
 	if ( weapon.HasMod( "berserker_core" ) )
 		return OnAbilityStart_Berserker_Core( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior

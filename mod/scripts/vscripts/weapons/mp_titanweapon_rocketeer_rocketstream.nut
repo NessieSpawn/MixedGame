@@ -88,8 +88,11 @@ void function OnVortexHitProjectile_QuadRocket( entity weapon, entity vortexSphe
 void function OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket( weapon )
+#endif
 	//
 
 	// vanilla behavior( actually modified )
@@ -126,8 +129,11 @@ void function OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( entity wea
 void function OnWeaponStartZoomOut_TitanWeapon_Rocketeer_RocketStream( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponStartZoomOut_TitanWeapon_Brute4_QuadRocket( weapon )
+#endif
 	//
 
 	// vanilla behavior( actually modified )
@@ -166,8 +172,11 @@ void function OnClientAnimEvent_TitanWeapon_Rocketeer_RocketStream( entity weapo
 var function OnWeaponPrimaryAttack_TitanWeapon_Rocketeer_RocketStream( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponPrimaryAttack_TitanWeapon_Brute4_QuadRocket( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -183,8 +192,11 @@ var function OnWeaponPrimaryAttack_TitanWeapon_Rocketeer_RocketStream( entity we
 var function OnWeaponNpcPrimaryAttack_TitanWeapon_Rocketeer_RocketStream( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponNpcPrimaryAttack_TitanWeapon_Brute4_QuadRocket( weapon, attackParams )
+	*/
 	//
 
 	// vanilla behavior
@@ -296,8 +308,11 @@ void function FireMissileStream_Spiral( entity weapon, WeaponPrimaryAttackParams
 	// the high projectile speed is a bug I made before
 	// actually it don't desync very much, just keep it
 	// otherwise it will be too difficult to land shots with this weapon
+	// remove for this branch because we've got visual fixes on server-side
+	/*
 	if ( weapon.HasMod( "brute_rocket" ) ) // brute specific
 		missileSpeed = 3000
+	*/
 
 	int impactFlags = (DF_IMPACT | DF_GIB | DF_KNOCK_BACK)
 
@@ -339,7 +354,8 @@ void function OnWeaponOwnerChanged_TitanWeapon_Rocketeer_RocketStream( entity we
 
 	// modified behavior
 	// idk why respawn make run_and_gun for quad rocket, try to disable it's effect on server-side
-	Disable_RunAndGun_ServerSide( weapon, changeParams )
+	// remove for this branch
+	//Disable_RunAndGun_ServerSide( weapon, changeParams )
 	#endif
 }
 

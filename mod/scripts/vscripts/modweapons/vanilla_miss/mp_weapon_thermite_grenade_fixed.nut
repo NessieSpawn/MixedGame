@@ -12,6 +12,8 @@ const int THERMITE_GRENADE_DOT_STACK_MAX = 4
 
 void function MpWeaponThermiteGrenade_Init()
 {
+    // remove for this branch
+	/*
 #if SERVER
     // for "thermite_grenade_dot"
     RegisterWeaponDamageSource( "mp_weapon_thermite_grenade_dot", "#SP_TITAN_LOADOUT_SUBTITLE_SCORCH" ) // "Thermite"
@@ -32,4 +34,5 @@ void function MpWeaponThermiteGrenade_Init()
     // retain damage mod on refired by vortex
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_thermite_grenade", "thermite_grenade_dot" )
 #endif
+    */
 }

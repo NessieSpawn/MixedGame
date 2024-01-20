@@ -45,10 +45,13 @@ void function OnClientAnimEvent_weapon_mgl( entity weapon, string name )
 var function OnWeaponPrimaryAttack_weapon_mgl( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "tripwire_launcher" ) )
 		return OnWeaponPrimaryAttack_weapon_tripwire_launcher( weapon, attackParams )
 	if ( weapon.HasMod( "flesh_magnetic" ) || weapon.HasMod( "magnetic_rollers" ) )
 		return OnWeaponPrimaryAttack_weapon_flesh_mgl( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -68,8 +71,11 @@ var function OnWeaponPrimaryAttack_weapon_mgl( entity weapon, WeaponPrimaryAttac
 var function OnWeaponNpcPrimaryAttack_weapon_mgl( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "flesh_magnetic" ) || weapon.HasMod( "magnetic_rollers" ) )
 		return OnWeaponNpcPrimaryAttack_weapon_flesh_mgl( weapon, attackParams )
+	*/
 	// vanilla behavior
 
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
@@ -108,11 +114,13 @@ void function OnProjectileCollision_weapon_mgl( entity projectile, vector pos, v
 	// modded weapon
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
+	// saved only for client-side in this branch
+#if CLIENT
 	if( mods.contains( "tripwire_launcher" ) )
 		return OnProjectileCollision_weapon_tripwire_launcher( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	else if ( mods.contains( "flesh_magnetic" ) || mods.contains( "magnetic_rollers" ) )
 		return OnProjectileCollision_weapon_flesh_mgl( projectile, pos, normal, hitEnt, hitbox, isCritical )
-
+#endif
 
 	// vanilla behavior
 	if ( !IsValid( hitEnt ) )
@@ -121,15 +129,19 @@ void function OnProjectileCollision_weapon_mgl( entity projectile, vector pos, v
 	if ( IsMagneticTarget( hitEnt ) )
 	{
 		// adding friendlyfire support
-		//if ( hitEnt.GetTeam() != projectile.GetTeam() )
-		if ( FriendlyFire_IsEnabled() || hitEnt.GetTeam() != projectile.GetTeam() )
+		// we have visual fixes on server, so client-side keep vanilla behavior
+		if ( hitEnt.GetTeam() != projectile.GetTeam() )
+		//if ( FriendlyFire_IsEnabled() || hitEnt.GetTeam() != projectile.GetTeam() )
 		{
 			// adding visual fix: if client without mod installed hits a friendly target in close range
 			// they won't predict the impact effect
+			// remove for this branch
+			/*
 			#if SERVER
 				if ( hitEnt.GetTeam() == projectile.GetTeam() )
 					FixImpactEffectForProjectileAtPosition( projectile, pos ) // shared from _unpredicted_impact_fix.gnut
 			#endif
+			*/
 
 			projectile.ExplodeForCollisionCallback( normal )
 		}
@@ -140,6 +152,8 @@ void function OnProjectileCollision_weapon_mgl( entity projectile, vector pos, v
 void function OnWeaponStartZoomIn_weapon_mgl( entity weapon )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	// gives ar_trajectory on weapon ads, similar to softball ads arc
 	if ( weapon.HasMod( "grenade_arc_on_ads" ) )
 	{
@@ -147,18 +161,24 @@ void function OnWeaponStartZoomIn_weapon_mgl( entity weapon )
 			UpdateWeaponArTrajectory( weapon )
 		#endif
 	}
+	*/
 }
 
 void function OnWeaponStartZoomOut_weapon_mgl( entity weapon )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	#if SERVER
 		// may seem bad. vanilla zoom arc is based on zoomFrac
 		// I don't care, it works fine
 		weapon.Signal( "MGLZoomOut" ) // ends "AwaitingWeaponOwnerADSEnd" thread
 	#endif
+	*/
 }
 
+// remove for this branch
+/*
 #if SERVER
 void function UpdateWeaponArTrajectory( entity weapon )
 {
@@ -213,3 +233,4 @@ void function AwaitingWeaponOwnerADSEnd( entity owner, entity weapon, string new
 	//print( "AwaitingWeaponOwnerADSEnd reached last line!" )
 }
 #endif
+*/

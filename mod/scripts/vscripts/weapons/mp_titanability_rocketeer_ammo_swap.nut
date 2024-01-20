@@ -16,8 +16,11 @@ void function MpTitanAbilityRocketeerAmmoSwap_Init()
 var function OnWeaponPrimaryAttack_rocketeer_ammo_swap( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side for this branch
+#if CLIENT
 	if ( weapon.HasMod( "brute4_cluster_payload" ) )
 		return OnWeaponPrimaryAttack_cluster_payload( weapon, attackParams )
+#endif
 	//
 
 	// vanilla( actually modified ) behavior
@@ -70,8 +73,11 @@ var function OnWeaponPrimaryAttack_rocketeer_ammo_swap( entity weapon, WeaponPri
 var function OnWeaponNpcPrimaryAttack_rocketeer_ammo_swap( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "brute4_cluster_payload" ) )
 		return OnWeaponPrimaryAttack_cluster_payload( weapon, attackParams )
+	*/
 	//
 
 	// vanilla( actually modified ) behavior

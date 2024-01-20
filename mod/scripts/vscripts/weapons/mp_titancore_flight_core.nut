@@ -14,8 +14,11 @@ void function FlightCore_Init()
 bool function OnAbilityStart_FlightCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_barrage_core" ) )
 		return OnAbilityStart_BarrageCore( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -45,8 +48,11 @@ bool function OnAbilityStart_FlightCore( entity weapon )
 void function OnAbilityEnd_FlightCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_barrage_core" ) )
 		return OnAbilityEnd_BarrageCore( weapon )
+#endif
 	//
 
 	// vanilla behavior

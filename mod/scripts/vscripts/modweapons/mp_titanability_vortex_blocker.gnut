@@ -48,12 +48,15 @@ void function OnWeaponOwnerChanged_titanability_vortex_blocker( entity weapon, W
 #if SERVER
     // shared from _shared_energy_update.gnut
     // for handling modified shared energy regen
+	// remove for this branch
+	/*
     UpdateSharedEnergyOnWeaponOwnerChanged(
         weapon,
         changeParams,
         VORTEX_BLOCKER_ENERGY_REGEN_RATE,           // energyRegenRate
         VORTEX_BLOCKER_ENERGY_REGEN_DELAY           // energyRegenDelay
     )
+	*/
 #endif
 
 	// shared from modified _vortex.nut

@@ -38,8 +38,11 @@ void function OnWeaponActivate_weapon_grenade_sonar( entity weapon )
 var function OnWeaponPrimaryAttack_weapon_grenade_sonar( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "death_marker" ) )
 		return OnWeaponAbilityStart_Death_Marker( weapon, attackParams )
+#endif
 
 	return 0 // vanilla pulse blade has no primary attack event
 }
@@ -47,8 +50,11 @@ var function OnWeaponPrimaryAttack_weapon_grenade_sonar( entity weapon, WeaponPr
 var function OnWeaponTossReleaseAnimEvent_weapon_grenade_sonar( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "ninja_projectile" ) )
 		return OnWeaponTossReleaseAnimEvent_ninja_projectile( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	return Grenade_OnWeaponTossReleaseAnimEvent( weapon, attackParams )
@@ -58,8 +64,11 @@ void function OnProjectileCollision_weapon_grenade_sonar( entity projectile, vec
 {
 	// modded weapon
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	if( mods.contains( "ninja_projectile" ) )
 		return OnProjectileCollision_ninja_projectile( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 
 	// vanilla behavior
 	#if SERVER

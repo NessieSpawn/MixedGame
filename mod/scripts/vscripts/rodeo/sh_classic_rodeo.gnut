@@ -2,368 +2,65 @@ untyped
 
 global function ClassicRodeo_InitPlaylistVars
 
-// default value
-const float CLASSIC_RODEO_DEFAULT_DAMAGE_SCALE = 1.0
-
-// shared utility
-global function ClassicRodeo_SetEnabled
-global function ClassicRodeo_IsEnabled
-
 #if SERVER
-global function ClassicRodeo_SetRodeoAttackDamageScale
-
 global function CreateClassicRodeoWeakpoint
-
-// callbacks
-global function AddCallback_ClassicRodeo_WeakpointTitanDamaged
-
-// debug
-const bool CLASSIC_RODEO_WEAKPOINT_DEBUG = false
-
-// settings
-const float RODEO_WEAKPOINT_DAMAGE_STATE_REQUIRED_SEGMENT_HEALTH = 0.5 // if a titan's segmented health is damaged by this percentage, we create panel damaged effect
-const array<asset> RODEO_WEAKPOINT_DAMAGE_STATE_FX =
-[
-	$"P_rodeo_damage_1",
-	$"P_rodeo_damage_2",
-	$"P_rodeo_damage_3"
-]
-const asset RODEO_WEAKPOINT_HITBOX_MODEL = $"models/weapons/bullets/triple_threat_projectile.mdl" // $"models/Weapons/ammoboxes/backpack_single.mdl" // this one's too big, will block many damages
 #endif
 
-struct
-{
-	// settings
-	bool classicRodeoEnabled = false
-	float classicRodeoAdditionalDamage = CLASSIC_RODEO_DEFAULT_DAMAGE_SCALE // default additional damage value, should make it changable through playlistVars
-	// callbacks
-	array<void functionref( entity, var )> weakpointTitanDamagedCallbacks
-
-	// in-file variable
-	bool isWeakpointDamage = false // for OnWeakpointAttachedTitanDamaged() handle damage
-} file
+const asset RODEO_WEAKPOINT_HITBOX_MODEL = $"models/Weapons/ammoboxes/backpack_single.mdl"
 
 void function ClassicRodeo_InitPlaylistVars()
 {
 	AddPrivateMatchModeSettingEnum( "#MODE_SETTING_CATEGORY_TITAN", "classic_rodeo", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
 	// new adding: damage settings
-	AddPrivateMatchModeSettingArbitrary( "#MODE_SETTING_CATEGORY_TITAN", "classic_rodeo_damage_scale", CLASSIC_RODEO_DEFAULT_DAMAGE_SCALE.tostring() )
-
-#if SERVER
-	PrecacheModel( RODEO_WEAKPOINT_HITBOX_MODEL )
-
-	// modified callbacks
-	AddBatteryHealCallback( ClassicRodeoBatteryHeal )
-	AddCallback_OnBatteryRemovalDamage( ClassicRodeoBatteryRemovalDamage )
-#endif
+	AddPrivateMatchModeSettingArbitrary( "#MODE_SETTING_CATEGORY_TITAN", "classic_rodeo_damage_scale", "1.0" )
 }
 
 #if SERVER
-void function ClassicRodeo_SetRodeoAttackDamageScale( float scale )
-{
-	file.classicRodeoAdditionalDamage = scale
-}
-
-// UTILITY
 entity function CreateClassicRodeoWeakpoint( entity player, entity titan )
 {
-	// now changing to script_mover so they won't have sticky entities( which parented to them and gets destroyed together )
-	//entity weakpoint = CreatePropScript( RODEO_WEAKPOINT_HITBOX_MODEL )// 
-	entity weakpoint = CreateEntity( "script_mover" )
-	weakpoint.SetValueForModelKey( RODEO_WEAKPOINT_HITBOX_MODEL )
-	DispatchSpawn( weakpoint )
-	weakpoint.SetModel( RODEO_WEAKPOINT_HITBOX_MODEL )
-	
+	entity weakpoint = CreatePropScript( RODEO_WEAKPOINT_HITBOX_MODEL )
 	weakpoint.SetParent( titan, "RODEO_BATTERY" )
-	weakpoint.SetLocalOrigin( < 0, -4, 0 > ) // < 0, 0, 0 > for ammobox
 	weakpoint.SetLocalAngles( < 90, -90, 0 > )
 	weakpoint.SetTakeDamageType( DAMAGE_YES )
-
-	// setup
 	SetTeam( weakpoint, TEAM_UNASSIGNED )
-	SetVisibleEntitiesInConeQueriableEnabled( weakpoint, true ) // allow shotgun pellets to find it
 	SetObjectCanBeMeleed( weakpoint, false )
-	weakpoint.SetPassThroughThickness( 1024 ) // almost prevent every weapon from passing through
-	
-	weakpoint.kv.solid = SOLID_HITBOXES
+	weakpoint.kv.solid = 6
 	weakpoint.Hide()
-
-	// setup health, avoid it sometimes disappear once and make player unable to land shots
-	weakpoint.SetMaxHealth( 10000 )
-	weakpoint.SetHealth( 10000 )
-
-	// set armor type correctly so we don't need to figure out damage
-	weakpoint.SetArmorType( ARMOR_TYPE_HEAVY )
-	SetCustomSmartAmmoTarget( weakpoint, false )
-
-	// debug	
-	#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-		weakpoint.Show()
-	#endif // CLASSIC_RODEO_WEAKPOINT_DEBUG
-
-	entity titanSoul = titan.GetTitanSoul()
-	// tweak on weakpoint position
-	switch ( GetSoulTitanSubClass( titanSoul ) )
-	{
-		case "stryder":
-			weakpoint.SetLocalOrigin( < 0, -4, -2 > ) // < 0, 4, -4 > for ammobox
-			break
-		case "ogre":
-			weakpoint.SetLocalOrigin( < 0, -7, 0 > )
-			break
-	}
+	
+	// stryder ones don't really work in the default position, so change it
+	// note: stryders are way too easy to hit because of this lol so possibly fuck with it
+	if ( GetSoulTitanSubClass( titan.GetTitanSoul() ) == "stryder" )
+		weakpoint.SetLocalOrigin( < 0, 4, -4 > )
 	
 	weakpoint.s.pilot <- player
-	weakpoint.s.titanSoul <- titanSoul
+	weakpoint.s.titan <- titan
 	
-	AddEntityCallback_OnPostDamaged( weakpoint, OnRodeoWeakpointPostDamaged )
-	thread HandleWeakpointAttachedTitanDamage( weakpoint, titan )
-
-	return weakpoint
+	AddEntityCallback_OnDamaged( weakpoint, OnRodeoWeakpointDamaged )
 }
 
-void function OnRodeoWeakpointPostDamaged( entity weakpoint, var damageInfo )
-{
+void function OnRodeoWeakpointDamaged( entity weakpoint, var damageInfo )
+{	
 	entity attacker = DamageInfo_GetAttacker( damageInfo )
-	if ( IsValid( attacker ) && attacker == weakpoint.s.pilot )
-	{
-		entity titanSoul = attacker.GetTitanSoulBeingRodeoed()
-		if ( IsValid( titanSoul ) && titanSoul == weakpoint.s.titanSoul )
-		{
-			entity titan = titanSoul.GetTitan() // real titan
-			if( IsValid( titan ) )
-			{
-				float criticalScale = 1.0
-				entity attackerWeapon = DamageInfo_GetWeapon( damageInfo )
-				entity inflictor = DamageInfo_GetInflictor( damageInfo )
-				if ( IsValid( inflictor ) && inflictor.IsProjectile() )
-				{
-					// only add crit damage if weapon can't hit titan with critical hit( bullet weapons )
-					// most pilot weapon's crit damage scale is 1.0, we use headshot damage instead
-					// reverted. headshot damage is crazy on some weapon
-					bool canAppendDamage = inflictor.GetProjectileWeaponSettingBool( eWeaponVar.titanarmor_critical_hit_required )
-					if ( canAppendDamage )
-					{
-						criticalScale = inflictor.GetProjectileWeaponSettingFloat( eWeaponVar.critical_hit_damage_scale )
-						//criticalScale = inflictor.GetProjectileWeaponSettingFloat( eWeaponVar.damage_headshot_scale )
-					}
-
-					// debug
-					#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-						print( "Weakpoint damaged by projectile!" )
-					#endif // CLASSIC_RODEO_WEAKPOINT_DEBUG
-				}
-				else if ( !IsValid( attackerWeapon ) && IsValid( inflictor ) && inflictor.IsPlayer() ) // damaged by hitscan radius damage
-					attackerWeapon = inflictor.GetActiveWeapon()
-
-				if ( IsValid( attackerWeapon ) )
-				{
-					// only add crit damage if weapon can't hit titan with critical hit( bullet weapons )
-					// most pilot weapon's crit damage scale is 1.0, we use headshot damage instead
-					// reverted. headshot damage is crazy on some weapon
-					bool canAppendDamage = attackerWeapon.GetWeaponSettingBool( eWeaponVar.titanarmor_critical_hit_required )
-					if ( canAppendDamage )
-					{
-						criticalScale = attackerWeapon.GetWeaponSettingFloat( eWeaponVar.critical_hit_damage_scale )
-						//criticalScale = attackerWeapon.GetWeaponSettingFloat( eWeaponVar.damage_headshot_scale )
-					}
-
-					// debug
-					#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-						print( "Weakpoint damaged by hitscan!" )
-					#endif // CLASSIC_RODEO_WEAKPOINT_DEBUG
-				}
-
-				// debug
-				#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-					print( "calculated criticalScale: " + string( criticalScale ) )
-					print( "DamageInfo_GetDamageCriticalHitScale(): " + string( DamageInfo_GetDamageCriticalHitScale( damageInfo ) ) )
-				#endif // CLASSIC_RODEO_WEAKPOINT_DEBUG
-
-				float rodeoDamage = DamageInfo_GetDamage( damageInfo ) * GetClassicRodeoAdditionalDamageScale() * criticalScale
-				int damageTypes = DamageInfo_GetCustomDamageType( damageInfo ) | DF_BYPASS_SHIELD | DF_CRITICAL // always passthrough shield
-				#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-					print( "rodeoDamage: " + string( rodeoDamage ) )
-				#endif
-
-				file.isWeakpointDamage = true // mark as this will be weak point damage
-				titan.TakeDamage( rodeoDamage, attacker, attacker, { damageSourceId = eDamageSourceId.rodeo, scriptType = damageTypes } )
-				file.isWeakpointDamage = false // clean up
-
-				// update rodeo panel damaged effect
-				// removed... particles and their attachment not working well in titanfall2
-				int actualDamage = int( rodeoDamage )
-				//RodeoWeakpointDamagedEffect( titan, actualDamage )
-			}
-		}
-	}
-	
+	entity titan = attacker.GetParent()
+	float damageAmount = DamageInfo_GetDamage( damageInfo )
 	DamageInfo_SetDamage( damageInfo, 0 ) // make sure weakpoint ent doesn't die ever
-}
 
-// titan gets healing
-void function ClassicRodeoBatteryHeal( entity battery, entity titan, int shieldDifference, int addHealth )
-{
-	// classic rodeo needs to be enabled!
-	if ( !ClassicRodeo_IsEnabled() )
-		return
-
-	// try to fix weak point damage. passing negative value means fix
-	// removed... particles and their attachment not working well in titanfall2
-	//RodeoWeakpointDamagedEffect( titan, -addHealth, false )
-}
-
-void function ClassicRodeoBatteryRemovalDamage( entity attacker, entity titan, bool isGrenadeDamage, int damageAmount )
-{
-	// classic rodeo needs to be enabled!
-	if ( !ClassicRodeo_IsEnabled() )
-		return
-
-	// for grenade damages, do weakpoint damage effect
-	// removed... particles and their attachment not working well in titanfall2
-	//if ( isGrenadeDamage )
-	//	RodeoWeakpointDamagedEffect( titan, damageAmount, false )
-}
-
-// removed... particles and their attachment not working well in titanfall2
-/*
-void function RodeoWeakpointDamagedEffect( entity titan, int rodeoDamage, bool createDamageSpark = true )
-{
-	if ( rodeoDamage == 0 ) // damage == 0. not damaging nor healing
+	if ( attacker != weakpoint.s.pilot || titan != weakpoint.s.titan )
 		return
 	
-	entity soul = titan.GetTitanSoul()
-	if ( !IsValid( soul ) )
-		return
-	entity panel = soul.soul.batteryContainer
-	if ( !( "weakpointDamageAmount" in panel.s ) )
-		panel.s.weakpointDamageAmount <- 0
+	// hitmarker
+	attacker.NotifyDidDamage( weakpoint, DamageInfo_GetHitBox( damageInfo ), DamageInfo_GetDamagePosition( damageInfo ), DamageInfo_GetCustomDamageType( damageInfo ) | DF_CRITICAL, damageAmount, DamageInfo_GetDamageFlags( damageInfo ), DamageInfo_GetHitGroup( damageInfo ), DamageInfo_GetWeapon( damageInfo ), DamageInfo_GetDistFromAttackOrigin( damageInfo ) )
 	
-	// current damage spark
-	// check damage > 0 to handle healing condition
-	if ( rodeoDamage > 0 && createDamageSpark )
-		CreateSparksInsideTitanPanel( panel )
-
-	// total damage state
-	int totalDamageStates = RODEO_WEAKPOINT_DAMAGE_STATE_FX.len()
-	int damageStateHealth = int( GetSegmentHealthForTitan( titan ) * RODEO_WEAKPOINT_DAMAGE_STATE_REQUIRED_SEGMENT_HEALTH ) //titan.GetMaxHealth() / totalDamageStates
-	int currentDamageState = expect int( panel.s.weakpointDamageAmount ) / damageStateHealth
-	#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-		print( "currentDamageState: " + string( currentDamageState ) )
-	#endif
-	if ( rodeoDamage > 0 ) // we want to handle healing condition
-	{
-		if ( currentDamageState < totalDamageStates )
-		{
-			int nextDamageState = currentDamageState + 1
-			int nextDamageStateHealth = damageStateHealth * nextDamageState
-			// we just damaged titan over a bar?
-			if ( panel.s.weakpointDamageAmount < nextDamageStateHealth && panel.s.weakpointDamageAmount + rodeoDamage >= nextDamageStateHealth )
-			{
-				#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-					print( "Rodeo panel damage segment! creating particle" )
-				#endif
-				CreateDamageStateParticlesForPanel( panel, RODEO_WEAKPOINT_DAMAGE_STATE_FX[ nextDamageState - 1 ] )
-			}
-		}
-	}
-	else // rodeo damage < 0, must be healing
-	{
-		#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-			print( "Try healing titan" )
-		#endif
-		int nextHealingState = currentDamageState - 1
-		int nextHealingStateHealth = damageStateHealth * nextHealingState
-
-		// we just healed titan over a bar?
-		if ( panel.s.weakpointDamageAmount + rodeoDamage < nextHealingStateHealth && panel.s.weakpointDamageAmount >= nextHealingStateHealth )
-		{
-			#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-				print( "Rodeo panel heal! using smaller particle" )
-			#endif
-
-			if ( nextHealingState == 0 ) // reduced to no particle
-			{
-				if ( IsValid( panel.s.lastDamageStateParticleSystem ) )
-				{
-					print( "Killing weakpoint particle system" )
-					panel.s.lastDamageStateParticleSystem.Kill_Deprecated_UseDestroyInstead()
-				}
-			}
-			else
-				CreateDamageStateParticlesForPanel( panel, RODEO_WEAKPOINT_DAMAGE_STATE_FX[ nextHealingState - 1 ] )
-		}
-	}
-
-	panel.s.weakpointDamageAmount += rodeoDamage
-	// check total damage amount for handling healing
-	panel.s.weakpointDamageAmount = maxint( 0, panel.s.weakpointDamageAmount )
-
-	print( "New updated panel.s.weakpointDamageAmount: " + string( panel.s.weakpointDamageAmount ) )
-}
-*/
-
-void function AddCallback_ClassicRodeo_WeakpointTitanDamaged( void functionref( entity, var ) callbackFunc )
-{
-	if ( !file.weakpointTitanDamagedCallbacks.contains( callbackFunc ) )
-		file.weakpointTitanDamagedCallbacks.append( callbackFunc )
-}
-
-// handle attached titan damage
-void function HandleWeakpointAttachedTitanDamage( entity weakpoint, entity titan )
-{
-	titan.EndSignal( "OnDestroy" )
-	AddEntityCallback_OnDamaged( titan, OnWeakpointAttachedTitanDamaged )
-
-	weakpoint.WaitSignal( "OnDestroy" )
-	RemoveEntityCallback_OnDamaged( titan, OnWeakpointAttachedTitanDamaged )
-}
-
-void function OnWeakpointAttachedTitanDamaged( entity titan, var damageInfo )
-{
-	// weakpoint damage mark!
-	if ( !file.isWeakpointDamage ) // this isn't weakpoint damage
-	{
-		// debug
-		#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-			print( "Titan taking non-weakpoint damage!" )
-		#endif
-		return
-	}
-
-	// debug
-	#if CLASSIC_RODEO_WEAKPOINT_DEBUG
-		print( "Titan weakpoint damaged!" )
-	#endif
-
-	// run modified callbacks
-	foreach ( void functionref( entity, var ) callbackFunc in file.weakpointTitanDamagedCallbacks )
-		callbackFunc( titan, damageInfo )
-	//
-}
-
-float function GetClassicRodeoAdditionalDamageScale()
-{
-	// playlistvar overrides script!
-	if ( GetCurrentPlaylistVar( "classic_rodeo_damage_scale" ) != null ) // playlistvar modified
-		return GetCurrentPlaylistVarFloat( "classic_rodeo_damage_scale", CLASSIC_RODEO_DEFAULT_DAMAGE_SCALE )
-
-	return file.classicRodeoAdditionalDamage
+	// figure out damage to deal to titan
+	entity attackerWeapon = DamageInfo_GetWeapon( damageInfo )
+	if ( !IsValid( attackerWeapon ) )
+		attackerWeapon = attacker.GetActiveWeapon()
+	
+	int rodeoDamage = attackerWeapon.GetWeaponSettingInt( eWeaponVar.damage_rodeo ) // only really on weapons that were in tf1, unfortunately
+	if ( rodeoDamage == 0 ) // would use headshot scale, but it's a bit low in most cases to be competitive with weapons with a valid damage_rodeo
+		rodeoDamage = int( attackerWeapon.GetWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor ) * ( attackerWeapon.GetWeaponSettingFloat( eWeaponVar.damage_headshot_scale ) * 1.5 ) )
+		
+	// damage titan, make sure DF_BYPASS_SHIELD	is a thing for proper behaviour
+	titan.TakeDamage( rodeoDamage, attacker, attackerWeapon, { damageSourceId = eDamageSourceId.rodeo, scriptType = DamageInfo_GetCustomDamageType( damageInfo ) | DF_BYPASS_SHIELD } )
 }
 #endif
-
-// in-script settings
-void function ClassicRodeo_SetEnabled( bool enabled )
-{
-	file.classicRodeoEnabled = enabled
-}
-
-// shared func
-bool function ClassicRodeo_IsEnabled()
-{
-	// playlistvar overrides script!
-	if ( GetCurrentPlaylistVarInt( "classic_rodeo", 0 ) == 1 )
-		return true
-	
-	return file.classicRodeoEnabled
-}

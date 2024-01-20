@@ -3,6 +3,8 @@ global function MpWeaponFlakRifle_Init
 
 void function MpWeaponFlakRifle_Init()
 {
+	// remove for this branch
+	/*
 #if SERVER
 	// now using missile.ProjectileSetDamageSourceID( eDamageSourceId.mp_weapon_flak_rifle ), no need to hack this
 	//AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_vinson, OnDamagedTarget_FlakRifle )
@@ -31,6 +33,7 @@ void function MpWeaponFlakRifle_Init()
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_vinson", "flak_rifle" )
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_vinson", "flak_cannon" )
 #endif
+	*/
 }
 
 #if SERVER

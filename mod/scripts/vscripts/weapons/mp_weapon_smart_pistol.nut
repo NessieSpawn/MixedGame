@@ -21,6 +21,8 @@ function MpWeaponSmartPistol_Init()
 	PrecacheParticleSystem( $"P_smartpistol_lockon" )
 
 	// modified condition
+	// remove for this branch
+	/*
 #if SERVER
 	// burnmod blacklist
 	// we've added burnmod support for smart pistol, no need to add blacklist for unlimited ammo
@@ -37,6 +39,7 @@ function MpWeaponSmartPistol_Init()
 	// modded weapon
 	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_smart_pistol, SmartPistolDamagedTarget )
 #endif
+	*/
 }
 
 void function OnWeaponActivate_weapon_smart_pistol( entity weapon )
@@ -61,7 +64,8 @@ void function OnWeaponActivate_weapon_smart_pistol( entity weapon )
 	weapon.s.lockStartTime = Time()
 
 	// modified content: adding fake model for fake weapons
-	CreateFakeModelForSmartPistol( weapon )
+	// remove for this branch
+	//CreateFakeModelForSmartPistol( weapon )
 #endif
 }
 
@@ -142,6 +146,8 @@ void function OnWeaponStartZoomOut_weapon_smart_pistol( entity weapon )
 
 #if SERVER
 // modified content: adding fake model for fake weapons
+// remove for this branch
+/*
 // can't get eWeaponVar.playermodel... currently hardcode
 const table< string, asset > FAKE_MODEL_MODS =
 {
@@ -173,15 +179,19 @@ void function CreateFakeModelForSmartPistol( entity weapon )
 	// shared utility from _fake_world_weapon_model.gnut
 	FakeWorldModel_CreateForWeapon( weapon, model )
 }
+*/
 #endif
 
 // modified callbacks
 void function OnWeaponOwnerChanged_weapon_smart_pistol( entity weapon, WeaponOwnerChangedParams changeParams )
 {
 	// disable run_and_gun on server-side
+	// remove for this branch
+	/*
 	#if SERVER
 	Disable_RunAndGun_ServerSide( weapon, changeParams )
 	#endif
+	*/
 }
 
 // modded weapon

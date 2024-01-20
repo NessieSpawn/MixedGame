@@ -83,22 +83,31 @@ function MpTitanweaponMeteor_Init()
 void function OnWeaponActivate_Meteor( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "storm_launcher" ) )
 		return OnWeaponActivate_StormLauncher( weapon )
+#endif
 }
 
 void function OnWeaponDeactivate_Meteor( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "storm_launcher" ) )
 		return OnWeaponDeactivate_StormLauncher( weapon )
+#endif
 }
 
 var function OnWeaponPrimaryAttack_Meteor( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "storm_launcher" ) )
 		return OnWeaponPrimaryAttack_StormLauncher( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
@@ -158,8 +167,11 @@ void function Scorch_SelfDamageReduction( entity target, var damageInfo )
 var function OnWeaponNpcPrimaryAttack_Meteor( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "storm_launcher" ) )
 		return OnWeaponNpcPrimaryAttack_StormLauncher( weapon, attackParams )
+	*/
 
 	// vanilla behavior
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
@@ -456,8 +468,11 @@ void function OnProjectileCollision_Meteor( entity projectile, vector pos, vecto
 {
 	// modded weapon
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "storm_launcher" ) )
 		return OnProjectileCollision_StormLauncher( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 
 	// vanilla behavior
 	#if SERVER

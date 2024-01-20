@@ -143,39 +143,54 @@ void function TrackLaserCoreDuration( entity titan, entity weapon )
 // modified callbacks
 void function OnWeaponActivate_LaserCannon( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_storm_core" ) )
 		return OnWeaponActivate_StormCore( weapon )
+#endif
 }
 
 void function OnWeaponDeactivate_LaserCannon( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_storm_core" ) )
 		return OnWeaponDeactivate_StormCore( weapon )
+#endif
 }
 
 var function OnWeaponPrimaryAttack_LaserCannon( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_storm_core" ) )
 		return OnWeaponPrimaryAttack_StormCore( weapon, attackParams )
 	if ( weapon.HasMod( "tesla_core" ) )
 		return OnAbilityStart_Tesla_Core( weapon, attackParams )
+#endif
 }
 
 void function OnProjectileCollision_LaserCannon( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile )
 	if ( mods.contains( "archon_storm_core" ) )
 		return OnProjectileCollision_StormCore( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 //
 
 bool function OnAbilityCharge_LaserCannon( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_storm_core" ) )
 		return OnAbilityCharge_StormCore( weapon )
 	if ( weapon.HasMod( "tesla_core" ) )
 		return OnCoreCharge_Tesla_Core( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -268,10 +283,13 @@ bool function OnAbilityCharge_LaserCannon( entity weapon )
 void function OnAbilityChargeEnd_LaserCannon( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_storm_core" ) )
 		return OnAbilityChargeEnd_StormCore( weapon )
 	if ( weapon.HasMod( "tesla_core" ) )
 		return OnCoreChargeEnd_Tesla_Core( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -319,6 +337,8 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 
 	// modded check
 	entity player = weapon.GetWeaponOwner()
+	// remove for this branch
+	/*
 	// if owner npc is playing animation, we only run function if npc can use fake laser core
 #if SERVER
 	if ( player.IsNPC() && player.Anim_IsActive() )
@@ -327,6 +347,7 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 			return true
 	}
 #endif
+	*/
 
 	// vanilla behavior
 	OnAbilityStart_TitanCore( weapon )
@@ -377,6 +398,8 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 		//print( "IsValid( player.GetParent() ): " + string( IsValid( player.GetParent() ) ) )
 		// player.ContextAction_IsMeleeExecution() can't get a npc's state
 		// modded behavior
+		// remove for this branch
+		/*
 		if ( player.Anim_IsActive() )
 		{
 			// they can't aim laser core if use during execution, do some fake effect
@@ -389,6 +412,12 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 			if ( TitanShouldPlayAnimationForLaserCore( player ) )
 				player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK", true, 0.1 )
 		}
+		*/
+		// vanilla behavior
+		player.SetVelocity( <0,0,0> )
+		// modified checks for animations, anti-crash
+		if ( TitanShouldPlayAnimationForLaserCore( player ) )
+			player.Anim_ScriptedPlayActivityByName( "ACT_SPECIAL_ATTACK", true, 0.1 )
 	}
 
 	// thread LaserEndingWarningSound( weapon, player )
@@ -405,6 +434,8 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 
 // modified: fake lasercore think
 // npcs can't aim laser core if use during execution, do some fake effect
+// remove for this branch
+/*
 #if SERVER
 void function FakeExecutionLaserCannonThink( entity owner, entity weapon )
 {
@@ -451,12 +482,6 @@ void function FakeExecutionLaserCannonThink( entity owner, entity weapon )
 		function(): ( owner, entCleanUpTable, laserCoreScriptedEffects, laserCoreScriptedEntities )
 		{
 			//print( "FakeExecutionLaserCannonThink() OnThreadEnd!" )
-			// now handled by laserCoreScriptedEffects
-			/*
-			entity laserGlowEffect = entCleanUpTable[ "laserGlowEffect" ]
-			if ( IsValid( laserGlowEffect ) )
-				EffectStop( laserGlowEffect )
-			*/
 
 			if ( IsValid( owner ) )
 			{
@@ -465,14 +490,6 @@ void function FakeExecutionLaserCannonThink( entity owner, entity weapon )
 				StopSoundOnEntity( owner, "Titan_Core_Laser_FireBeam_3P" )
 				delete file.entUsingFakeLaserCore[ owner ]
 			}
-			// now handled by laserImpactSoundEnt
-			/*
-			entity executionParent = entCleanUpTable[ "executionParent" ]
-			if ( IsValid( executionParent ) )
-			{
-				StopSoundOnEntity( executionParent, "Default.LaserLoop.BulletImpact_3P_VS_3P" )
-			}
-			*/
 
 			foreach ( entity fx in laserCoreScriptedEffects )
 			{
@@ -496,21 +513,6 @@ void function FakeExecutionLaserCannonThink( entity owner, entity weapon )
 	{
 		// stop weapon firing
 		ForceTitanSustainedDischargeEnd( owner )
-
-		// fake impact sound event, play on target
-		// updated: play on laserImpactSoundEnt that moves with laser trace
-		/*
-		entity executionParent = owner.GetParent()
-		if ( IsValid( executionParent ) )
-		{
-			if ( !emittedSound )
-			{
-				EmitSoundOnEntity( executionParent, "Default.LaserLoop.BulletImpact_3P_VS_3P" )
-				entCleanUpTable[ "executionParent" ] = executionParent
-				emittedSound = true
-			}
-		}
-		*/
 
 		int index = owner.LookupAttachment( "CHESTFOCUS" )
 		vector origin = owner.GetAttachmentOrigin( index )
@@ -544,23 +546,6 @@ void function FakeExecutionLaserCannonThink( entity owner, entity weapon )
 			//PlayImpactFXTable( , owner, "laser_core", SF_ENVEXPLOSION_INCLUDE_ENTITIES )
 			// manually do effects
 			PlayFX( $"P_impact_lasercannon_default", fxPos )
-			// effects that only played when we hit target
-			// reverted. always do effect because I can't code fake sustained laser radius check
-			// and there's no need we play a new effect each time
-			/*
-			if ( IsValid( executionParent ) && hitEnt == executionParent )
-			{
-				if ( IsValid( laserGlowEffect ) )
-				{
-					EffectStop( laserGlowEffect )
-					laserGlowEffect = null
-				}
-				laserGlowEffect = PlayFX( $"P_lasercannon_endglow", fxPos )
-				//entCleanUpTable[ "laserGlowEffect" ] = laserGlowEffect
-				ArrayRemoveInvalid( laserCoreScriptedEffects )
-				laserCoreScriptedEffects.append( laserGlowEffect )
-			}
-			*/
 			if ( !IsValid( laserGlowEffect ) )
 			{
 				laserGlowEffect = PlayFX( $"P_lasercannon_endglow", fxPos )
@@ -610,6 +595,7 @@ bool function NPCInValidFakeLaserCoreState( entity npc )
 	return true
 }
 #endif
+*/
 
 void function OnAbilityEnd_LaserCannon( entity weapon )
 {

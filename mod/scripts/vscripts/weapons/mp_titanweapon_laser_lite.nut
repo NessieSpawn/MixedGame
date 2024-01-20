@@ -78,6 +78,8 @@ void function OnWeaponOwnerChanged_titanweapon_laser_lite( entity weapon, Weapon
 {
 	if ( weapon.HasMod( "gunner_bison_laser" ) )
 	{
+		// remove for this branch
+		/*
 #if SERVER
 		// shared from _shared_energy_update.gnut
 		// for handling modified shared energy regen
@@ -89,5 +91,6 @@ void function OnWeaponOwnerChanged_titanweapon_laser_lite( entity weapon, Weapon
 			GUNNER_BISON_LASER_ENERGY_TOTAL				// energyTotalCount
 		)
 #endif
+		*/
 	}
 }

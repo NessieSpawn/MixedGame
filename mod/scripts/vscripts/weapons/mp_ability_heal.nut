@@ -33,9 +33,12 @@ bool function HasStimModifier( array<string> mods )
 var function OnWeaponPrimaryAttack_ability_heal( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded stim checks!
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = weapon.GetMods()
 	if( HasStimModifier( mods ) )
 		return OnWeaponPrimaryAttack_ability_modded_stim( weapon, attackParams )
+#endif
 	//
 
 	entity ownerPlayer = weapon.GetWeaponOwner()
@@ -73,26 +76,35 @@ var function OnWeaponPrimaryAttack_ability_heal( entity weapon, WeaponPrimaryAtt
 void function OnWeaponTossPrep_ability_heal( entity weapon, WeaponTossPrepParams prepParams )
 {
 	// modded stim checks!
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = weapon.GetMods()
 	if ( HasStimModifier( mods ) )
 		return OnWeaponTossPrep_ability_modded_stim( weapon, prepParams )
+#endif
 	//
 }
 
 var function OnWeaponTossReleaseAnimEvent_ability_heal( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded stim checks!
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = weapon.GetMods()
 	if ( HasStimModifier( mods ) )
 		return OnWeaponTossReleaseAnimEvent_ability_modded_stim( weapon, attackParams )
+#endif
 	//
 }
 
 void function OnProjectileCollision_ability_heal( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
 	// modded stim checks!
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 	if ( HasStimModifier( mods ) )
 		return OnProjectileCollision_ability_modded_stim( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 	//
 }

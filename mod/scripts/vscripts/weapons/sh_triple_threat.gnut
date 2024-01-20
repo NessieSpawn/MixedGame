@@ -184,9 +184,12 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 	{
 		if( isNerfed && !weaponOwner.IsNPC() )
 		{
+			// remove for this branch
+			/*
 			#if SERVER
 			GiveProjectileFakeMagnetic( nade, 90, true, "Explo_TripleThreat_MagneticAttract" ) // nerfed by doing this
 			#endif
+			*/
 		}
 		else // always give npcs full magnetic, or their grenades can't deal any damage?
 			nade.InitMagnetic( 1000.0, "Explo_MGL_MagneticAttract" )

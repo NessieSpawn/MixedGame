@@ -3,6 +3,8 @@ global function MpWeaponGibberPistol_Init
 
 void function MpWeaponGibberPistol_Init()
 {
+	// remove for this branch
+	/*
 #if SERVER
     // vortex refire override
 	Vortex_AddImpactDataOverride_WeaponMod( 
@@ -29,4 +31,5 @@ void function MpWeaponGibberPistol_Init()
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_semipistol", "gibber_pistol" )
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_semipistol", "grenade_pistol" )
 #endif
+	*/
 }

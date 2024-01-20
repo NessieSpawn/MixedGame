@@ -65,9 +65,12 @@ void function TitanSmokescreen( entity ent, entity weapon )
 	SmokescreenStruct smokescreen
 	// modified: smoke dangerous area team
 	// breaks vanilla behavior, but surly makes npcs behave better
+	// remove for this branch
+	/*
 	#if MP
 		smokescreen.dangerousAreaTeam = FriendlyFire_IsEnabled() ? TEAM_INVALID : ent.GetTeam()
 	#endif // MP
+	*/
 	//
 	if ( weapon.HasMod( "burn_mod_titan_smoke" ) )
 	{
@@ -81,8 +84,11 @@ void function TitanSmokescreen( entity ent, entity weapon )
 	{
 		smokescreen.smokescreenFX = FX_ELECTRIC_SMOKESCREEN_HEAL
 		// modified: smoke dangerous area team
+		// remove for this branch
+		/*
 		// healing smoke is always safe against friendly targets
 		smokescreen.dangerousAreaTeam = ent.GetTeam()
+		*/
 		//
 	}
 	#endif
@@ -252,9 +258,11 @@ bool function TryElectricSmokeTargetHeal( entity attacker, entity target )
 	entity soul = target.GetTitanSoul() // safe to use, validation checks done in SmokeCanHealTarget()
 
 	int shieldRestoreAmount = 35
-	int actualShieldRestoreAmount = minint( GetShieldHealthMaxWithFix( soul )-GetShieldHealthWithFix( soul ), shieldRestoreAmount )
-	//soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
-	SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
+	// use vanilla behavior for this branch
+	//int actualShieldRestoreAmount = minint( GetShieldHealthMaxWithFix( soul )-GetShieldHealthWithFix( soul ), shieldRestoreAmount )
+	int actualShieldRestoreAmount = minint( soul.GetShieldHealthMax()-soul.GetShieldHealth(), shieldRestoreAmount )
+	soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
+	//SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
 
 	if ( file.smokeHealCallback != null && actualShieldRestoreAmount > 0 )
 		file.smokeHealCallback( attacker, target, actualShieldRestoreAmount )

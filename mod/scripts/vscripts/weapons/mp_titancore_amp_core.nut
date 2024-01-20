@@ -22,8 +22,11 @@ void function AmpCore_Init()
 bool function OnWeaponChargeBegin_AmpCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "damage_core" ) )
 		return OnCoreCharge_Damage_Core( weapon )
+#endif
 	
 	// vanilla behavior
 	return true
@@ -32,8 +35,11 @@ bool function OnWeaponChargeBegin_AmpCore( entity weapon )
 void function OnWeaponChargeEnd_AmpCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "damage_core" ) )
 		return OnCoreChargeEnd_Damage_Core( weapon )
+#endif
 	
 	// vanilla behavior
 	weapon.PlayWeaponEffect( FX_AMPED_XO16, FX_AMPED_XO16_3P, "fx_laser" )
@@ -42,9 +48,12 @@ void function OnWeaponChargeEnd_AmpCore( entity weapon )
 void function OnWeaponActivate_AmpCore( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "damage_core" ) )
 		return // damage core don't have activate event
-	
+#endif
+
 	// vanilla behavior
 	OnAbilityCharge_TitanCore( weapon )
 
@@ -131,8 +140,11 @@ var function OnWeaponNPCPrimaryAttack_AmpCore( entity weapon, WeaponPrimaryAttac
 var function OnWeaponPrimaryAttack_AmpCore( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "damage_core" ) )
 		return OnAbilityStart_Damage_Core( weapon, attackParams )
+#endif
 	
 	// vanilla behavior
 	entity owner = weapon.GetWeaponOwner()

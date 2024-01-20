@@ -8,7 +8,8 @@ WeaponData
 	// stats in this script is for scripts to get( eg. extra_ai_spawner.gnut )
 
 	// vanilla missing callback
-	"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_titanability_smoke"
+	// removed for this branch
+	//"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_titanability_smoke"
 
 	// vanilla missing npc usage
 	// NPC

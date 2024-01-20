@@ -11,8 +11,9 @@ WeaponData
 	"flyoutEnabled"									"0"
 
 	// modified callbacks
-	"OnWeaponActivate"								"OnWeaponActivate_gunship_missile"
-	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_gunship_missile"
+	// remove for this branch because these are not defined on server
+	//"OnWeaponActivate"								"OnWeaponActivate_gunship_missile"
+	//"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_gunship_missile"
 
 	//"npc_lead_time_scale"							"0.001"
 	//"npc_lead_time_min_dist"						"300"

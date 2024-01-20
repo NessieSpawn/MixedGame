@@ -370,9 +370,12 @@ bool function CodeCallback_IsValidMeleeExecutionTarget( entity attacker, entity 
 	}
 
 	// modified for friendlyFire
+	// only do checks on client-side for this branch
+#if CLIENT
 	//if ( attacker.GetTeam() == target.GetTeam() )
 	if ( attacker.GetTeam() == target.GetTeam() && !FriendlyFire_IsEnabled() )
 		return false
+#endif
 
 #if SERVER
 	if ( "syncedMeleeAttacker" in target.s ) //Don't allow necksnap on a guy who'se already getting necksnapped
@@ -420,10 +423,13 @@ bool function CodeCallback_IsValidMeleeAttackTarget( entity attacker, entity tar
 		return false
 
 	// modified for friendlyFire
+	// only do checks on client-side for this branch
+#if CLIENT
 	//if ( attacker.GetTeam() == target.GetTeam() )
 	bool friendlyMelee = FriendlyFire_IsEnabled() || FirendlyFire_CanMeleeFriendlyTarget()
 	if ( attacker.GetTeam() == target.GetTeam() && !friendlyMelee )
 		return false
+#endif
 
 #if SERVER
 	if ( target.IsPlayer() )
@@ -1223,6 +1229,8 @@ string function GetVictimSyncedMeleeTargetType( entity ent )
 	}
 	// modified stuffs below: server-only behavior
 #if SERVER
+	// needs to be removed on client-side install version
+	/*
 	// player decoy executions... further checks done in _melee_synced_decoy.gnut
 	else if ( ent.IsPlayerDecoy() )
 	{
@@ -1234,6 +1242,7 @@ string function GetVictimSyncedMeleeTargetType( entity ent )
 	{
 		targetType = "human"
 	}
+	*/
 #endif
 	// modified server behavior end
 	else // vanilla behaivor: can't find any action
@@ -1346,12 +1355,17 @@ bool function ShouldPlayerExecuteTarget( entity player, entity target )
 		if ( !IsValid( targetSoul ) )
 			return false
 		// server-side check: with shield fix
+		// removed for this branch
+		/*
 		#if SERVER
 			if ( GetShieldHealthWithFix( targetSoul ) > 0 && GetCurrentPlaylistVarInt( "titan_shield_blocks_execution", 0 ) != 0 )
 		#elseif CLIENT
 			if ( targetSoul.GetShieldHealth() > 0 && GetCurrentPlaylistVarInt( "titan_shield_blocks_execution", 0 ) != 0 )
 		#endif
 				return false
+		*/
+		if ( targetSoul.GetShieldHealth() > 0 && GetCurrentPlaylistVarInt( "titan_shield_blocks_execution", 0 ) != 0 )
+			return false
 		
 		// attacker settings
 		entity attackerSoul = player.GetTitanSoul()
@@ -1359,6 +1373,8 @@ bool function ShouldPlayerExecuteTarget( entity player, entity target )
 			return false
 		// function shared from _melee_synced_titan.gnut
 		// server only!
+		// remove for this branch
+		/*
 		#if SERVER
 			float healthFracRequired = MeleeSyncedTitan_GetSoulExecutionTargetRequiredHealthFrac( attackerSoul )
 			if ( healthFracRequired > 0 )
@@ -1372,6 +1388,7 @@ bool function ShouldPlayerExecuteTarget( entity player, entity target )
 					return false
 			}
 		#endif
+		*/
 		// modified contents end
 
 		// npc execution case

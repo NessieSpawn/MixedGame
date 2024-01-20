@@ -17,12 +17,17 @@ void function MpTitanAbilityHover_Init()
 // note: owner dying also triggers OwnerChanged
 void function OnWeaponOwnerChanged_TitanHover( entity weapon, WeaponOwnerChangedParams changeParams )
 {
+	// remove for this branch
+	/*
 #if SERVER
 	if( weapon.HasMod( JET_PACK_MOD ) )
 		thread DelayedCheckJetPack( weapon, changeParams ) // in case we're using AddMod()
 #endif
+	*/
 }
 
+// remove for this branch
+/*
 #if SERVER
 void function DelayedCheckJetPack( entity weapon, WeaponOwnerChangedParams changeParams )
 {
@@ -43,6 +48,7 @@ void function DelayedCheckJetPack( entity weapon, WeaponOwnerChangedParams chang
 	}
 }
 #endif
+*/
 
 var function OnWeaponPrimaryAttack_TitanHover( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
@@ -52,6 +58,8 @@ var function OnWeaponPrimaryAttack_TitanHover( entity weapon, WeaponPrimaryAttac
 
 	if ( flyer.IsPlayer() )
 	{
+		// this branch leaving this as client-only behavior
+		/*
 		if( weapon.HasMod( JET_PACK_MOD ) ) // so player won't consume ammo
 		{
 			#if SERVER
@@ -59,6 +67,11 @@ var function OnWeaponPrimaryAttack_TitanHover( entity weapon, WeaponPrimaryAttac
 			#endif
 			return 0
 		}
+		*/
+		#if CLIENT
+			if( weapon.HasMod( JET_PACK_MOD ) ) // so player won't consume ammo
+				return 0
+		#endif
 
 		PlayerUsedOffhand( flyer, weapon )
 	}
@@ -146,18 +159,20 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 				StopSoundOnEntity( player, soundInfo.hover_1p )
 				StopSoundOnEntity( player, soundInfo.hover_3p )
 				// using custom utility!
-				//player.SetGroundFrictionScale( 1 )
+				// keep vanilla behavior for this branch
+				player.SetGroundFrictionScale( 1 )
 				if ( player.IsPlayer() )
 				{
 					player.Server_TurnDodgeDisabledOff()
 					// modified to use saved settings
-					//player.kv.airSpeed = player.GetPlayerSettingsField( "airSpeed" )
-					//player.kv.airAcceleration = player.GetPlayerSettingsField( "airAcceleration" )
-					//player.kv.gravity = player.GetPlayerSettingsField( "gravityScale" )
-					RestorePlayerPermanentGroundFriction( player )
-					RestorePlayerPermanentAirSpeed( player )
-					RestorePlayerPermanentAirAcceleration( player )
-					RestorePlayerPermanentGravity( player )
+					// keep vanilla behavior for this branch
+					player.kv.airSpeed = player.GetPlayerSettingsField( "airSpeed" )
+					player.kv.airAcceleration = player.GetPlayerSettingsField( "airAcceleration" )
+					player.kv.gravity = player.GetPlayerSettingsField( "gravityScale" )
+					//RestorePlayerPermanentGroundFriction( player )
+					//RestorePlayerPermanentAirSpeed( player )
+					//RestorePlayerPermanentAirAcceleration( player )
+					//RestorePlayerPermanentGravity( player )
 
 					if ( player.IsOnGround() )
 					{

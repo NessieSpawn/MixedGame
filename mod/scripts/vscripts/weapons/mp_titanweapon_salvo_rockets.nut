@@ -21,8 +21,11 @@ const SALVOROCKETS_DEBUG_DRAW_PATH 			= false
 var function OnWeaponPrimaryAttack_titanweapon_salvo_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_grenade_volley" ) )
 		return OnWeaponPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -55,17 +58,23 @@ var function OnWeaponPrimaryAttack_titanweapon_salvo_rockets( entity weapon, Wea
 
 void function OnProjectileCollision_titanweapon_salvo_rockets( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 	if( mods.contains( "brute4_grenade_volley" ) )
 		return OnProjectileCollision_titanweapon_grenade_volley( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 
 #if SERVER
 var function OnWeaponNPCPrimaryAttack_titanweapon_salvo_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if( weapon.HasMod( "brute4_grenade_volley" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+	*/
 	//
 
 	// vanilla behavior

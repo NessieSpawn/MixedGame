@@ -15,6 +15,8 @@ void function MpTitanWeaponPunch_Init()
 
 void function OnWeaponActivate_titanweapon_punch( entity weapon )
 {
+    // remove for this branch
+    /*
     #if SERVER
         float attackAnimTime = weapon.GetWeaponSettingFloat( eWeaponVar.melee_attack_animtime )
         if ( attackAnimTime > 0 ) // defensive fix!!!
@@ -36,6 +38,7 @@ void function OnWeaponActivate_titanweapon_punch( entity weapon )
                 ModifiedMelee_ReDeployAfterTime( weapon ) // forced melee attack animtime
         }
     #endif
+    */
 }
 
 void function OnWeaponDeactivate_titanweapon_punch( entity weapon )
@@ -43,7 +46,10 @@ void function OnWeaponDeactivate_titanweapon_punch( entity weapon )
     // melee weapon mod is removed after weapon deactivate
 	// thus we can better handle melee replace cases
 	// function shared from mp_titancore_berserker_core.nut
+    // remove for this branch
+    /*
     #if SERVER
         BerserkerCore_FistDeactivated( weapon )
     #endif
+    */
 }

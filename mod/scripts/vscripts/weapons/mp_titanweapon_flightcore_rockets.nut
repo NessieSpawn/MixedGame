@@ -9,8 +9,11 @@ global function OnWeaponNpcPrimaryAttack_titanweapon_flightcore_rockets
 var function OnWeaponPrimaryAttack_titanweapon_flightcore_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_barrage_core_launcher" ) )
 		return OnWeaponPrimaryAttack_titanweapon_barrage_core_launcher( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -64,16 +67,22 @@ var function OnWeaponPrimaryAttack_titanweapon_flightcore_rockets( entity weapon
 
 void function OnProjectileCollision_titanweapon_flightcore_rockets( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 	if( mods.contains( "brute4_barrage_core_launcher" ) )
 		return OnProjectileCollision_titanweapon_barrage_core_launcher( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 
 #if SERVER
 var function OnWeaponNpcPrimaryAttack_titanweapon_flightcore_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// remove for this branch
+	/*
 	if( weapon.HasMod( "brute4_barrage_core_launcher" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_barrage_core_launcher( weapon, attackParams )
+	*/
 	return OnWeaponPrimaryAttack_titanweapon_flightcore_rockets( weapon, attackParams )
 }
 

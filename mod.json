@@ -26,15 +26,21 @@
 		// shared utilities
 		{
 			"Path": "/sharedutil/sh_projectile_data.gnut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "Projectile_Data_Record_Shared_Init"
+            },
+			"ServerCallback": {
                 "After": "Projectile_Data_Record_Shared_Init"
             }
 		},
 		{
 			"Path": "/sharedutil/sh_friendlyfire.gnut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "Sh_FriendlyFire_Init"
+            },
+			"ServerCallback": {
                 "After": "Sh_FriendlyFire_Init"
             }
 		},
@@ -103,7 +109,7 @@
             "RunOn": "CLIENT",
             "ClientCallback": {
                 "After": "Brute4_Init"
-            },
+            }
         },
 		{
 			"Path": "/modweapons/brute4/mp_titanweapon_brute4_quad_rocket.nut",
@@ -203,106 +209,151 @@
 		// vanilla missing weapon scripts
 		{
 			"Path": "/modweapons/vanilla_miss/mp_ability_arc_blast.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpAbilityArcBlast_Init"
+            },
+            "ServerCallback": {
                 "After": "MpAbilityArcBlast_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_flak_rifle_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponFlakRifle_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponFlakRifle_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_grenade_emp_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
                 "After": "MpWeaponGrenadeEMP_Init"
             },
+            "ServerCallback": {
+                "After": "MpWeaponGrenadeEMP_Init"
+            }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_frag_grenade_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponFragGrenade_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponFragGrenade_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_emptyhanded_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponEmptyHanded_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponEmptyHanded_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_titanweapon_punch_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpTitanWeaponPunch_Init"
+            },
+            "ServerCallback": {
                 "After": "MpTitanWeaponPunch_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_thermite_grenade_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponThermiteGrenade_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponThermiteGrenade_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_epg_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponEPG_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponEPG_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_autopistol_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponAutoPistol_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponAutoPistol_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_gibber_pistol_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponGibberPistol_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponGibberPistol_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_mgl_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponMGL_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponMGL_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_lmg_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponLMG_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponLMG_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_gunship_turret_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponGunshipTurret_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponGunshipTurret_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_gunship_missile_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponGunshipMissile_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponGunshipMissile_Init"
             }
 		},
 		{
 			"Path": "/modweapons/vanilla_miss/mp_weapon_shotgun_fixed.nut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
+                "After": "MpWeaponShotgun_Init"
+            },
+            "ServerCallback": {
                 "After": "MpWeaponShotgun_Init"
             }
 		},

@@ -51,8 +51,11 @@ void function OnWeaponDeactivate_titanweapon_40mm( entity weapon )
 var function OnWeaponPrimaryAttack_titanweapon_40mm( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "atlas_40mm" ) )
 		return OnWeaponPrimaryAttack_titanweapon_atlas_40mm( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
@@ -64,8 +67,11 @@ var function OnWeaponPrimaryAttack_titanweapon_40mm( entity weapon, WeaponPrimar
 var function OnWeaponNpcPrimaryAttack_titanweapon_40mm( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "atlas_40mm" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_atlas_40mm( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
@@ -158,7 +164,7 @@ void function OnShellEjectEvent( entity weapon )
 	float launchVecRandFrac = 0.3
 	vector angularVelocity = Vector( RandomFloatRange( -5.0, -1.0 ), 0, RandomFloatRange( -5.0, 5.0 ) )
 	float gibLifetime = 6.0
-
+	
 	bool isFirstPerson = IsLocalViewPlayer( weapon.GetWeaponOwner() )
 	if ( isFirstPerson )
 	{
@@ -201,8 +207,11 @@ void function OnProjectileCollision_titanweapon_sticky_40mm( entity projectile, 
 	// modded weapon
 	//array<string> mods = projectile.ProjectileGetMods() // vanilla behavior, no need to change to Vortex_GetRefiredProjectileMods()
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "atlas_40mm" ) )
 		return OnProjectileCollision_titanweapon_atlas_40mm( projectile, pos, normal, hitEnt, hitbox, isCrit )
+#endif
 
 	// vanilla behavior
 	#if SERVER

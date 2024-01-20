@@ -40,6 +40,8 @@ void function OnWeaponActivate_titanweapon_sword( entity weapon )
 	//thread DelayedSwordCoreFX( weapon )
 
 	// modified!!
+	// remove for thia branch
+    /*
 	#if SERVER
         float attackAnimTime = weapon.GetWeaponSettingFloat( eWeaponVar.melee_attack_animtime )
         if ( attackAnimTime > 0 ) // defensive fix!!!
@@ -52,6 +54,7 @@ void function OnWeaponActivate_titanweapon_sword( entity weapon )
 				ModifiedMelee_ReDeployAfterTime( weapon ) // forced melee attack animtime
 		}
 	#endif
+	*/
 	//
 }
 
@@ -75,9 +78,12 @@ void function OnWeaponDeactivate_titanweapon_sword( entity weapon )
 	// melee weapon mod is removed after weapon deactivate
 	// thus we can better handle melee replace and SP sword core cases
 	// function shared from modified mp_titancore_shift_core.nut
+	// remove for this branch
+    /*
 	#if SERVER
 		ShiftCore_SwordDeactivated( weapon )
 	#endif
+	*/
 }
 
 #if SERVER
@@ -92,8 +98,9 @@ void function Sword_DamagedTarget( entity target, var damageInfo )
 	if ( coreWeapon.HasMod( "fd_duration" ) && IsValid( soul ) )
 	{
 		int shieldRestoreAmount = target.GetArmorType() == ARMOR_TYPE_HEAVY ? 500 : 250
-		//soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
-		SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
+		// keep vanilla behavior for this branch
+		soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
+		//SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
 	}
 }
 #endif

@@ -32,9 +32,11 @@ void function MpTitanAbilityGunShield_Init()
 var function OnWeaponPrimaryAttack_gun_shield( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// pilot gunshield
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "pilot_gunshield" ) )
 		return OnWeaponPrimaryAttack_pilot_gun_shield( weapon, attackParams )
-
+#endif
 
 	entity weaponOwner = weapon.GetWeaponOwner()
 

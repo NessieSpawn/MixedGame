@@ -64,8 +64,11 @@ void function OnProjectileExplode_weapon_flak_rifle( entity projectile )
 #if SERVER
 	if( mods.contains( "flak_cannon" ) )
 	{
+		// remove for this branch
+		/*
 		// visual fix for client hitting near target
 		FixImpactEffectForProjectileAtPosition( projectile, projectile.GetOrigin() ) // shared from _unpredicted_impact_fix.gnut
+		*/
 	}
 #endif
 }

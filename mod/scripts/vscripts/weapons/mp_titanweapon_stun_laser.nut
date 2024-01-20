@@ -61,8 +61,11 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_stun_laser( entity weapon
 var function OnWeaponPrimaryAttack_titanweapon_stun_laser( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_charge_ball" ) )
 		return OnWeaponPrimaryAttack_titanweapon_charge_ball( weapon, attackParams )
+#endif
 	//
 	
 	// vanilla behavior
@@ -105,11 +108,14 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 
 	// hardcoded for archon laser
 	// in any case AddCallback_WeaponMod_DamageSourceIdOverride() failsafe
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "archon_laser" ) )
 	{
 		DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.mp_titanweapon_energy_laser )
 		return
 	}
+	*/
 
 	// we added friendly fire, do a new check now!
 	bool hasEnergyTransfer = weapon.HasMod( "energy_transfer" ) || weapon.HasMod( "energy_field_energy_transfer" )
@@ -150,11 +156,15 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 				if ( shouldDoAmpedRegen )
 					shieldRestoreAmount = int( 1.25 * shieldRestoreAmount )
 
-				float shieldAmount = min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) )
-				shieldRestoreAmount = GetShieldHealthMaxWithFix( soul ) - int( shieldAmount )
+				// use vanilla behavior for this branch
+				//float shieldAmount = min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) )
+				float shieldAmount = min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() )
+				//shieldRestoreAmount = GetShieldHealthMaxWithFix( soul ) - int( shieldAmount )
+				shieldRestoreAmount = soul.GetShieldHealthMax() - int( shieldAmount )
 
-				//soul.SetShieldHealth( shieldAmount )
-				SetShieldHealthWithFix( soul, shieldAmount )
+				// use vanilla behavior for this branch
+				soul.SetShieldHealth( shieldAmount )
+				//SetShieldHealthWithFix( soul, shieldAmount )
 
 				if ( file.stunHealCallback != null && shieldRestoreAmount > 0 )
 					file.stunHealCallback( attacker, target, shieldRestoreAmount )
@@ -196,8 +206,9 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 			//if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) ) // respawn messed this up
 			if ( SoulHasPassive( soul, ePassives.PAS_VANGUARD_SHIELD ) || weapon.HasMod( "pas_vanguard_shield" ) )
 				shieldRestoreAmount = int( 1.25 * shieldRestoreAmount )
-			//soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
-			SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
+			// use vanilla behavior for this branch
+			soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
+			//SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
 		}
 		if ( attacker.IsPlayer() )
 			MessageToPlayer( attacker, eEventNotifications.VANGUARD_ShieldGain, attacker )

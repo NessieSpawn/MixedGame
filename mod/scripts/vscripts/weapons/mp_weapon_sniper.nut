@@ -25,6 +25,8 @@ void function MpWeaponSniper_Init()
 	SniperPrecache()
 
 	// modified. really should separent these to mp_weapon_modded_kraber.gnut
+	// remove for this branch because we're not separenting file...
+	/*
 #if SERVER
 	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_sniper, OnHit_WeaponSniper )
 	PrecacheModel( $"models/domestic/nessy_doll.mdl" )
@@ -38,6 +40,7 @@ void function MpWeaponSniper_Init()
 	ModdedBurnMods_AddDisabledMod( "heal_sniper" )
 	ModdedBurnMods_AddDisabledMod( "stim_sniper" )
 #endif
+	*/
 }
 
 void function SniperPrecache()
@@ -220,12 +223,15 @@ void function OnProjectileCollision_weapon_sniper( entity projectile, vector pos
 	// modified condition
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) 
 	array<string> refiredMods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
-	if( refiredMods.contains( "tediore_effect" ) )
-		return OnProjectileCollision_Tediore( projectile, pos, normal, hitEnt, hitbox, isCritical )
+	// remove for this branch
+	//if( refiredMods.contains( "tediore_effect" ) )
+	//	return OnProjectileCollision_Tediore( projectile, pos, normal, hitEnt, hitbox, isCritical )
 
 #if SERVER
 	if( mods.contains( "explosive_sniper" ) )
 	{
+		// remove for this branch
+		/*
 		// visual fix for client hitting near target
 		FixImpactEffectForProjectileAtPosition( projectile, pos ) // shared from _unpredicted_impact_fix.gnut
 		// do a fake explosion effect for better client visual, hardcoded!
@@ -233,6 +239,7 @@ void function OnProjectileCollision_weapon_sniper( entity projectile, vector pos
 		//PlayImpactFXTable( pos, hitEnt, "" )
 		//PlayFX( $"P_impact_exp_lrg_metal", pos ) // a single FX won't work on some condition... consider a better ImpactEffectTable
 		//EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "explo_40mm_splashed_impact_3p" )
+		*/
 	}
 
 	// vanilla behavior

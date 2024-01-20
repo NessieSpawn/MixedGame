@@ -25,10 +25,13 @@ var function OnWeaponPrimaryAttack_titanweapon_tether_trap( entity weapon, Weapo
 			PlayerUsedOffhand( weaponOwner, weapon )
 		
 			// modified
+			// remove for this branc
+			/*
 		#if SERVER
 			if( weapon.HasMod( "pilot_tether" ) ) // pilot ones?
 				thread HolsterWeaponForPilotInstants( weapon )
 		#endif
+			*/
 		}
 
 		vector up = weaponOwner.GetUpVector()

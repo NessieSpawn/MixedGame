@@ -42,13 +42,18 @@ void function MpTitanweaponFlameWall_Init()
 void function OnWeaponActivate_titancore_flame_wall( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "stryder_fire_wave" ) )
 		return OnWeaponActivate_titanweapon_fire_wave( weapon )
+#endif
 	
 	// vanilla behavior
 	weapon.EmitWeaponSound_1p3p( "flamewall_start_1p", "flamewall_start_3p" )
 
 	// fix for atlas npc titan usage
+	// remove for this branch
+	/*
 	#if SERVER
 		entity owner = weapon.GetWeaponOwner()
 		if ( owner.IsNPC() )
@@ -58,15 +63,19 @@ void function OnWeaponActivate_titancore_flame_wall( entity weapon )
 			HandleSpecial3pAttackAnim( owner, weapon, 0.5, OnWeaponPrimaryAttack_FlameWall )
 		}
 	#endif
+	*/
 }
 
 var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "wrecking_ball" ) )
 		return OnWeaponPrimaryAttack_weapon_wrecking_ball( weapon, attackParams )
 	if ( weapon.HasMod( "stryder_fire_wave" ) )
 		return OnWeaponPrimaryAttack_titanweapon_fire_wave( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	entity weaponOwner = weapon.GetOwner()
@@ -117,6 +126,8 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 
 	#if SERVER
 		// anim fix for titanpick
+		// remove for this branch
+		/*
 		if ( weaponOwner.IsPlayer() )
 		{
 			// shared from special_3p_attack_anim_fix.gnut
@@ -124,6 +135,7 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 			// flamewall's npc fix already handled in OnWeaponActivate_titancore_flame_wall()
 			HandleSpecial3pAttackAnim( weaponOwner, weapon, 0.5 )
 		}
+		*/
 	#endif
 
 	return weapon.GetWeaponInfoFileKeyField( "ammo_min_to_fire" )
@@ -133,8 +145,11 @@ var function OnWeaponPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttack
 var function OnWeaponNpcPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "stryder_fire_wave" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_fire_wave( weapon, attackParams )
+	*/
 
 	return OnWeaponPrimaryAttack_FlameWall( weapon, attackParams )
 }
@@ -143,9 +158,12 @@ var function OnWeaponNpcPrimaryAttack_FlameWall( entity weapon, WeaponPrimaryAtt
 void function OnProjectileCollision_FlameWall( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
 	// vanilla has no specific behavior, this is modded only
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile )
 	if( mods.contains( "wrecking_ball" ) )
 		return OnProjectileCollision_weapon_wrecking_ball( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 
 #if SERVER

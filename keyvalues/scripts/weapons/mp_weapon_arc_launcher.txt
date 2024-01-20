@@ -1,7 +1,8 @@
 WeaponData
 {
 	// npc usage
-	"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_weapon_arc_launcher"
+	// removed for this branch
+	//"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_weapon_arc_launcher"
 	// modified callbacks
 	"OnProjectileCollision"							"OnProjectileCollision_weapon_arc_launcher"
 	"OnProjectileIgnite"                            "OnProjectileIgnite_weapon_arc_launcher"

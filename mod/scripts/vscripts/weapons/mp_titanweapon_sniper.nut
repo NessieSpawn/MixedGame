@@ -66,8 +66,9 @@ void function OnHit_TitanWeaponSniper_Internal( entity victim, var damageInfo )
 	float f_extraDamage = float( extraDamage )
 
 	// change to handle scripted shield check
-	//bool isCritical = IsCriticalHit( DamageInfo_GetAttacker( damageInfo ), victim, DamageInfo_GetHitBox( damageInfo ), damage, DamageInfo_GetDamageType( damageInfo ) )
-	bool isCritical = IsCriticalHit_WithScriptedShieldCheck( DamageInfo_GetAttacker( damageInfo ), victim, DamageInfo_GetHitBox( damageInfo ), damage, DamageInfo_GetDamageType( damageInfo ) )
+	// use vanilla checks for this branch
+	bool isCritical = IsCriticalHit( DamageInfo_GetAttacker( damageInfo ), victim, DamageInfo_GetHitBox( damageInfo ), damage, DamageInfo_GetDamageType( damageInfo ) )
+	//bool isCritical = IsCriticalHit_WithScriptedShieldCheck( DamageInfo_GetAttacker( damageInfo ), victim, DamageInfo_GetHitBox( damageInfo ), damage, DamageInfo_GetDamageType( damageInfo ) )
 
 	//array<string> projectileMods = inflictor.ProjectileGetMods() // moving here! contains vanilla behavior, no need to change to Vortex_GetRefiredProjectileMods()
 	array<string> projectileMods = Vortex_GetRefiredProjectileMods( inflictor ) // I don't care, let's break vanilla behavior
@@ -235,8 +236,11 @@ function FireSniper( entity weapon, WeaponPrimaryAttackParams attackParams, bool
 			bolt.SetOwner( weaponOwner )
 
 			// projectile mods
+			// remove for this branch
+			/*
 			if ( weapon.HasMod( "knockback_sniper" ) )
 				FriendlyFire_SetEntityDoFFDamage( bolt, true ) // they do friendly fire
+			*/
 			//
 		#endif
 	}

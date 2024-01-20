@@ -1020,6 +1020,8 @@ void function HandleDisappearingParent( entity ent, entity parentEnt )
 	parentEnt.EndSignal( "OnDeath" )
 	ent.EndSignal( "OnDestroy" )
 
+	// remove OnDestroy think from this branch
+	/*
 	// wants to add something fun here: we handle parented entity gets destroyed
 	parentEnt.EndSignal( "OnDestroy" ) // needs to track parent ent destroy
 	// already have ent.e.attachedEnts in entityStruct, using a bit diffirent name
@@ -1035,6 +1037,7 @@ void function HandleDisappearingParent( entity ent, entity parentEnt )
 	}
 	
 	file.entStickyAttachedEnts[ parentEnt ].append( ent )
+	*/
 
 	OnThreadEnd(
 	// modified to handle parentEnt
@@ -1048,6 +1051,8 @@ void function HandleDisappearingParent( entity ent, entity parentEnt )
 			
 			if ( IsValid( parentEnt ) )
 			{
+				// remove OnDestroy think from this branch
+				/*
 				ArrayRemoveInvalid( file.entStickyAttachedEnts[ parentEnt ] )
 				// if no sticky ent attached, we could remove destroy callbacks
 				//print( string( parentEnt ) + " has " + string( file.entStickyAttachedEnts[ parentEnt ].len() ) + " sticky attached ents left" )
@@ -1056,6 +1061,7 @@ void function HandleDisappearingParent( entity ent, entity parentEnt )
 					//print( string( parentEnt ) + " has removed all their sticky parented ents!" )
 					RemoveEntityDestroyedCallback( parentEnt, OnStickyAttachedParentDestroy ) // modified function in _base_gametype.gnut: removing entity destroyed callback
 				}
+				*/
 			}
 		}
 	)
@@ -3591,17 +3597,24 @@ function EMP_FX( asset effect, entity ent, string tag, float duration )
 //function EMPGrenade_AffectsShield( entity titan, damageInfo )
 void function EMPGrenade_AffectsShield( entity titan, var damageInfo, float shieldDamageScale = EMP_AFFECTS_SHIELD_SCALE )
 {
-	int shieldHealth = GetShieldHealthWithFix( titan.GetTitanSoul() )
+	// use vanilla behavior for this branch
+	int shieldHealth = titan.GetTitanSoul().GetShieldHealthMax()
+	//int shieldHealth = GetShieldHealthWithFix( titan.GetTitanSoul() )
 	// modified to add more parameter and global settings handle
+	// use vanilla behavior for this branch
+	int shieldDamage = int( titan.GetTitanSoul().GetShieldHealthMax() * 0.5 )
 	//int shieldDamage = int( GetShieldHealthMaxWithFix( titan.GetTitanSoul() ) * 0.5 )
 	float affectsShieldFrac = shieldDamageScale * file.empAffectsShieldDamageScale
-	int shieldDamage = int( GetShieldHealthMaxWithFix( titan.GetTitanSoul() ) * affectsShieldFrac )
+	//int shieldDamage = int( GetShieldHealthMaxWithFix( titan.GetTitanSoul() ) * affectsShieldFrac )
 
-	//titan.GetTitanSoul().SetShieldHealth( maxint( 0, shieldHealth - shieldDamage ) )
-	SetShieldHealthWithFix( titan.GetTitanSoul(), maxint( 0, shieldHealth - shieldDamage ) )
+	// use vanilla behavior for this branch
+	titan.GetTitanSoul().SetShieldHealth( maxint( 0, shieldHealth - shieldDamage ) )
+	//SetShieldHealthWithFix( titan.GetTitanSoul(), maxint( 0, shieldHealth - shieldDamage ) )
 
 	// attacker took down titan shields
-	if ( shieldHealth && !GetShieldHealthWithFix( titan.GetTitanSoul() ) )
+	// use vanilla behavior for this branch
+	//if ( shieldHealth && !GetShieldHealthWithFix( titan.GetTitanSoul() ) )
+	if ( shieldHealth && !titan.GetTitanSoul().GetShieldHealthWithFix() )
 	{
 		entity attacker = DamageInfo_GetAttacker( damageInfo )
 		if ( attacker && attacker.IsPlayer() )

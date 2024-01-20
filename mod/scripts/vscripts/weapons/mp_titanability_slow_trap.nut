@@ -88,9 +88,12 @@ void function MpTitanAbilitySlowTrap_Init()
 // for molotovs
 void function OnWeaponOwnerChange_titanweapon_slow_trap( entity weapon, WeaponOwnerChangedParams changeParams )
 {
+	// removed for this branch
+	/*
 #if SERVER
 	thread DelayedStartForcedCooldownThink( weapon, ["molotov"] )
 #endif
+	*/
 }
 
 #if SERVER
@@ -108,12 +111,15 @@ var function OnWeaponPrimaryAttack_titanweapon_slow_trap( entity weapon, WeaponP
 		PlayerUsedOffhand( weaponOwner, weapon )
 	
 		// modified
+		// remove for this branc
+		/*
 	#if SERVER
 		if( weapon.HasMod( "gas_trap" ) || weapon.HasMod( "molotov" ) ) // pilot ones?
 			thread HolsterWeaponForPilotInstants( weapon )
 		if( weapon.HasMod( "molotov" ) )
 			ForceCleanWeaponAmmo( weapon )
 	#endif
+		*/
 	}
 
 	ThrowDeployable( weapon, attackParams, 1500, OnSlowTrapPlanted, <0,0,0> )

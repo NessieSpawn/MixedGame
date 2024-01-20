@@ -66,6 +66,11 @@ void function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams
 
 void function OnProjectileCollision_weapon_flesh_mgl( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+#if CLIENT
+	// we have visual fixes on server, so client-side do nothing
+	return
+#endif
+
     if ( !IsValid( hitEnt ) )
 		return
 

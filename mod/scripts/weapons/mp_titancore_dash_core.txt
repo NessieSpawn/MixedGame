@@ -15,8 +15,9 @@ WeaponData
 	"weaponType"									"titan_core"
 	"fire_mode"   									"offhand_instant"
 
-	"OnWeaponPrimaryAttack"							"OnAbilityStart_Dash_Core"
-	"OnWeaponChargeBegin"							"OnCoreCharge_Dash_Core"
+	// remove everything for this branch because this weapon is UNUSED
+	//"OnWeaponPrimaryAttack"							"OnAbilityStart_Dash_Core"
+	//"OnWeaponChargeBegin"							"OnCoreCharge_Dash_Core"
 	
 	//Disabled Function
 	//"OnWeaponChargeEnd"								"OnCoreChargeEnd_Dash_Core"

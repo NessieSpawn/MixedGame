@@ -19,12 +19,15 @@ void function MpWeaponDefender_Init()
 {
 	DefenderPrecache()
 
+	// remove for this branch
+	/*
 #if SERVER
 	//AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_defender, OnApexChargeRifleDamagedTarget )
 	// burnmod blacklist
 	ModdedBurnMods_AddDisabledMod( "apex_charge_rifle" )
 	ModdedBurnMods_AddDisabledMod( "apex_charge_rifle_burst" )
 #endif
+	*/
 }
 
 void function DefenderPrecache()

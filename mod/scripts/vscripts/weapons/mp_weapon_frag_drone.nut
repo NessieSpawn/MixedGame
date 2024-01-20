@@ -43,6 +43,8 @@ var function OnWeaponPrimaryAttack_weapon_frag_drone( entity weapon, WeaponPrima
 	// modded weapon
 	if( weapon.HasMod( "drone_spawner_anim" ) )
     {
+		// remove for this branch
+		/*
 #if SERVER
 		entity owner = weapon.GetWeaponOwner()
 		entity drone = SpawnDroneFromPlayer( owner, VALID_DRONE_TYPES[ RandomInt( VALID_DRONE_TYPES.len() ) ] )
@@ -52,6 +54,7 @@ var function OnWeaponPrimaryAttack_weapon_frag_drone( entity weapon, WeaponPrima
 
 		return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
 #endif
+		*/
 	}
 
 	// vanilla has no behavior about this
@@ -82,8 +85,11 @@ void function OnProjectileCollision_weapon_frag_drone( entity projectile, vector
 var function OnWeaponTossReleaseAnimEvent_weapon_frag_drone( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// saved only for client-side for this branch
+#if CLIENT
 	if( weapon.HasMod( "emp_drone" ) )
 		return OnAbilityStart_EMPDrone( weapon, attackParams )
+#endif
 
 	entity grenade = Grenade_OnWeaponToss_ReturnEntity( weapon, attackParams )
 	if( grenade )

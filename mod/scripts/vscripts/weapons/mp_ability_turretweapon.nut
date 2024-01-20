@@ -146,8 +146,11 @@ void function OnWeaponDeactivate_turretweapon( entity weapon )
 bool function OnWeaponAttemptOffhandSwitch_turretweapon( entity weapon )
 {
 	// modded weapons
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "personal_turret" ) )
 		return OnWeaponAttemptOffhandSwitch_personal_turret( weapon )
+#endif
 	//
 
 	// likely vanilla behavior
@@ -157,8 +160,11 @@ bool function OnWeaponAttemptOffhandSwitch_turretweapon( entity weapon )
 var function OnWeaponPrimaryAttack_turretweapon( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "personal_turret" ) )
 		return OnWeaponPrimaryAttack_personal_turret( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior

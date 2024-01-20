@@ -19,18 +19,24 @@ const FUSE_TIME = 0.5 //Applies once the grenade has stuck to a surface.
 // modified callbacks
 void function OnWeaponActivate_weapon_softball( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded softball in mp_weapon_modded_softball.gnut
 	if ( ModdedSoftball_WeaponHasMod( weapon ) )
 		return OnWeaponActivate_weapon_modded_softball( weapon )
+#endif
 
 	// vanilla has no behavior
 }
 
 void function OnWeaponOwnerChanged_weapon_softball( entity weapon, WeaponOwnerChangedParams changeParams )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded softball in mp_weapon_modded_softball.gnut
 	if ( ModdedSoftball_WeaponHasMod( weapon ) )
 		return OnWeaponOwnerChanged_weapon_modded_softball( weapon, changeParams )
+#endif
 
 	// vanilla has no behavior
 }
@@ -38,9 +44,12 @@ void function OnWeaponOwnerChanged_weapon_softball( entity weapon, WeaponOwnerCh
 
 var function OnWeaponPrimaryAttack_weapon_softball( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded softball in mp_weapon_modded_softball.gnut
 	if ( ModdedSoftball_WeaponHasMod( weapon ) )
 		return OnWeaponPrimaryAttack_weapon_modded_softball( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -94,6 +103,8 @@ function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, isN
 void function OnProjectileCollision_weapon_softball( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded softball in mp_weapon_modded_softball.gnut
 	if ( ModdedSoftball_ProjectileHasMod( projectile ) )
 		return OnProjectileCollision_weapon_modded_softball( projectile, pos, normal, hitEnt, hitbox, isCritical )
@@ -103,6 +114,7 @@ void function OnProjectileCollision_weapon_softball( entity projectile, vector p
 	if ( mods.contains( "direct_hit" ) )
         OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	//
+#endif
 
 	// vanilla behavior
 	bool didStick = PlantSuperStickyGrenade( projectile, pos, normal, hitEnt, hitbox )
@@ -136,9 +148,12 @@ void function DetonateStickyAfterTime( entity projectile, float delay, vector no
 // modified callbacks
 void function OnWeaponReload_weapon_softball( entity weapon, int milestoneIndex )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded softball in mp_weapon_modded_softball.gnut
 	if ( ModdedSoftball_WeaponHasMod( weapon ) )
 		return OnWeaponReload_weapon_moded_softball( weapon, milestoneIndex )
+#endif
 
 	// vanilla has no behavior
 }

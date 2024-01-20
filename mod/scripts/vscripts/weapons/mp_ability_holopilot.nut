@@ -191,8 +191,11 @@ void function CodeCallback_PlayerDecoyStateChange( entity decoy, int previousSta
 // modified callback
 void function OnWeaponOwnerChanged_holopilot( entity weapon, WeaponOwnerChangedParams changeParams )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "holoshift" ) )
 		return OnWeaponOwnerChanged_ability_holoshift( weapon, changeParams )
+#endif
 }
 
 // vanilla
@@ -202,6 +205,8 @@ var function OnWeaponPrimaryAttack_holopilot( entity weapon, WeaponPrimaryAttack
 	Assert( weaponOwner.IsPlayer() )
 
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "dead_ringer" ) )
 		return OnAbilityStart_FakeDeath( weapon, attackParams )
 	if ( weapon.HasMod( "holoshift" ) )
@@ -209,6 +214,7 @@ var function OnWeaponPrimaryAttack_holopilot( entity weapon, WeaponPrimaryAttack
 	// decoy modifier
 	if ( HasDecoyModifier( weapon.GetMods() ) )
 		return OnWeaponPrimaryAttack_modded_holopilot( weapon, attackParams )
+#endif
 
 	if ( !PlayerCanUseDecoy( weapon ) )
 		return 0

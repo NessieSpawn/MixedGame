@@ -1,6 +1,7 @@
 WeaponData
 {
-	"OnWeaponReload"									"OnWeaponReload_Tediore"
+	// remove for this branch because these are not defined on server
+	//"OnWeaponReload"									"OnWeaponReload_Tediore"
 	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	//"damage_flags"									"DF_BULLET | DF_KNOCK_BACK | DF_DISMEMBERMENT | DF_GIB"
@@ -214,7 +215,8 @@ WeaponData
 			"explosionradius" 							"225"
 			//"impact_effect_table" 					"40mm_splasher_rounds" // visual fix done in script
 			// splasher rounds can be too loud, change to use this
-			"impact_effect_table" 						"exp_softball_grenade" // visual fix done in script
+			// no need to do this on client-side, already fixed by server
+			//"impact_effect_table" 						"exp_softball_grenade" // visual fix done in script
 
 			"pass_through_depth"						"*0" // no pass through for explosive rounds
         }

@@ -105,6 +105,8 @@ function TitanUnsyncedMelee( entity player )
 	meleeWeapon.EmitWeaponNpcSound( 800, 0.2 )
 #endif // #if SERVER
 
+	// remove from this breanch
+	/*
 #if SERVER
 	if ( attackState == PLAYER_MELEE_STATE_TITAN_DASH_PUNCH )
 	{
@@ -129,6 +131,7 @@ function TitanUnsyncedMelee( entity player )
 	}
 	//
 #endif
+	*/
 
 	player.SetSelectedOffhandToMelee()
 
@@ -139,6 +142,8 @@ function TitanUnsyncedMelee( entity player )
 }
 
 // modified dash melee!
+// remove from this breanch
+/*
 #if SERVER
 function MeleeJetFX( entity player )
 {
@@ -159,11 +164,6 @@ function MeleeJetFX( entity player )
 			}
 		}
 	)
-
-	// fixed version: not showing jet fx to owner
-	fx.append( CreateJetFxForDashPunch( player, $"xo_atlas_jet_large", "thrust" ) )
-	fx.append( CreateJetFxForDashPunch( player, $"xo_atlas_jet_large", "vent_left" ) )
-	fx.append( CreateJetFxForDashPunch( player, $"xo_atlas_jet_large", "vent_right" ) )
 
 	wait TITAN_DASH_PUNCH_DURATION // was 1 in vanilla
 }
@@ -224,6 +224,7 @@ void function PlayerDashMelee( entity meleeWeapon, entity player, float speedsca
 }
 #endif // SERVER
 // end
+*/
 
 void function TitanMeleeAttack( entity titan )
 {
@@ -782,8 +783,11 @@ bool function TitanMelee_CanScriptedExecution( entity player, entity target )
 			return false
 
 		// modifiers
+		// remove for this branch
+		/*
 		if ( !MeleeSyncedTitan_SoulCanBeExecuted( target.GetTitanSoul() ) ) // shared function from _melee_synced_titan.gnut
 			return false
+		*/
 		//
 	}
 

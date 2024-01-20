@@ -16,8 +16,11 @@ global function OnProjectileIgnite_weapon_thermite_grenade
 
 var function OnWeaponTossReleaseAnimEvent_weapon_thermite_grenade( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "flamewall_grenade" ) )
 		return OnWeaponTossReleaseAnimEvent_weapon_flamewall_grenade( weapon, attackParams )
+#endif
 
 	entity grenade = Grenade_OnWeaponToss_ReturnEntity( weapon, attackParams )
 	if( !IsValid( grenade ) )
@@ -37,11 +40,14 @@ void function OnProjectileCollision_weapon_thermite_grenade( entity projectile, 
 {
 	// modded weapon
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "flamewall_grenade" ) )
 		return OnProjectileCollision_weapon_flamewall_grenade( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	if( mods.contains( "ninja_projectile" ) )
 		return OnProjectileCollision_ninja_projectile( projectile, pos, normal, hitEnt, hitbox, isCritical )
-	
+#endif
+
 	// vanilla behavior
 	entity player = projectile.GetOwner()
 
@@ -96,8 +102,11 @@ void function DelayedGrenadeExplode( entity projectile, float delay )
 void function OnProjectileIgnite_weapon_thermite_grenade( entity projectile )
 {
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "flamewall_grenade" ) )
 		return OnProjectileIgnite_weapon_flamewall_grenade( projectile )
+#endif
 	if( mods.contains( "ninja_projectile" ) )
 		return // ninja projectile shouldn't have any ignition effect
 

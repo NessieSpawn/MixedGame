@@ -602,17 +602,20 @@ void function ShieldedCore( entity soul, float coreDuration )
 	soul.EndSignal( "OnDestroy" )
 	soul.EndSignal( "OnTitanDeath" )
 
-	int health = GetShieldHealthMaxWithFix( soul )
-	//soul.SetShieldHealth( health )
-	SetShieldHealthWithFix( soul, health )
+	// keep vanilla behavior for this branch
+	//int health = GetShieldHealthMaxWithFix( soul )
+	int health = soul.GetShieldHealthMax()
+	soul.SetShieldHealth( health )
+	//SetShieldHealthWithFix( soul, health )
 
 	OnThreadEnd(
 	function() : ( soul )
 		{
 			if ( IsValid( soul ) )
 			{
-				//soul.SetShieldHealth( 0 )
-				SetShieldHealthWithFix( soul, 0 )
+				// keep vanilla behavior for this branch
+				soul.SetShieldHealth( 0 )
+				//SetShieldHealthWithFix( soul, 0 )
 			}
 		}
 	)

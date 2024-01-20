@@ -614,8 +614,9 @@ float function Vortex_CalculateBulletHitDamage( entity vortexSphere, var damageI
 
 	//JFS - Arc Round bug fix for Monarch. Projectiles vortex callback doesn't even have damageInfo, so the shield modifier here doesn't exist in VortexSphereDrainHealthForDamage like it should.
 	// GetShieldDamageModifier() has been modified, now passing victim into it
-	//ShieldDamageModifier damageModifier = GetShieldDamageModifier( damageInfo )
-	ShieldDamageModifier damageModifier = GetShieldDamageModifier( vortexSphere, damageInfo )
+	// still use vanilla behavior for this branch
+	ShieldDamageModifier damageModifier = GetShieldDamageModifier( damageInfo )
+	//ShieldDamageModifier damageModifier = GetShieldDamageModifier( vortexSphere, damageInfo )
 	damage *= damageModifier.damageScale
 
 	// run callbacks
@@ -851,14 +852,19 @@ function Vortex_Init()
 	RegisterSignal( "DelayedVortexFireBack" )
 
 	// add damage callback for every classes to handle damage override
+	// remove for this branch
+	/*
 	#if SERVER
 		// shared function from levels_util.gnut
 		foreach ( string className in Levels_GetAllVulnerableEntityClasses() )
 			AddDamageCallback( className, VortexRefiredProjectileDamageOverride )
 	#endif
+	*/
 }
 
 // modified callback func
+// remove for this branch
+/*
 #if SERVER
 void function VortexRefiredProjectileDamageOverride( entity ent, var damageInfo )
 {
@@ -882,6 +888,7 @@ void function VortexRefiredProjectileDamageOverride( entity ent, var damageInfo 
 	}
 }
 #endif
+*/
 //
 
 #if SERVER
@@ -1755,8 +1762,11 @@ function Vortex_CreateImpactEventData( entity vortexWeapon, entity attacker, vec
 			// this may require tons of resources to display?
 			//impactData.projectileTrail <- weaponOrProjectile.GetProjectileWeaponSettingAsset( eWeaponVar.projectile_trail_effect_0 )
 			// convert asset to string
+			// remove from this branch
+			/*
 			string impactFXName = GetImpactTableNameFromWeaponOrProjectile( weaponOrProjectile ) // shared from _unpredicted_impact_fix.gnut
 			impactData.impact_effect_table = impactFXName
+			*/
 
 			// rework these hardcoded stuffs to be mod
 			impactData.grenade_ignition_time = weaponOrProjectile.GetProjectileWeaponSettingFloat( eWeaponVar.grenade_ignition_time )
@@ -2721,8 +2731,9 @@ function VortexSphereDrainHealthForDamage( entity vortexSphere, damage )
 			if ( IsValid( soul ) )
 			{
 				int shieldRestoreAmount = int( damage ) //Might need tuning
-				//soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
-				SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
+				// use vanilla behavior for this branch
+				soul.SetShieldHealth( min( soul.GetShieldHealth() + shieldRestoreAmount, soul.GetShieldHealthMax() ) )
+				//SetShieldHealthWithFix( soul, min( GetShieldHealthWithFix( soul ) + shieldRestoreAmount, GetShieldHealthMaxWithFix( soul ) ) )
 			}
 		}
 	}

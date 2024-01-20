@@ -20,8 +20,9 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 	if( IsMagneticTarget( hitEnt ) )
 	{
 		// adding friendlyfire support
-		//if ( hitEnt.GetTeam() != projectile.GetTeam() )
-		if ( FriendlyFire_IsEnabled() || hitEnt.GetTeam() != projectile.GetTeam() )
+		// we have visual fixes on server, so client-side keep vanilla behavior
+		if ( hitEnt.GetTeam() != projectile.GetTeam() )
+		//if ( FriendlyFire_IsEnabled() || hitEnt.GetTeam() != projectile.GetTeam() )
 		{
 			local normal = Vector( 0, 0, 1 )
 			if( "collisionNormal" in projectile.s )
@@ -29,6 +30,8 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 
 			// adding visual fix: if client without mod installed hits a friendly target in close range
 			// they won't predict the impact effect
+			// remove for this branch
+			/*
 			#if SERVER
 				if ( hitEnt.GetTeam() == projectile.GetTeam() )
 				{
@@ -36,6 +39,7 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 					FixImpactEffectForProjectileAtPosition( projectile, explodePos ) // shared from _unpredicted_impact_fix.gnut
 				}
 			#endif
+			*/
 			
 			projectile.GrenadeExplode( normal )
 		}

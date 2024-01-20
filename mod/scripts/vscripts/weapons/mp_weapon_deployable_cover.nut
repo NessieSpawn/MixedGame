@@ -81,9 +81,12 @@ bool function OnWeaponAttemptOffhandSwitch_weapon_deployable_cover( entity weapo
 var function OnWeaponTossReleaseAnimEvent_weapon_deployable_cover( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons!
+	// saved only for client-side for this branch
+#if CLIENT
 	array<string> mods = weapon.GetMods()
 	if ( HasDeployableCoverModifier( mods ) )
 		return OnWeaponTossReleaseAnimEvent_weapon_modded_deployable_cover( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	int ammoReq = weapon.GetAmmoPerShot()
@@ -333,8 +336,9 @@ void function OnAmpedWallDamaged( entity ampedWall, var damageInfo )
 
 	float damage = DamageInfo_GetDamage( damageInfo )
 	// GetShieldDamageModifier() has been modified, now passing victim into it
-	//ShieldDamageModifier damageModifier = GetShieldDamageModifier( damageInfo )
-	ShieldDamageModifier damageModifier = GetShieldDamageModifier( ampedWall, damageInfo )
+	// use vanilla behavior for this branch
+	ShieldDamageModifier damageModifier = GetShieldDamageModifier( damageInfo )
+	//ShieldDamageModifier damageModifier = GetShieldDamageModifier( ampedWall, damageInfo )
 	damage *= damageModifier.damageScale
 
 	DamageInfo_SetDamage( damageInfo, damage )

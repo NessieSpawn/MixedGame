@@ -1,7 +1,8 @@
 WeaponData
 {
-	"OnWeaponReload"									"OnWeaponReload_Tediore"
-	"OnProjectileCollision"								"OnProjectileCollision_Tediore"
+	// remove for this branch because these are not defined on server
+	//"OnWeaponReload"									"OnWeaponReload_Tediore"
+	//"OnProjectileCollision"								"OnProjectileCollision_Tediore"
 	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	//"damage_flags"									"DF_SHOTGUN | DF_BULLET | DF_KNOCK_BACK | DF_DISMEMBERMENT | DF_GIB"

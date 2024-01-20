@@ -30,7 +30,8 @@ WeaponData
 		// modded titan
 		storm_launcher // for archon, use together with fd_wpn_upgrade_1
 		{
-			"impact_effect_table" 							"exp_emp"
+			// no need to do this on client-side, already fixed by server
+			//"impact_effect_table" 							"exp_emp"
 			"impulse_force"   								"500"
 			"impulse_force_explosions"						"10000"
 

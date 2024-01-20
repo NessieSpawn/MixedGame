@@ -28,6 +28,8 @@ void function MpWeaponEmptyHanded_Init()
 
 void function OnWeaponActivate_weapon_emptyhanded( entity weapon )
 {
+    // remove for this branch
+    /*
     #if SERVER
         float attackAnimTime = weapon.GetWeaponSettingFloat( eWeaponVar.melee_attack_animtime )
         if ( attackAnimTime > 0 ) // defensive fix!!!
@@ -47,6 +49,7 @@ void function OnWeaponActivate_weapon_emptyhanded( entity weapon )
             }
         }
     #endif
+    */
 }
 
 void function OnWeaponDeactivate_weapon_emptyhanded( entity weapon )

@@ -37,10 +37,13 @@ void function MpTitanWeaponFlameWave_Init()
 void function OnWeaponActivate_titancore_flame_wave( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_storm_core" ) )
 		return OnWeaponActivate_StormCore( weapon )
 	if( weapon.HasMod( "ground_slam" ) )
 		return OnWeaponActivate_titancore_ground_slam( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -52,10 +55,13 @@ void function OnWeaponActivate_titancore_flame_wave( entity weapon )
 bool function OnAbilityCharge_FlameWave( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_storm_core" ) )
 		return OnAbilityCharge_StormCore( weapon )
 	if( weapon.HasMod( "ground_slam" ) )
 		return OnAbilityCharge_GoundSlam( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -109,10 +115,13 @@ bool function TitanShouldPlayAnimationForFlameCore( entity titan )
 void function OnAbilityChargeEnd_FlameWave( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_storm_core" ) )
 		return OnAbilityChargeEnd_StormCore( weapon )
 	if( weapon.HasMod( "ground_slam" ) )
 		return OnAbilityChargeEnd_GoundSlam( weapon )
+#endif
 	//
 
 	// vanilla behavior
@@ -125,7 +134,8 @@ void function OnAbilityChargeEnd_FlameWave( entity weapon )
 
 		// shared from special_3p_attack_anim_fix.gnut
 		// fix atlas chassis animation
-		HandleSpecial3pAttackAnim( owner, weapon, 0.8, OnWeaponPrimaryAttack_titancore_flame_wave, true )
+		// remove for this branch
+		//HandleSpecial3pAttackAnim( owner, weapon, 0.8, OnWeaponPrimaryAttack_titancore_flame_wave, true )
 
 		OnAbilityChargeEnd_TitanCore( weapon )
 	#endif // #if SERVER
@@ -137,10 +147,13 @@ var function OnWeaponPrimaryAttack_titancore_flame_wave( entity weapon, WeaponPr
 	//print( "RUNNING OnWeaponPrimaryAttack_titancore_flame_wave()" )
 
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_storm_core" ) )
 		return OnWeaponPrimaryAttack_StormCore( weapon, attackParams )
 	if( weapon.HasMod( "ground_slam" ) )
 		return OnWeaponPrimaryAttack_titancore_ground_slam( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -351,8 +364,11 @@ void function ZeroDamageAndClearInflictorArray( entity ent, var damageInfo )
 // modified callback
 void function OnProjectileCollision_FlameWave( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile )
 	if ( mods.contains( "archon_storm_core" ) )
 		return OnProjectileCollision_StormCore( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 //

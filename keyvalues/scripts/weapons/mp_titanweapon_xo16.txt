@@ -2,7 +2,8 @@ WeaponData
 {
 	// modified to add these things back
 	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_titanweapon_xo16"
-	"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_titanweapon_xo16"
+	// removed for this branch
+	//"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_titanweapon_xo16"
 	
 	// vanilla missing:
 	// WeaponED Unhandled Key/Values and custom script Key/Values

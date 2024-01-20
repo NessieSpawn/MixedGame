@@ -5,8 +5,9 @@ WeaponData
 	"OnProjectileExplode"							"OnProjectileExplode_weapon_flak_rifle"
 
 	// tediore
-	"OnWeaponReload"								"OnWeaponReload_Tediore"
-	"OnProjectileCollision"							"OnProjectileCollision_Tediore"
+	// remove for this branch because these are not defined on server
+	//"OnWeaponReload"								"OnWeaponReload_Tediore"
+	//"OnProjectileCollision"							"OnProjectileCollision_Tediore"
 
 	//Projectile Stuff
 	"projectilemodel" 								"models/weapons/bullets/projectile_arl.mdl" // stub projectile model(for flak rifle)
@@ -113,7 +114,8 @@ WeaponData
 			"projectile_first_person_offset_fraction"		"0.5"
 			//"projectile_launch_speed"						"1900" // handled in script
 
-			"impact_effect_table" 							"exp_softball_grenade" // needs a impact table that can airburst
+			// no need to do this on client-side, already fixed by server
+			//"impact_effect_table" 							"exp_softball_grenade" // needs a impact table that can airburst
 			//"projectile_trail_effect_0" 					"wpn_grenade_frag_softball" // blocks view!
 			"projectile_trail_effect_0" 					"wpn_grenade_frag"
 

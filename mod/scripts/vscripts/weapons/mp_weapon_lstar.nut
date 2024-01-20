@@ -38,6 +38,8 @@ void function MpWeaponLSTAR_Init()
 	PrecacheParticleSystem( LSTAR_BURNOUT_EFFECT_1P )
 	PrecacheParticleSystem( LSTAR_BURNOUT_EFFECT_3P )
 
+	// remove for this branch
+	/*
 #if SERVER
 	// lagging bolt
 	RegisterSignal( "ReleaseAllBolts" )
@@ -45,11 +47,14 @@ void function MpWeaponLSTAR_Init()
 	AddCallback_OnClientConnected( OnClientConnected )
 	AddCallback_OnPlayerKilled( OnPlayerKilled )
 #endif
+	*/
 }
 
 // modified callback
 void function OnWeaponOwnerChanged_weapon_lstar( entity weapon, WeaponOwnerChangedParams changeParams )
 {
+	// remove for this branch
+	/*
 #if SERVER
 	if( weapon.HasMod( "lagging_lstar" ) )
 	{
@@ -64,8 +69,11 @@ void function OnWeaponOwnerChanged_weapon_lstar( entity weapon, WeaponOwnerChang
 	}
 	thread DelayedCheckLaggingBoltMod( weapon, changeParams ) // in case we're using AddMod()
 #endif
+	*/
 }
 
+// remove for this branch
+/*
 #if SERVER
 void function DelayedCheckLaggingBoltMod( entity weapon, WeaponOwnerChangedParams changeParams )
 {
@@ -87,6 +95,7 @@ void function DelayedCheckLaggingBoltMod( entity weapon, WeaponOwnerChangedParam
 	}
 }
 #endif
+*/
 
 int function LSTARPrimaryAttack( entity weapon, WeaponPrimaryAttackParams attackParams, bool isPlayerFired )
 {
@@ -144,11 +153,14 @@ void function OnWeaponReload_weapon_lstar( entity weapon, int milestoneIndex )
 	weapon.EmitWeaponSound_1p3p( LSTAR_BURNOUT_SOUND_1P, LSTAR_BURNOUT_SOUND_3P )
 
 	// lagging bolt
+	// remove for this branch
+	/*
 	#if SERVER
 		entity owner = weapon.GetWeaponOwner()
 		if( owner.IsPlayer() )
 			PlayerReleaseLaggingBolts( owner )
 	#endif
+	*/
 }
 
 #if SERVER
@@ -208,16 +220,22 @@ int function FireLaggingBoltLstar( entity weapon, WeaponPrimaryAttackParams atta
 		bolt.kv.rendercolor = "0 0 0"
 		bolt.kv.renderamt = 0
 		bolt.kv.fadedist = 1
+		// remove for this branch
+		/*
 #if SERVER
 		entity owner = weapon.GetWeaponOwner()
 		if( owner.IsPlayer() )
 			thread LaggingBoltThink( bolt, owner, launchSpeed )
 #endif
+		*/
 		return 1
 	}
 
 	return 0
 }
+
+// remove for this branch
+/*
 #if SERVER
 void function LStar_DamagedTarget( entity victim, var damageInfo )
 {
@@ -347,3 +365,4 @@ int function GetPlayerMaxLaggingBolts()
 	return maxint( maxBolts, LAGGING_BOLT_PER_PLAYER_MIN )
 }
 #endif
+*/

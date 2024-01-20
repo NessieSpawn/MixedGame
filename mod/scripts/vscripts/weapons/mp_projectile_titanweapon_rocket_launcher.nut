@@ -9,9 +9,12 @@ void function OnProjectileCollision_SpiralMissile( entity projectile, vector pos
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
 	
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "brute4_quad_rocket" ) )
 		return OnProjectileCollision_Brute4_QuadRocket( projectile, pos, normal, hitEnt, hitbox, isCritical )
-	
+#endif
+
 	#if SERVER
 		//array<string> mods = projectile.ProjectileGetMods() // using Vortex_GetRefiredProjectileMods()
 		
@@ -50,8 +53,11 @@ void function OnProjectileCollision_SpiralMissile( entity projectile, vector pos
 		// brute rocket specific
 		// it has higher rocket speed, don't want to make landing shots too difficult
 		// but we need to fix visual for it can work best
+		// remove for this branch
+		/*
 		if ( projectile.ProjectileGetMods().contains( "brute_rocket" ) ) // visual fix checks, no need to handle refiring cause refired projectile already unpredicted
 			FixImpactEffectForProjectileAtPosition( projectile, pos )
+		*/
 	#endif
 
 	if ( "spiralMissiles" in projectile.s )

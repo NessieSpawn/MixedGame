@@ -55,9 +55,12 @@ bool function HasShifterModifier( array<string> mods )
 void function MpAbilityShifterWeapon_OnWeaponTossPrep( entity weapon, WeaponTossPrepParams prepParams )
 {
 	// modded shifter checks!
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = weapon.GetMods()
 	if( HasShifterModifier( mods ) )
 		return OnWeaponTossPrep_ability_modded_shifter( weapon, prepParams )
+#endif
 	//
 
 	entity weaponOwner = weapon.GetWeaponOwner()
@@ -86,9 +89,12 @@ int function GetPVEAbilityLevel( entity weapon )
 var function OnWeaponPrimaryAttack_shifter( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded shifter checks!
+	// saved only for client-side in this branch
+#if CLIENT
 	array<string> mods = weapon.GetMods()
 	if( HasShifterModifier( mods ) )
 		return OnWeaponPrimaryAttack_ability_modded_shifter( weapon, attackParams )
+#endif
 	//
 
 	entity player = weapon.GetWeaponOwner()

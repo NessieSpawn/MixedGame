@@ -19,8 +19,11 @@ const int ARC_LAUNCHER_ZAP_DAMAGE_PILOT_AMPED = 16 // doubled from BALL_LIGHTNIN
 var function OnWeaponPrimaryAttack_weapon_arc_launcher( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "smoke_launcher" ) )
 		return OnWeaponPrimaryAttack_weapon_smoke_launcher( weapon, attackParams )
+#endif
 	//
 
 	// modified vanilla behavior
@@ -133,8 +136,11 @@ var function FireDirectHitArcBall( entity weapon, WeaponPrimaryAttackParams atta
 #if SERVER
 var function OnWeaponNpcPrimaryAttack_weapon_arc_launcher( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "smoke_launcher" ) )
 		return OnWeaponNpcPrimaryAttack_weapon_smoke_launcher( weapon, attackParams )
+	*/
 
 	return OnWeaponPrimaryAttack_weapon_arc_launcher( weapon, attackParams )	
 }
@@ -144,17 +150,23 @@ void function OnProjectileCollision_weapon_arc_launcher( entity projectile, vect
 {
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "direct_hit" ) )
         OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
 
 	if ( mods.contains( "smoke_launcher" ) )
 		return OnProjectileCollision_weapon_smoke_launcher( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 
 void function OnProjectileIgnite_weapon_arc_launcher( entity projectile )
 {
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "smoke_launcher" ) )
 		return OnProjectileIgnite_weapon_smoke_launcher( projectile )
+#endif
 }

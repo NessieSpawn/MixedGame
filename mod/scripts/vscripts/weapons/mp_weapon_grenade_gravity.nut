@@ -48,8 +48,11 @@ void function MpWeaponGrenadeGravity_Init()
 
 var function OnWeaponTossReleaseAnimEvent_weapon_greanade_gravity( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// saved only for client-side for this branch
+#if CLIENT
 	if( weapon.HasMod( "gravity_lift" ) )
 		return OnWeaponTossReleaseAnimEvent_ability_gravity_lift( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	return Grenade_OnWeaponTossReleaseAnimEvent( weapon, attackParams )
@@ -59,6 +62,8 @@ void function OnProjectileCollision_weapon_grenade_gravity( entity projectile, v
 {
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
+	// saved only for client-side for this branch
+#if CLIENT
 	if ( mods.contains( "gravity_lift" ) )
 		return OnProjectileCollision_ability_gravity_lift( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	
@@ -70,7 +75,7 @@ void function OnProjectileCollision_weapon_grenade_gravity( entity projectile, v
 	
 	if ( mods.contains( "arc_star" ) )
 		return OnProjectileCollision_weapon_arc_star( projectile, pos, normal, hitEnt, hitbox, isCritical )
-
+#endif
 
 	// vanilla behavior
 	bool didStick = PlantSuperStickyGrenade( projectile, pos, normal, hitEnt, hitbox )

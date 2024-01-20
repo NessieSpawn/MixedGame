@@ -61,6 +61,8 @@ function HumanUnsyncedMelee( entity player, bool movestunBlocked )
 	bool lungeDisabled = meleeWeapon.HasMod( "no_damage" ) // hardcoded!
 
 // serverside only
+// removed for this branch
+/*
 #if SERVER
 	if( !( "applyKickDamage" in player.s ) )
 		player.s.applyKickDamage <- false
@@ -78,6 +80,7 @@ function HumanUnsyncedMelee( entity player, bool movestunBlocked )
 			thread DelayedPlayElbowMeleeAnimation( player, meleeWeapon )
 	}
 #endif
+*/
 
 	if ( player.PlayerMelee_GetState() == PLAYER_MELEE_STATE_HUMAN_EVISCERATE_ATTACK ) // fix: this will player unable to melee! // respawn messed this up, but maybe useful if we want to make client don't predict a lunging event
 	{
@@ -89,9 +92,12 @@ function HumanUnsyncedMelee( entity player, bool movestunBlocked )
 	{
 		if( isDashMelee )
 		{
+			// removed for this branch
+			/*
 #if SERVER
 			thread HumanMeleeAttack_DashThread( player, meleeWeapon )
 #endif
+			*/
 		}
 		
 		entity lungeTarget = GetLungeTargetForPlayer( player )
@@ -109,12 +115,15 @@ function HumanUnsyncedMelee( entity player, bool movestunBlocked )
 */
 				if ( player.Lunge_SetTargetEntity( lungeTarget, true ) )
 				{
+					// removed for this branch
+					/*
 					#if SERVER
 						if ( doFakeGroundExecution )
 						{
 							PlayerTryFakeGroundExecutionAttack( player, lungeTarget )
 						}
 					#endif
+					*/
 
 					if ( lungeTarget.IsTitan() )
 					{
@@ -127,6 +136,8 @@ function HumanUnsyncedMelee( entity player, bool movestunBlocked )
 						if ( player.IsOnGround() )
 							player.Lunge_LockPitch( true )
 					}
+					// removed for this branch
+					/*
 					#if SERVER
 						// lunging succeeded fx
 						if ( doJetPackFX )
@@ -140,6 +151,7 @@ function HumanUnsyncedMelee( entity player, bool movestunBlocked )
 								thread HumanMeleeJetFX( player ) // if we're lunging to a target, do an extra jetpack fx
 						}
 					#endif
+					*/
 				}
 			}
 		}
@@ -315,6 +327,8 @@ function HumanMeleeAttack_DoImpact( entity player, entity meleeWeapon, traceResu
 	int damageAmount = GetDamageAmountForTarget( meleeWeapon, target )
 
 	// modified checks!!!
+	// removed for this branch
+	/*
 	bool applyKickDamage = expect bool( player.s.applyKickDamage )
 	if( applyKickDamage )
 		damageSource = eDamageSourceId.human_melee
@@ -323,6 +337,7 @@ function HumanMeleeAttack_DoImpact( entity player, entity meleeWeapon, traceResu
 	if( isPushBackMelee )
 		return HumanMeleeAttack_PushBackAttack( player, target, meleeWeapon, traceResult, applyKickDamage )
 	// end
+	*/
 
 	if ( IsHumanSized( target ) )
 	{
@@ -663,6 +678,8 @@ void function PlayerTriesSyncedMelee_FallbackToHumanMeleeAttack( entity player, 
 //////////////////////////////
 ///// MODIFIED FUNCTIONS /////
 //////////////////////////////
+// removed for this branch
+/*
 #if SERVER
 // this requires _pilot_jumpjet_precache.gnut to precache the particles
 void function HumanMeleeJetFX( entity player )
@@ -1041,3 +1058,4 @@ void function FakeGroundExecutionThink( entity player, entity fakeGrunt, entity 
 	player.Lunge_SetTargetEntity( realTarget, true )
 }
 #endif
+*/

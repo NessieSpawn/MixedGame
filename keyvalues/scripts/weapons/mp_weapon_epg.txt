@@ -1,7 +1,8 @@
 WeaponData
 {
-	"OnWeaponReload"									"OnWeaponReload_Tediore"
-	"OnProjectileCollision"								"OnProjectileCollision_weapon_epg"
+	// remove for this branch because these are not defined on server
+	//"OnWeaponReload"									"OnWeaponReload_Tediore"
+	//"OnProjectileCollision"								"OnProjectileCollision_weapon_epg"
 
 	// vanilla missing
 	"impulse_force_explosions"						"17500" // default is same as impulse_force does

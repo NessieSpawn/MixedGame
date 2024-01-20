@@ -200,7 +200,8 @@ void function OnAbilityChargeEnd_StormCore( entity weapon )
 
 			// shared from special_3p_attack_anim_fix.gnut
 			// fix atlas chassis animation
-			HandleSpecial3pAttackAnim( owner, weapon, 1.0, OnWeaponPrimaryAttack_StormCore, true )
+			// remove for this branch
+			//HandleSpecial3pAttackAnim( owner, weapon, 1.0, OnWeaponPrimaryAttack_StormCore, true )
 		}
 
 	#endif // #if SERVER

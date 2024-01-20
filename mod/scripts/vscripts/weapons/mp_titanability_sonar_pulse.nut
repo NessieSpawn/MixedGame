@@ -29,8 +29,11 @@ bool function OnWeaponAttemptOffhandSwitch_titanability_sonar_pulse( entity weap
 var function OnWeaponPrimaryAttack_titanability_sonar_pulse( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_stun_impact" ) )
 		return OnWeaponPrimaryAttack_titanweapon_stun_impact( weapon, attackParams )
+#endif
 
 	// vanilla behavior
 	entity weaponOwner = weapon.GetWeaponOwner()
@@ -44,8 +47,11 @@ var function OnWeaponPrimaryAttack_titanability_sonar_pulse( entity weapon, Weap
 var function OnWeaponNPCPrimaryAttack_titanability_sonar_pulse( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "archon_stun_impact" ) )
 		return OnWeaponNPCPrimaryAttack_titanweapon_stun_impact( weapon, attackParams )
+	*/
 
 	if ( IsSingleplayer() )
 	{
@@ -76,8 +82,11 @@ void function OnProjectileCollision_titanability_sonar_pulse( entity projectile,
 	// modded weapon
 	//array<string> mods = projectile.ProjectileGetMods() // vanilla behavior, no need to change to Vortex_GetRefiredProjectileMods()
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( mods.contains( "archon_stun_impact" ) )
 		return OnProjectileCollision_titanweapon_stun_impact( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 
 	// the behavior has been modded, should change it someday
 	#if SERVER
@@ -92,9 +101,12 @@ void function OnProjectileCollision_titanability_sonar_pulse( entity projectile,
 		bool isOrbitalStrike = mods.contains( "orbitalstrike" )
 		if( isOrbitalStrike )
 		{
+			// remove for this branch
+			/*
 			vector strikepos = projectile.GetOrigin()
 			thread OrbitalStrike( owner, strikepos, STRIKE_ROCKETS_COUNT, STRIKE_RADIUS, STRIKE_DURATION, STRIKE_DELAY, false )
 			thread StrikeAlarm( strikepos, owner.GetTeam() )
+			*/
 		}
 		else
 		{

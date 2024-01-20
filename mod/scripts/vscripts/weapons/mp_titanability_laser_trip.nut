@@ -83,8 +83,11 @@ array<entity> function GetLaserPylonsInRadius( vector origin, float radius )
 void function OnWeaponOwnerChanged_titanweapon_laser_trip( entity weapon, WeaponOwnerChangedParams changeParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_tesla_node" ) )
 		return OnWeaponOwnerChanged_titanweapon_tesla_node( weapon, changeParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -103,8 +106,11 @@ void function OnWeaponOwnerChanged_titanweapon_laser_trip( entity weapon, Weapon
 var function OnWeaponNPCPrimaryAttack_titanweapon_laser_trip( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branc
+	/*
 	if( weapon.HasMod( "archon_tesla_node" ) )
 		return OnWeaponNPCPrimaryAttack_titanweapon_tesla_node( weapon, attackParams )
+	*/
 	//
 
 	return OnWeaponPrimaryAttack_titanweapon_laser_trip( weapon, attackParams )
@@ -114,9 +120,12 @@ var function OnWeaponNPCPrimaryAttack_titanweapon_laser_trip( entity weapon, Wea
 var function OnWeaponPrimaryAttack_titanweapon_laser_trip( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "archon_tesla_node" ) )
 		return OnWeaponPrimaryAttack_titanweapon_tesla_node( weapon, attackParams )
-	
+#endif
+
 	// vanilla behavior
 	entity owner = weapon.GetWeaponOwner()
 	int curCost = weapon.GetWeaponCurrentEnergyCost()

@@ -62,9 +62,12 @@ function MissileThink( weapon, missile )
 
 void function OnWeaponActivate_weapon_rocket_launcher( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
 		return OnWeaponActivate_weapon_modded_archer( weapon )
+#endif
 
 	// vanilla behavior
 	if ( !( "initialized" in weapon.s ) )
@@ -128,9 +131,12 @@ void function OnWeaponActivate_weapon_rocket_launcher( entity weapon )
 
 void function OnWeaponDeactivate_weapon_rocket_launcher( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
-		return OnWeaponDeactivate_weapon_modded_archer( weapon )		
+		return OnWeaponDeactivate_weapon_modded_archer( weapon )
+#endif		
 
 	// vanilla behavior
 	if ( weapon.HasMod( "guided_missile" ) )
@@ -147,8 +153,11 @@ void function OnWeaponDeactivate_weapon_rocket_launcher( entity weapon )
 var function OnWeaponPrimaryAttack_weapon_rocket_launcher( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded archer in mp_weapon_modded_archer.gnut
+	// remove for this branch because we've got effect fixes on server-side
+	/*
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
 		return OnWeaponPrimaryAttack_weapon_modded_archer( weapon, attackParams )
+	*/
 
 	// vanilla behavior
 	entity weaponOwner = weapon.GetWeaponOwner()
@@ -226,9 +235,12 @@ var function OnWeaponNpcPrimaryAttack_S2S_weapon_rocket_launcher( entity weapon,
 
 var function OnWeaponNpcPrimaryAttack_weapon_rocket_launcher( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// remove for this branch
+	/*
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
 		return OnWeaponNpcPrimaryAttack_weapon_modded_archer( weapon, attackParams )
+	*/
 
 	// vanilla behavior
 	// NPC can shoot the weapon at non-players, but when shooting at players it must be a titan
@@ -346,9 +358,12 @@ function playerHasMissileInFlight( entity weaponOwner, entity missile )
 
 void function OnWeaponOwnerChanged_weapon_rocket_launcher( entity weapon, WeaponOwnerChangedParams changeParams )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
 		return OnWeaponOwnerChanged_weapon_modded_archer( weapon, changeParams )
+#endif
 
 	// vanilla behavior
 	#if SERVER
@@ -360,27 +375,36 @@ void function OnWeaponOwnerChanged_weapon_rocket_launcher( entity weapon, Weapon
 // modded callbacks
 void function OnProjectileCollision_weapon_rocket_launcher( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_ProjectileHasMod( projectile ) )
 		return OnProjectileCollision_weapon_modded_archer( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 
 	// vanilla has no behavior
 }
 
 void function OnWeaponStartZoomIn_weapon_rocket_launcher( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
 		return OnWeaponStartZoomIn_weapon_modded_archer( weapon )
+#endif
 
 	// vanilla has no behavior
 }
 
 void function OnWeaponStartZoomOut_weapon_rocket_launcher( entity weapon )
 {
+	// saved only for client-side in this branch
+#if CLIENT
 	// modded archer in mp_weapon_modded_archer.gnut
 	if ( ModdedArcher_WeaponHasMod( weapon ) )
 		return OnWeaponStartZoomOut_weapon_modded_archer( weapon )
+#endif
 
 	// vanilla has no behavior
 }

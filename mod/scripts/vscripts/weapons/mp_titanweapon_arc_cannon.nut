@@ -29,8 +29,11 @@ void function MpTitanweaponArcCannon_Init()
 void function OnWeaponActivate_titanweapon_arc_cannon( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponActivate_titanweapon_archon_arc_cannon( weapon )
+#endif
 	//
 
 	// ns.custom behavior
@@ -64,8 +67,11 @@ function DelayedArcCannonStart( entity weapon, entity weaponOwner )
 void function OnWeaponDeactivate_titanweapon_arc_cannon( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponDeactivate_titanweapon_archon_arc_cannon( weapon )
+#endif
 	//
 
 	// ns.custom behavior
@@ -90,8 +96,11 @@ void function OnWeaponReload_titanweapon_arc_cannon( entity weapon, int mileston
 void function OnWeaponOwnerChanged_titanweapon_arc_cannon( entity weapon, WeaponOwnerChangedParams changeParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponOwnerChanged_titanweapon_archon_arc_cannon( weapon, changeParams )
+#endif
 	//
 
 	// ns.custom behavior
@@ -120,8 +129,11 @@ void function OnWeaponOwnerChanged_titanweapon_arc_cannon( entity weapon, Weapon
 bool function OnWeaponChargeBegin_titanweapon_arc_cannon( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponChargeBegin_titanweapon_archon_arc_cannon( weapon )
+#endif
 	//
 
 	// ns.custom behavior
@@ -139,8 +151,11 @@ bool function OnWeaponChargeBegin_titanweapon_arc_cannon( entity weapon )
 void function OnWeaponChargeEnd_titanweapon_arc_cannon( entity weapon )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponChargeEnd_titanweapon_archon_arc_cannon( weapon )
+#endif
 	//
 
 	// ns.custom behavior
@@ -150,8 +165,11 @@ void function OnWeaponChargeEnd_titanweapon_arc_cannon( entity weapon )
 var function OnWeaponPrimaryAttack_titanweapon_arc_cannon( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponPrimaryAttack_titanweapon_archon_arc_cannon( weapon, attackParams )
+#endif
 	//
 
 	// ns.custom behavior
@@ -173,8 +191,11 @@ var function OnWeaponPrimaryAttack_titanweapon_arc_cannon( entity weapon, Weapon
 var function OnWeaponNpcPrimaryAttack_titanweapon_arc_cannon( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "archon_arc_cannon" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_archon_arc_cannon( weapon, attackParams )
+	*/
 	//
 
 	// ns.custom behavior

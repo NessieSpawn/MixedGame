@@ -5,11 +5,16 @@ global function MpWeaponShotgun_Init
 void function MpWeaponShotgun_Init()
 {
     // calculate damage manually to get rid of "damage_falloff_type" "inverse"
+    // remove for this branch
+	/*
     #if SERVER
         AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_shotgun, OnShotgunDamageTarget )
     #endif
+    */
 }
 
+// remove for this branch
+/*
 #if SERVER
 void function OnShotgunDamageTarget( entity ent, var damageInfo )
 {
@@ -25,3 +30,4 @@ void function OnShotgunDamageTarget( entity ent, var damageInfo )
     }
 }
 #endif
+*/

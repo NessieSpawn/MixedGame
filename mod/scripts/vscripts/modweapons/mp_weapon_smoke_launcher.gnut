@@ -144,6 +144,11 @@ var function OnWeaponNpcPrimaryAttack_weapon_smoke_launcher( entity weapon, Weap
 
 void function OnProjectileCollision_weapon_smoke_launcher( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+#if CLIENT
+	// we have visual fixes on server, so client-side do nothing
+	return
+#endif
+
 	entity player = projectile.GetOwner()
 	if ( hitEnt == player )
 		return

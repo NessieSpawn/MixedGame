@@ -37,8 +37,11 @@ struct
 var function OnWeaponPrimaryAttack_weapon_shotgun_pistol( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// saved only for client-side for this branch
+#if CLIENT
 	if ( weapon.HasMod( "apex_nessie" ) )
 		return OnWeaponPrimaryAttack_weapon_nessie_pistol( weapon, attackParams )
+#endif
 	//
 	
 	return FireWeaponPlayerAndNPC( attackParams, true, weapon )
@@ -48,8 +51,11 @@ var function OnWeaponPrimaryAttack_weapon_shotgun_pistol( entity weapon, WeaponP
 var function OnWeaponNpcPrimaryAttack_weapon_shotgun_pistol( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// remove for this branch
+	/*
 	if ( weapon.HasMod( "apex_nessie" ) )
 		return OnWeaponNPCPrimaryAttack_weapon_nessie_pistol( weapon, attackParams )
+	*/
 	//
 
 	// vanilla behavior
@@ -165,8 +171,11 @@ void function OnProjectileCollision_weapon_shotgun_pistol( entity projectile, ve
 	// modded weapons, vanilla don't have specfic behavior
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
+	// saved only for client-side for this branch
+#if CLIENT
 	if ( mods.contains( "apex_nessie" ) )
 		return OnProjectileCollision_weapon_nessie_pistol( projectile, pos, normal, hitEnt, hitbox, isCritical )
+#endif
 }
 
 void function OnProjectileIgnite_weapon_shotgun_pistol( entity projectile )
@@ -174,8 +183,11 @@ void function OnProjectileIgnite_weapon_shotgun_pistol( entity projectile )
 	// modded weapons, vanilla don't have specfic behavior
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
+	// saved only for client-side for this branch
+#if CLIENT
 	if ( mods.contains( "apex_nessie" ) )
 		return OnProjectileIgnite_weapon_nessie_pistol( projectile )
+#endif
 }
 
 // respawn made for arc_net, really sucks

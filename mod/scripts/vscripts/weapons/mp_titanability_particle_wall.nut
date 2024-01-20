@@ -24,8 +24,11 @@ function MpTitanabilityBubbleShield_Init()
 var function OnWeaponPrimaryAttack_particle_wall( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_mobile_dome_shield" ) )
 		return OnWeaponPrimaryAttack_mobile_dome_shield( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -49,9 +52,12 @@ var function OnWeaponPrimaryAttack_particle_wall( entity weapon, WeaponPrimaryAt
 var function OnWeaponNpcPrimaryAttack_particle_wall( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// removed for this branch
+	/*
 	if( weapon.HasMod( "brute4_mobile_dome_shield" ) )
 		return OnWeaponNpcPrimaryAttack_mobile_dome_shield( weapon, attackParams )
-	
+	*/
+
 	// vanilla behavior
 	float duration
 	if ( IsSingleplayer() )

@@ -33,6 +33,8 @@ void function OnProjectileCollision_weapon_grenade_electric_smoke( entity projec
 {
 	// modded weapons
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	// saved only for client-side for this branch
+#if CLIENT
 	if( mods.contains( "creeping_bombardment" ) )
 	{
 		if( projectile.GetClassName() == "rpg_missile" )
@@ -40,6 +42,7 @@ void function OnProjectileCollision_weapon_grenade_electric_smoke( entity projec
 		if( projectile.GetClassName() == "grenade" )
 			return OnProjectileCollision_WeaponCreepingBombardment( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	}
+#endif
 	
 	entity player = projectile.GetOwner()
 	if ( hitEnt == player )
