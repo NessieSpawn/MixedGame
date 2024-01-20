@@ -6,10 +6,6 @@ WeaponData
 
 	Mods
 	{
-		rocket_arena
-		{
-		}
-
 		// northstar weapon mods
 		test_push
 		{
@@ -18,6 +14,10 @@ WeaponData
 		{
 			"activitymodifier"								"satchel"
 			"fire_rate"										"0.9" // to avoid long anim event
+		}
+		
+		rocket_arena
+		{
 		}
 
 		// modded mods
