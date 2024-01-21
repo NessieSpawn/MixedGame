@@ -3006,7 +3006,9 @@ void function PlayerRodeoViewCone_Classic( entity player, string rodeoTargetType
 	player.PlayerCone_FromAnim()
 	// allow player to have arms model when grabbing a titan
 	// needs to clamp view cone abit
-	ViewConeWide( player )
+	//ViewConeWide( player ) // not suitable
+	//ViewConeSmall( player ) // still able to see their elbow...
+	ViewConeTight( player )
 }
 
 void function OpenViewCone( entity player )
@@ -3804,8 +3806,15 @@ void function ClassicRodeoPlayerWeaponDeployment( entity player, entity titanSou
 void function ClassicRodeoViewCone( entity player )
 {
 	player.PlayerCone_FromAnim()
+	// try to fake tf1 behavior here?
+	// welp this don't work well, player can't land shots on atlas chassis's hatch
+	// just limit a very little bit is enough
+	// nope. never limit player's viewcone... atlas battery hatch position is bad
+	// tf2 titans allows player to rotate with them, maybe fine without viewcone limit
 	player.GetFirstPersonProxy().HideFirstPersonProxy()
 	OpenViewCone( player )
+	//ViewConeSmall( player ) // limited view cone, allow player to shoot at hatch
+	//ViewConeWide( player )
 }
 
 ///// PLAYER CONTROLS /////
