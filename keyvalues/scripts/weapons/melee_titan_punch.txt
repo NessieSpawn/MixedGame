@@ -1,8 +1,9 @@
 WeaponData
 {
 	// modded callbacks
-	"OnWeaponActivate"									"OnWeaponActivate_titanweapon_punch"
-	"OnWeaponDeactivate"								"OnWeaponDeactivate_titanweapon_punch"
+	// no use in this branch...
+	//"OnWeaponActivate"									"OnWeaponActivate_titanweapon_punch"
+	//"OnWeaponDeactivate"								"OnWeaponDeactivate_titanweapon_punch"
 
 	// npc using as main weapon
 	// actual damage handled in aiset

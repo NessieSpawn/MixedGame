@@ -1,8 +1,9 @@
 WeaponData
 {
 	// vanilla missing callbacks
-	"OnWeaponActivate"									"OnWeaponActivate_weapon_emptyhanded"
-	"OnWeaponDeactivate"								"OnWeaponDeactivate_weapon_emptyhanded"
+	// no use in this branch...
+	//"OnWeaponActivate"									"OnWeaponActivate_weapon_emptyhanded"
+	//"OnWeaponDeactivate"								"OnWeaponDeactivate_weapon_emptyhanded"
 
 	Mods
 	{
