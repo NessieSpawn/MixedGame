@@ -154,6 +154,8 @@ struct
 
     table<entity, bool> entHasSetUpServerModelBodyGroupFX
     table< entity, table<int, EntOwnedBodyGroupFX> > entOwnedModelBodyGroupFXs
+    table<entity, bool> entIsRegeneratingEffectHelper
+    table<entity, bool> regeneratingEffectHelperIsHidden
 } file
 
 void function ServerSide_ModelFX_Init()
@@ -237,6 +239,7 @@ void function OnPilotBecomesTitan( entity player, entity titan )
 void function OnTitanBecomesPilot( entity player, entity titan )
 {
     entity soul = titan.GetTitanSoul() // soul has been transferred
+    //print( "soul: " + string( soul ) )
     if ( !IsValid( soul ) )
         return
 
@@ -257,7 +260,6 @@ void function OnTitanBecomesPilot( entity player, entity titan )
     // player still can't see effects on their titan after disembarking once, but others could
     // guess it's alright? at least player won't be blinded by too many effects
     // the best method is we re-create effects like client-side does, but whatever
-    /*
     if ( soul in file.entOwnedModelHealthFXs )
     {
         foreach ( index, ownedFXStruct in file.entOwnedModelHealthFXs[ soul ] )
@@ -294,8 +296,9 @@ void function OnTitanBecomesPilot( entity player, entity titan )
                 effect.SetOwner( titan )
         }
     }
-    */
     // now try to re-create effects... hopefully it won't cause server performance issue( creating too many entities sometimes freeze server )
+    // nope. re-created effects are not stable, just hide them until I figure out and try to rework rest of these things
+    /*
     if ( soul in file.entHasSetUpServerModelHealthFX )
     {
         ServerModelHealthFX_RemoveEffectsOnEntity( soul )
@@ -313,6 +316,7 @@ void function OnTitanBecomesPilot( entity player, entity titan )
         ServerModelBodyGroupFX_RemoveEffectsOnEntity( soul, true )
         ServerModelBodyGroupFX_ApplyEffectsToEntity( soul )
     }
+    */
 }
 //
 
@@ -352,6 +356,8 @@ entity function CreateModelFXOnEnt( entity ent, asset effectName, string attachm
 entity function CreateRegeneratingModelFXOnEnt_ReturnPlaceHelper( entity ent, asset effectName, string attachment, bool attachToEnt, int visibilityFlags, string sound, float firstDelay, float randomWait1, float randomWait2 )
 {
     entity placeHelper = CreateEntity( "info_placement_helper" )
+    file.entIsRegeneratingEffectHelper[ placeHelper ] <- true
+    file.regeneratingEffectHelperIsHidden[ placeHelper ] <- false
     // track placement helper destroy to stop think
     thread RegeneratingModelFXThink( ent, placeHelper, effectName, attachment, attachToEnt, visibilityFlags, sound, firstDelay, randomWait1, randomWait2 )
 
@@ -391,6 +397,13 @@ void function RegeneratingModelFXThink( entity ent, entity placeHelper, asset ef
             continue
         }
 
+        // we may want to hide the effect
+        if ( file.regeneratingEffectHelperIsHidden[ placeHelper ] )
+        {
+            wait RandomFloatRange( randomWait1, randomWait2 )
+            continue
+        }
+
         if ( attachToEnt )
             effect = PlayFXOnEntity( effectName, ent, attachment )
         else
@@ -407,6 +420,18 @@ void function RegeneratingModelFXThink( entity ent, entity placeHelper, asset ef
 
         wait RandomFloatRange( randomWait1, randomWait2 )
     }
+}
+
+void function HideRegeneratingEffect( entity placeHelper )
+{
+    if ( placeHelper in file.entIsRegeneratingEffectHelper )
+        file.regeneratingEffectHelperIsHidden[ placeHelper ] = true
+}
+
+void function ShowRegeneratingEffect( entity placeHelper )
+{
+    if ( placeHelper in file.entIsRegeneratingEffectHelper )
+        file.regeneratingEffectHelperIsHidden[ placeHelper ] = false
 }
 
 void function ServerModelHealthFX_Register( asset modelName, float healthFrac, string attachment, asset effectName, bool attachToEnt = false, bool loopEffect = false, int visibilityFlags = ENTITY_VISIBLE_TO_EVERYONE, float doomedHealthFrac = -1 )
@@ -1382,11 +1407,19 @@ void function ServerModelFXData_RemoveHealthFXOnEntity( entity ent, bool checkHe
         if ( IsValid( effect ) )
             EffectStop( effect )
 
+        #if SERVER_MODEL_FX_DEBUG
+            print( "==========removing effect============" )
+            print( "dataName: " + dataName )
+            print( "healthFrac: " + string( healthFrac ) )
+            print( "attachment: " + attachment )
+            print( "==================================" )
+        #endif
+
         delete file.entOwnedModelHealthFXsFromData[ storingEnt ][ index ]
     }
 }
 
-void function ServerModelFXData_UpdateEntHealthFXVisibility( entity ent, int visibilityFlags = -1, bool scriptedHide, bool resetVisibility = false )
+void function ServerModelFXData_UpdateEntHealthFXVisibility( entity ent, int visibilityFlags = -1, bool scriptedHide = false, bool resetVisibility = false )
 {
     // HACK for titans: use soul entity for storing everything
     entity soul
@@ -1528,7 +1561,7 @@ void function ModelBodyGroupFX_OwnerTracking( entity ent )
         {
             lastTickFullBodyGroup = ent.GetFullBodygroup()
             lastTickModelName = ent.GetModelName()
-            lastTickPhaseShifted.ent.IsPhaseShifted()
+            lastTickPhaseShifted = ent.IsPhaseShifted()
         }
 
         WaitFrame()
@@ -1717,6 +1750,13 @@ void function ServerModelBodyGroupFX_RemoveEffectsOnEntity( entity ent, bool des
                 EffectStop( effect )
         }
 
+        #if SERVER_MODEL_FX_DEBUG
+            print( "==========removing effect============" )
+            print( "bodyGroupName: " + bodyGroupName )
+            print( "stateIndex: " + string( stateIndex ) )
+            print( "==================================" )
+        #endif
+
         delete file.entOwnedModelBodyGroupFXs[ storingEnt ][ index ]
     }
 }
@@ -1743,9 +1783,20 @@ void function ServerModelBodyGroupFX_UpdateEntEffectVisibility( entity ent, int 
             continue
 
         if ( scriptedHide )
-            effect.Hide()
+        {
+            // regenerating effect in this script
+            if ( ownedFXStruct.regenerateEffect )
+                HideRegeneratingEffect( effect )
+            else
+                effect.Hide()
+        }
         else
-            effect.Show()
+        {
+            if ( ownedFXStruct.regenerateEffect )
+                ShowRegeneratingEffect( effect )
+            else
+                effect.Show()
+        }
         
         if ( resetVisibility )
             effect.kv.VisibilityFlags = ownedFXStruct.defaultVisibilityFlags
