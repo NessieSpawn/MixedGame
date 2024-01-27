@@ -100,7 +100,7 @@ void function BecomesGruntMode_Init()
 	MeleeSyncedNPC_AllowNPCTitanExecutions( true )
 	MeleeSyncedNPC_AllowNPCPilotExecutions( true )
 	MeleeSyncedNPC_AllowNPCGruntExecutions( true ) // spectres don't have ttf1 neck snap attacker sequence, they'll try pilot executions, which is bad
-	Melee_SetPlayerClassicExecutionsEnabled( true ) // best execution for grunt players
+	MeleeSyncedHuman_SetPlayerClassicExecutionsEnabled( true ) // best execution for grunt players
 	MeleeSyncedNPC_AllowNPCPilotExecuteOtherNPCs( true ) // pilot models don't have syncedMeleeData initialized, so let them use mp pilot executions
 	*/
 	// rodeo
@@ -309,7 +309,7 @@ void function GruntConfig( entity soldier )
 	thread GruntTitleThink( soldier ) // specialist grunts may spawn from dropship, do a think here
 
 	// now we use specified executions for grunt players & npcs
-	//Melee_SetHumanSizedDoClassicExecution( soldier, true ) // grunts uses classic neck snap
+	//MeleeSyncedHuman_SetHumanSizedDoClassicExecution( soldier, true ) // grunts uses classic neck snap
 	// grunt executions: 
 	Melee_SetExecutionRefsOverride( 
 		soldier, 
