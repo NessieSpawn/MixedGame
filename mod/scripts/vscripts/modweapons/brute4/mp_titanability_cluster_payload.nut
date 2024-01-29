@@ -8,6 +8,9 @@ global function OnWeaponNpcPrimaryAttack_cluster_payload
 
 void function MpTitanAbilityClusterPayload_Init()
 {
+	#if SERVER
+		RegisterWeaponDamageSource( "mp_titanability_cluster_payload", "Cluster Payload" )
+	#endif
 }
 
 var function OnWeaponPrimaryAttack_cluster_payload( entity weapon, WeaponPrimaryAttackParams attackParams )
@@ -85,19 +88,20 @@ void function SwapRocketAmmo( entity weaponOwner, entity offhand, entity weapon 
 	weapon.SetMods( mods )
 
 	offhand.AddMod( "no_regen" )
-	weapon.SetWeaponPrimaryClipCount( 0 )
+	weapon.SetWeaponPrimaryClipCount( 0 ) // try to tell client we're out-of-ammo
 	// no matter weapon reloading or not, we always re-deploy current weapon to make player reload
-	//if ( weapon.IsReloading() )
-	//{
-	// that should only happen on player, npcs don't have such method...
+	// EDIT here: we do re-deploy if weapon is reloading or when we're sprinting
+	// that should only happen on player, npcs don't have such method...( though they seems not able to use this ability )
 	if ( weaponOwner.IsPlayer() )
 	{
-		weapon.AddMod( "fast_deploy" )
-		weaponOwner.HolsterWeapon()
-		weaponOwner.DeployWeapon()
-		weapon.RemoveMod( "fast_deploy" )
+		if ( weapon.IsReloading() || weaponOwner.IsSprinting() )
+		{
+			weapon.AddMod( "fast_deploy" )
+			weaponOwner.HolsterWeapon()
+			weaponOwner.DeployWeapon()
+			weapon.RemoveMod( "fast_deploy" )
+		}
 	}
-	//}
 
 	OnThreadEnd(
 	function() : ( weaponOwner, weapon, offhand )
