@@ -6260,7 +6260,7 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			
 			// temp remove localized string because we want to add their capability of piloting a titan
 			//npc.SetTitle( "#NPC_SPECIALIST" )
-			npc.SetTitle( "特種步兵" )
+			npc.SetTitle( "Specialist Grunt" )
 			npc.SetBehaviorSelector( "behavior_sp_soldier" ) // they'll throw grenade more often
 			// modified signal in _ai_drone.gnut, vanilla won't register it
 			npc.Signal( "ForceStopDroneSpawn" ) // stop it's drone spawn think
@@ -6322,7 +6322,7 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			else
 				npc.SetModel( $"models/humans/grunts/imc_grunt_shotgun.mdl" )
 
-			npc.SetTitle( "菁英護衛" )
+			npc.SetTitle( "Elite Guard" )
 			npc.kv.WeaponProficiency = eWeaponProficiency.PERFECT // they can shoot very nice
 			npc.SetBehaviorSelector( "behavior_sp_soldier" ) // they'll throw grenade more often
 
