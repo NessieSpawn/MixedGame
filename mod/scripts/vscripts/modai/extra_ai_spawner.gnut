@@ -1979,7 +1979,7 @@ void function FakePlayerScoreEventForNPCKilled( entity victim, entity attacker, 
 				UpdateUntimedKillStreaks( attacker )
 
 				// special method of killing dialogues	
-				if( methodOfDeath == damagedef_titan_step )
+				if( DamageInfo_GetDamageSourceIdentifier( damageInfo ) == damagedef_titan_step )
 					PlayFactionDialogueToPlayer( "kc_hitandrun", attacker )
 			}
 		}
@@ -1987,7 +1987,7 @@ void function FakePlayerScoreEventForNPCKilled( entity victim, entity attacker, 
 		// do assist score so players don't complain
 		if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( attacker ) || attacker.IsPlayer() )
 		{
-			if ( killedNPCPilot )
+			if ( killedNPCPilot && !victim.IsTitan() )
 				ScoreEvent_PlayerAssist( victim, attacker, "PilotAssist" ) // do assist score to other players
 		}
 	}
