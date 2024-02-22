@@ -425,8 +425,13 @@ void function HandleDeathPackage( entity ent, var damageInfo )
 			if ( ent.GetClassName() == "npc_turret_sentry" )
 			{
 				PlayFX( TURRET_DEATH_FX, ent.GetOrigin(), ent.GetAngles() )
+				// I mean... this is weird, hey, why do we have to destroy them in this frame? this makes other death callbacks can get nothing!
 				if ( ent.Dev_GetAISettingByKeyField( "turret_explode_on_death" ) == 1 )
-					ent.Destroy()
+				{
+					// rework here: delay 1 frame before actually destroy. disable model effects on that frame
+					//ent.Destroy()
+					thread DelayedDestroyTurret( ent )
+				}
 
 				return
 			}
@@ -602,6 +607,16 @@ void function HumanSizedGibSound( entity ent )
         EmitSoundAtPosition( TEAM_UNASSIGNED, ent.GetOrigin(), "death.pinkmist" )
 }
 
+// fix for turret validation
+void function DelayedDestroyTurret( entity turret )
+{
+	turret.EndSignal( "OnDestroy" )
+	turret.Hide() // temp hide
+	
+	WaitFrame() // wait for other death callbacks go through
+	turret.Destroy()
+}
+
 // extra check for modified death cam!!!!
 // dissolving will delay 2s to hide player, but player may respawn earlier than 2s, making them being hide after respawn!
 void function EnsureDissolveEffectIsClearedForPlayer( entity player )
@@ -667,6 +682,9 @@ void function GibTitan( entity titan, var damageInfo = null )
 		DamageInfo_SetDeathPackage( damageInfo, "instant" )
 
 	local entKVs = titan.CreateTableFromModelKeyValues()
+	// anti-crash for some reason
+	if ( !( "hit_data" in entKVs ) )
+		return
 	local hitData = entKVs["hit_data"]
 
 	foreach ( bodyGroupName, bodyGroupData in hitData )
@@ -759,6 +777,9 @@ void function UndoomTitan_Body( entity titan )
 		return
 
 	local entKVs = titan.CreateTableFromModelKeyValues()
+	// anti-crash for some reason
+	if ( !( "hit_data" in entKVs ) )
+		return
 	local hitData = entKVs["hit_data"]
 
 	foreach ( bodyGroupName, bodyGroupData in hitData )
@@ -789,6 +810,9 @@ void function DoomTitan( entity titan, bool doomInstant = false )
 		return
 
 	local entKVs = titan.CreateTableFromModelKeyValues()
+	// anti-crash for some reason
+	if ( !( "hit_data" in entKVs ) )
+		return
 	local hitData = entKVs["hit_data"]
 
 	// modified parameter: allow skipping random wait, instantly doom titan bodygroups
@@ -884,6 +908,9 @@ void function ExplodeTitanBits( entity titan )
 		return
 
 	local entKVs = titan.CreateTableFromModelKeyValues()
+	// anti-crash for some reason
+	if ( !( "hit_data" in entKVs ) )
+		return
 	local hitData = entKVs["hit_data"]
 
 	foreach ( bodyGroupName, bodyGroupData in hitData )
@@ -935,6 +962,9 @@ int function GetStateCountForBodyGroup( ent, bodyGroupName )
 {
 	local bodyGroupIndex = ent.FindBodyGroup( bodyGroupName )
 	local entKVs = ent.CreateTableFromModelKeyValues()
+	// anti-crash for some reason
+	if ( !( "hit_data" in entKVs ) )
+		return -1
 	local hitData = entKVs["hit_data"]
 
 	int stateCount = expect int( ent.GetBodyGroupModelCount( bodyGroupIndex ) )
@@ -948,7 +978,10 @@ int function GetStateCountForBodyGroup( ent, bodyGroupName )
 function GetTagsForBodyGroup( ent, bodyGroupName )
 {
 	local entKVs = ent.CreateTableFromModelKeyValues()
-
+	// anti-crash for some reason
+	if ( !( "hit_data" in entKVs ) )
+		return
+	
 	local hitData = entKVs["hit_data"]
 
 	local bodyGroupData = hitData[bodyGroupName]
