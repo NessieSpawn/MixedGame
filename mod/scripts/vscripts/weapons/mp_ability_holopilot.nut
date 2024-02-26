@@ -30,6 +30,7 @@ global function CleanupExistingDecoy // globlized for multiple uses
 
 // modified callbacks
 global function AddCallback_OnDecoyCreated // since decoys won't DispatchSpawn(), server can't use AddSpawnCallback()
+global function RunCallbacks_OnDecoyCreated // to be shared with mp_ability_modded_holopilot.gnut
 global function AddCallback_PlayerDecoyDie
 global function AddCallback_PlayerDecoyDissolve
 global function AddCallback_PlayerDecoyRemove
@@ -45,7 +46,7 @@ struct
 	table< entity, int > playerToDecoysActiveTable //Mainly used to track stat for holopilot unlock
 
 	// modified callbacks
-	array< void functionref( entity ) > decoyCreatedCallbacks
+	array< void functionref( entity, entity ) > decoyCreatedCallbacks
 	array< void functionref( entity, int ) > playerDecoyDieCallbacks
 	array< void functionref( entity, int ) > playerDecoyDissolveCallbacks
 	array< void functionref( entity, int ) > playerDecoyRemoveCallbacks
@@ -275,10 +276,11 @@ entity function CreateHoloPilotDecoys( entity player, int numberOfDecoysToMake =
 		#if MP
 			thread MonitorDecoyActiveForPlayer( decoy, player )
 		#endif
-
+		
 		// modified callbacks
-		foreach ( void functionref( entity ) callbackFunc in file.decoyCreatedCallbacks )
-			callbackFunc( decoy )
+		//foreach ( callbackFunc in file.decoyCreatedCallbacks )
+		//	callbackFunc( player, decoy )
+		RunCallbacks_OnDecoyCreated( player, decoy )
 	}
 
 	#if BATTLECHATTER_ENABLED
@@ -290,6 +292,10 @@ entity function CreateHoloPilotDecoys( entity player, int numberOfDecoysToMake =
 
 void function SetupDecoy_Common( entity player, entity decoy ) //functioned out mainly so holopilot execution can call this as well
 {
+	// modified: enable damage callbacks for decoy
+	// this might break vanilla behavior at some case( scorch thermite damage stuffs? ), but whatever
+	decoy.SetDamageNotifications( true )
+
 	decoy.SetDeathNotifications( true )
 	decoy.SetPassThroughThickness( 0 )
 	decoy.SetNameVisibleToOwner( true )
@@ -474,9 +480,15 @@ bool function PlayerCanUseDecoy( entity weapon ) //For holopilot and HoloPilot N
 
 // modified callbacks
 #if SERVER
-void function AddCallback_OnDecoyCreated( void functionref( entity ) callbackFunc )
+void function AddCallback_OnDecoyCreated( void functionref( entity, entity ) callbackFunc )
 {
 	file.decoyCreatedCallbacks.append( callbackFunc )
+}
+
+void function RunCallbacks_OnDecoyCreated( entity player, entity decoy )
+{
+	foreach ( callbackFunc in file.decoyCreatedCallbacks )
+		callbackFunc( player, decoy )
 }
 
 void function AddCallback_PlayerDecoyDie( void functionref( entity, int ) callbackFunc )
