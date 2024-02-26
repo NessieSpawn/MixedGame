@@ -733,11 +733,14 @@ void function Laser_DamagedTargetInternal( entity target, var damageInfo )
 
 	// HACK fix here: if our npc is using fake laser core
 	// they still fire from their back for about 1 tick, which shouldn't deal any damage
+	// removed from this branch
+	/*
 	if ( IsValid( attacker ) && attacker.IsNPC() && NPCInValidFakeLaserCoreState( attacker, true ) )
 	{
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
+	*/
 	//
 
 	if ( IsValid( weapon ) )
