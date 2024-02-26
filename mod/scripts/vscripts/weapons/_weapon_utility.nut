@@ -4163,14 +4163,18 @@ void function Thermite_DamagePlayerOrNPCSounds( entity ent )
 {
 	// sound shouldn't play on projectile...
 	// grenades are projectiles that can take damage
+	// EDIT: seems no need to fix this. scorch thermite movers also play self-damage sound
+	/*
 	if ( ent.IsProjectile() )
 	{
 		if ( ent.proj.onlyAllowSmartPistolDamage )
 			return
 	}
+	*/
 	//
 
 	// fix for thermite sound, prevent too many sounds playing together
+	// maybe no need to fix...? sound itself has a internal cooldown
 	if ( !( ent in file.entNextThermiteSoundAllowedTime ) )
 		file.entNextThermiteSoundAllowedTime[ ent ] <- 0.0
 
@@ -4208,6 +4212,7 @@ void function Thermite_DamagePlayerOrNPCSounds( entity ent )
 
 	// fix for thermite sound
 	// add random interval for next sound. this sound can't stack but too many sound caused by scorch thermite will make other sounds complain
+	// maybe no need to fix...? sound itself has a internal cooldown
 	file.entNextThermiteSoundAllowedTime[ ent ] = Time() + RandomFloatRange( 0.30, 0.40 )
 	//
 }

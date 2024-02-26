@@ -574,15 +574,18 @@ void function FakeExecutionLaserCannonThink( entity owner, entity weapon )
 	}
 }
 
-bool function NPCInValidFakeLaserCoreState( entity npc )
+bool function NPCInValidFakeLaserCoreState( entity npc, bool skipUsageCheck = false )
 {
-	if ( npc in file.entUsingFakeLaserCore ) // don't run this instance multiple times
-		return false
+	if ( !skipUsageCheck )
+	{
+		if ( npc in file.entUsingFakeLaserCore ) // don't run this instance multiple times
+			return false
+	}
 	
 	// HACK: npc sometimes call OnAbilityStart_LaserCannon() right after animation starts
 	// don't want that weird behavior to happen, use timer for handling
 	// { event AE_OFFHAND_BEGIN 118 "mp_titancore_laser_cannon" }( fps 30 )
-	const float animEventTime = ( 118.0 / 30 ) - 0.5 // minus 0.5s to avoid we get bad float value
+	const float animEventTime = ( 118.0 / 30.0 ) - 0.5 // minus 0.5s to avoid we get bad float value
 
 	// function from modified _melee_synced_titan.gnut
 	if ( MeleeSyncedTitan_GetTitanExecutionStartTime( npc ) == -1 ) // invalid timer!
@@ -727,6 +730,15 @@ void function Laser_DamagedTargetInternal( entity target, var damageInfo )
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
+
+	// HACK fix here: if our npc is using fake laser core
+	// they still fire from their back for about 1 tick, which shouldn't deal any damage
+	if ( IsValid( attacker ) && attacker.IsNPC() && NPCInValidFakeLaserCoreState( attacker, true ) )
+	{
+		DamageInfo_SetDamage( damageInfo, 0 )
+		return
+	}
+	//
 
 	if ( IsValid( weapon ) )
 	{
