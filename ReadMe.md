@@ -1,8 +1,6 @@
-**Archive Note**
+**Branch Note**
 
-Archive is only for myself, feel free to fork/use this repo. Hope it could help you in any means
-
-For those scripts from other repo/mods, please ask for permission from their original owner before re-release
+This branch is for installing on client-side, with it you can join servers with Super.Mixed.Game installed and won't impact normal game behavior. After installing it you'll be unable to use private match, and it may conflict with many other client-side script mods
 
 **This repository contains contents from:**
 
@@ -25,5 +23,3 @@ https://northstar.thunderstore.io/package/Palomar/PhaseShift_Rework/
 https://github.com/uniboi/HoloSprays
 
 I made them compatible with my own scripts! Thanks to their support!
-
-spawn_mod.nut is from [cat_or_not](https://github.com/catornot), with some modifications by [Ghroth-follower](https://github.com/Ghroth-follower)
