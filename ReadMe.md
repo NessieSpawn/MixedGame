@@ -1,6 +1,8 @@
 **Branch Note**
 
-This branch is for installing on client-side, with it you can join servers with Super.Mixed.Game installed and won't impact normal game behavior. After installing it you'll be unable to use private match, and it may conflict with many other client-side script mods
+This branch is for installing on client-side, with it you can join servers with Super.Mixed.Game installed and won't impact normal game behavior
+
+After installing this, you'll be unable to use private match, and it may conflict with many other client-side script mods
 
 **This repository contains contents from:**
 
