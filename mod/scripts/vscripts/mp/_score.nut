@@ -123,38 +123,14 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 	// pointValueOverride takes no effect in tf2, but _codecallbacks.gnut uses it... sucks
 	if ( pointValueOverride != -1 )
 		event.pointValue = pointValueOverride
-	
-	// settings override
-	bool hasEarnValueOverride = false
-	EarnValueOverride overrideStruct
-	if ( IsValid( earnValueOverrideEnt ) && ( earnValueOverrideEnt in file.entScoreEventValueOverride ) && ( scoreEventName in file.entScoreEventValueOverride[ earnValueOverrideEnt ] ) )
-	{
-		overrideStruct = file.entScoreEventValueOverride[ earnValueOverrideEnt ][ scoreEventName ]
-		hasEarnValueOverride = true
-	}
-
-	float coreMeterScalar = event.coreMeterScalar
-	// settings override
-	if ( hasEarnValueOverride )
-		coreMeterScalar = overrideStruct.coreMeterScalar
 
 	float earnScale = targetPlayer.IsTitan() ? 0.0 : 1.0 // titan shouldn't get any earn value
 	float ownScale = targetPlayer.IsTitan() ? event.coreMeterScalar : 1.0
 	
-	float earnValue = event.earnMeterEarnValue 
-	float ownValue = event.earnMeterOwnValue 
-	// settings override
-	if ( hasEarnValueOverride )
-	{
-		earnValue = overrideStruct.earnMeterEarnValue
-		ownValue = overrideStruct.earnMeterOwnValue 
-	}
-	earnValue *= earnScale
-	ownValue *= ownScale
+	float earnValue = event.earnMeterEarnValue * earnScale
+	float ownValue = event.earnMeterOwnValue * ownScale
 
 	// score event value override
-	if ( hasEarnValueOverride )
-		earnMeterScalar = overrideStruct.earnMeterScalar
 	earnValue *= earnMeterScalar
 	ownValue *= earnMeterScalar
 
@@ -471,13 +447,13 @@ void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageIn
 	try
 	{
 		// to prevent crash happen when killing a modified npc target
-		AddPlayerScore( attacker, ScoreEventForNPCKilled( victim, damageInfo ), victim, null, -1, 1.0, victim )
+		AddPlayerScore( attacker, ScoreEventForNPCKilled( victim, damageInfo ), victim, null, -1, 1.0 )
 	}
 	catch(ex) {}
 
 	// headshot
 	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
-		AddPlayerScore( attacker, "Headshot", victim, null, -1, 0.0, victim ) // no extra value earn from npc headshots
+		AddPlayerScore( attacker, "Headshot", victim, null, -1, 0.0 ) // no extra value earn from npc headshots
 
 	// npc&player mixed killsteaks
 	UpdateMixedTimedKillStreaks( attacker )
