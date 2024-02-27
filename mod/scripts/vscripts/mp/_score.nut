@@ -107,9 +107,9 @@ void function InitPlayerForScoreEvents( entity player )
 // idk why forth arg is a string, maybe it should be a var type?
 // pointValueOverride takes no effect in tf2, but _codecallbacks.gnut uses it... sucks
 //void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity associatedEnt = null, string noideawhatthisis = "", int pointValueOverride = -1 )
-void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity associatedEnt = null, var displayTypeOverride = null, int pointValueOverride = -1, float earnmeterScale = 1.0 )
+void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity associatedEnt = null, var displayTypeOverride = null, int pointValueOverride = -1, float earnMeterScalar = 1.0 )
 {
-	// never directly modify a struct...
+	// never directly modify a struct... use a clone!
 	//ScoreEvent event = GetScoreEvent( scoreEventName )
 	ScoreEvent event = clone GetScoreEvent( scoreEventName )
 	
@@ -117,22 +117,46 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 		return
 
 	var associatedHandle = 0
-	if ( associatedEnt != null )
+	if ( IsValid( associatedEnt ) )
 		associatedHandle = associatedEnt.GetEncodedEHandle()
 	
 	// pointValueOverride takes no effect in tf2, but _codecallbacks.gnut uses it... sucks
 	if ( pointValueOverride != -1 )
 		event.pointValue = pointValueOverride
 	
+	// settings override
+	bool hasEarnValueOverride = false
+	EarnValueOverride overrideStruct
+	if ( IsValid( earnValueOverrideEnt ) && ( earnValueOverrideEnt in file.entScoreEventValueOverride ) && ( scoreEventName in file.entScoreEventValueOverride[ earnValueOverrideEnt ] ) )
+	{
+		overrideStruct = file.entScoreEventValueOverride[ earnValueOverrideEnt ][ scoreEventName ]
+		hasEarnValueOverride = true
+	}
+
+	float coreMeterScalar = event.coreMeterScalar
+	// settings override
+	if ( hasEarnValueOverride )
+		coreMeterScalar = overrideStruct.coreMeterScalar
+
 	float earnScale = targetPlayer.IsTitan() ? 0.0 : 1.0 // titan shouldn't get any earn value
 	float ownScale = targetPlayer.IsTitan() ? event.coreMeterScalar : 1.0
 	
-	float earnValue = event.earnMeterEarnValue * earnScale
-	float ownValue = event.earnMeterOwnValue * ownScale
+	float earnValue = event.earnMeterEarnValue 
+	float ownValue = event.earnMeterOwnValue 
+	// settings override
+	if ( hasEarnValueOverride )
+	{
+		earnValue = overrideStruct.earnMeterEarnValue
+		ownValue = overrideStruct.earnMeterOwnValue 
+	}
+	earnValue *= earnScale
+	ownValue *= ownScale
 
-	// fix score event value override
-	earnValue *= earnmeterScale
-	ownValue *= earnmeterScale
+	// score event value override
+	if ( hasEarnValueOverride )
+		earnMeterScalar = overrideStruct.earnMeterScalar
+	earnValue *= earnMeterScalar
+	ownValue *= earnMeterScalar
 
 	// debug
 	//print( "not calculated earnValue: " + string( earnValue ) )
@@ -377,35 +401,11 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	if ( !attacker.IsPlayer() )
 		return
 
-	// modified for npc pilot embarked titan
-#if NPC_TITAN_PILOT_PROTOTYPE
-	entity owner = victim.GetOwner()
-	bool hasNPCPilot = TitanHasNpcPilot( victim )
-	bool isEjecting = true // npc pilot ejecting meaning their titan already died. default to be true
-	if ( IsValid( victim.GetTitanSoul() ) )
-		isEjecting = victim.GetTitanSoul().IsEjecting()
-	// debug
-	//print( "hasNPCPilot: " + string( hasNPCPilot ) )
-	//print( "isEjecting: " + string( isEjecting ) )
-#endif
-
 	string scoreEvent = "KillTitan"
 	if ( attacker.IsTitan() )
 		scoreEvent = "TitanKillTitan"
 	else if( victim.IsNPC() ) // vanilla still use KillAutoTitan even if the titan is pet titan... pretty weird
-	{
 		scoreEvent = "KillAutoTitan"
-
-		// modified for npc pilot embarked titan
-#if NPC_TITAN_PILOT_PROTOTYPE
-		if ( hasNPCPilot && !isEjecting )
-		{
-			scoreEvent = "KillTitan"
-			if ( attacker.IsTitan() )
-				scoreEvent = "TitanKillTitan"
-		}
-#endif
-	}
 	// debug
 	//print( "scoreEvent: " + scoreEvent )
 
@@ -413,14 +413,7 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	{
 		scoreEvent = "EliminateTitan"
 		if( victim.IsNPC() )
-		{
 			scoreEvent = "EliminateAutoTitan"
-			// modified for npc pilot embarked titan
-#if NPC_TITAN_PILOT_PROTOTYPE
-			if ( hasNPCPilot )
-				scoreEvent = "EliminateTitan"
-#endif
-		}
 	}
 
 	bool isPlayerTitan = IsValid( victim.GetBossPlayer() ) || victim.IsPlayer()
@@ -429,14 +422,7 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	else
 		AddPlayerScore( attacker, scoreEvent ) // no callsign event
 
-	bool playTitanKilledDiag = isPlayerTitan
-	// modified for npc pilot embarked titan
-#if NPC_TITAN_PILOT_PROTOTYPE
-	bool isNPCPilotPet = TitanIsNpcPilotPetTitan( victim )
-	playTitanKilledDiag = isPlayerTitan || hasNPCPilot || isNPCPilotPet
-#endif
-
-	if ( playTitanKilledDiag )
+	if ( isPlayerTitan )
 		KilledPlayerTitanDialogue( attacker, victim )
 
 	// npc&player mixed killsteaks
@@ -451,6 +437,8 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 	//}
 
 	// titan damage history stores in titanSoul, but if they killed by termination it's gonna transfer to victim themselves
+	// seems no need to specify such a check... souls will still retain their damage history
+	/*
 	bool killedByTermination = DamageInfo_GetDamageSourceIdentifier( damageInfo ) == eDamageSourceId.titan_execution
 	entity damageHistorySaver = killedByTermination ? victim : victim.GetTitanSoul()
 	if ( IsValid( damageHistorySaver ) )
@@ -459,6 +447,13 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 		//print( "damageHistorySaver valid! " + string( damageHistorySaver ) )
 		// wrap into this function
 		ScoreEvent_PlayerAssist( damageHistorySaver, attacker, "TitanAssist" )
+	}
+	*/
+	entity titanSoul = victim.GetTitanSoul()
+	if ( IsValid( titanSoul ) )
+	{
+		// wrap into this function
+		ScoreEvent_PlayerAssist( titanSoul, attacker, "TitanAssist" )
 	}
 }
 
@@ -476,13 +471,13 @@ void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageIn
 	try
 	{
 		// to prevent crash happen when killing a modified npc target
-		AddPlayerScore( attacker, ScoreEventForNPCKilled( victim, damageInfo ), victim )
+		AddPlayerScore( attacker, ScoreEventForNPCKilled( victim, damageInfo ), victim, null, -1, 1.0, victim )
 	}
 	catch(ex) {}
 
 	// headshot
 	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
-		AddPlayerScore( attacker, "Headshot", victim, null, -1, 0.0 ) // no extra value earn from npc headshots
+		AddPlayerScore( attacker, "Headshot", victim, null, -1, 0.0, victim ) // no extra value earn from npc headshots
 
 	// npc&player mixed killsteaks
 	UpdateMixedTimedKillStreaks( attacker )
@@ -576,7 +571,7 @@ void function ScoreEvent_SetupEarnMeterValuesForMixedModes() // mixed modes in t
 	ScoreEvent_SetEarnMeterValues( "KillHackedSpectre", 0.03, 0.020001, 0.5 )
 	ScoreEvent_SetEarnMeterValues( "KillStalker", 0.03, 0.020001, 0.5 )
 	ScoreEvent_SetEarnMeterValues( "KillSuperSpectre", 0.10, 0.10, 0.5 )
-	ScoreEvent_SetEarnMeterValues( "KillLightTurret", 0.05, 0.05 )
+	ScoreEvent_SetEarnMeterValues( "KillLightTurret", 0.05, 0.050001 )
 
 
 	// display type
@@ -675,7 +670,10 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 			continue
 		// checks for self damage
 		if ( attackerInfo.attacker == victim )
-			return
+			continue
+		// checks for blank damage( scorch thermite, pilot non-critical-hit titan or smoke healing stuffs )
+		if ( attackerInfo.damage <= 0 )
+			continue
 		// checks for player owned entities( such as titan, spectre or soul )
 		// owner checks has been removed because it only handles visibility stuffs, not related with ownership
 		//if ( attackerInfo.attacker == victim.GetOwner() || attackerInfo.attacker == victim.GetBossPlayer() )
