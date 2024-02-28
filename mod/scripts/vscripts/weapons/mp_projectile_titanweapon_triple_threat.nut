@@ -10,6 +10,9 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 	if( !IsValid( hitEnt ) )
 		return
 
+	if( "impactFuse" in projectile.s && projectile.s.impactFuse == true )
+		projectile.GrenadeExplode( Vector( 0,0,0 ) )
+	
 	if( hitEnt.GetClassName() == "player" && !hitEnt.IsTitan() )
 		return
 
@@ -44,6 +47,23 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 			projectile.GrenadeExplode( normal )
 		}
 	}
+	else if( "becomeProxMine" in projectile.s && projectile.s.becomeProxMine == true )
+	{
+		table collisionParams =
+		{
+			pos = pos,
+			normal = normal,
+			hitEnt = hitEnt,
+			hitbox = hitbox
+		}
+
+		PlantStickyEntity( projectile, collisionParams )
+		projectile.s.collisionNormal <- normal
+		#if SERVER
+			thread TripleThreatProximityTrigger( projectile )
+		#endif
+	}
+
 }
 
 #if SERVER
@@ -65,7 +85,7 @@ function TripleThreatProximityTrigger( entity nade )
 		local origin = nade.GetOrigin()
 		int team = nade.GetTeam()
 
-		local entityArray = GetScriptManagedEntArrayWithinCenter( level._proximityTargetArrayID, team, origin, rangeCheck )
+		local entityArray = GetScriptManagedEntArrayWithinCenter( level._proximityTargetArrayID, team, origin, PROX_MINE_RANGE )
 		foreach( entity ent in entityArray )
 		{
 			if ( TRIPLETHREAT_MINE_FIELD_TITAN_ONLY )
