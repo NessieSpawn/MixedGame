@@ -4,7 +4,7 @@ untyped // to use ent.s and untyped variables
 // needs to replace all GetShieldHealth(), SetShieldHealth(), GetShieldHealthMax() and SetShieldHealthMax() function with functions in this file
 
 // IMPORTANT CONST! should adjust value based on different branch
-const bool CLIENT_HAS_FIXED_SHIELD_CRASH = true // for NSCN, client-side shield crash has already been fixed, safe to use vanilla shield behavior
+const bool CLIENT_HAS_FIXED_SHIELD_CRASH = false // for NS, we need to use server-side shield effect to fix everything
 
 global function Nessie_Shield_Crash_Fix_Init
 
