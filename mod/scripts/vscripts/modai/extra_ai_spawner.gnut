@@ -1253,8 +1253,21 @@ void function ShiftedNPCDamageHandle( entity victim, var damageInfo )
 	{
 		if ( attacker.IsPhaseShifted() )
 		{
-			// npc melee damage isn't intented to fire during phase shift
+			// npc melee damage isn't intented to deal damage during phase shift
 			if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE )
+				DamageInfo_SetDamage( damageInfo, 0 )
+
+			// projectile/hitscan damage checks
+			// GetEntPhaseShiftStartTime() is a modified function in sh_phase_shift.gnut
+			// not really stable though, needs testing... should work fine on ronin titans?
+			entity inflictor = DamageInfo_GetInflictor( damageInfo )
+			if ( inflictor.IsProjectile() )
+			{
+				// if projectile is created AFTER attacker starts phase shift, we blank out the damage
+				if ( GetEntPhaseShiftStartTime( attacker ) < inflictor.GetProjectileCreationTime() )
+					DamageInfo_SetDamage( damageInfo, 0 )
+			}
+			else // should be hitscan damage, just remove
 				DamageInfo_SetDamage( damageInfo, 0 )
 		}
 	}
@@ -8437,7 +8450,7 @@ void function NPCPilotHoloPilotThink( entity pilot, entity abilityWeapon )
 
 			// project hologram
 			//vector velocity = GetNPCVelocity( pilot )
-			vector ornull velocity = null
+			vector ornull velocity = null // guess we'd better use default velocity...
 			vector ornull destOrigin = null
 			entity enemy = pilot.GetEnemy()
 			if ( IsAlive( enemy ) )
@@ -8875,8 +8888,7 @@ void function NPCPilotActivatesPhaseShift( entity pilot, entity weapon )
 	AddEntityCallback_OnFinalDamaged( pilot, OnPhaseShiftNPCPilotDamaged )
 	table<string, bool> cleanUpTable
 	cleanUpTable["removeFinalDamageCallback"] <- false
-	cleanUpTable["restoreAttackCapability"] <- false
-	//cleanUpTable["restoreAttackCapability"] <- true // default is we're not disabling attack capability, no need to restore in OnThreadEnd()
+	cleanUpTable["restoreAttackCapability"] <- true // default is we're not disabling attack capability, that happens after signal is sent
 
 	OnThreadEnd
 	(
@@ -8900,6 +8912,18 @@ void function NPCPilotActivatesPhaseShift( entity pilot, entity weapon )
 	)
 
 	var results = pilot.WaitSignal( "PilotWantsToPhase" ) // wait for damage callback to signal stuff
+	
+	// vanilla missing npc behavior: needs to clear humansized npc enemy on phase
+	// and they're still able to attack, needs to clear their attack capability
+	if ( IsValid( pilot.GetEnemy() ) )
+		pilot.ClearEnemy()
+	pilot.ClearAllEnemyMemory()
+	// disabling gun fire may make them suffer weird animations
+	// now we remove their damage in ShiftedNPCDamageHandle()
+	// re-adding this. weird animation is caused by NPCMF_PREFER_SPRINT, we need this to stop their weapon burst!
+	DisableNPCAttackCapability( pilot, true, true ) // disable both melee and ranged attack
+	cleanUpTable["restoreAttackCapability"] = false // mark as we need to clean up stuffs
+
 	if ( !NPC_PILOT_PHASE_BLOCKS_LAST_DAMAGE )
 		WaitEndFrame() // wait for current damage to go through!
 
@@ -8913,16 +8937,6 @@ void function NPCPilotActivatesPhaseShift( entity pilot, entity weapon )
 	
 	float duration = weapon.GetWeaponSettingFloat( eWeaponVar.fire_duration ) * NPC_PILOT_PHASE_USE_TIME_EXTENTION
 	PhaseShift( pilot, 0.0, duration )
-	// vanilla missing npc behavior: needs to clear humansized npc enemy on phase
-	// and they're still able to attack, needs to clear their attack capability
-	if ( IsValid( pilot.GetEnemy() ) )
-		pilot.ClearEnemy()
-	pilot.ClearAllEnemyMemory()
-	// disabling gun fire may make them suffer weird animations
-	// now we remove their damage in ShiftedNPCDamageHandle()
-	// re-adding this. weird animation is caused by NPCMF_PREFER_SPRINT, we need this to stop their weapon burst!
-	DisableNPCAttackCapability( pilot, true, true ) // disable both melee and ranged attack
-	cleanUpTable["restoreAttackCapability"] = false // mark as we need to clean up stuffs
 
 	// npc pilots can't use shift well, give them some speed boost to get out of danger
 	float effectSeverity = NPC_PILOT_PHASE_SPEED_BOOST_SEVERITY_MIN + ( ( 1.0 - healthFracLeft ) * ( NPC_PILOT_PHASE_SPEED_BOOST_SEVERITY_MAX - NPC_PILOT_PHASE_SPEED_BOOST_SEVERITY_MIN ) )
@@ -8934,7 +8948,7 @@ void function NPCPilotActivatesPhaseShift( entity pilot, entity weapon )
 	RemoveEntityCallback_OnFinalDamaged( pilot, OnPhaseShiftNPCPilotDamaged )
 	cleanUpTable["removeFinalDamageCallback"] = true
 	RestoreNPCAttackCapability( pilot )
-	cleanUpTable["restoreAttackCapability"] = true
+	cleanUpTable["restoreAttackCapability"] = true // mark as we already cleaned up everything, no need to do again in OnThreadEnd
 }
 
 // phase out of danger when:
