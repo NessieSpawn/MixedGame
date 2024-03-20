@@ -361,7 +361,7 @@
 		// northstar missing weapon scripts
 		{
 			"Path": "/modweapons/northstar_miss/mp_weapon_shotgun_doublebarrel_fixed.gnut",
-			"RunOn": "CLIENT",
+			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
                 "After": "MpWeaponShotgunDoubleBarrelTFO_Init"
             },
