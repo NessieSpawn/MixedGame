@@ -364,6 +364,9 @@
 			"RunOn": "CLIENT",
 			"ClientCallback": {
                 "After": "MpWeaponShotgunDoubleBarrelTFO_Init"
+            },
+			"ServerCallback": {
+                "After": "MpWeaponShotgunDoubleBarrelTFO_Init"
             }
 		},
 		// northstar missing weapon scripts end
