@@ -14,6 +14,7 @@ void function MpWeaponShotgunDoubleBarrelTFO_Init()
 
 var function OnWeaponPrimaryAttack_weapon_shotgun_doublebarrel_tfo( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+    //print( "RUNNING OnWeaponPrimaryAttack_weapon_shotgun_doublebarrel_tfo()" )
     return OnWeaponPrimaryAttack_weapon_shotgun( weapon, attackParams )
 }
 
