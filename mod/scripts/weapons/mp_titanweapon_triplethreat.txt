@@ -523,11 +523,14 @@ WeaponData
 			//"explosion_damage"								"*1.5"		// 150
 			//"explosion_damage_heavy_armor"					"*1.5"		// 150
 			"is_burn_mod"		"1"
-
 		}
 
 
 		// modded weapon mods starts here
+		disable_default_magnetic // recover tf|1 behavior: disable magnetic by default, re-enabled with burn mod. may cause issue with client-side prediction at close range!
+		{
+		}
+
 		fake_magnetic_triplethreat // done in script: less magnetic range through script handle
 		{
 		}
@@ -535,19 +538,37 @@ WeaponData
 		// ogre
 		ogre_triplethreat // use together with fake_magnetic_triplethreat
 		{
-			//"fire_rate"   									"--0.2"
-			//"explosion_damage"								"*0.9"
-			//"explosion_damage_heavy_armor"					"*0.9"
+			"fire_rate"   									"--0.2"
+			"explosion_damage"								"*0.9"
+			"explosion_damage_heavy_armor"					"*0.9"
+			
+			"npc_explosion_damage"							"*0.9"
+			"npc_explosion_damage_heavy_armor"				"*0.9"
+		}
+
+		ogre_triplethreat_no_magnetic // use together with disable_default_magnetic
+		{
+			// no stats penalty, no magnetic effect
 		}
 
 		// fake bt
-		fakebt_balance // use together with fake_magnetic_triplethreat
+		fakebt_balance // use together with fake_magnetic_triplethreat( now changing to use disable_default_magnetic )
 		{
-			"fire_rate"   									"--0.1"
-			"explosion_damage"								"*0.9" // 135
-			"explosion_damage_heavy_armor"					"*0.9" // 495
+			"fire_rate"   									"--0.3"
+			"explosion_damage"								"*0.8"
+			"explosion_damage_heavy_armor"					"*0.8"
 
-			// modified: hopefully this fixes npc firing weapon
+			"npc_explosion_damage"							"*0.8"
+			"npc_explosion_damage_heavy_armor"				"*0.8"
+		}
+
+		fakebt_balance_no_magnetic // use together with disable_default_magnetic
+		{
+			// less stats penalty, no magnetic effect
+			"fire_rate"   									"--0.2"
+			"explosion_damage"								"*0.9"
+			"explosion_damage_heavy_armor"					"*0.9"
+
 			"npc_explosion_damage"							"*0.9"
 			"npc_explosion_damage_heavy_armor"				"*0.9"
 		}
