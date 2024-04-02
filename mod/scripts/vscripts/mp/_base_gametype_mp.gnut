@@ -403,8 +403,7 @@ void function CodeCallback_OnPlayerRespawned( entity player )
 	// done cleanup, below are setups
 	player.Signal( "OnRespawned" ) // kill any postdeaththreads that could be running
 	
-	//SetHumanRagdollImpactTable( player )
-	SetPilotRagdollImpactTable( player ) // this function is modified in _utility.gnut and just for fun
+	SetHumanRagdollImpactTable( player )
 
 	// give loadout
 	Loadouts_TryGivePilotLoadout( player )
