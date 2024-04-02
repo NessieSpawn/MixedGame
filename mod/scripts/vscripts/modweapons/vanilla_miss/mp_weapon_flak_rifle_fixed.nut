@@ -32,6 +32,10 @@ void function MpWeaponFlakRifle_Init()
 	// retain damage mod on refired by vortex
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_vinson", "flak_rifle" )
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_vinson", "flak_cannon" )
+
+	// keep mod data on refired by vortex
+	Vortex_AddProjectileModToKeepDataOnRefire( "flak_rifle" )
+	Vortex_AddProjectileModToKeepDataOnRefire( "flak_cannon" )
 #endif
 	*/
 }
