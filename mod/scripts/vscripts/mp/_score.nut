@@ -204,7 +204,17 @@ void function AddPlayerScore( entity targetPlayer, string scoreEventName, entity
 	}
 	
 	if ( ScoreEvent_HasConversation( event ) )
-		PlayFactionDialogueToPlayer( event.conversation, targetPlayer )
+	{
+		// change to use wrapped function for get settings
+		//PlayFactionDialogueToPlayer( event.conversation, targetPlayer )
+		// by default, earnValueOverrideEnt will be our victim. but if that isn't valid, try using associatedEnt if it's not player themselves
+		entity victimEnt
+		if ( IsValid( earnValueOverrideEnt ) )
+			victimEnt = earnValueOverrideEnt
+		else if ( associatedEnt != targetPlayer )
+			victimEnt = associatedEnt
+		ScoreEvent_PlayFactionDialogueToPlayer( event.conversation, targetPlayer, victimEnt )
+	}
 		
 	HandleXPGainForScoreEvent( targetPlayer, event )
 }
@@ -599,7 +609,9 @@ void function KilledPlayerTitanDialogue( entity attacker, entity victim )
 	if ( CoinFlip() && titanCharacterName in file.killedTitanDialogues ) // 50% chance to play titan specific dialogue
 		dialogue = file.killedTitanDialogues[ titanCharacterName ]
 
-	PlayFactionDialogueToPlayer( dialogue, attacker )
+	// we allow disable dialogue when killing certain entity, use wrapped function
+	//PlayFactionDialogueToPlayer( dialogue, attacker )
+	ScoreEvent_PlayFactionDialogueToPlayer( dialogue, attacker, titan )
 }
 
 // nessie fix
