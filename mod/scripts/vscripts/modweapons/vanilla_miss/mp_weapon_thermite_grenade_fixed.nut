@@ -33,6 +33,9 @@ void function MpWeaponThermiteGrenade_Init()
 
     // retain damage mod on refired by vortex
 	Vortex_AddWeaponModRetainedOnRefire( "mp_weapon_thermite_grenade", "thermite_grenade_dot" )
+
+    // keep mod data on refired by vortex
+	Vortex_AddProjectileModToKeepDataOnRefire( "thermite_grenade_dot" )
 #endif
     */
 }
