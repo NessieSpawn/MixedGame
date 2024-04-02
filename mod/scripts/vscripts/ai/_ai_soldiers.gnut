@@ -239,9 +239,6 @@ void function TryFriendlyPassingNearby( entity grunt )
 			if ( TryFriendlyCallout( grunt, "pilot", "bc_reactFriendlyPilot" , 500 ) )
 				continue
 		}
-		// modified for npc pilots, this ignores file.pilotEngageChatter checks
-		if ( TryFriendlyCallout( grunt, "npc_pilot_elite", "bc_reactFriendlyPilot" , 500 ) )
-			continue
 		if ( TryFriendlyCallout( grunt, "titan", "bc_reactTitanfallFriendlyArrives" , 500 ) )
 			continue
 		if ( TryFriendlyCallout( grunt, "npc_super_spectre", "bc_reactReaperFriendlyArrives" , 500 ) )
@@ -423,8 +420,6 @@ void function TrySpottedCallout( entity guy, entity enemy )
 		// this can't handle the case we're using holopilot on titans, but that should be fine( titan's don't have enough activities for decoy to use, though that's due to respawn assigned grunt's side movement activity to player's decoy )
 		shouldDoPilotCallout = enemy.IsPlayer() || enemy.IsPlayerDecoy()
 	}
-	if ( enemy.GetClassName() == "npc_pilot_elite" ) // HACK for npc pilots
-		shouldDoPilotCallout = true
 
 	if ( enemy.IsTitan() )
 	{
