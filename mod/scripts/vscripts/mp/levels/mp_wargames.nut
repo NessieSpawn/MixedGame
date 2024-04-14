@@ -373,12 +373,16 @@ void function PlayerWatchesWargamesIntro( entity player )
 			RemoveCinematicFlag( player, CE_FLAG_CLASSIC_MP_SPAWNING )
 			player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
 			ClearPlayerAnimViewEntity( player )
-			player.EnableWeaponViewModel()
+			//player.EnableWeaponViewModel()
+			DeployViewModel( player )
 			DeployAndEnableWeapons(player)
 			player.ClearParent()
 			player.UnforceStand()
 			player.MovementEnable()
 			player.ClearInvulnerable()
+			if ( !IsAlive( player ) )
+				player.Anim_Stop()
+			
 			Remote_CallFunction_NonReplay( player, "ServerCallback_ClearFactionLeaderIntro" )
 		}
 	})
@@ -417,7 +421,8 @@ void function PlayerWatchesWargamesIntro( entity player )
 	
 	AddCinematicFlag( player, CE_FLAG_CLASSIC_MP_SPAWNING )
 	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_OWNER
-	player.DisableWeaponViewModel()
+	//player.DisableWeaponViewModel()
+	HolsterViewModel( player )
 	HolsterAndDisableWeapons(player)
 	player.MovementDisable()
 	player.SetInvulnerable()
