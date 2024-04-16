@@ -61,13 +61,18 @@ var function OnWeaponPrimaryAttack_titanweapon_laser_lite( entity weapon, Weapon
 	// misc fix version here: make it failed to fire if no enough energy
 	if ( bool( GetCurrentPlaylistVarInt( "laser_lite_fix", 0 ) ) || weapon.HasMod( "laser_lite_fix" ) )
 	{
-		if ( !CanUseLaserLite( weapon ) )
+		entity weaponOwner = weapon.GetWeaponOwner()
+		// does not affect using during execution!
+		if ( !weaponOwner.Anim_IsActive() )
 		{
-			#if CLIENT
-				// manual dryfire event
-				EmitSoundOnEntityOnlyToPlayer( weapon, weapon.GetWeaponOwner(), string( weapon.GetWeaponInfoFileKeyField( "sound_dryfire" ) ) )
-			#endif
-			return 0
+			if ( !CanUseLaserLite( weapon ) )
+			{
+				#if CLIENT
+					// manual dryfire event
+					EmitSoundOnEntity( weaponOwner, string( weapon.GetWeaponInfoFileKeyField( "sound_dryfire" ) ) )
+				#endif
+				return 0
+			}
 		}
 	}
 
