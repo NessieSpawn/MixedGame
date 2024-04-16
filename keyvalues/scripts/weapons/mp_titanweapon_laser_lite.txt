@@ -22,7 +22,11 @@ WeaponData
 		// effect done in script: 550 max shared energy, 60 regen rate, 1.0 regen delay
 		gunner_bison_laser
 		{
-		
+		}
+
+		// misc fix: disable firing when don't have enough energy
+		laser_lite_fix
+		{
 		}
 	}
 }
