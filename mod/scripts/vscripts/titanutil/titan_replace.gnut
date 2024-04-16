@@ -14,7 +14,8 @@ global function TitanReplace_UseGunnerBisonVariant // bison variant
 
 // fixes and rebalances, always gets applied no matter titan_replace is enabled or not
 global function TitanReplace_EnableRoninMiscFix // fix ronin's sword core behavior
-global function TitanReplace_EnableIonMiscFix // fix fd laser core bar( WIP: fix splitter rifle damage scaling )
+global function TitanReplace_EnableIonMiscFix // fix fd laser core bar and splitter rifle damage scaling, make it unable to abuse tripwire bug
+global function TitanReplace_EnableMonarchMiscFix // fix multi-targeting missile burst fire count when unlocked firing
 
 global function TitanReplace_EnableNorthstarReBalance // rebalance northstar's railgun
 global function TitanReplace_EnableMonarchReBalance // rebalance monarch's xo-16, energy siphon and disable battery executions
@@ -23,7 +24,7 @@ global function TitanReplace_EnableRoninReBalance // rebalance sword block, bloc
 global function TitanReplace_EnableSPRoninSword // rework ronin's sword core to make it behave like SP one
 
 // weapon settings: magnetic triplethreat will have more stats penalty
-global function TitanReplace_EnableTripleThreatWeaponMagnetic // use fake_magnetic_triplethreat to enable easier hit on titans
+global function TitanReplace_DisableTripleThreatWeaponMagnetic // disable use of fake_magnetic_triplethreat, while buffing some other stuffs
 global function TitanReplace_ShouldUseMagneticTripleThreatWeapon // shared with sh_fakebt.gnut
 
 ///// acrossFile utilities
@@ -102,6 +103,7 @@ struct
 	// fixes
 	bool roninMiscFixEnabled
 	bool ionMiscFixEnabled
+	bool monarchMiscFixEnabled
 
 	// balances
 	bool northstarReBalanceEnabled
@@ -179,6 +181,11 @@ void function TitanReplace_EnableIonMiscFix( bool enable )
 	file.ionMiscFixEnabled = enable
 }
 
+void function TitanReplace_EnableMonarchMiscFix( bool enable )
+{
+	file.monarchMiscFixEnabled = enable
+}
+
 // balances
 void function TitanReplace_EnableNorthstarReBalance( bool enable )
 {
@@ -210,9 +217,9 @@ void function TitanReplace_EnableSPRoninSword( bool enable )
 	file.spRoninSwordEnabled = enable
 }
 
-void function TitanReplace_EnableTripleThreatWeaponMagnetic( bool enable )
+void function TitanReplace_DisableTripleThreatWeaponMagnetic( bool disable )
 {
-	file.tripleThreatWeaponUsesMagneticMod = enable
+	file.tripleThreatWeaponUsesMagneticMod = !disable
 }
 
 bool function TitanReplace_ShouldUseMagneticTripleThreatWeapon()
@@ -298,6 +305,19 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 		case $"models/titans/medium/titan_medium_ajax.mdl":
 			if ( file.ionMiscFixEnabled )
 			{
+				if ( titan.GetMainWeapons().len() > 0 )
+				{
+					// fix damage scaling when switching back from laser shot
+					entity mainWeapon = titan.GetMainWeapons()[0]
+					mainWeapon.AddMod( "particle_accelerator_fix" )
+				}
+
+				entity ordnanceWeapon = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
+				if ( IsValid( ordnanceWeapon ) )
+				{
+					// no longer able to fire when energy go down required amount
+					ordnanceWeapon.AddMod( "laser_lite_fix" )
+				}
 				entity coreWeapon = titan.GetOffhandWeapon( OFFHAND_EQUIPMENT )
 				if ( IsValid( coreWeapon ) )
 				{
@@ -320,8 +340,18 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 			}
 			break
 		
-		// monarch balance...
+		// monarch fix and balance...
 		case $"models/titans/medium/titan_medium_vanguard.mdl":
+			if ( file.monarchMiscFixEnabled )
+			{
+				entity ordnanceWeapon = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
+				if ( IsValid( ordnanceWeapon ) )
+				{
+					// no longer able to fire when energy go down required amount
+					ordnanceWeapon.AddMod( "shoulder_rockets_fix" )
+				}
+			}
+
 			if ( file.monarchReBalanceEnabled )
 			{
 				if ( titan.GetMainWeapons().len() > 0 )
