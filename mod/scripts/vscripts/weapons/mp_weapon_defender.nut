@@ -260,7 +260,8 @@ void function ChargeRifleBeam_ServerSide( entity weapon, float duration )
 		TraceResults result = TraceLine( weaponOwner.EyePosition(), weaponOwner.EyePosition() + weaponOwner.GetViewVector() * 3000, [weaponOwner], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
 		vector destPos = result.endPos
 		destEntMover.SetOrigin( destPos )
-		WaitFrame( true ) // bypass server framerate limit to make things more accurate
+		//WaitFrame( true ) // bypass server framerate limit to make things more accurate
+		WaitFrame() // temp change to this to prevent compile error for current branch
 	}
 }
 
