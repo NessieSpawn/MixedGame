@@ -38,12 +38,7 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_laser_lite( entity weapon
 	return canUse
 	*/
 
-	bool canUse = CanUseLaserLite( weapon )
-	#if CLIENT
-		if ( !canUse )
-			FlashEnergyNeeded_Bar( curCost )
-	#endif
-	return canUse
+	return CanUseLaserLite( weapon )
 }
 
 // new wrapped function
@@ -53,6 +48,11 @@ bool function CanUseLaserLite( entity weapon )
 	int curCost = weapon.GetWeaponCurrentEnergyCost()
 	bool canUse = owner.CanUseSharedEnergy( curCost )
 
+	#if CLIENT
+		if ( !canUse )
+			FlashEnergyNeeded_Bar( curCost )
+	#endif
+
 	return canUse
 }
 
@@ -61,14 +61,8 @@ var function OnWeaponPrimaryAttack_titanweapon_laser_lite( entity weapon, Weapon
 	// misc fix version here: make it failed to fire if no enough energy
 	if ( bool( GetCurrentPlaylistVarInt( "laser_lite_fix", 0 ) ) || weapon.HasMod( "laser_lite_fix" ) )
 	{
-		bool canUse = CanUseLaserLite( weapon )
-		if ( !canUse )
-		{
-			#if CLIENT	
-				FlashEnergyNeeded_Bar( curCost )
-			#endif
+		if ( !CanUseLaserLite( weapon ) )
 			return 0
-		}
 	}
 
 	#if CLIENT
