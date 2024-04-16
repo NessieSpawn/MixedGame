@@ -92,14 +92,27 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 	int smartAmmoFired = SmartAmmo_FireWeapon( weapon, attackParams, damageTypes.projectileImpact, damageTypes.explosive )
 	int maxTargetedBurst = weapon.GetWeaponSettingInt( eWeaponVar.smart_ammo_max_targeted_burst )
 	float shotFrac = 1.0 / maxTargetedBurst.tofloat()
+	// misc fix here: max charge burst should fire all missiles
+	// fixed by minusing a very little float number, so we get more accurate value
+	if ( bool( GetCurrentPlaylistVarInt( "shoulder_rockets_fix", 0 ) ) || weapon.HasMod( "shoulder_rockets_fix" ) )
+		shotFrac -= 0.000001
 
 	if ( smartAmmoFired == 0 )
 	{
 		if ( IsMultiplayer() )
 		{
-			weapon.SetWeaponBurstFireCount( maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
-			OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
+			// how do this...
+			// I...
+			// welp there should be a very very edge case that npc using multiplayer version of multi-targeting missile would crash
+			// needs to add fixes for that
+			//weapon.SetWeaponBurstFireCount( maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
+			//OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
 
+			// don't let burst count go down 0
+			bool burstCount = max( 0, maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
+			weapon.SetWeaponBurstFireCount( burstCount )
+			if ( burstCount > 0 ) // only do weapon fire if burst count over 0
+				OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
 		}
 		else
 		{

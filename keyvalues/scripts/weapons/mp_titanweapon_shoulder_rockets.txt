@@ -24,6 +24,11 @@ WeaponData
 		{
 		}
 
+		// misc fix: ramp up burst amount on unlocked firing at max ammo
+		shoulder_rockets_fix
+		{
+		}
+
 		// modded titan
 		atlas_rockets // use together with upgradeCore_Vanguard
 		{
