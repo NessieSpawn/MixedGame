@@ -92,6 +92,7 @@ void function OnWeaponStartZoomOut_titanweapon_particle_accelerator( entity weap
 	mods.fastremovebyvalue( "proto_particle_accelerator" )
 	mods.fastremovebyvalue( "proto_particle_accelerator_pas" )
 	// try to fix this thing... not vanilla behavior but fuck it
+	// wait, vanilla DO fixed this in some version, guess it's pure server-side so respawn didn't push any client update
 	mods.fastremovebyvalue( "fd_upgraded_proto_particle_accelerator" )
 	mods.fastremovebyvalue( "fd_upgraded_proto_particle_accelerator_pas" )
 
@@ -99,6 +100,27 @@ void function OnWeaponStartZoomOut_titanweapon_particle_accelerator( entity weap
 	//weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" )
 	weapon.StopWeaponEffect( TPA_ADS_EFFECT_1P, TPA_ADS_EFFECT_3P )
 	weapon.StopWeaponSound( "arc_cannon_charged_loop" )
+}
+
+// modified utility for us checking zoom-in state
+bool function WeaponHasIonZoomedMods( entity weapon )
+{
+	array<string> ionADSModifiers = 
+	[
+		"proto_particle_accelerator",
+		"proto_particle_accelerator_pas",
+		"fd_upgraded_proto_particle_accelerator",
+		"fd_upgraded_proto_particle_accelerator_pas",
+	]
+
+	array<string> weaponMods = weapon.GetMods()
+	foreach ( mod in weaponMods )
+	{
+		if ( ionADSModifiers.contains( mod ) )
+			return true
+	}
+	// all checks failed, we don't have ADS modifier
+	return false
 }
 
 void function OnWeaponActivate_titanweapon_particle_accelerator( entity weapon )
@@ -150,6 +172,9 @@ function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams attack
     bool inADS = weapon.IsWeaponInAds()
 	int ADS_SHOT_COUNT = weapon.HasMod( "pas_ion_weapon_ads" ) ? ADS_SHOT_COUNT_UPGRADE : ADS_SHOT_COUNT_NORMAL
 
+	// fix damage scaling when energy drains out or switching from shoulder laser
+	bool hasMiscFix = bool( GetCurrentPlaylistVarInt( "particle_accelerator_fix", 0 ) ) || weapon.HasMod( "particle_accelerator_fix" )
+
 	if ( shouldCreateProjectile )
 	{
 	    int shotCount = inADS ? ADS_SHOT_COUNT : 1
@@ -159,6 +184,14 @@ function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams attack
 		bool outOfEnergy = (currentEnergy < cost) || (currentEnergy == 0)
 		if ( !inADS || outOfEnergy )
 		{
+			// if we have mod fix, try to check for mods
+			if ( hasMiscFix )
+			{
+				if ( WeaponHasIonZoomedMods( weapon ) )
+					OnWeaponStartZoomOut_titanweapon_particle_accelerator( weapon ) // remove ADS modifiers
+			}
+			//
+
 			weapon.SetWeaponEnergyCost( 0 )
 			shotCount = 1
 
@@ -171,6 +204,14 @@ function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams attack
 		}
 		else
 		{
+			// if we have mod fix, try to check for mods
+			if ( hasMiscFix )
+			{
+				if ( WeaponHasIonZoomedMods( weapon ) )
+					OnWeaponStartZoomIn_titanweapon_particle_accelerator( weapon ) // add ADS modifiers
+			}
+			//
+
 			shotCount = ADS_SHOT_COUNT
 			//Split Shots
 			weapon.EmitWeaponSound_1p3p( "Weapon_Particle_Accelerator_AltFire_1P", "Weapon_Particle_Accelerator_AltFire_SecondShot_3P" )
