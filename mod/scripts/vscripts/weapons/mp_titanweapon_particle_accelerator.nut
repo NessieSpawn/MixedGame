@@ -207,7 +207,7 @@ function FireWeaponPlayerAndNPC( entity weapon, WeaponPrimaryAttackParams attack
 			// if we have mod fix, try to check for mods
 			if ( hasMiscFix )
 			{
-				if ( WeaponHasIonZoomedMods( weapon ) )
+				if ( !WeaponHasIonZoomedMods( weapon ) )
 					OnWeaponStartZoomIn_titanweapon_particle_accelerator( weapon ) // add ADS modifiers
 			}
 			//
