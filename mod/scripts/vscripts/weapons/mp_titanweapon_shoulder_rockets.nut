@@ -105,14 +105,18 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 			// I...
 			// welp there should be a very very edge case that npc using multiplayer version of multi-targeting missile would crash
 			// needs to add fixes for that
-			//weapon.SetWeaponBurstFireCount( maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
-			//OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
 
+			// for this branch we don't need to fix because it's overall behavior not just misc, and we're on client-side which is all good
+			weapon.SetWeaponBurstFireCount( maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
+			OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
+
+			/*
 			// don't let burst count go down 0
 			int burstCount = maxint( 0, maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
 			weapon.SetWeaponBurstFireCount( burstCount )
 			if ( burstCount > 0 ) // only do weapon fire if burst count over 0
 				OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
+			*/
 		}
 		else
 		{
