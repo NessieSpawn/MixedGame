@@ -69,9 +69,7 @@ var function OnWeaponPrimaryAttack_titanweapon_laser_lite( entity weapon, Weapon
 			{
 				#if CLIENT
 					// manual dryfire event
-					entity viewPlayer = GetLocalViewPlayer()
-					if ( IsValid( viewPlayer ) )
-						EmitSoundOnEntity( viewPlayer, string( weapon.GetWeaponInfoFileKeyField( "sound_dryfire" ) ) )
+					EmitSoundOnEntity( weaponOwner, string( weapon.GetWeaponInfoFileKeyField( "sound_dryfire" ) ) )
 				#endif
 				return 0
 			}
