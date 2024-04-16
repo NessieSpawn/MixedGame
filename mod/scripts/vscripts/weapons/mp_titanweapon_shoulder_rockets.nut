@@ -109,7 +109,7 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 			//OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
 
 			// don't let burst count go down 0
-			bool burstCount = max( 0, maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
+			int burstCount = maxint( 0, maxTargetedBurst - int( (weapon.GetWeaponChargeFraction() + shotFrac ) * maxTargetedBurst ) )
 			weapon.SetWeaponBurstFireCount( burstCount )
 			if ( burstCount > 0 ) // only do weapon fire if burst count over 0
 				OnWeaponPrimaryAttack_titanweapon_salvo_rockets( weapon, attackParams )
