@@ -658,6 +658,9 @@ bool function Upgrade_MultiTargetMissiles( entity titan )
 
 	if ( ordnance.HasMod( "fd_balance" ) )
 		mods.append( "fd_balance" )
+	// misc fix for monarch multi-targeting missile
+	if ( ordnance.HasMod( "shoulder_rockets_fix" ) )
+		mods.append( "shoulder_rockets_fix" )
 
 	float ammoFrac = float( ordnance.GetWeaponPrimaryClipCount() ) / float( ordnance.GetWeaponPrimaryClipCountMax() )
 	titan.TakeWeaponNow( ordnance.GetWeaponClassName() )

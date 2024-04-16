@@ -25,6 +25,8 @@ void function MpTitanWeaponLaserLite_Init()
 
 bool function OnWeaponAttemptOffhandSwitch_titanweapon_laser_lite( entity weapon )
 {
+	// wrap into function
+	/*
 	entity owner = weapon.GetWeaponOwner()
 	int curCost = weapon.GetWeaponCurrentEnergyCost()
 	bool canUse = owner.CanUseSharedEnergy( curCost )
@@ -34,10 +36,41 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_laser_lite( entity weapon
 			FlashEnergyNeeded_Bar( curCost )
 	#endif
 	return canUse
+	*/
+
+	bool canUse = CanUseLaserLite( weapon )
+	#if CLIENT
+		if ( !canUse )
+			FlashEnergyNeeded_Bar( curCost )
+	#endif
+	return canUse
+}
+
+// new wrapped function
+bool function CanUseLaserLite( entity weapon )
+{
+	entity owner = weapon.GetWeaponOwner()
+	int curCost = weapon.GetWeaponCurrentEnergyCost()
+	bool canUse = owner.CanUseSharedEnergy( curCost )
+
+	return canUse
 }
 
 var function OnWeaponPrimaryAttack_titanweapon_laser_lite( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// misc fix version here: make it failed to fire if no enough energy
+	if ( bool( GetCurrentPlaylistVarInt( "laser_lite_fix", 0 ) ) || weapon.HasMod( "laser_lite_fix" ) )
+	{
+		bool canUse = CanUseLaserLite( weapon )
+		if ( !canUse )
+		{
+			#if CLIENT	
+				FlashEnergyNeeded_Bar( curCost )
+			#endif
+			return 0
+		}
+	}
+
 	#if CLIENT
 		if ( !weapon.ShouldPredictProjectiles() )
 			return 1

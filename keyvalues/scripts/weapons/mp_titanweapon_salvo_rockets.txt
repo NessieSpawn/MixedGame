@@ -185,5 +185,9 @@ WeaponData
 			"explosion_damage_heavy_armor"					"*0.2"
 		}
 
+		// misc fix here: this is only a stub mark, actually gets applied on upgrading to multi-targeting missile
+		shoulder_rockets_fix
+		{
+		}
 	}
 }
