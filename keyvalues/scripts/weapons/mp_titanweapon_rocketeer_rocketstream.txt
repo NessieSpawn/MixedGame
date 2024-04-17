@@ -340,7 +340,8 @@ WeaponData
 			// increase fire_rate a little bit just like tf|1's rapid_fire_missiles
 			//"fire_rate"									"++0.2" // restore fire rate
 			//"fire_rate"									"*1.758242" // ~4.0 with rocketstream_fast
-			"fire_rate"									"*1.173077" // ~3.9375 with rocketstream_fast
+			"fire_rate"									"*1.5" // 3.4125 with rocketstream_fast
+			//"fire_rate"									"*1.173077" // ~3.9375 with rocketstream_fast
 
 			// vanilla missing: npc behavior change
 			//"npc_rest_time_between_bursts_min"			"*0.5" // ~0.5
