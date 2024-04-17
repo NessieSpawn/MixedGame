@@ -92,8 +92,11 @@ void function OnVortexHitProjectile_QuadRocket( entity weapon, entity vortexSphe
 void function OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream( entity weapon )
 {
 	// modded weapon
+	// for this branch should only run on client-side
+#if CLIENT
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponActivate_TitanWeapon_Brute4_QuadRocket( weapon )
+#endif
 	//
 
 	// modded weapon: TF|1 quad rocket mod
