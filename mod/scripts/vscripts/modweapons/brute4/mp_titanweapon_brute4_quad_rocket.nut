@@ -2,6 +2,7 @@ untyped
 
 global function MpTitanWeaponBrute4QuadRocket_Init
 
+global function OnWeaponActivate_TitanWeapon_Brute4_QuadRocket
 global function OnWeaponPrimaryAttack_TitanWeapon_Brute4_QuadRocket
 
 global function OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket
@@ -27,6 +28,9 @@ const float STRAIGHT_CONDENSE_DIST = 25.0
 const float QUAD_ROCKET_SPEED = 3000.0
 const float STRAIGHT_ROCKET_SPEED = QUAD_ROCKET_SPEED * 1.25
 const float SINGLE_ROCKET_SPEED = 8000.0
+// modified consts, brute4 don't have these
+const float AMMO_SWAP_ROCKET_SPEED = 6000.0
+const float AMMO_SWAP_STRAIGHT_ROCKET_SPEED = AMMO_SWAP_ROCKET_SPEED * 1.25
 
 // we're now setup stuffs in mod.json, return type should be void
 void function MpTitanWeaponBrute4QuadRocket_Init()
@@ -77,6 +81,13 @@ void function OnVortexHitProjectile_Brute4QuadRocket( entity weapon, entity vort
 	}
 }
 #endif
+
+void function OnWeaponActivate_TitanWeapon_Brute4_QuadRocket( entity weapon )
+{
+	// fix mod when transition from offhand weapons
+	if ( weapon.IsWeaponInAds() && !weapon.HasMod( "brute4_cluster_payload_ammo" ) && !weapon.HasMod( "brute4_single_shot" ) )
+		OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket( weapon )
+}
 
 void function OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket( entity weapon )
 {
@@ -145,7 +156,6 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 {
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
 	bool adsPressed = weapon.IsWeaponInAds()
-	bool isBrute4 = weapon.HasMod( "brute4_quad_rocket" )
 	bool hasAmmoSwap = weapon.HasMod( "brute4_cluster_payload_ammo" )
 
     // defensive fix for sometimes player don't gain single shot mod
@@ -157,6 +167,9 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	{
 		//weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
 		weapon.EmitWeaponSound_1p3p( "Weapon_Archer_Fire_1P", "Weapon_Archer_Fire_3P" )
+		// use unique sound for ammo swap
+		// welp this sound maybe not that good for TF2
+		//weapon.EmitWeaponSound_1p3p( "weapon_titan_rocket_launcher_fire_1p", "weapon_titan_rocket_launcher_fire_3p" )
 	}
 	else if ( adsPressed )
 		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
@@ -177,25 +190,48 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	{
 		float missileSpeed = SINGLE_ROCKET_SPEED
         if( hasAmmoSwap )
-			missileSpeed = SINGLE_ROCKET_SPEED
+		{
+			bool straight = weapon.HasMod( "straight_shot" )
+			missileSpeed = straight ? AMMO_SWAP_STRAIGHT_ROCKET_SPEED : AMMO_SWAP_ROCKET_SPEED
+		}
 
 		int impactFlags = (DF_IMPACT | DF_GIB | DF_KNOCK_BACK)
-		// uses bolt instead of missile, so bolt_hitsize will work
-		entity bolt = FireWeaponBolt_RecordData( weapon, attackParams.pos, attackParams.dir, missileSpeed, impactFlags, damageTypes.explosive | DF_KNOCK_BACK, predicted, 0 )
-		if ( bolt != null )
+		if ( hasAmmoSwap ) // cluster payload ammo
 		{
-			SetTeam( bolt, weaponOwner.GetTeam() )
-            #if SERVER
-                string whizBySound = "Weapon_Sidwinder_Projectile"
-                EmitSoundOnEntity( bolt, whizBySound )
+			entity missile = FireWeaponMissile_RecordData( weapon, attackParams.pos, attackParams.dir, missileSpeed, impactFlags, damageTypes.explosive | DF_KNOCK_BACK, false, predicted )
+			if ( missile != null )
+			{
+				SetTeam( missile, weaponOwner.GetTeam() )
+				missile.kv.lifetime = MISSILE_LIFETIME
+				missile.SetSpeed( missileSpeed );
+				SetTeam( missile, weapon.GetWeaponOwner().GetTeam() )
 
-				// custom damageSourceId
-				bolt.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_brute4_quad_rocket )
-            #endif
-			bolt.kv.rendercolor = "0 0 0"
-			bolt.kv.renderamt = 0
-			bolt.kv.fadedist = 1
-			bolt.kv.gravity = 0.001
+				#if SERVER
+					EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
+
+					// custom damageSourceId
+					missile.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_brute4_quad_rocket )
+				#endif // #if SERVER
+			}
+		}
+		else // normal single shot
+		{
+			// uses bolt instead of missile, so bolt_hitsize will work
+			entity bolt = FireWeaponBolt_RecordData( weapon, attackParams.pos, attackParams.dir, missileSpeed, impactFlags, damageTypes.explosive | DF_KNOCK_BACK, predicted, 0 )
+			if ( bolt != null )
+			{
+				SetTeam( bolt, weaponOwner.GetTeam() )
+				#if SERVER
+					EmitSoundOnEntity( bolt, "Weapon_Sidwinder_Projectile" )
+
+					// custom damageSourceId
+					bolt.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_brute4_quad_rocket )
+				#endif
+				bolt.kv.rendercolor = "0 0 0"
+				bolt.kv.renderamt = 0
+				bolt.kv.fadedist = 1
+				bolt.kv.gravity = 0.001
+			}
 		}
 
 		return weapon.GetAmmoPerShot()
