@@ -1,5 +1,8 @@
 WeaponData
 {
+	// modified callbacks
+	"OnWeaponActivate"								"OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream"
+
 	// vanilla missing: npc explosion damage
 	// I'll not touch vanilla weapon settings, moved to brute_rocket
 	//"npc_explosion_damage"						"35" // nerf to 35, was 50

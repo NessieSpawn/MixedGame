@@ -135,6 +135,13 @@ void function OnWeaponActivate_titanweapon_particle_accelerator( entity weapon )
 	// it's now safe to remove this meaningless hardcode, to prevent conflict with modded weapons
 	//owner.SetSharedEnergyRegenDelay( 0.5 )
 	#endif
+
+	// misc fix goes here: we do want to update weapon mod when switching back from ADS laser shot
+	if ( bool( GetCurrentPlaylistVarInt( "particle_accelerator_fix", 0 ) ) || weapon.HasMod( "particle_accelerator_fix" ) )
+	{
+		if ( weapon.IsWeaponInAds() && !WeaponHasIonZoomedMods( weapon ) )
+			OnWeaponStartZoomIn_titanweapon_particle_accelerator( weapon )
+	}
 }
 
 function OnWeaponPrimaryAttack_titanweapon_particle_accelerator( entity weapon, WeaponPrimaryAttackParams attackParams )

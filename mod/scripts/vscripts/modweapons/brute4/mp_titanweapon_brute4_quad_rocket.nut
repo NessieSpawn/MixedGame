@@ -2,6 +2,7 @@ untyped
 
 global function MpTitanWeaponBrute4QuadRocket_Init
 
+global function OnWeaponActivate_TitanWeapon_Brute4_QuadRocket
 global function OnWeaponPrimaryAttack_TitanWeapon_Brute4_QuadRocket
 
 global function OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket
@@ -78,6 +79,13 @@ void function OnVortexHitProjectile_Brute4QuadRocket( entity weapon, entity vort
 }
 #endif
 
+void function OnWeaponActivate_TitanWeapon_Brute4_QuadRocket( entity weapon )
+{
+	// fix mod when transition from offhand weapons
+	if ( weapon.IsWeaponInAds() && !weapon.HasMod( "brute4_cluster_payload_ammo" ) && !weapon.HasMod( "brute4_single_shot" ) )
+		OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket( weapon )
+}
+
 void function OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket( entity weapon )
 {
 	// brute4 case
@@ -145,7 +153,6 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 {
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
 	bool adsPressed = weapon.IsWeaponInAds()
-	bool isBrute4 = weapon.HasMod( "brute4_quad_rocket" )
 	bool hasAmmoSwap = weapon.HasMod( "brute4_cluster_payload_ammo" )
 
     // defensive fix for sometimes player don't gain single shot mod

@@ -2,6 +2,9 @@ untyped
 
 global function MpTitanweaponRocketeetRocketStream_Init
 
+// modified callback
+global function OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream
+//
 global function OnWeaponPrimaryAttack_TitanWeapon_Rocketeer_RocketStream
 global function OnWeaponOwnerChanged_TitanWeapon_Rocketeer_RocketStream
 global function OnWeaponDeactivate_TitanWeapon_Rocketeer_RocketStream
@@ -84,6 +87,18 @@ void function OnVortexHitProjectile_QuadRocket( entity weapon, entity vortexSphe
 	}
 }
 #endif
+
+// modified callback for better fixing weapon mod when switch from offhand weapon
+void function OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream( entity weapon )
+{
+	// modded weapon
+	if ( weapon.HasMod( "brute4_quad_rocket" ) )
+		return OnWeaponActivate_TitanWeapon_Brute4_QuadRocket( weapon )
+	//
+
+	if ( weapon.IsWeaponInAds() && !weapon.HasMod( "mini_clusters" ) && !weapon.HasMod( "rocketstream_fast" ) )
+		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
+}
 
 void function OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( entity weapon )
 {
@@ -212,7 +227,6 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	bool has_mortar_mod = weapon.HasMod( "coop_mortar_titan" )
 
 	// defensive fix for sometimes player don't gain single shot mod
-	// should be fixed if misc fix has been enabled!
     if ( adsPressed && !hasAmmoSwap && !weapon.HasMod( "rocketstream_fast" ) )
 		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
 
