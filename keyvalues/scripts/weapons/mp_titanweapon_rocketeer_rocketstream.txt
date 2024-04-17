@@ -1,5 +1,8 @@
 WeaponData
 {
+	// modified callbacks
+	"OnWeaponActivate"								"OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream"
+
 	// vanilla missing: npc explosion damage
 	// I'll not touch vanilla weapon settings, moved to brute_rocket
 	//"npc_explosion_damage"						"35" // nerf to 35, was 50
@@ -31,6 +34,12 @@ WeaponData
 			// bit scale down splash damage against pilots
 			"explosion_damage"					"*0.7" // 35
 			//"explosion_damage_heavy_armor"		"*0.5" // 100
+
+			// increase damage because we fire only 2 rockets
+			"damage_near_value"								"*2.0" // 100
+			"damage_far_value" 								"*2.0" // 100
+			"damage_near_value_titanarmor"					"*1.5" // 525
+			"damage_far_value_titanarmor" 					"*1.5" // 450
 
 			// add npc explosion damages: this weapon mod rely on explosions to deal damage
 			// but we don't have base value for npc exlosion damage, needs to hardcode here
@@ -120,7 +129,7 @@ WeaponData
 			"damage_near_value"   							"60" // was 75. brute4 uses 200
 			"damage_far_value"								"60" // was 75. brute4 uses 200
 			"damage_near_value_titanarmor"					"360"
-			"damage_far_value_titanarmor" 					"360"
+			"damage_far_value_titanarmor" 					"300" // brute4 uses 360
 
 			"explosion_damage"								"40" // brute4 uses 50
 			"explosion_damage_heavy_armor"					"280" // brute4 uses 320
@@ -131,7 +140,7 @@ WeaponData
 			"npc_damage_near_value"   						"60" // was 75. brute4 uses 200
 			"npc_damage_far_value"							"50" // was 75. brute4 uses 200
 			"npc_damage_near_value_titanarmor"				"360"
-			"npc_damage_far_value_titanarmor" 				"360"
+			"npc_damage_far_value_titanarmor" 				"300"
 
 			// remove npc explosion damages: this weapon don't rely on explosions to deal damage
 			// if add damage to npcs they might become too much powerful, also makes them hurting themselves at close range
@@ -328,11 +337,17 @@ WeaponData
 		}
 		brute_rocket_fast_shot
 		{
-			"fire_rate"									"++0.2" // restore fire rate
+			// increase fire_rate a little bit just like tf|1's rapid_fire_missiles
+			//"fire_rate"									"++0.2" // restore fire rate
+			//"fire_rate"									"*1.758242" // ~4.0 with rocketstream_fast
+			"fire_rate"									"*1.5" // 3.4125 with rocketstream_fast
+			//"fire_rate"									"*1.173077" // ~3.9375 with rocketstream_fast
 
 			// vanilla missing: npc behavior change
-			"npc_rest_time_between_bursts_min"			"*0.5" // ~0.5
-			"npc_rest_time_between_bursts_max"			"*0.4286" // ~0.75
+			//"npc_rest_time_between_bursts_min"			"*0.5" // ~0.5
+			//"npc_rest_time_between_bursts_max"			"*0.4286" // ~0.75
+			"npc_rest_time_between_bursts_min"			"*0.4" // ~0.4
+			"npc_rest_time_between_bursts_max"			"*0.171429" // ~0.3
 		}
 
 		// pilot usage
@@ -344,6 +359,60 @@ WeaponData
 			"damage_far_value"							"*0.35"
 			"damage_near_value_titanarmor"				"*0.35"
 			"damage_far_value_titanarmor" 				"*0.35"
+		}
+
+		// misc fix: disallow firing when not fully hipfire/ads, to avoid weird desync condition
+		// also disallow run_and_gun
+		rocketeer_rocketstream_fix
+		{
+			"primary_fire_does_not_block_sprint"			"0"
+
+			// to compensate unable to fire during transition, we could reduce zoom in/out time same as brute4 does
+			// or maybe no need? splitter rifle also have mode switch but it does not compensate anything
+			// welp, after checking I realized vanilla quad rocket has only 0.1s zoom transition, should be fine
+			//"zoom_time_in"									"0.15"
+			//"zoom_time_out"   								"0.15"
+		}
+
+		// do increased projectile speed in MP. requires client-side install
+		increased_projectile_speed
+		{
+		}
+	
+		// fake TF|1 weapon mods
+		rapid_fire_missiles // changes everything to tf1 weapon mod
+		{
+			"ammo_per_shot"									"*0.25" // 1
+
+			"fire_rate"   									"5.2" // 1.3 * 4
+			"ammo_clip_size"   								"18"
+
+			"viewkick_pitch_base" 							"-0.4"
+			"viewkick_pitch_random"   						"0.3"
+			"viewkick_yaw_base"   							"-0.15"
+			"viewkick_yaw_random" 							"0.3"
+			"viewkick_roll_hardScale" 						"1.2"
+
+			"spread_kick_on_fire_stand_hip"   				"0.15"
+			"spread_kick_on_fire_stand_ads"   				"0.15"
+			"spread_kick_on_fire_crouch_hip"  				"0.15"
+			"spread_kick_on_fire_crouch_ads"  				"0.15"
+			"spread_kick_on_fire_air_hip" 					"0.15"
+			"spread_kick_on_fire_air_ads" 					"0.15"
+
+			"spread_max_kick_stand_hip"   					"3.0"
+			"spread_max_kick_stand_ads"   					"3.0"
+			"spread_max_kick_crouch_hip"  					"3.0"
+			"spread_max_kick_crouch_ads"  					"3.0"
+
+			"explosion_inner_radius"						"60"
+			"explosionradius" 								"100"
+			"explosion_damage"								"35" // 75 in tf|1, but in that case pilots have 200 HP
+			// no need to increase titan damage that much, I think?
+			//"damage_near_value_titanarmor"					"550"
+			//"damage_far_value_titanarmor" 					"550"
+			"damage_near_value_titanarmor"					"*1.2" // 420
+			"damage_far_value_titanarmor" 					"*1.2" // 360
 		}
 	}
 }

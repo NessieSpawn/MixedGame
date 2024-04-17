@@ -2,6 +2,9 @@ untyped
 
 global function MpTitanweaponRocketeetRocketStream_Init
 
+// modified callback
+global function OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream
+//
 global function OnWeaponPrimaryAttack_TitanWeapon_Rocketeer_RocketStream
 global function OnWeaponOwnerChanged_TitanWeapon_Rocketeer_RocketStream
 global function OnWeaponDeactivate_TitanWeapon_Rocketeer_RocketStream
@@ -85,12 +88,34 @@ void function OnVortexHitProjectile_QuadRocket( entity weapon, entity vortexSphe
 }
 #endif
 
+// modified callback for better fixing weapon mod when switch from offhand weapon
+void function OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream( entity weapon )
+{
+	// modded weapon
+	if ( weapon.HasMod( "brute4_quad_rocket" ) )
+		return OnWeaponActivate_TitanWeapon_Brute4_QuadRocket( weapon )
+	//
+
+	// modded weapon: TF|1 quad rocket mod
+	if ( weapon.HasMod( "rapid_fire_missiles" ) )
+		return 
+
+	// defensive fix for sometimes player don't gain single shot mod
+	// this is not vanilla behavior, but vanilla also don't have this weapon appeared in MP, so I'd fix it
+	if ( weapon.IsWeaponInAds() && !weapon.HasMod( "mini_clusters" ) && !weapon.HasMod( "rocketstream_fast" ) )
+		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
+}
+
 void function OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( entity weapon )
 {
 	// modded weapon
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponStartZoomIn_TitanWeapon_Brute4_QuadRocket( weapon )
 	//
+
+	// modded weapon: TF|1 quad rocket mod
+	if ( weapon.HasMod( "rapid_fire_missiles" ) )
+		return 
 
 	// vanilla behavior( actually modified )
 	// should have client sync for mods adding
@@ -129,6 +154,10 @@ void function OnWeaponStartZoomOut_TitanWeapon_Rocketeer_RocketStream( entity we
 	if ( weapon.HasMod( "brute4_quad_rocket" ) )
 		return OnWeaponStartZoomOut_TitanWeapon_Brute4_QuadRocket( weapon )
 	//
+
+	// modded weapon: TF|1 quad rocket mod
+	if ( weapon.HasMod( "rapid_fire_missiles" ) )
+		return 
 
 	// vanilla behavior( actually modified )
 	// should have client sync for mods removing
@@ -170,6 +199,16 @@ var function OnWeaponPrimaryAttack_TitanWeapon_Rocketeer_RocketStream( entity we
 		return OnWeaponPrimaryAttack_TitanWeapon_Brute4_QuadRocket( weapon, attackParams )
 	//
 
+	// misc fix: disallow weapon firing when not fully ads
+	// so we don't get weird desync condition
+	if ( bool( GetCurrentPlaylistVarInt( "rocketeer_rocketstream_fix", 0 ) ) || weapon.HasMod( "rocketeer_rocketstream_fix" ) )
+	{
+		entity owner = weapon.GetWeaponOwner()
+		float zoomFrac = owner.GetZoomFrac()
+		if ( zoomFrac < 1 && zoomFrac > 0)
+			return 0
+	}
+
 	// vanilla behavior
 	#if CLIENT
 		if ( !weapon.ShouldPredictProjectiles() )
@@ -200,19 +239,23 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	bool hasAmmoSwap = weapon.HasMod( "mini_clusters" ) // modified to add back rocketeer ammo swap
 	bool has_s2s_npcMod = weapon.HasMod( "sp_s2s_settings_npc" )
 	bool has_mortar_mod = weapon.HasMod( "coop_mortar_titan" )
+	bool hasRapidShot = weapon.HasMod( "rapid_fire_missiles" ) // modded weapon: TF|1 quad rocket mod
 
 	// defensive fix for sometimes player don't gain single shot mod
-    if ( adsPressed && !hasAmmoSwap && !weapon.HasMod( "rocketstream_fast" ) )
+	// this is not vanilla behavior, but vanilla also don't have this weapon appeared in MP, so I'd fix it
+    if ( adsPressed && !hasAmmoSwap && !weapon.HasMod( "rocketstream_fast" ) && !hasRapidShot )
 		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
 
 	// modified
 	if ( hasAmmoSwap )
 	{
-		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
+		//weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
 		weapon.EmitWeaponSound_1p3p( "Weapon_Archer_Fire_1P", "Weapon_Archer_Fire_3P" )
 	}
 	else if ( adsPressed || hasBurnMod ) 
 		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
+	else if ( hasRapidShot ) // do this sound still work in tf|2?
+		weapon.EmitWeaponSound_1p3p( "weapon_titan_rocket_launcher_fire_1p", "weapon_titan_rocket_launcher_fire_3p" )
 	else
 		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher.RapidFire_1P", "Weapon_Titan_Rocket_Launcher.RapidFire_3P" )
 
@@ -221,9 +264,9 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 		return 0
 
 	// remove hasBurnMod check to recover ttf1 burn mod behavior
-	// causes desync but whatever
+	// causes desync but whatever, should install it on client-side if we want to use them
 	// if ( !adsPressed && !hasBurnMod && !has_s2s_npcMod && !has_mortar_mod )
-	if ( !adsPressed && !hasAmmoSwap && !has_s2s_npcMod && !has_mortar_mod )
+	if ( !adsPressed && !hasAmmoSwap && !has_s2s_npcMod && !has_mortar_mod && !hasRapidShot )
 	{
 		int shots = minint( weapon.GetProjectilesPerShot(), weapon.GetWeaponPrimaryClipCount() )
 		FireMissileStream_Spiral( weapon, attackParams, predicted, shots )
@@ -233,11 +276,14 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	{
 		//attackParams.pos = attackParams.pos + Vector( 0, 0, -20 )
 		// float missileSpeed = 2800
+
+		// wrap missile speed into function
+		float missileSpeed = GetMissileSpeedForRocketeer( weapon, true )
+		/*
 		float missileSpeed = 6000
-		// adding hasBurnMod check
-		//if ( has_s2s_npcMod || has_mortar_mod )
-		if ( hasBurnMod || has_s2s_npcMod || has_mortar_mod )
+		if ( has_s2s_npcMod || has_mortar_mod )
 			missileSpeed = 2500
+		*/
 
 		int impactFlags = (DF_IMPACT | DF_GIB | DF_KNOCK_BACK)
 
@@ -282,22 +328,68 @@ int function FindIdealMissileConfiguration( int numMissiles, int i )
 	return idealMissile
 }
 
+// wrap missile speed into function
+float function GetMissileSpeedForRocketeer( entity weapon, bool isSingleShot = false )
+{
+	float missileSpeed
+	if ( !isSingleShot ) // missile sprial
+	{
+		// default speed... actually pretty slow
+		missileSpeed = 1200
+
+		entity weaponOwner = weapon.GetWeaponOwner()
+		if ( IsSingleplayer() && weaponOwner.IsPlayer() )
+			missileSpeed = 2000
+
+		// HACK for increasing missile speed in MP. this does not trigger server-side visual fix so be sure to install on client-side!
+		if ( weapon.HasMod( "increased_projectile_speed" ) )
+			missileSpeed = 2000
+
+		// the high projectile speed is a bug I made before
+		// actually it don't desync very much, just keep it
+		// otherwise it will be too difficult to land shots with this weapon
+		if ( weapon.HasMod( "brute_rocket" ) ) // brute specific
+			missileSpeed = 3000
+	}
+	else // single shot
+	{
+		// default missile speed
+		missileSpeed = 6000
+
+		// modded brute titan
+		if ( weapon.HasMod( "brute_rocket" ) ) // brute specific
+			missileSpeed = 8000
+		
+		// adding burn mod check
+		if ( weapon.HasMod( "burn_mod_titan_rocket_launcher" ) || weapon.HasMod( "sp_s2s_settings_npc" ) || weapon.HasMod( "coop_mortar_titan" ) )
+		{
+			missileSpeed = 2500
+			// HACK for increasing missile speed in MP. this does not trigger server-side visual fix so be sure to install on client-side!
+			if ( weapon.HasMod( "increased_projectile_speed" ) )
+				missileSpeed *= 1.5
+		}
+
+		// modded weapon: TF|1 weapon mod
+		if ( weapon.HasMod( "rapid_fire_missiles" ) )
+			missileSpeed = 2300
+	}
+}
+
 void function FireMissileStream_Spiral( entity weapon, WeaponPrimaryAttackParams attackParams, bool predicted, int numMissiles = 4 )
 {
 	//attackParams.pos = attackParams.pos + Vector( 0, 0, -20 )
 	array<entity> missiles
 	array<vector> straightDir
+	
+	// wrap missile speed into a function
+	float missileSpeed = GetMissileSpeedForRocketeer( weapon )
+	/*
 	float missileSpeed = 1200
 
 	entity weaponOwner = weapon.GetWeaponOwner()
 	if ( IsSingleplayer() && weaponOwner.IsPlayer() )
 		missileSpeed = 2000
-
-	// the high projectile speed is a bug I made before
-	// actually it don't desync very much, just keep it
-	// otherwise it will be too difficult to land shots with this weapon
-	if ( weapon.HasMod( "brute_rocket" ) ) // brute specific
-		missileSpeed = 3000
+	*/
 
 	int impactFlags = (DF_IMPACT | DF_GIB | DF_KNOCK_BACK)
 
