@@ -251,13 +251,18 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	{
 		//weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
 		weapon.EmitWeaponSound_1p3p( "Weapon_Archer_Fire_1P", "Weapon_Archer_Fire_3P" )
+		// welp this sound maybe not that good for TF2
+		//weapon.EmitWeaponSound_1p3p( "weapon_titan_rocket_launcher_fire_1p", "weapon_titan_rocket_launcher_fire_3p" )
 	}
-	else if ( adsPressed || hasBurnMod ) 
+	else if ( adsPressed || hasBurnMod || hasRapidShot ) 
 		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
-	else if ( hasRapidShot ) // do this sound still work in tf|2?
-		weapon.EmitWeaponSound_1p3p( "weapon_titan_rocket_launcher_fire_1p", "weapon_titan_rocket_launcher_fire_3p" )
 	else
+	{
 		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher.RapidFire_1P", "Weapon_Titan_Rocket_Launcher.RapidFire_3P" )
+		// don't know why tf2 won't use these sound
+		// guess I'd use it for ammo swap!
+		//weapon.EmitWeaponSound_1p3p( "weapon_titan_rocket_launcher_fire_1p", "weapon_titan_rocket_launcher_fire_3p" )
+	}
 
 	entity weaponOwner = weapon.GetWeaponOwner()
 	if ( !IsValid( weaponOwner ) )
@@ -373,6 +378,8 @@ float function GetMissileSpeedForRocketeer( entity weapon, bool isSingleShot = f
 		if ( weapon.HasMod( "rapid_fire_missiles" ) )
 			missileSpeed = 2300
 	}
+
+	return missileSpeed
 }
 
 void function FireMissileStream_Spiral( entity weapon, WeaponPrimaryAttackParams attackParams, bool predicted, int numMissiles = 4 )
