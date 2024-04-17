@@ -354,6 +354,7 @@ WeaponData
 
 			// to compensate unable to fire during transition, we could reduce zoom in/out time same as brute4 does
 			// or maybe no need? splitter rifle also have mode switch but it does not compensate anything
+			// welp, after checking I realized vanilla quad rocket has only 0.1s zoom transition, should be fine
 			//"zoom_time_in"									"0.15"
 			//"zoom_time_out"   								"0.15"
 		}
