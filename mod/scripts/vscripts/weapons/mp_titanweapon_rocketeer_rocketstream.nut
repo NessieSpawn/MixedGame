@@ -96,6 +96,8 @@ void function OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream( entity weapon
 		return OnWeaponActivate_TitanWeapon_Brute4_QuadRocket( weapon )
 	//
 
+	// defensive fix for sometimes player don't gain single shot mod
+	// this is not vanilla behavior, but vanilla also don't have this weapon appeared in MP, so I'd fix it
 	if ( weapon.IsWeaponInAds() && !weapon.HasMod( "mini_clusters" ) && !weapon.HasMod( "rocketstream_fast" ) )
 		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
 }
@@ -227,6 +229,7 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	bool has_mortar_mod = weapon.HasMod( "coop_mortar_titan" )
 
 	// defensive fix for sometimes player don't gain single shot mod
+	// this is not vanilla behavior, but vanilla also don't have this weapon appeared in MP, so I'd fix it
     if ( adsPressed && !hasAmmoSwap && !weapon.HasMod( "rocketstream_fast" ) )
 		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
 
