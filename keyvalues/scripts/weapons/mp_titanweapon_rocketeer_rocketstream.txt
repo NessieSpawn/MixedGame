@@ -8,6 +8,12 @@ WeaponData
 	//"npc_explosion_damage"						"35" // nerf to 35, was 50
 	//"npc_explosion_damage_heavy_armor"			"200"
 
+	// vanilla quad rocket has weird segment reload time
+	// due quad rocket don't exist in MP
+	// I'd fix it's reload behavior by default
+	"reload_time_late1" 						"2.0"
+	"reloadempty_time_late1" 					"2.0"
+
 	Mods
 	{
 		rocketstream_fast
@@ -67,7 +73,8 @@ WeaponData
 			"explosion_shake_duration"				"*0" // 0.0
 
 			"ammo_clip_size"   						"*0.25" // 5
-			"projectiles_per_shot"					"*0.25" // 1
+			// "projectiles_per_shot" does nothing because we always fire 1 missile
+			//"projectiles_per_shot"					"*0.25" // 1
 			"ammo_per_shot"							"*0.25" // 1
 			// bit scale down splash damage
 			"explosion_damage"						"*0.7" // 35
@@ -129,7 +136,8 @@ WeaponData
 			"damage_near_value"   							"60" // was 75. brute4 uses 200
 			"damage_far_value"								"60" // was 75. brute4 uses 200
 			"damage_near_value_titanarmor"					"360"
-			"damage_far_value_titanarmor" 					"300" // brute4 uses 360
+			// 300 damage is same as vanilla value!
+			//"damage_far_value_titanarmor" 					"300" // brute4 uses 360
 
 			"explosion_damage"								"40" // brute4 uses 50
 			"explosion_damage_heavy_armor"					"280" // brute4 uses 320
@@ -172,25 +180,28 @@ WeaponData
 
 			"ammo_clip_size"   								"16"
 
-			"reload_time" 									"3.0"
+			// removing some values those are same as vanilla value
+			//"reload_time" 									"3.0"
 			"reload_time_late1" 							"2.0"
-			"reloadempty_time"								"3.0"
+			//"reloadempty_time"								"3.0"
 			"reloadempty_time_late1" 						"2.0"
-			"holster_time"									"0.45"
+			//"holster_time"									"0.45"
 			"critical_hit_damage_scale"						"1.5"
-			"ads_move_speed_scale"							"0.85"
+			// removing this move speed modifier so it feels less tricky when switching from this weapon
+			//"ads_move_speed_scale"							"0.85"
 
 			"zoom_time_in"									"0.15"
 			"zoom_time_out"   								"0.15"
 
 			// npc behavior
-			"proficiency_poor_spreadscale"					"4.0"
-			"proficiency_average_spreadscale" 				"3.5"
-			"proficiency_good_spreadscale"					"3.0"
-			"proficiency_very_good_spreadscale"   			"2.0"
+			// some values are same as vanilla does, no need to keep
+			//"proficiency_poor_spreadscale"					"4.0"
+			//"proficiency_average_spreadscale" 				"3.5"
+			//"proficiency_good_spreadscale"					"3.0"
+			//"proficiency_very_good_spreadscale"   			"2.0"
 
-			"npc_min_range"   								"0"
-			"npc_max_range"   								"6000"
+			//"npc_min_range"   								"0"
+			//"npc_max_range"   								"6000"
 
 			"npc_min_engage_range"							"100"
 			"npc_max_engage_range"							"3500"
@@ -262,7 +273,8 @@ WeaponData
 			"npc_explosion_damage_heavy_armor"		"140" // player value is 140
 
 			"ammo_clip_size"   						"*0.25" // 4
-			"projectiles_per_shot"					"*0.25" // 1
+			// "projectiles_per_shot" does nothing because we always fire 1 missile
+			//"projectiles_per_shot"					"*0.25" // 1
 			"ammo_per_shot"							"*0.25" // 1
 
 			"npc_aim_at_feet_vs_heavy_armor"		"1"
@@ -328,10 +340,6 @@ WeaponData
 			// instead of adding explosion damage, we remove aim_at_feet for npcs!
 			"npc_aim_at_feet"							"0" 
 
-			// vanilla quad rocket has weird segment reload time
-			"reload_time_late1" 						"*0.7"
-			"reloadempty_time_late1" 					"*0.7"
-
 			// don't know why vanilla leave this enabled. can't turn off, will cause client to desync
 			//"primary_fire_does_not_block_sprint"		"0"
 		}
@@ -372,6 +380,10 @@ WeaponData
 			// welp, after checking I realized vanilla quad rocket has only 0.1s zoom transition, should be fine
 			//"zoom_time_in"									"0.15"
 			//"zoom_time_out"   								"0.15"
+		
+			// vanilla quad rocket has weird segment reload time
+			"reload_time_late1" 						"*0.7"
+			"reloadempty_time_late1" 					"*0.7"
 		}
 
 		// do increased projectile speed in MP. requires client-side install
@@ -387,23 +399,27 @@ WeaponData
 			"fire_rate"   									"5.2" // 1.3 * 4
 			"ammo_clip_size"   								"18"
 
+			// sadly no enough room for appending these stuffs
+			// but basic viewkick do need adjust
 			"viewkick_pitch_base" 							"-0.4"
-			"viewkick_pitch_random"   						"0.3"
+			//"viewkick_pitch_random"   						"0.3"
 			"viewkick_yaw_base"   							"-0.15"
-			"viewkick_yaw_random" 							"0.3"
-			"viewkick_roll_hardScale" 						"1.2"
+			//"viewkick_yaw_random" 							"0.3"
+			//"viewkick_roll_hardScale" 						"1.2"
 
+			// sadly no enough room for appending ADS spread
 			"spread_kick_on_fire_stand_hip"   				"0.15"
-			"spread_kick_on_fire_stand_ads"   				"0.15"
+			//"spread_kick_on_fire_stand_ads"   				"0.15"
 			"spread_kick_on_fire_crouch_hip"  				"0.15"
-			"spread_kick_on_fire_crouch_ads"  				"0.15"
+			//"spread_kick_on_fire_crouch_ads"  				"0.15"
 			"spread_kick_on_fire_air_hip" 					"0.15"
-			"spread_kick_on_fire_air_ads" 					"0.15"
+			//"spread_kick_on_fire_air_ads" 					"0.15"
 
-			"spread_max_kick_stand_hip"   					"3.0"
-			"spread_max_kick_stand_ads"   					"3.0"
-			"spread_max_kick_crouch_hip"  					"3.0"
-			"spread_max_kick_crouch_ads"  					"3.0"
+			// sadly no enough room for appending these stuffs
+			//"spread_max_kick_stand_hip"   					"3.0"
+			//"spread_max_kick_stand_ads"   					"3.0"
+			//"spread_max_kick_crouch_hip"  					"3.0"
+			//"spread_max_kick_crouch_ads"  					"3.0"
 
 			"explosion_inner_radius"						"60"
 			"explosionradius" 								"100"
@@ -413,6 +429,10 @@ WeaponData
 			//"damage_far_value_titanarmor" 					"550"
 			"damage_near_value_titanarmor"					"*1.2" // 420
 			"damage_far_value_titanarmor" 					"*1.2" // 360
+			"npc_damage_near_value_titanarmor"				"*1.2"
+			"npc_damage_far_value_titanarmor" 				"*1.2"
 		}
+
+		// should've reached max mod lines of 200
 	}
 }
