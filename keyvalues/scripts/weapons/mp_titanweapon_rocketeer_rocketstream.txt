@@ -380,10 +380,6 @@ WeaponData
 			// welp, after checking I realized vanilla quad rocket has only 0.1s zoom transition, should be fine
 			//"zoom_time_in"									"0.15"
 			//"zoom_time_out"   								"0.15"
-		
-			// vanilla quad rocket has weird segment reload time
-			"reload_time_late1" 						"*0.7"
-			"reloadempty_time_late1" 					"*0.7"
 		}
 
 		// do increased projectile speed in MP. requires client-side install
