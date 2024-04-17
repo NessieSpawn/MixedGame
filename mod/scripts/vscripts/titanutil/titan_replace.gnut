@@ -16,6 +16,7 @@ global function TitanReplace_UseGunnerBisonVariant // bison variant
 global function TitanReplace_EnableRoninMiscFix // fix ronin's sword core behavior
 global function TitanReplace_EnableIonMiscFix // fix fd laser core bar and splitter rifle damage scaling, make it unable to abuse tripwire bug
 global function TitanReplace_EnableMonarchMiscFix // fix multi-targeting missile burst fire count when unlocked firing
+global function TitanReplace_EnableBruteMixFix // fix brute desyncs when fire weapon during ADSing, disallow fire weapon while sprinting
 
 global function TitanReplace_EnableNorthstarReBalance // rebalance northstar's railgun
 global function TitanReplace_EnableMonarchReBalance // rebalance monarch's xo-16, energy siphon and disable battery executions
@@ -104,6 +105,7 @@ struct
 	bool roninMiscFixEnabled
 	bool ionMiscFixEnabled
 	bool monarchMiscFixEnabled
+	bool bruteMiscFixEnabled
 
 	// balances
 	bool northstarReBalanceEnabled
@@ -184,6 +186,11 @@ void function TitanReplace_EnableIonMiscFix( bool enable )
 void function TitanReplace_EnableMonarchMiscFix( bool enable )
 {
 	file.monarchMiscFixEnabled = enable
+}
+
+void function TitanReplace_EnableBruteMixFix( bool enable )
+{
+	file.bruteMiscFixEnabled = enable
 }
 
 // balances
@@ -2104,7 +2111,10 @@ void function TitanReplace_BecomeBrute( entity titan, bool isPickup = false, boo
 				}
 
 				//Weapon
-				titan.GiveWeapon ( "mp_titanweapon_rocketeer_rocketstream", ["brute_rocket", "disable_run_and_gun_server"] )
+				if ( file.bruteMiscFixEnabled )
+					titan.GiveWeapon( "mp_titanweapon_rocketeer_rocketstream", ["brute_rocket", "rocketeer_rocketstream_fix"] )
+				else
+					titan.GiveWeapon( "mp_titanweapon_rocketeer_rocketstream", ["brute_rocket", "disable_run_and_gun_server"] )
 
 				//Defence
 				titan.GiveOffhandWeapon( "mp_titanweapon_vortex_shield", OFFHAND_SPECIAL, ["slow_recovery_vortex", "impact_drain_vortex"] )

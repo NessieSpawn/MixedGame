@@ -13,4 +13,6 @@ void function Riff_TitanMiscellaneous_Fix_Init()
     AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "laser_lite_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
     // monarch
     AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "shoulder_rockets_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+    // brute
+    AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "rocketeer_rocketstream_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
 }

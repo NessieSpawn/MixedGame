@@ -345,5 +345,22 @@ WeaponData
 			"damage_near_value_titanarmor"				"*0.35"
 			"damage_far_value_titanarmor" 				"*0.35"
 		}
+
+		// misc fix: disallow firing when not fully hipfire/ads, to avoid weird desync condition
+		// also disallow run_and_gun
+		rocketeer_rocketstream_fix
+		{
+			"primary_fire_does_not_block_sprint"			"0"
+
+			// to compensate unable to fire during transition, we could reduce zoom in/out time same as brute4 does
+			// or maybe no need? splitter rifle also have mode switch but it does not compensate anything
+			//"zoom_time_in"									"0.15"
+			//"zoom_time_out"   								"0.15"
+		}
+
+		// do increased projectile speed in MP. requires client-side install
+		increased_projectile_speed
+		{
+		}
 	}
 }

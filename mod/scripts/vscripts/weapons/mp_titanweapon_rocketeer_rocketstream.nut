@@ -170,6 +170,16 @@ var function OnWeaponPrimaryAttack_TitanWeapon_Rocketeer_RocketStream( entity we
 		return OnWeaponPrimaryAttack_TitanWeapon_Brute4_QuadRocket( weapon, attackParams )
 	//
 
+	// misc fix: disallow weapon firing when not fully ads
+	// so we don't get weird desync condition
+	if ( bool( GetCurrentPlaylistVarInt( "rocketeer_rocketstream_fix", 0 ) ) || weapon.HasMod( "rocketeer_rocketstream_fix" ) )
+	{
+		entity owner = weapon.GetWeaponOwner()
+		float zoomFrac = owner.GetZoomFrac()
+		if ( zoomFrac < 1 && zoomFrac > 0)
+			return 0
+	}
+
 	// vanilla behavior
 	#if CLIENT
 		if ( !weapon.ShouldPredictProjectiles() )
@@ -202,13 +212,14 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 	bool has_mortar_mod = weapon.HasMod( "coop_mortar_titan" )
 
 	// defensive fix for sometimes player don't gain single shot mod
+	// should be fixed if misc fix has been enabled!
     if ( adsPressed && !hasAmmoSwap && !weapon.HasMod( "rocketstream_fast" ) )
 		OnWeaponStartZoomIn_TitanWeapon_Rocketeer_RocketStream( weapon )
 
 	// modified
 	if ( hasAmmoSwap )
 	{
-		weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
+		//weapon.EmitWeaponSound_1p3p( "Weapon_Titan_Rocket_Launcher_Amped_Fire_1P", "Weapon_Titan_Rocket_Launcher_Amped_Fire_3P" )
 		weapon.EmitWeaponSound_1p3p( "Weapon_Archer_Fire_1P", "Weapon_Archer_Fire_3P" )
 	}
 	else if ( adsPressed || hasBurnMod ) 
@@ -237,7 +248,12 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 		// adding hasBurnMod check
 		//if ( has_s2s_npcMod || has_mortar_mod )
 		if ( hasBurnMod || has_s2s_npcMod || has_mortar_mod )
+		{
 			missileSpeed = 2500
+			// HACK for increasing missile speed in MP. this does not trigger server-side visual fix so be sure to install on client-side!
+			if ( weapon.HasMod( "increased_projectile_speed" ) )
+				missileSpeed *= 1.5
+		}
 
 		int impactFlags = (DF_IMPACT | DF_GIB | DF_KNOCK_BACK)
 
@@ -291,6 +307,10 @@ void function FireMissileStream_Spiral( entity weapon, WeaponPrimaryAttackParams
 
 	entity weaponOwner = weapon.GetWeaponOwner()
 	if ( IsSingleplayer() && weaponOwner.IsPlayer() )
+		missileSpeed = 2000
+
+	// HACK for increasing missile speed in MP. this does not trigger server-side visual fix so be sure to install on client-side!
+	if ( weapon.HasMod( "increased_projectile_speed" ) )
 		missileSpeed = 2000
 
 	// the high projectile speed is a bug I made before
