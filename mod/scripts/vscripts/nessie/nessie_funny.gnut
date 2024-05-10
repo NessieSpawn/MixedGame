@@ -40,6 +40,7 @@ enum eMarvinMovement
 	IDLE,
 
 	// walking and spriting doesn't working fine
+	// EDIT: walking has been fixed and sprinting is removed
 	WALKING,
 	SPRINTING,
 	
@@ -80,6 +81,7 @@ struct
 	table<entity, entity> playerFakeMarvin
 
 	table<entity, int> fakeMarvinMovementState
+	table<entity, bool> playerFakeMarvinTookDamage
 	table<entity, float> playerNextFakeMarvinScriptedAnimAllowedTime
 	array<MarvinIntroAnim> marvinIntroAnims
 } file
@@ -137,6 +139,7 @@ void function Nessie_Funny_Functions_Init()
 	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
 	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )
 	AddCallback_IsValidMeleeExecutionTarget( IsValidMeleeExecutionTarget )
+	AddDamageCallback( "player", OnPlayerDamaged )
 }
 
 // callbacks
@@ -147,6 +150,7 @@ void function OnClientConnected( entity player )
 	file.playerHasRGYBattery[ player ] <- false
 	file.playerFlipperMover[ player ] <- null
 	file.playerFakeMarvin[ player ] <- null
+	file.playerFakeMarvinTookDamage[ player ] <- false
 	file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] <- 0.0
 }
 
@@ -182,6 +186,7 @@ void function OnDecoyCreated( entity player, entity decoy )
 
 bool function IsValidMeleeExecutionTarget( entity attacker, entity target )
 {
+	// prevent fake marvin player from executing each other
 	if ( attacker.IsPlayer() && IsValid( file.playerFakeMarvin[ attacker ] ) )
 		return false
 
@@ -189,6 +194,24 @@ bool function IsValidMeleeExecutionTarget( entity attacker, entity target )
 		return false
 	
 	return true
+}
+
+void function OnPlayerDamaged( entity player, var damageInfo )
+{
+	// if we have fake marvin active, and damage isn't passed by marvin, we remove damage
+	if ( IsValid( file.playerFakeMarvin[ player ] ) && !file.playerFakeMarvinTookDamage[ player ] )
+	{
+		// player still take trigger_hurt damage
+		entity attacker = DamageInfo_GetAttacker( damageInfo )
+		if ( IsValid( attacker ) )
+		{
+			string attackerClassname = attacker.GetClassName()
+			if ( attackerClassname == "trigger_hurt" || attackerClassname == "trigger_multiple" )
+				return
+		}
+
+		DamageInfo_SetDamage( damageInfo, 0 )
+	}
 }
 
 // client commands
@@ -979,6 +1002,7 @@ entity function PlayerBecomeMarvin( entity player )
 	//SetUpFakeMarvinHighlight( player )
 
 	// they can take doubled damage from passing-through and explosions, double the health
+	// EDIT: we've fixed that case by using damage callbacks, but health change is good enough, keeping here
 	//player.SetShieldHealthMax( 1000 )
 	//player.SetShieldHealth( 1000 )
 	SetShieldHealthMaxWithFix( player, 1000 )
@@ -988,21 +1012,25 @@ entity function PlayerBecomeMarvin( entity player )
 
 	// setup marvin
 	// dont let AI titan get enemies. Don't do trigger checks
+	// EDIT: maybe do trigger checks so we get proper fall damage and stuffs...?
 	marvin.SetEfficientMode( true )
-	marvin.SetTouchTriggers( false )
+	//marvin.SetTouchTriggers( false )
 	marvin.SetNoTarget( true )
 	marvin.SetAimAssistAllowed( false )
+	marvin.e.destroyTriggerHurt = true // so they gets removed when taking fall damage, and player dies
 
 	// temp health
 	// reworked here, we make player take damage instead of marvin re-direct damage
+	// EDIT: reworked again here: still change to use marvin for re-directing damage, but player took radius damage will be blocked
 	/*
-	//marvin.SetShieldHealthMax( 300 )
-	//marvin.SetShieldHealth( 300 )
-	SetShieldHealthMaxWithFix( marvin, 300 )
-    SetShieldHealthWithFix( marvin, 300 )
 	marvin.SetMaxHealth( 400 )
 	marvin.SetHealth( 400 )
 	*/
+	// update basic shield value for marvin so we have proper impact effects
+	//marvin.SetShieldHealthMax( 300 )
+	//marvin.SetShieldHealth( 300 )
+	SetShieldHealthMaxWithFix( marvin, 1000 )
+    SetShieldHealthWithFix( marvin, 1000 )
 
 	marvin.SetBossPlayer( player )
 
@@ -1014,12 +1042,14 @@ entity function PlayerBecomeMarvin( entity player )
 	marvin.SetParent( player, "ORIGIN" )
 	SetForceDrawWhileParented( marvin, true )
 	//marvin.SetTitle( player.GetPlayerName() ) // boss player can show title for npcs
-	AddEntityCallback_OnFinalDamaged( marvin, OnFakeMarvinFinalDamaged )
+	AddEntityCallback_OnFinalDamaged( marvin, OnFakeMarvinFinalDamaged ) // this can pass shield damage to player
 	if ( BATTERY_SPAWNERS.contains( player.GetUID() ) )
 		HideName( marvin )
 	marvin.Signal( "StopDoingJobs" ) // stop automatic job think
 
 	thread PlayerMarvinThink( player, marvin )
+	thread TrackMarvinOwnerDamaged( player, marvin )
+	thread DisableBoostBar( player )
 
 	return marvin
 }
@@ -1047,6 +1077,8 @@ void function OnFakeMarvinFinalDamaged( entity marvin, var damageInfo )
 	entity owner = marvin.GetBossPlayer()
 	if ( IsValid( owner ) )
 	{
+		file.playerFakeMarvinTookDamage[ owner ] = true // mark this as true so we can receive damage properly
+		
 		owner.TakeDamage( 
 			DamageInfo_GetDamage( damageInfo ), 
 			DamageInfo_GetAttacker( damageInfo ), 
@@ -1060,9 +1092,43 @@ void function OnFakeMarvinFinalDamaged( entity marvin, var damageInfo )
 				damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 			}
 		)
+		file.playerFakeMarvinTookDamage[ owner ] = false // owner stops taking damage anymore
+
+		// update marvin shield value so we get proper impact effects
+		SetShieldHealthMaxWithFix( marvin, GetShieldHealthMaxWithFix( owner ) )
+		SetShieldHealthWithFix( marvin, GetShieldHealthWithFix( owner ) )
 	}
 
 	DamageInfo_SetDamage( damageInfo, 0 ) // never damage marvin
+}
+
+// switch marvin's face when owner damaged
+void function TrackMarvinOwnerDamaged( entity owner, entity marvin )
+{
+	owner.EndSignal( "OnDeath" )
+	owner.EndSignal( "OnDestroy" )
+	marvin.EndSignal( "OnDestroy" )
+
+	while ( true )
+	{
+		waitthread MarvinUndamagedFace( owner, marvin )
+		waitthread MarvinWounded( owner, marvin )
+	}
+}
+
+void function MarvinUndamagedFace( entity owner, entity marvin )
+{
+	//print( "marvin is happy!" )
+	owner.EndSignal( "OnDamaged" )
+	marvin.SetSkin( 1 ) // happy face
+	WaitForever()
+}
+
+void function MarvinWounded( entity owner, entity marvin )
+{
+	//print( "marvin is unhappy!" )
+	marvin.SetSkin( 2 ) // sad face
+	wait 2.3 // max duration
 }
 
 void function PlayerMarvinThink( entity player, entity marvin )
@@ -1100,10 +1166,9 @@ void function PlayerMarvinThink( entity player, entity marvin )
 				//player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE // this gets cleared on player respawn, now we need to hide so their corpse won't show
 				// reworked here, we make player take damage instead of marvin re-direct damage
 				// no need to clean up
-				/*
-				player.ClearInvulnerable()
+				// EDIT: reworked again here: still change to use marvin for re-directing damage, but player took radius damage will be blocked
+				//player.ClearInvulnerable()
 				player.Solid()
-				*/
 				//player.kv.modelscale = 1.0
 				player.kv.CollisionGroup = TRACE_COLLISION_GROUP_PLAYER
 				player.UnforceStand()
@@ -1172,7 +1237,7 @@ void function PlayerMarvinThink( entity player, entity marvin )
 		// reworked here, we make player take damage instead of marvin re-direct damage
 		// welp, guess making both entities take damage could be better
 		//player.SetInvulnerable()
-		//player.NotSolid() // non-solid makes player unable to take trigger_hurt damage
+		player.NotSolid() // non-solid makes player unable to take trigger_hurt damage... DOESN"T MATTER! player can use kill command to get back, enabling this could be fun!
 		// this is bad... will make attachments messed up
 		//player.kv.modelscale = 0.01 // instead, we make player almost unable to getting hit, they'll still caught in explosions though
 		player.kv.CollisionGroup = 0 // TRACE_COLLISION_GROUP_BLOCK_WEAPONS
@@ -1182,6 +1247,7 @@ void function PlayerMarvinThink( entity player, entity marvin )
 		
 		// health
 		// reworked here, we make player take damage instead of marvin re-direct damage
+		// EDIT: reworked again here: still change to use marvin for re-directing damage, but player took radius damage will be blocked
 		/*
 		//player.SetShieldHealthMax( marvin.GetShieldHealthMax() )
 		//player.SetShieldHealth( marvin.GetShieldHealth() )
@@ -1310,18 +1376,6 @@ void function PlayerMarvinThink( entity player, entity marvin )
 				marvin.Anim_ScriptedPlay( "mv_idle_unarmed" )
 			}
 			//printt( "player marvin idle!" )
-		}
-
-		// marvin face
-		if ( Time() - player.p.lastDamageTime < 3.0 )
-		{
-			if ( marvin.GetSkin() != 2 )
-				marvin.SetSkin( 2 ) // sad face
-		}
-		else
-		{
-			if ( marvin.GetSkin() != 1 )
-				marvin.SetSkin( 1 ) // happy face
 		}
 
 		WaitFrame()
