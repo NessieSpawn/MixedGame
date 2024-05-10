@@ -35,11 +35,15 @@ global function CreatePhysicsBarrel
 global function NessyFunny_EnableMarvinScriptedAnim // this may cause sound loss so need a setting
 global function PlayerBecomeMarvin
 
+global function NessyFunny_EnablePlayerTickDamageByDefault // THIS IS DEFAULT SETTING. remember that PlayerBecomeTick() parameters can bypass this
+global function PlayerBecomeTick
+
 enum eMarvinMovement
 {
 	IDLE,
 
 	// walking and spriting doesn't working fine
+	// EDIT: walking has been fixed and sprinting is removed
 	WALKING,
 	SPRINTING,
 	
@@ -67,21 +71,45 @@ struct MarvinIntroAnim
 // modifiable consts
 const float MARVIN_INTRO_ANIM_COOLDOWN = 15.0 // gets applied after animation end
 
+enum eTickMovement
+{
+	IDLE,
+	WALKING,
+
+	IN_AIR,
+
+	OVERLOADING,
+
+	_count_
+}
+
+struct TickOverloadBehavior
+{
+	float suicideChaseTime
+	float suicideChaseSpeedScale
+}
+
 struct
 {
 	bool clientCommandsEnabled
 	bool fakeMarvinScriptedAnimEnabled // this may cause sound loss so need a setting
+	bool playerTickCanDoDamageByDefault // remember that PlayerBecomeTick() parameters can bypass this
 
 	table<entity, bool> playerHasRGBHighlight
 	table<entity, bool> playerHasRainbowSkin
 	table<entity, bool> playerHasRGYBattery
 
 	table<entity, entity> playerFlipperMover
-	table<entity, entity> playerFakeMarvin
+	table<entity, entity> playerFakeNPC
+	table<entity, bool> playerFakeNPCTookDamage
 
 	table<entity, int> fakeMarvinMovementState
 	table<entity, float> playerNextFakeMarvinScriptedAnimAllowedTime
 	array<MarvinIntroAnim> marvinIntroAnims
+
+	table<entity, int> fakeTickMovementState
+	table<entity, TickOverloadBehavior> tickOverloadBehavior
+	table<entity, bool> playerTickDoingSuicideChase
 } file
 
 void function Nessie_Funny_Functions_Init()
@@ -128,8 +156,16 @@ void function Nessie_Funny_Functions_Init()
 
 	// marvin
 	InitMarvinIntroAnim()
-	RegisterSignal( "MarvinMoveAnimThink" )
+	RegisterSignal( "MarvinPlayerMoveAnimThink" )
 	AddClientCommandCallback( "becomemarvin", CC_PlayerBecomeFakeMarvin )
+
+	// tick
+	RegisterSignal( "TickPlayerStartsOverload" )
+	RegisterSignal( "TickPlayerTimerRunsOut" )
+	RegisterSignal( "TickPlayerJump" )
+	RegisterSignal( "TickPlayerDoubleJump" )
+	RegisterSignal( "TickPlayerTouchGround" )
+	AddClientCommandCallback( "becometick", CC_PlayerBecomeFakeTick )
 
 	// callbacks
 	AddCallback_OnClientConnected( OnClientConnected )
@@ -137,6 +173,7 @@ void function Nessie_Funny_Functions_Init()
 	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
 	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )
 	AddCallback_IsValidMeleeExecutionTarget( IsValidMeleeExecutionTarget )
+	AddDamageCallback( "player", OnPlayerDamaged )
 }
 
 // callbacks
@@ -145,9 +182,13 @@ void function OnClientConnected( entity player )
 	file.playerHasRGBHighlight[ player ] <- false
 	file.playerHasRainbowSkin[ player ] <- false
 	file.playerHasRGYBattery[ player ] <- false
+
 	file.playerFlipperMover[ player ] <- null
-	file.playerFakeMarvin[ player ] <- null
+	file.playerFakeNPC[ player ] <- null
+	file.playerFakeNPCTookDamage[ player ] <- false
+
 	file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] <- 0.0
+	file.playerTickDoingSuicideChase[ player ] <- false
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
@@ -182,13 +223,32 @@ void function OnDecoyCreated( entity player, entity decoy )
 
 bool function IsValidMeleeExecutionTarget( entity attacker, entity target )
 {
-	if ( attacker.IsPlayer() && IsValid( file.playerFakeMarvin[ attacker ] ) )
+	// prevent fake marvin player from executing each other
+	if ( attacker.IsPlayer() && IsValid( file.playerFakeNPC[ attacker ] ) )
 		return false
 
-	if ( target.IsPlayer() && IsValid( file.playerFakeMarvin[ target ] ) )
+	if ( target.IsPlayer() && IsValid( file.playerFakeNPC[ target ] ) )
 		return false
 	
 	return true
+}
+
+void function OnPlayerDamaged( entity player, var damageInfo )
+{
+	// if we have fake npc active, and damage isn't passed by them, we remove damage
+	if ( IsValid( file.playerFakeNPC[ player ] ) && !file.playerFakeNPCTookDamage[ player ] )
+	{
+		// player still take trigger_hurt damage
+		entity attacker = DamageInfo_GetAttacker( damageInfo )
+		if ( IsValid( attacker ) )
+		{
+			string attackerClassname = attacker.GetClassName()
+			if ( attackerClassname == "trigger_hurt" || attackerClassname == "trigger_multiple" )
+				return
+		}
+
+		DamageInfo_SetDamage( damageInfo, 0 )
+	}
 }
 
 // client commands
@@ -278,6 +338,15 @@ bool function CC_PlayerBecomeFakeMarvin( entity player, array<string> args )
 		return false
 
 	PlayerBecomeMarvin( player )
+	return true
+}
+
+bool function CC_PlayerBecomeFakeTick( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	PlayerBecomeTick( player )
 	return true
 }
 //
@@ -948,7 +1017,7 @@ void function NessyFunny_EnableMarvinScriptedAnim( bool enable )
 // player controlled marvin
 entity function PlayerBecomeMarvin( entity player )
 {
-	if ( IsValid( file.playerFakeMarvin[ player ] ) )
+	if ( IsValid( file.playerFakeNPC[ player ] ) )
 		return
 
 	if ( !IsAlive( player ) )
@@ -973,12 +1042,13 @@ entity function PlayerBecomeMarvin( entity player )
 	player.SetNoTarget( true )
 	PainDeathSounds_SetDisabledForEntity( player, true ) // temp
 	DeathPackage_SetDisabledForEntity( player, true )
-	file.playerFakeMarvin[ player ] = marvin
+	file.playerFakeNPC[ player ] = marvin
 	// how do I hide highlight for this player?
 	// now doing loop in PlayerMarvinThink()
 	//SetUpFakeMarvinHighlight( player )
 
 	// they can take doubled damage from passing-through and explosions, double the health
+	// EDIT: we've fixed that case by using damage callbacks, but health change is good enough, keeping here
 	//player.SetShieldHealthMax( 1000 )
 	//player.SetShieldHealth( 1000 )
 	SetShieldHealthMaxWithFix( player, 1000 )
@@ -988,21 +1058,26 @@ entity function PlayerBecomeMarvin( entity player )
 
 	// setup marvin
 	// dont let AI titan get enemies. Don't do trigger checks
+	// EDIT: maybe do trigger checks so we get proper fall damage and stuffs...?
 	marvin.SetEfficientMode( true )
-	marvin.SetTouchTriggers( false )
+	//marvin.SetTouchTriggers( false )
 	marvin.SetNoTarget( true )
 	marvin.SetAimAssistAllowed( false )
+	// doesn't work because parent is nonsolid, still won't touch any trigger stuffs
+	//marvin.e.destroyTriggerHurt = true // so they gets removed when taking fall damage, and player dies
 
 	// temp health
 	// reworked here, we make player take damage instead of marvin re-direct damage
+	// EDIT: reworked again here: still change to use marvin for re-directing damage, but player took radius damage will be blocked
 	/*
-	//marvin.SetShieldHealthMax( 300 )
-	//marvin.SetShieldHealth( 300 )
-	SetShieldHealthMaxWithFix( marvin, 300 )
-    SetShieldHealthWithFix( marvin, 300 )
 	marvin.SetMaxHealth( 400 )
 	marvin.SetHealth( 400 )
 	*/
+	// update basic shield value for marvin so we have proper impact effects
+	//marvin.SetShieldHealthMax( 300 )
+	//marvin.SetShieldHealth( 300 )
+	SetShieldHealthMaxWithFix( marvin, 1000 )
+    SetShieldHealthWithFix( marvin, 1000 )
 
 	marvin.SetBossPlayer( player )
 
@@ -1014,12 +1089,14 @@ entity function PlayerBecomeMarvin( entity player )
 	marvin.SetParent( player, "ORIGIN" )
 	SetForceDrawWhileParented( marvin, true )
 	//marvin.SetTitle( player.GetPlayerName() ) // boss player can show title for npcs
-	AddEntityCallback_OnFinalDamaged( marvin, OnFakeMarvinFinalDamaged )
+	AddEntityCallback_OnFinalDamaged( marvin, OnFakeNPCFinalDamaged ) // this callback can pass shield damage to player
 	if ( BATTERY_SPAWNERS.contains( player.GetUID() ) )
 		HideName( marvin )
 	marvin.Signal( "StopDoingJobs" ) // stop automatic job think
 
 	thread PlayerMarvinThink( player, marvin )
+	thread TrackMarvinOwnerDamaged( player, marvin )
+	thread DisableBoostBar( player )
 
 	return marvin
 }
@@ -1029,6 +1106,9 @@ void function SetUpFakeMarvinHighlight( entity ent )
 	// now doing loop in PlayerMarvinThink(), no need to remove default enemy highlight
 	//ent.e.hasDefaultEnemyHighlight = false
 	Highlight_ClearEnemyHighlight( ent )
+
+	// temp remove highlight overrides
+	/*
 	// friendly highlight
 	Highlight_SetFriendlyHighlight( ent, "sp_enemy_pilot" )
 	ent.Highlight_SetParam( 1, 0, HIGHLIGHT_COLOR_NEUTRAL )
@@ -1038,15 +1118,18 @@ void function SetUpFakeMarvinHighlight( entity ent )
 	// owned highlight
 	Highlight_SetOwnedHighlight( ent, "sp_enemy_pilot" )
 	ent.Highlight_SetParam( 3, 0, HIGHLIGHT_COLOR_NEUTRAL )
+	*/
 }
 
 // for better adjusting damage dealing to player
-void function OnFakeMarvinFinalDamaged( entity marvin, var damageInfo )
+void function OnFakeNPCFinalDamaged( entity ent, var damageInfo )
 {
 	//print( "fake marvin damaged!" )
 	entity owner = marvin.GetBossPlayer()
 	if ( IsValid( owner ) )
 	{
+		file.playerFakeNPCTookDamage[ owner ] = true // mark this as true so we can receive damage properly
+		
 		owner.TakeDamage( 
 			DamageInfo_GetDamage( damageInfo ), 
 			DamageInfo_GetAttacker( damageInfo ), 
@@ -1060,9 +1143,43 @@ void function OnFakeMarvinFinalDamaged( entity marvin, var damageInfo )
 				damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 			}
 		)
+		file.playerFakeNPCTookDamage[ owner ] = false // owner stops taking damage anymore
+
+		// update npc shield value so we get proper impact effects
+		SetShieldHealthMaxWithFix( ent, GetShieldHealthMaxWithFix( owner ) )
+		SetShieldHealthWithFix( ent, GetShieldHealthWithFix( owner ) )
 	}
 
-	DamageInfo_SetDamage( damageInfo, 0 ) // never damage marvin
+	DamageInfo_SetDamage( damageInfo, 0 ) // never damage npc
+}
+
+// switch marvin's face when owner damaged
+void function TrackMarvinOwnerDamaged( entity owner, entity marvin )
+{
+	owner.EndSignal( "OnDeath" )
+	owner.EndSignal( "OnDestroy" )
+	marvin.EndSignal( "OnDestroy" )
+
+	while ( true )
+	{
+		waitthread MarvinUndamagedFace( owner, marvin )
+		waitthread MarvinWounded( owner, marvin )
+	}
+}
+
+void function MarvinUndamagedFace( entity owner, entity marvin )
+{
+	//print( "marvin is happy!" )
+	owner.EndSignal( "OnDamaged" )
+	marvin.SetSkin( 1 ) // happy face
+	WaitForever()
+}
+
+void function MarvinWounded( entity owner, entity marvin )
+{
+	//print( "marvin is unhappy!" )
+	marvin.SetSkin( 2 ) // sad face
+	wait 2.3 // max duration
 }
 
 void function PlayerMarvinThink( entity player, entity marvin )
@@ -1073,12 +1190,20 @@ void function PlayerMarvinThink( entity player, entity marvin )
 	marvin.EndSignal( "OnDestroy" )
 	marvin.EndSignal( "OnDeath" )
 
+	array<int> statusEffectsToCleanUp
+	statusEffectsToCleanUp.append( StatusEffect_AddEndless( player, eStatusEffect.move_slow, 0.35 ) )
+	statusEffectsToCleanUp.append( StatusEffect_AddEndless( player, eStatusEffect.turn_slow, 0.2 ) )
+
+	// start third person tracking
+	MarvinPlayerTrackView( player )
+
 	OnThreadEnd
 	(
-		function(): ( player, marvin )
+		function(): ( player, marvin, statusEffectsToCleanUp )
 		{
 			if ( IsValid( marvin ) )
 			{
+				RemoveEntityCallback_OnFinalDamaged( marvin, OnFakeNPCFinalDamaged )
 				marvin.Anim_Stop()
 				HideName( marvin )
 				marvin.ClearParent()
@@ -1088,6 +1213,9 @@ void function PlayerMarvinThink( entity player, entity marvin )
 			if ( IsValid( player ) )
 			{
 				// clean up
+				foreach ( effect in statusEffectsToCleanUp )
+					StatusEffect_Stop( player, effect )
+
 				player.Anim_Stop()
 				player.SetNoTarget( false )
 				player.SetTrackEntity( null )
@@ -1100,10 +1228,9 @@ void function PlayerMarvinThink( entity player, entity marvin )
 				//player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE // this gets cleared on player respawn, now we need to hide so their corpse won't show
 				// reworked here, we make player take damage instead of marvin re-direct damage
 				// no need to clean up
-				/*
-				player.ClearInvulnerable()
+				// EDIT: reworked again here: still change to use marvin for re-directing damage, but player took radius damage will be blocked
+				//player.ClearInvulnerable()
 				player.Solid()
-				*/
 				//player.kv.modelscale = 1.0
 				player.kv.CollisionGroup = TRACE_COLLISION_GROUP_PLAYER
 				player.UnforceStand()
@@ -1125,15 +1252,11 @@ void function PlayerMarvinThink( entity player, entity marvin )
 				//	HumanSizedGibSound( player )
 				//}
 
-				file.playerFakeMarvin[ player ] = null
+				file.playerFakeNPC[ player ] = null
 				file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] = 0.0
 			}
 		}
 	)
-
-	MarvinPlayerTrackView( player )
-	StatusEffect_AddEndless( player, eStatusEffect.move_slow, 0.35 )
-	StatusEffect_AddEndless( player, eStatusEffect.turn_slow, 0.2 )
 
 	// marvin movement anim init
 	marvin.Anim_ScriptedPlay( "mv_idle_unarmed" )
@@ -1172,7 +1295,7 @@ void function PlayerMarvinThink( entity player, entity marvin )
 		// reworked here, we make player take damage instead of marvin re-direct damage
 		// welp, guess making both entities take damage could be better
 		//player.SetInvulnerable()
-		//player.NotSolid() // non-solid makes player unable to take trigger_hurt damage
+		player.NotSolid() // non-solid makes player unable to take trigger_hurt damage and won't trigger OOB... DOESN"T MATTER! player can use kill command to get back, enabling this could be fun!
 		// this is bad... will make attachments messed up
 		//player.kv.modelscale = 0.01 // instead, we make player almost unable to getting hit, they'll still caught in explosions though
 		player.kv.CollisionGroup = 0 // TRACE_COLLISION_GROUP_BLOCK_WEAPONS
@@ -1182,6 +1305,7 @@ void function PlayerMarvinThink( entity player, entity marvin )
 		
 		// health
 		// reworked here, we make player take damage instead of marvin re-direct damage
+		// EDIT: reworked again here: still change to use marvin for re-directing damage, but player took radius damage will be blocked
 		/*
 		//player.SetShieldHealthMax( marvin.GetShieldHealthMax() )
 		//player.SetShieldHealth( marvin.GetShieldHealth() )
@@ -1271,10 +1395,10 @@ void function PlayerMarvinThink( entity player, entity marvin )
 		{
 			if ( file.fakeMarvinMovementState[ marvin ] != eMarvinMovement.WALKING )
 			{
-				//file.fakeMarvinMovementState[ marvin ] = eMarvinMovement.WALKING // state setup handled in MarvinMoveAnimThink()
+				//file.fakeMarvinMovementState[ marvin ] = eMarvinMovement.WALKING // state setup handled in MarvinPlayerMoveAnimThink()
 				// parented move anim seems weird...
 				// fixed by marvin.Anim_DisableUpdatePosition()
-				//thread MarvinMoveAnimThink( player, marvin, "Walk_All", eMarvinMovement.WALKING ) // Walk_all_v2
+				//thread MarvinPlayerMoveAnimThink( player, marvin, "Walk_All", eMarvinMovement.WALKING ) // Walk_all_v2
 				file.fakeMarvinMovementState[ marvin ] = eMarvinMovement.WALKING
 				marvin.Anim_ScriptedPlay( "Walk_All" ) //
 				marvin.Anim_DisableUpdatePosition() // can this fix marvin change position through walking?
@@ -1312,18 +1436,6 @@ void function PlayerMarvinThink( entity player, entity marvin )
 			//printt( "player marvin idle!" )
 		}
 
-		// marvin face
-		if ( Time() - player.p.lastDamageTime < 3.0 )
-		{
-			if ( marvin.GetSkin() != 2 )
-				marvin.SetSkin( 2 ) // sad face
-		}
-		else
-		{
-			if ( marvin.GetSkin() != 1 )
-				marvin.SetSkin( 1 ) // happy face
-		}
-
 		WaitFrame()
 	}
 }
@@ -1347,7 +1459,7 @@ void function MarvinPlayerTrackView( entity player )
 // parented move anim seems weird...
 // fixed by marvin.Anim_DisableUpdatePosition()
 /*
-void function MarvinMoveAnimThink( entity player, entity marvin, string anim, int stateKeep )
+void function MarvinPlayerMoveAnimThink( entity player, entity marvin, string anim, int stateKeep )
 {
 	//marvin = CreatePropDynamic( $"models/robots/marvin/marvin.mdl", marvin.GetOrigin(), marvin.GetAngles(), 6 )
 	marvin.EndSignal( "OnDeath" )
@@ -1355,8 +1467,8 @@ void function MarvinMoveAnimThink( entity player, entity marvin, string anim, in
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 
-	marvin.Signal( "MarvinMoveAnimThink" )
-	marvin.EndSignal( "MarvinMoveAnimThink" )
+	marvin.Signal( "MarvinPlayerMoveAnimThink" )
+	marvin.EndSignal( "MarvinPlayerMoveAnimThink" )
 
 	print( "marvin doing anim!" )
 
@@ -1434,7 +1546,7 @@ void function MarvinScriptedIntroAnim( entity player, entity marvin )
 	marvin.ClearParent()
 	// since parent has been cleared, if player has RGB highlight we need to apply it for marvin
 	if ( file.playerHasRGBHighlight[ player ] )
-		thread RGB_Highlight( file.playerFakeMarvin[ player ], true )
+		thread RGB_Highlight( file.playerFakeNPC[ player ], true )
 
 	// don't want marvin or player die here
 	marvin.SetInvulnerable()
@@ -1528,4 +1640,390 @@ array<entity> function GetAllPlayersInMarvinSoundRadius( vector pos, float radiu
 	}
 
 	return targetPlayers
+}
+
+void function PlayerBecomeTick( entity player, string tickAiSettings = "npc_frag_drone_throwable", float moveSpeedScale = -1, float suicideChaseTime = -1, float suicideChaseSpeedScale = -1, float overloadDelayAdjustment = -1, bool ornull tickCanDoDamageOverride = null )
+{
+	if ( IsValid( file.playerFakeNPC[ player ] ) )
+		return
+
+	if ( !IsAlive( player ) )
+		return
+	
+	if ( player.IsTitan() || player.Anim_IsActive() || IsValid( player.GetParent() ) )
+		return
+	
+	bool tickCanDoDamage = file.playerTickCanDoDamageByDefault
+	// override from default value
+	if ( tickCanDoDamageOverride != null )
+		tickCanDoDamage = expect bool( tickCanDoDamageOverride )
+
+	int team = player.GetTeam()
+	vector origin = player.GetOrigin()
+	vector angles = player.GetAngles()
+	
+	entity tick = CreateFragDroneCan( team, origin, < 0, angles.y, 0 > )
+	SetSpawnOption_AISettings( drone, tickAiSettings )
+
+	tick.kv.contents = (int(marvin.kv.contents) | CONTENTS_NOGRAPPLE)
+	tick.ai.killShotSound = false
+
+	// remove tick's original think and stuffs
+	// these utility functions are defined in modified _ai_suicide_spectres.gnut
+	RemoveSuicideSpectre( tick )
+	// if tick cannot do damage, we assign fake explosion for them
+	if ( !tickCanDoDamage )
+		SuicideSpectre_SetNotExploding( tick )
+
+	DispatchSpawn( tick )
+
+	// update player health
+	player.SetMaxHealth( tick.GetMaxHealth() )
+	player.SetHealth( tick.GetHealth() )
+
+	// setup everything
+	player.SetNoTarget( true )
+	PainDeathSounds_SetDisabledForEntity( player, true ) // temp
+	DeathPackage_SetDisabledForEntity( player, true )
+	file.playerFakeNPC[ player ] <- tick
+
+	// our tick maybe safe to other entities
+	if ( !tickCanDoDamage )
+	{
+		tick.SetEfficientMode( true )
+		//tick.SetTouchTriggers( false )
+		tick.SetNoTarget( true )
+		tick.SetAimAssistAllowed( false )
+	}
+
+	// setup tick
+	tick.SetBossPlayer( player )
+	tick.Highlight_SetInheritHighlight( true )
+
+	tick.SetShieldHealthMax( player.GetShieldHealthMax() )
+	tick.SetShieldHealth( player.GetShieldHealth() )
+
+	tick.SetParent( player, "ORIGIN" )
+	SetForceDrawWhileParented( tick, true )
+
+	if ( BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		HideName( tick )
+
+	// pass damage to player
+	AddEntityCallback_OnFinalDamaged( tick, OnFakeNPCFinalDamaged )
+	AddEntityCallback_OnPostDamaged( player, OnTickPlayerDamaged )
+
+	thread PlayerTickThink( player, tick, moveSpeedScale, suicideChaseTime, suicideChaseSpeedScale, overloadDelayAdjustment )
+	thread PlayerTickAnimationThink( player, tick ) // tick animation is pretty simple compare to marvin's, use thread here
+	thread DisableBoostBar( player )
+
+	return tick
+}
+
+void function OnTickPlayerDamaged( entity player, var damageInfo )
+{
+	// upon damage, start suicide chase
+	if ( DamageInfo_GetDamage( damageInfo ) > 0 ) // shield taking damage won't do anything...?
+	{
+		if ( file.playerTickDoingSuicideChase[ player ] )
+		{
+			thread PlayerTickStartsSuicideChase( player )
+			file.playerTickDoingSuicideChase[ player ] = true
+		}
+	}
+}
+
+void function PlayerTickStartsSuicideChase( entity player )
+{
+	entity tick = file.playerFakeNPC[ player ]
+	if ( !IsAlive( tick ) )
+		return
+
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+	tick.EndSignal( "OnDeath" )
+	tick.EndSignal( "OnDestroy" )
+
+	// get tick's settings!
+	float suicideChaseTime = file.tickOverloadBehavior[ tick ].suicideChaseTime
+	float suicideChaseSpeedScale = file.tickOverloadBehavior[ tick ].suicideChaseSpeedScale
+
+	if ( suicideChaseTime > 0 )
+	{
+		int speedBoostEffect = StatusEffect_AddTimed( player, eStatusEffect.speed_boost, suicideChaseTime, GetSpeedBoostEffectSeverity( suicideChaseSpeedScale ), 0.0 )
+		float endTime = Time() + suicideChaseTime
+		while ( Time() < endTime )
+		{
+			float timeLeftToExplode = floor( (endTime - Time() ) * 10 ) / 100
+			SendHudMessage( player, "距離過載剩餘：" + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+			WaitFrame()
+		}
+	}
+
+	waitthread PlayerTickOverloads( player, tick )
+}
+
+// player's speed_boost effect is actually value^2, needs a utility for calculating
+float function GetSpeedBoostEffectSeverity( float expectedSpeedScale )
+{
+
+}
+
+void function PlayerTickThink( entity player, entity tick, float moveSpeedScale, float suicideChaseTime, float suicideChaseSpeedScale, float overloadDelayAdjustment )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "player_embarks_titan" ) // maybe no need to add this... embarking as tick kills you!
+	tick.EndSignal( "OnDeath" )
+	tick.EndSignal( "OnDestroy" )
+
+	// get all settings value
+	// if there're no settings override, use default value
+
+	if ( moveSpeedScale == -1 )
+		moveSpeedScale = expect float( tick.Dev_GetAISettingByKeyField( "minSpeedScale" ) )
+
+	if ( suicideChaseTime == -1 )
+		suicideChaseTime = expect float( tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) )
+	
+	if ( suicideChaseSpeedScale == -1 )
+		suicideChaseSpeedScale = expect float( tick.Dev_GetAISettingByKeyField( "maxSpeedScale" ) )
+	
+	if ( overloadDelayAdjustment == -1 )
+	{
+		overloadDelayAdjustment = 0.0
+		// same checks as _ai_suicide_spectres.gnut does
+		bool isFragDrone = spectre.mySpawnOptions_aiSettings == "npc_frag_drone_throwable"
+		if ( !isFragDrone )
+			overloadDelayAdjustment = 0.25
+	}
+
+	TickOverloadBehavior overloadBehaviorStruct
+	overloadBehaviorStruct.suicideChaseTime = suicideChaseTime
+	overloadBehaviorStruct.suicideChaseSpeedScale = suicideChaseSpeedScale
+	overloadBehaviorStruct.overloadDelayAdjustment = overloadDelayAdjustment
+	file.tickOverloadBehavior[ tick ] <- overloadBehaviorStruct
+
+	array<int> statusEffectsToCleanUp
+	// add move speed penalty to prevent sprinting
+	statusEffectsToCleanUp.append( StatusEffect_AddEndless( player, eStatusEffect.move_slow, 0.05 ) )
+	// add basic speed
+	statusEffectsToCleanUp.append( StatusEffect_AddEndless( player, eStatusEffect.speed_boost, GetSpeedBoostEffectSeverity( moveSpeedScale ) ) )
+	
+
+	// start third person tracking
+	TickPlayerTrackView( player )
+
+	OnThreadEnd
+	(
+		function(): ( player, tick, statusEffectsToCleanUp )
+		{
+			if ( IsValid( tick ) )
+			{
+				RemoveEntityCallback_OnFinalDamaged( tick, OnFakeNPCFinalDamaged )
+				tick.Anim_Stop()
+				HideName( tick )
+				tick.ClearParent()
+				if ( IsAlive( tick ) )
+					tick.Die( tick, tick, { damageSourceId = damagedef_suicide } )
+			}
+			if ( IsValid( player ) )
+			{
+				RemoveEntityCallback_OnDamaged( player, OnTickPlayerDamaged )
+
+				// clean up
+				foreach ( effect in statusEffectsToCleanUp )
+					StatusEffect_Stop( player, effect )
+				
+				player.Anim_Stop()
+				player.SetNoTarget( false )
+				player.SetTrackEntity( null )
+				player.ClearTrackEntitySettings()
+
+				PainDeathSounds_SetDisabledForEntity( player, false )
+				DeathPackage_SetDisabledForEntity( player, false )
+
+				RestorePlayerPermanentAirSpeed( player )
+				RestorePlayerPermanentAirAcceleration( player )
+
+				ShowName( player )
+				player.Solid()
+				//player.kv.CollisionGroup = TRACE_COLLISION_GROUP_PLAYER
+				player.UnforceStand()
+
+				if ( IsAlive( player ) )
+					player.Die( player, player, { damageSourceId = damagedef_suicide } )
+
+				file.playerFakeNPC[ player ] = null
+				file.playerTickDoingSuicideChase[ player ] = false // so next tick will be able to do suicide chase
+			}
+		}
+	)
+	
+	while ( true )
+	{
+		TakeAllWeapons( player )
+
+		// health
+		int playerMaxHealth = player.GetMaxHealth()
+		int playerHealth = player.GetHealth()
+
+		// class mods
+		string setFile = player.GetPlayerSettings()
+		array<string> classMods = player.GetPlayerSettingsMods()
+		bool isColiseumMale = setFile == "pilot_coliseum_male"
+		bool hasMovementLimiter = classMods.contains( "disable_wallrun" )
+		if ( !isColiseumMale || !hasMovementLimiter )
+		{
+			player.SetPlayerSettingsWithMods( "pilot_coliseum_male", ["disable_wallrun"] )
+		
+			// update health
+			player.SetMaxHealth( playerMaxHealth )
+			player.SetHealth( playerHealth )
+		}
+
+		// update mid-air control
+		player.kv.airSpeed = 0
+		player.kv.airAcceleration = 100
+
+		// hide the player
+		HideName( player )
+		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
+		player.NotSolid() // non-solid makes player unable to take trigger_hurt damage and won't trigger OOB
+		// tick player can collide with other entities
+		//player.kv.CollisionGroup = 0 // TRACE_COLLISION_GROUP_BLOCK_WEAPONS
+
+		// movement limiter
+		player.ClearTraverse() // ticks can double jump, so we'd remove their ability to traverse
+		player.ForceStand() // avoid camera glitch when using chasing cam
+
+		tick.kv.CollisionGroup = 0
+
+		// ready to detonate???
+		bool attackHeld = player.IsInputCommandHeld( IN_ATTACK )
+		bool zoomHeld = player.IsInputCommandHeld( IN_ZOOM ) || player.IsInputCommandHeld( IN_ZOOM_TOGGLE )
+		if ( attackHeld && zoomHeld )
+			waitthread PlayerTickOverloads( player, tick )
+		else if ( attackHeld || zoomHeld ) // only one button held, do something
+			SendHudMessage( player, "同時按住 開火+開鏡 以進行過載", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+
+		WaitFrame()
+	}
+}
+
+void function PlayerTickOverloads( entity player, entity tick )
+{
+	// signals inherit from PlayerTickThink()
+	
+	// to end PlayerTickAnimationThink()
+	player.Signal( "TickStartsOverload" )
+
+	bool isFragDrone = spectre.mySpawnOptions_aiSettings == "npc_frag_drone_throwable"
+	string overloadSF
+	if ( isFragDrone )
+		overloadSF = SFX_FRAGDRONE_OVERLOAD
+	else
+		overloadSF = SFX_TICK_OVERLOAD
+	// Overload Sound
+	EmitSoundOnEntity( spectre, overloadSF )
+
+	AI_CreateDangerousArea_DamageDef( damagedef_frag_drone_explode, spectre, TEAM_INVALID, true, false )
+
+	string overloadAnim = "sp_suicide_spectre_explode_stand"
+	if ( !player.IsOnGround() ) // airpop
+	{
+		overloadAnim = "sd_jump_explode"
+		// airpop shouldn't have overload delay, but player can choose to do so... maybe no need to add?
+		//overloadDelayAdjustment = 0.0
+	}
+
+	// freeze movements
+	int moveLockEffect = StatusEffect_AddEndless( player, eStatusEffect.move_slow, 1.0 )
+
+	// Cleanup on thread end
+	OnThreadEnd(
+		function() : ( player, tick, overloadSF, moveLockEffect )
+		{
+			if ( IsValid( player ) )
+			{
+				StatusEffect_Stop( player, moveLockEffect )
+			}
+			if ( IsValid( spectre ) )
+			{
+				StopSoundOnEntity( spectre, overloadSF )
+			}
+		}
+	)
+
+	float sequenceDuration = tick.GetSequenceDuration( overloadAnim )
+	float overloadDelayAdjustment = file.playerTickOverloadBehavior[ tick ].overloadDelayAdjustment
+
+	float expectedTimer = sequenceDuration + overloadDelayAdjustment
+	thread TrackTickTimerRunsOut( tick, expectedTimer )
+
+	thread PlayAnim( tick, overloadAnim )
+	// explode when taking damage or timer runs out
+	WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut", "OnDamaged" )
+
+	// explode. player dies without ragdoll
+	// needs a thread to prevent code ended by endSignals
+	thread PlayerTickDies( player, tick )
+}
+
+void function TrackTickTimerRunsOut( entity tick, float expectedTimer )
+{
+	wait expectedTimer
+	tick.Signal( "TickPlayerTimerRunsOut" )
+}
+
+void function PlayerTickDies( entity player, entity tick )
+{
+	player.Die( player, player, { damageType = DMG_REMOVENORAGDOLL, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
+	tick.Die( tick, tick, { scriptType = DF_DOOMED_HEALTH_LOSS, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
+}
+
+void function PlayerTickAnimationThink( entity player, entity tick )
+{
+	// end signals for overloading
+	player.EndSignal( "TickStartsOverload" )
+
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+	tick.EndSignal( "OnDeath" )
+	tick.EndSignal( "OnDestroy" )
+
+	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.JUMP, OnTickPlayerJump )
+	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.DOUBLE_JUMP, OnTickPlayerDoubleJump )
+	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, OnTickPlayerTouchGround )
+
+	// idle init
+	tick.Anim_ScriptedPlay( "sd_spectre_idle" )
+	file.fakeTickMovementState[ tick ] <- eTickMovement.IDLE
+
+	while ( true )
+	{
+		else if ( Length( player.GetVelocity() ) > 10 )
+		{
+			if ( file.fakeTickMovementState[ tick ] != eTickMovement.WALKING )
+			{
+				file.fakeTickMovementState[ tick ] = eTickMovement.WALKING
+				tick.Anim_ScriptedPlay( "Walk_All" )
+				tick.Anim_DisableUpdatePosition()
+			}
+		}
+	}
+}
+
+void function TickPlayerTrackView( entity player )
+{
+	player.SetTrackEntity( player ) // Sets an entity to be viewed by this player in third person
+
+	player.SetTrackEntityPitchLookMode( "orbit" )
+	player.SetTrackEntityYawLookMode( "orbit" )
+	player.SetTrackEntityDistanceMode( "scriptOffset" )
+	player.SetTrackEntityMinYaw( -180 )
+	player.SetTrackEntityMaxYaw( 180 )
+	player.SetTrackEntityMinPitch( -30 ) // was -89, which means max pitch view
+	player.SetTrackEntityMaxPitch( 44 ) // // was 89, which means max pitch view
+	player.SetTrackEntityOffset( < -90.0, 0, 25.0 > )
 }

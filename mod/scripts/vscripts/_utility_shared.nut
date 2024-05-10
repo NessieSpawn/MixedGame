@@ -2879,10 +2879,10 @@ bool function HasBitMask( int bitsExisting, int bitsToCheck )
 
 float function GetDeathCamLength( entity player, bool ignoreForced = false )
 {
-	// modified in _base_gametype_mp.gnut
+	// modified in _base_gametype_mp.gnut, also make use of player entity here
 	#if SERVER && MP
-		if ( GetForcedDeathCamLength() > 0 && !ignoreForced )
-			return GetForcedDeathCamLength()
+		if ( GetForcedDeathCamLength( player ) > 0 && !ignoreForced )
+			return GetForcedDeathCamLength( player )
 	#endif
 
 	if ( !GamePlayingOrSuddenDeath() )
