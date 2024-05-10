@@ -53,7 +53,7 @@ struct
 	table<entity, bool> spectreShouldJumpAtTitans
 	table<entity, bool> spectreShouldCreateHeavyArmorDangerousArea
 	table<entity, bool> spectreCanExplodeInMidAir
-	table<entity, bool> spectreOverloadDelayAdjustment
+	table<entity, float> spectreOverloadDelayAdjustment
 
 	// vanilla behavior turns to settings: npc/npc owned ticks never follow chain explosion time
 	bool spectreUseGlobalChainExplosionTime = true
@@ -148,10 +148,10 @@ void function RemoveSuicideSpectre( entity spectre )
 	// other misc stuffs maybe no need to remove...? kinda difficult to recover everything
 
 	// modified signal to stop SpectreWaitToExplode() think
-	spectre.EndSignal( "SpectreStopWaitToExplode" )
+	spectre.Signal( "SpectreStopWaitToExplode" )
 	// remove anim event
 	if ( HasAnimEvent( spectre, "frag_drone_armed" ) )
-		DeleteAnimEvent( spectre, "frag_drone_armed", FragDroneArmed )
+		DeleteAnimEvent( spectre, "frag_drone_armed" )
 }
 //
 
@@ -759,13 +759,6 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 {
 	//Assert( IsSuicideSpectre( spectre ) )
 
-	// modified here: we've added shield health for npcs
-	// now we do nothing if shield can blank out the damage
-	// no further checks, maybe not accurate but whatever
-	if ( GetShieldHealthWithFix( spectre ) - int( damage ) >= 0 )
-		return
-	//
-
 	int damageType = DamageInfo_GetCustomDamageType( damageInfo )
 	DamageInfo_SetCustomDamageType( damageInfo, damageType )
 
@@ -792,6 +785,12 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 	// No pain anims for suicide spectres
 	DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_NOPAIN )
 
+	// modified here: we've added shield health for npcs
+	// now we do nothing if shield can blank out the damage
+	// no further checks, maybe not accurate but whatever
+	if ( GetShieldHealthWithFix( spectre ) - int( damage ) >= 0 )
+		return
+	//
 
 	spectre.Signal( "SuicideSpectreExploding" )
 
