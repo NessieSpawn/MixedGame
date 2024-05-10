@@ -199,12 +199,14 @@ void function OnClientConnected( entity player )
 void function OnPlayerRespawned( entity player )
 {
 	// debug
+	/*
 	array<string> tickTypes = 
 	[
 		"npc_frag_drone",
 		"npc_frag_drone_throwable",
 	]
 	PlayerBecomesTick( player, tickTypes.getrandom() )
+	*/
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
