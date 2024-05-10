@@ -2,6 +2,9 @@ untyped // for us using signal's table
 
 global function SuicideSpectres_Init
 global function MakeSuicideSpectre
+// modified utility for us removing tick's ability
+global function RemoveSuicideSpectre
+//
 global function SpectreSuicideOnDamaged
 global function GetNPCAttackerEnt
 
@@ -18,6 +21,7 @@ global function SuicideSpectre_SetSuicideChaseBehavior // script settings for "S
 global function SuicideSpectre_SetJumpAtTitans // script settings for "JumpAtTitans" ai settings
 global function SuicideSpectre_SetCreateHeavyArmorDangerousArea // make titans try to dodge when a tick is about to explode
 global function SuicideSpectre_SetCanExplodeInMidAir // make SP specific behavior a setting!
+global function SuicideSpectre_SetOverloadDelayAdjustment // adjust overload delay based on sequence duration. by default normal frag drone has 0.25s delay compare to sentry frag drone
 
 // game settings
 global function SuicideSpectre_SetUseGlobalChainExplosionTimer // sets whether ticks should use a global timer for their detonation. enabled by default as vanilla behavior
@@ -49,6 +53,7 @@ struct
 	table<entity, bool> spectreShouldJumpAtTitans
 	table<entity, bool> spectreShouldCreateHeavyArmorDangerousArea
 	table<entity, bool> spectreCanExplodeInMidAir
+	table<entity, float> spectreOverloadDelayAdjustment
 
 	// vanilla behavior turns to settings: npc/npc owned ticks never follow chain explosion time
 	bool spectreUseGlobalChainExplosionTime = true
@@ -77,6 +82,8 @@ void function SuicideSpectres_Init()
 	// modified signals for handling jumpAtTitan case
 	RegisterSignal( "SuicideSpectreExploded" ) // this means tick is detonated by damage
 	RegisterSignal( "SuicideSpectreNearEnemy" ) // this means tick is detonated by other script's signal
+	// modified signal for removing a tick's ability
+	RegisterSignal( "SpectreStopWaitToExplode" )
 
 	PrecacheParticleSystem( FX_SPECTRE_EXPLOSION )
 
@@ -134,6 +141,19 @@ void function MakeSuicideSpectre( entity spectre )
 	file.spectreCanExplodeInMidAir[ spectre ] <- IsSingleplayer() // default is we enable this behavior in SP
 	*/
 }
+
+// modified utility for us removing a tick's ability
+void function RemoveSuicideSpectre( entity spectre )
+{
+	// other misc stuffs maybe no need to remove...? kinda difficult to recover everything
+
+	// modified signal to stop SpectreWaitToExplode() think
+	spectre.Signal( "SpectreStopWaitToExplode" )
+	// remove anim event
+	if ( HasAnimEvent( spectre, "frag_drone_armed" ) )
+		DeleteAnimEvent( spectre, "frag_drone_armed" )
+}
+//
 
 void function FragDroneArmed( entity npc )
 {
@@ -251,6 +271,9 @@ void function SpectreWaitToExplode( entity spectre )
 	Assert( spectre.IsNPC() )
 	spectre.EndSignal( "OnDeath" )
 	spectre.EndSignal( "OnDestroy" ) // should be vanilla missing!
+
+	// modified signal for removing a tick's ability
+	spectre.EndSignal( "SpectreStopWaitToExplode" )
 
 	// now we change to handle like this: use WaitSignal() so we can get what makes tick explode
 	//waitthread SuicideSpectre_WaittillNearEnemyOrExploding( spectre )
@@ -642,11 +665,48 @@ void function SpectreOverloads( entity spectre, bool skipSuicideChase = false, b
 			anim = expect string( overrideAnim )
 		}
 
+		// change to use wrapped function so we can adjust their overload delay
+		/*
 		waitthread PlayAnim( spectre, anim )
 
 		if ( !isFragDrone )
 			wait 0.25
+		*/
+		
+		// do blocking call because there's already waitthread inside this function
+		SpectreOverloadAnimationWithTimer( spectre, anim )
 	}
+}
+
+// function for handling animation with timer adjustments
+void function SpectreOverloadAnimationWithTimer( entity spectre, string anim )
+{
+	float sequenceDuration = spectre.GetSequenceDuration( anim )
+	float overloadDelayAdjustment = SuicideSpectre_GetOverloadDelayAdjustment( spectre )
+	float expectedTimer = sequenceDuration + overloadDelayAdjustment
+
+	// if we got longer timer, do delay after animation done
+	if ( expectedTimer > sequenceDuration )
+	{
+		waitthread PlayAnim( spectre, anim )
+		wait overloadDelayAdjustment
+	}
+	else if ( expectedTimer < sequenceDuration ) // if we got shorter timer, add timeout for animation
+	{
+		thread PlayAnim( spectre, anim )
+		waitthread WaitTillSpectreFinishAnimationOrTimeout( spectre, expectedTimer )
+	}
+	else // no timer adjustments
+		waitthread PlayAnim( spectre, anim )
+}
+
+void function WaitTillSpectreFinishAnimationOrTimeout( entity spectre, float timeout )
+{
+	// same signals as WaittillAnimDone() does
+	spectre.EndSignal( "OnAnimationInterrupted" )
+	spectre.EndSignal( "OnAnimationDone" )
+
+	wait timeout
 }
 
 void function JumpAtTitan( entity spectre, entity enemy )
@@ -725,6 +785,12 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 	// No pain anims for suicide spectres
 	DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_NOPAIN )
 
+	// modified here: we've added shield health for npcs
+	// now we do nothing if shield can blank out the damage
+	// no further checks, maybe not accurate but whatever
+	if ( GetShieldHealthWithFix( spectre ) - int( damage ) >= 0 )
+		return
+	//
 
 	spectre.Signal( "SuicideSpectreExploding" )
 
@@ -848,6 +914,28 @@ bool function SuicideSpectre_CanExplodeInMidAir( entity spectre )
 		return IsSingleplayer() // default return value
 
 	return file.spectreCanExplodeInMidAir[ spectre ]
+}
+
+void function SuicideSpectre_SetOverloadDelayAdjustment( entity spectre, float overloadDelayAdjustment )
+{
+	if ( !( spectre in file.spectreOverloadDelayAdjustment ) )
+		file.spectreOverloadDelayAdjustment[ spectre ] <- overloadDelayAdjustment // init
+
+	file.spectreOverloadDelayAdjustment[ spectre ] = overloadDelayAdjustment
+}
+
+float function SuicideSpectre_GetOverloadDelayAdjustment( entity spectre )
+{
+	if ( spectre in file.spectreOverloadDelayAdjustment )
+		return file.spectreOverloadDelayAdjustment[ spectre ]
+
+	// no settings override: use default think
+	float overloadDelayAdjustment = 0.0
+	bool isFragDrone = spectre.mySpawnOptions_aiSettings == "npc_frag_drone_throwable"
+	if ( !isFragDrone ) // default adjustment: frag drone wait .25s more
+		overloadDelayAdjustment = 0.25
+	
+	return overloadDelayAdjustment
 }
 
 void function SuicideSpectre_SetUseGlobalChainExplosionTimer( bool useGlobalTimer )

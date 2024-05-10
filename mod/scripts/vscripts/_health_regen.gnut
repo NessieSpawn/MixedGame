@@ -33,6 +33,17 @@ struct
 	bool alwaysFastRegen = false
 	bool disableHealthRegen = false
 
+	// allows change health regen variables per player
+	// bit complicated... WIP
+	table<entity, float> playerCustomHealthRegenDelayNormal
+	table<entity, float> playerCustomHealthRegenDelayFast
+	table<entity, float> playerCustomHealthRegenDelayStim
+	table<entity, float> playerCustomHealthRegenRateNormal
+	table<entity, float> playerCustomHealthRegenRateStim
+	table<entity, bool> playerAlwaysFastRegen
+	table<entity, bool> playerDisableHealthRegen
+
+	// shield damage screen effect settings
 	bool pilotShieldDamagedEffectEnabled = false
 	int pilotShieldDamagedEffectType = ePilotShieldDamagedEffectTypes.SEVERITY_DEPEND_ON_SHIELD_LEFT
 
@@ -518,7 +529,7 @@ float function PilotShieldModifyDamage( entity player, var damageInfo )
 */
 
 // modified
-void function HealthRegen_SetCustomRegenDelay( float normalRegenDelay, float fastRegenDelay, float stimRegenDelay )
+void function HealthRegen_SetCustomRegenDelay( float normalRegenDelay, float fastRegenDelay, float stimRegenDelay, entity player = null )
 {
 	file.customHealthRegenDelayNormal = normalRegenDelay
 	file.customHealthRegenDelayFast = fastRegenDelay

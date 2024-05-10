@@ -525,7 +525,21 @@ function WaitFrame( bool ignoreFPSLimit = false )
 		int tickRate = GetConVarInt( "script_server_fps" )
 		bool tickRateModified = tickRate > 10
 		if ( tickRateModified && !ignoreFPSLimit )
-			wait 0.1 // if tickrate has been modified, we always wait 0.1 so it won't break vanilla behaviors
+		{
+			// do some more complicated checks: wait for next server frame hitting a .1s interval
+			// so we won't get inconsist timer
+			//wait 0.1 // if tickrate has been modified, we always wait 0.1 so it won't break vanilla behaviors
+			float curTime = Time()
+			int expectedServerFrame = int( curTime / 0.1 ) + 1
+			float timeTillExpectedServerFrame = expectedServerFrame * 0.1 - Time()
+			// debug
+			/*
+			print( "curTime: " + string( curTime ) )
+			print( "expectedServerFrame: " + string( expectedServerFrame ) )
+			print( "timeTillExpectedServerFrame: " + string( timeTillExpectedServerFrame ) )
+			*/
+			wait timeTillExpectedServerFrame
+		}
 		else
 			wait 0.0001
 	#else
