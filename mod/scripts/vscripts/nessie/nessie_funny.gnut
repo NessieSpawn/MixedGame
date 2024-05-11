@@ -168,6 +168,7 @@ void function Nessie_Funny_Functions_Init()
 	PrecacheParticleSystem( $"P_frag_drone_jump_jet" )
 	RegisterSignal( "ClearTickPlayerTraverse" )
 	RegisterSignal( "TickPlayerStartsOverload" )
+	RegisterSignal( "OverloadingTickTookDamage" )
 	RegisterSignal( "TickPlayerTimerRunsOut" )
 	RegisterSignal( "TickPlayerJump" )
 	RegisterSignal( "TickPlayerDoubleJump" )
@@ -1813,6 +1814,8 @@ void function OnTickPlayerDamaged( entity player, var damageInfo )
 				thread PlayerTickStartsSuicideChase( player )
 				file.playerTickDoingSuicideChase[ player ] = true
 			}
+			else if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING ) // tick overloading
+				player.Signal( "OverloadingTickTookDamage" ) // detonate immediately
 		}
 	}
 }
@@ -2079,11 +2082,15 @@ void function ClearTickPlayerTraverse( entity player )
 
 void function PlayerTickOverloads( entity player, entity tick )
 {
-	// signals inherit from PlayerTickThink()
+	if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING ) // already overloading?
+		return
+
+	// endSignals inherit from PlayerTickThink()
 	
 	// to end PlayerTickAnimationThink()
 	player.Signal( "TickPlayerStartsOverload" )
-	UpdatePlayerTickMovementState( player, eTickMovement.OVERLOADING )
+	//UpdatePlayerTickMovementState( player, eTickMovement.OVERLOADING )
+	file.fakeTickMovementState[ tick ] = eTickMovement.OVERLOADING // mark as tick overloading
 
 	bool isFragDrone = tick.mySpawnOptions_aiSettings == "npc_frag_drone_throwable"
 	// can't handle airpop's animation initial pos... temp removed
@@ -2150,17 +2157,11 @@ void function PlayerTickOverloads( entity player, entity tick )
 	tick.Anim_ScriptedPlay( overloadAnim )
 	tick.Anim_DisableUpdatePosition()
 	// explode when taking damage or timer runs out
-	waitthread WaitTillOwnerTakeDamageOrTickTimerRunsOut( player, tick )
+	WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut", "OverloadingTickTookDamage" )
 
 	// explode. player dies without ragdoll
 	// tick will explode without issue
 	player.Die( player, player, { damageType = DMG_REMOVENORAGDOLL, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
-}
-
-void function WaitTillOwnerTakeDamageOrTickTimerRunsOut( entity player, entity tick )
-{
-	player.EndSignal( "OnDamaged" ) // damage is passed to player, need such a endSignal
-	WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut" )
 }
 
 void function TrackTickTimerRunsOut( entity tick, float expectedTimer )
@@ -2307,6 +2308,13 @@ void function PlayFragDroneSound( entity tick, string soundSuffix )
 
 // these funcs are not good enough
 /*
+void function UpdatePlayerTickMovementState( entity player, int expectedState )
+{
+	entity tick = file.playerFakeNPC[ player ]
+	if ( IsAlive( tick ) && ( tick in file.fakeTickMovementState ) )
+		file.fakeTickMovementState[ tick ] = expectedState
+}
+
 void function TickPlayerJump( entity player, bool isAirJump = false )
 {
 	player.EndSignal( "TickPlayerTouchGround" )
@@ -2320,13 +2328,6 @@ void function TickPlayerJump( entity player, bool isAirJump = false )
 	}
 }
 */
-
-void function UpdatePlayerTickMovementState( entity player, int expectedState )
-{
-	entity tick = file.playerFakeNPC[ player ]
-	if ( IsAlive( tick ) && ( tick in file.fakeTickMovementState ) )
-		file.fakeTickMovementState[ tick ] = expectedState
-}
 
 void function UpdatePlayerTickAnimation( entity player, entity tick )
 {
