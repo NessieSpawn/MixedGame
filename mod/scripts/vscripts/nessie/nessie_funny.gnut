@@ -1819,6 +1819,13 @@ void function FragDroneArmed( entity npc )
 
 void function OnTickPlayerDamaged( entity player, var damageInfo )
 {
+	// tick isn't inited yet, temp blank damage taken
+	if ( !( tick in file.fakeTickMovementState ) )
+	{
+		DamageInfo_SetDamage( damageInfo, 0 )
+		return
+	}
+
 	// upon damage, start suicide chase
 	if ( DamageInfo_GetDamage( damageInfo ) > 0 ) // shield taking damage won't do anything...?
 	{
@@ -1948,6 +1955,8 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 
 	// start third person tracking
 	TickPlayerTrackView( player )
+	// end any loadout update immediately
+	player.Signal( "OnPrimaryAttack" )
 
 	OnThreadEnd
 	(
@@ -2107,6 +2116,10 @@ void function ClearTickPlayerTraverse( entity player )
 
 void function PlayerTickOverloads( entity player, entity tick )
 {
+	// haven't setup yet
+	if ( !( tick in file.fakeTickMovementState ) )
+		return
+	
 	if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING ) // already overloading?
 		return
 
