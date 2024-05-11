@@ -1819,18 +1819,18 @@ void function FragDroneArmed( entity npc )
 
 void function OnTickPlayerDamaged( entity player, var damageInfo )
 {
-	// tick isn't inited yet, temp blank damage taken
-	if ( !( tick in file.fakeTickMovementState ) )
-	{
-		DamageInfo_SetDamage( damageInfo, 0 )
-		return
-	}
-
 	// upon damage, start suicide chase
 	if ( DamageInfo_GetDamage( damageInfo ) > 0 ) // shield taking damage won't do anything...?
 	{
 		entity tick = file.playerFakeNPC[ player ]
-		if ( IsAlive( tick ) && tick.ai.fragDroneArmed ) // validate tick
+		// tick isn't inited yet, temp blank damage taken
+		if ( !IsValid( tick ) || !( tick in file.fakeTickMovementState ) )
+		{
+			DamageInfo_SetDamage( damageInfo, 0 )
+			return
+		}
+
+		if ( IsAlive( tick ) && tick.ai.fragDroneArmed ) // validation tick
 		{
 			if ( !file.playerTickDoingSuicideChase[ player ] )
 			{
