@@ -1826,7 +1826,7 @@ void function PlayerTickStartsSuicideChase( entity player )
 		while ( Time() < endTime )
 		{
 			float timeLeftToExplode = floor( (endTime - Time() ) * 100 ) / 100
-			SendHudMessage( player, "距離過載剩餘：" + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+			SendHudMessage( player, "Overloading in: " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
 			WaitFrame()
 		}
 	}
@@ -2010,7 +2010,7 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 				return
 			}
 			else if ( attackHeld || zoomHeld ) // only one button held, do something
-				SendHudMessage( player, "同時按住 開火+開鏡 以進行過載", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+				SendHudMessage( player, "Hold both ATTACK + ZOOM to overload", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
 		}
 
 		WaitFrame()
