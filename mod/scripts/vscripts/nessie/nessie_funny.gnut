@@ -1906,10 +1906,13 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 		//print( "moveSpeedScale: " + string( moveSpeedScale ) )
 	}
 
-	if ( suicideChaseTime == -1 && tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) != null )
-		suicideChaseTime = expect float( tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) )
-	else
-		suicideChaseTime = 0.0
+	if ( suicideChaseTime == -1 )
+	{
+		if ( tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) != null )
+			suicideChaseTime = expect float( tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) )
+		else
+			suicideChaseTime = 0.0
+	}
 	
 	if ( suicideChaseSpeedScale == -1 )
 		suicideChaseSpeedScale = expect float( tick.Dev_GetAISettingByKeyField( "maxSpeedScale" ) )
