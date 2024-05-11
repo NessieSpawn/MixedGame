@@ -38,6 +38,9 @@ global function PlayerBecomesMarvin
 global function NessyFunny_EnablePlayerTickDamageByDefault // THIS IS DEFAULT SETTING. remember that PlayerBecomesTick() parameters can bypass this
 global function PlayerBecomesTick
 
+// debug
+const NESSIE_FUNNY_DEBUG = false
+
 enum eMarvinMovement
 {
 	IDLE,
@@ -173,12 +176,20 @@ void function Nessie_Funny_Functions_Init()
 
 	// callbacks
 	AddCallback_OnClientConnected( OnClientConnected )
-	AddCallback_OnPlayerRespawned( OnPlayerRespawned )
 	AddCallback_OnDecoyCreated( OnDecoyCreated )
 	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
 	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )
 	AddCallback_IsValidMeleeExecutionTarget( IsValidMeleeExecutionTarget )
 	AddDamageCallback( "player", OnPlayerDamaged )
+
+	// debug
+	#if NESSIE_FUNNY_DEBUG
+		AddCallback_OnPlayerRespawned( OnPlayerRespawned )
+		SetPlayerDeathsHidden( true )
+		SetDeathCamLengthForced( 0.1 )
+		SetReplayStartDelayOverride( 1.0 )
+		NessyFunny_EnablePlayerTickDamageByDefault( true )
+	#endif
 }
 
 // callbacks
@@ -194,19 +205,6 @@ void function OnClientConnected( entity player )
 
 	file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] <- 0.0
 	file.playerTickDoingSuicideChase[ player ] <- false
-}
-
-void function OnPlayerRespawned( entity player )
-{
-	// debug
-	/*
-	array<string> tickTypes = 
-	[
-		"npc_frag_drone",
-		"npc_frag_drone_throwable",
-	]
-	PlayerBecomesTick( player, tickTypes.getrandom() )
-	*/
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
@@ -268,6 +266,19 @@ void function OnPlayerDamaged( entity player, var damageInfo )
 		DamageInfo_SetDamage( damageInfo, 0 )
 	}
 }
+
+#if NESSIE_FUNNY_DEBUG
+void function OnPlayerRespawned( entity player )
+{
+	// debug
+	array<string> tickTypes = 
+	[
+		"npc_frag_drone",
+		"npc_frag_drone_throwable",
+	]
+	PlayerBecomesTick( player, tickTypes.getrandom() )
+}
+#endif
 
 // client commands
 void function NessieFunny_EnableClientCommands( bool enable )
@@ -1147,6 +1158,8 @@ void function SetUpFakeMarvinHighlight( entity ent )
 void function OnFakeNPCFinalDamaged( entity ent, var damageInfo )
 {
 	//print( "fake marvin damaged!" )
+	//print( "fake npc " + string( ent ) + " took damage!" )
+
 	entity owner = ent.GetBossPlayer()
 	if ( IsValid( owner ) )
 	{
@@ -1355,10 +1368,13 @@ void function PlayerMarvinThink( entity player, entity marvin )
 		if ( !file.playerHasRGBHighlight[ player ] )
 			SetUpFakeMarvinHighlight( marvin )
 		//marvin.SetInvulnerable()
-		marvin.kv.CollisionGroup = 0 // TRACE_COLLISION_GROUP_BLOCK_WEAPONS
+		// maybe no need to change collision
+		//marvin.kv.CollisionGroup = 0
+
 		//marvin.NotSolid() // non-solid entity won't show name, which is bad
 		//SetShieldHealthMaxWithFix( marvin, playerMaxShield )
 		//SetShieldHealthWithFix( marvin, playerShield )
+		
 		// keep marvin at extremely high health, don't want them to die from normal damages
 		//marvin.SetMaxHealth( playerMaxHealth )
 		//marvin.SetHealth( playerHealth )
@@ -1764,6 +1780,8 @@ entity function PlayerBecomesTick( entity player, string tickAiSettings = "npc_f
 	// pass damage to player
 	AddEntityCallback_OnFinalDamaged( tick, OnFakeNPCFinalDamaged )
 	AddEntityCallback_OnPostDamaged( player, OnTickPlayerDamaged )
+	// disables health regen. utility defined in modified _health_regen.gnut
+	HealthRegen_SetDisabled( false, player )
 
 	thread PlayerTickThink( player, tick, moveSpeedScale, suicideChaseTime, suicideChaseSpeedScale, overloadDelayAdjustment )
 	thread PlayerTickAnimationThink( player, tick ) // tick animation is pretty simple compare to marvin's, use thread here
@@ -1826,7 +1844,10 @@ void function PlayerTickStartsSuicideChase( entity player )
 		while ( Time() < endTime )
 		{
 			float timeLeftToExplode = floor( (endTime - Time() ) * 100 ) / 100
-			SendHudMessage( player, "Overloading in: " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+			#if !NESSIE_FUNNY_DEBUG
+				//SendHudMessage( player, "距離過載剩餘：" + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+				SendHudMessage( player, "Overloading in: " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+			#endif
 			WaitFrame()
 		}
 	}
@@ -1839,8 +1860,12 @@ float function GetSpeedBoostEffectSeverity( float expectedSpeedScale )
 {
 	// temptemp
 	//print( "expectedSpeedScale: " + string( expectedSpeedScale ) )
-	//print( "speed scale: " + string( sqrt( expectedSpeedScale ) ) )
-	return sqrt( expectedSpeedScale )
+	if ( expectedSpeedScale < 1 ) // given value is not good!
+		return 0.0
+	
+	float boostSeverity = sqrt( expectedSpeedScale ) - 1
+	//print( "boostSeverity: " + string( boostSeverity ) )
+	return boostSeverity
 }
 
 void function PlayerTickThink( entity player, entity tick, float moveSpeedScale, float suicideChaseTime, float suicideChaseSpeedScale, float overloadDelayAdjustment )
@@ -1855,7 +1880,12 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 	// if there're no settings override, use default value
 
 	if ( moveSpeedScale == -1 )
-		moveSpeedScale = expect float( tick.Dev_GetAISettingByKeyField( "minSpeedScale" ) )
+	{
+		float minSpeedScale = expect float( tick.Dev_GetAISettingByKeyField( "minSpeedScale" ) )
+		float maxSpeedScale = expect float( tick.Dev_GetAISettingByKeyField( "maxSpeedScale" ) )
+		moveSpeedScale = ( minSpeedScale + maxSpeedScale ) / 2
+		//print( "moveSpeedScale: " + string( moveSpeedScale ) )
+	}
 
 	if ( suicideChaseTime == -1 && tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) != null )
 		suicideChaseTime = expect float( tick.Dev_GetAISettingByKeyField( "SuicideChaseTime" ) )
@@ -1907,6 +1937,7 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 			if ( IsValid( player ) )
 			{
 				RemoveEntityCallback_OnPostDamaged( player, OnTickPlayerDamaged )
+				HealthRegen_ClearDisabledSettingsOverride( player )
 				player.Signal( "ClearTickPlayerTraverse" )
 
 				// clean up
@@ -1926,7 +1957,7 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 
 				ShowName( player )
 				player.Solid()
-				//player.kv.CollisionGroup = TRACE_COLLISION_GROUP_PLAYER
+				player.kv.CollisionGroup = TRACE_COLLISION_GROUP_PLAYER
 				player.UnforceStand()
 
 				if ( IsAlive( player ) )
@@ -1953,29 +1984,35 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 		string setFile = player.GetPlayerSettings()
 		array<string> classMods = player.GetPlayerSettingsMods()
 		// maybe funnier to use pilot_boost?
-		//bool isColiseumMale = setFile == "pilot_coliseum_male"
-		bool isPilotBoostMale = setFile == "pilot_boost_male"
+		// nah, works bad. they don't have double jumping and can't disable wallrun 
+		bool isColiseumMale = setFile == "pilot_coliseum_male"
+		//bool isPilotBoostMale = setFile == "pilot_boost_male"
 		bool hasMovementLimiter = classMods.contains( "disable_wallrun" )
-		//if ( !isColiseumMale || !hasMovementLimiter )
-		if ( !isPilotBoostMale || !hasMovementLimiter )
+
+		//if ( !isPilotBoostMale || !hasMovementLimiter )
+		if ( !isColiseumMale || !hasMovementLimiter )
 		{
 			player.SetPlayerSettingsWithMods( "pilot_coliseum_male", ["disable_wallrun"] )
+			//player.SetPlayerSettingsWithMods( "pilot_boost_male", [] )
 		
 			// update health
 			player.SetMaxHealth( playerMaxHealth )
 			player.SetHealth( playerHealth )
 
 			// update mid-air control
+			/*
 			player.kv.airSpeed = int( player.kv.airSpeed ) * 0.5
 			player.kv.airAcceleration = int( player.kv.airAcceleration ) * 1.5
+			*/
+			player.kv.airSpeed = 50 // normal pilot value
+			player.kv.airAcceleration = 720 // pilot_coliseum value
 		}
 
 		// hide the player
 		HideName( player )
 		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
 		player.NotSolid() // non-solid makes player unable to take trigger_hurt damage and won't trigger OOB
-		// tick player can collide with other entities
-		//player.kv.CollisionGroup = 0 // TRACE_COLLISION_GROUP_BLOCK_WEAPONS
+		player.kv.CollisionGroup = 0 // TRACE_COLLISION_GROUP_BLOCK_WEAPONS
 
 		// movement limiter
 		// still feels bad! don't know how to handle, maybe higher air speed
@@ -1996,7 +2033,9 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 
 		player.ForceStand() // avoid camera glitch when using chasing cam
 
-		tick.kv.CollisionGroup = 0
+		// idk why ticks will ignore projectile damage
+		// it's because _ai_suicide_spectres.gnut. has been fixed!
+		//tick.kv.CollisionGroup = TRACE_COLLISION_GROUP_BLOCK_WEAPONS_AND_PHYSICS // was 0, which may make them invulnerable to projectiles...?
 
 		// wait till tick finish arming
 		if ( tick.ai.fragDroneArmed )
@@ -2010,7 +2049,12 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 				return
 			}
 			else if ( attackHeld || zoomHeld ) // only one button held, do something
-				SendHudMessage( player, "Hold both ATTACK + ZOOM to overload", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+			{
+				#if !NESSIE_FUNNY_DEBUG
+					//SendHudMessage( player, "同時按住 開火+開鏡 以進行過載", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+					SendHudMessage( player, "Hold both ATTACK + ZOOM to overload", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+				#endif
+			}
 		}
 
 		WaitFrame()
@@ -2073,6 +2117,7 @@ void function PlayerTickOverloads( entity player, entity tick )
 	//int moveLockEffect = StatusEffect_AddEndless( player, eStatusEffect.move_slow, 1.0 )
 	// really need a movement utility func to handle control freezing...
 	player.FreezeControlsOnServer()
+	player.ClearTraverse() // remove any traversal in progress
 
 	// Cleanup on thread end
 	OnThreadEnd(
@@ -2173,7 +2218,7 @@ void function PlayerTickAnimationThink( entity player, entity tick )
 			// welp, maybe skip updating when player isn't on ground could be better
 			if ( player.IsOnGround() )
 			{
-				
+				UpdatePlayerTickAnimation( player, tick )
 			}
 		}
 
@@ -2194,7 +2239,7 @@ void function OnTickPlayerJump( entity player )
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
 	{
-		UpdatePlayerTickMovementState( player, tick )
+		UpdatePlayerTickAnimation( player, tick )
 		PlayFragDroneSound( tick, "jump_default_3p" )
 	}
 }
@@ -2212,7 +2257,7 @@ void function OnTickPlayerDoubleJump( entity player )
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
 	{
-		UpdatePlayerTickMovementState( player, tick )
+		UpdatePlayerTickAnimation( player, tick )
 		// already got jump jet sound
 		//EmitSoundOnEntity( tick, "sentryfragdrone_jump_default_3p" )
 
@@ -2234,8 +2279,12 @@ void function OnTickPlayerTouchGround( entity player )
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
 	{
-		UpdatePlayerTickMovementState( player, tick )
-		PlayFragDroneSound( tick, "land_default_3p" )
+		UpdatePlayerTickAnimation( player, tick )
+		// should we remove sound for traversing?
+		// somehow makes player themselves feels janky... because they can't hear their own traverse sound in third person
+		// but landing sound for SP frag drone is a bit too loud ahhhh
+		//if ( !player.IsTraversing() )
+			PlayFragDroneSound( tick, "land_default_3p" )
 	}
 }
 
@@ -2261,17 +2310,21 @@ void function TickPlayerJump( entity player, bool isAirJump = false )
 		tick.Anim_DisableUpdatePosition()
 	}
 }
+*/
 
 void function UpdatePlayerTickMovementState( entity player, int expectedState )
 {
 	entity tick = file.playerFakeNPC[ player ]
-	if ( IsAlive( tick ) )
+	if ( IsAlive( tick ) && ( tick in file.fakeTickMovementState ) )
 		file.fakeTickMovementState[ tick ] = expectedState
 }
-*/
 
-void function UpdatePlayerTickMovementState( entity player, entity tick )
+void function UpdatePlayerTickAnimation( entity player, entity tick )
 {
+	// not armed yet!
+	if ( !( tick in file.fakeTickMovementState ) )
+		return
+	
 	if ( Length( < player.GetVelocity().x, player.GetVelocity().y, 0 > ) > 10 ) // walking. only calculate horizontal velocity
 	{
 		if ( file.fakeTickMovementState[ tick ] != eTickMovement.WALKING )

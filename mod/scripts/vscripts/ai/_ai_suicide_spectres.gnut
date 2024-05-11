@@ -47,6 +47,7 @@ struct
 	float nextOverloadTime
 	
 	// modified settings
+	array<entity> suicideSpectres // to identify whether we should handle spectre's behavior upon damage or not. death behavior never gets changed because ticks don't have proper death animation and always needs to be gibbed
 	array<entity> noExplosionSpectres // for making pet ticks
 	table<entity, float> spectreSuicideChaseTime
 	table<entity, float> spectreSuicideChaseSpeedScale
@@ -140,6 +141,9 @@ void function MakeSuicideSpectre( entity spectre )
 	file.spectreShouldCreateHeavyArmorDangerousArea[ spectre ] <- false
 	file.spectreCanExplodeInMidAir[ spectre ] <- IsSingleplayer() // default is we enable this behavior in SP
 	*/
+
+	// modified, for handling behavior upon taking damage
+	file.suicideSpectres.append( spectre )
 }
 
 // modified utility for us removing a tick's ability
@@ -152,6 +156,10 @@ void function RemoveSuicideSpectre( entity spectre )
 	// remove anim event
 	if ( HasAnimEvent( spectre, "frag_drone_armed" ) )
 		DeleteAnimEvent( spectre, "frag_drone_armed" )
+
+	// modified, remove behavior override upon taking damage
+	// death behavior is unchanged because ticks don't have proper death animation and always needs to be gibbed
+	file.suicideSpectres.fastremovebyvalue( spectre )
 }
 //
 
@@ -684,20 +692,30 @@ void function SpectreOverloadAnimationWithTimer( entity spectre, string anim )
 	float sequenceDuration = spectre.GetSequenceDuration( anim )
 	float overloadDelayAdjustment = SuicideSpectre_GetOverloadDelayAdjustment( spectre )
 	float expectedTimer = sequenceDuration + overloadDelayAdjustment
+	/*
+	print( "sequenceDuration: " + string( sequenceDuration ) )
+	print( "overloadDelayAdjustment: " + string( overloadDelayAdjustment ) )
+	print( "expectedTimer: " + string( expectedTimer ) )
+	*/
 
 	// if we got longer timer, do delay after animation done
-	if ( expectedTimer > sequenceDuration )
+	if ( expectedTimer > sequenceDuration && expectedTimer > 0 ) // these think only available when timer is above 0. otherwise it must be a script issue
 	{
+		//print( "doing delay AFTER animation!" )
 		waitthread PlayAnim( spectre, anim )
 		wait overloadDelayAdjustment
 	}
-	else if ( expectedTimer < sequenceDuration ) // if we got shorter timer, add timeout for animation
+	else if ( expectedTimer < sequenceDuration && expectedTimer > 0 ) // if we got shorter timer, add timeout for animation
 	{
+		//print( "doing animation ALONG with timer!" )
 		thread PlayAnim( spectre, anim )
 		waitthread WaitTillSpectreFinishAnimationOrTimeout( spectre, expectedTimer )
 	}
-	else // no timer adjustments
+	else // no timer adjustments or we got minus timer value
+	{
+		//print( "no any behavior change for tick!" )
 		waitthread PlayAnim( spectre, anim )
+	}
 }
 
 void function WaitTillSpectreFinishAnimationOrTimeout( entity spectre, float timeout )
@@ -750,6 +768,10 @@ void function SpectreSuicideOnDamaged_Callback( entity spectre, var damageInfo )
 	// modified!!! for check fake suicide spectres
 	if ( IsFakeSuicideSpectre_ByScriptName( spectre ) )
 		return // don't do anything
+	
+	// modified!!! for allowing override spectre's behavior upon taking damage
+	if ( !file.suicideSpectres.contains( spectre ) )
+		return
 
 	SpectreSuicideOnDamaged( spectre, damageInfo )
 }
@@ -758,6 +780,7 @@ void function SpectreSuicideOnDamaged_Callback( entity spectre, var damageInfo )
 void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 {
 	//Assert( IsSuicideSpectre( spectre ) )
+	//print( "tick took damage!!" )
 
 	int damageType = DamageInfo_GetCustomDamageType( damageInfo )
 	DamageInfo_SetCustomDamageType( damageInfo, damageType )
