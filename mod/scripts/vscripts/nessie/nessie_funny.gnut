@@ -1952,9 +1952,12 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 		// class mods
 		string setFile = player.GetPlayerSettings()
 		array<string> classMods = player.GetPlayerSettingsMods()
-		bool isColiseumMale = setFile == "pilot_coliseum_male"
+		// maybe funnier to use pilot_boost?
+		//bool isColiseumMale = setFile == "pilot_coliseum_male"
+		bool isPilotBoostMale = setFile == "pilot_boost_male"
 		bool hasMovementLimiter = classMods.contains( "disable_wallrun" )
-		if ( !isColiseumMale || !hasMovementLimiter )
+		//if ( !isColiseumMale || !hasMovementLimiter )
+		if ( !isPilotBoostMale || !hasMovementLimiter )
 		{
 			player.SetPlayerSettingsWithMods( "pilot_coliseum_male", ["disable_wallrun"] )
 		
@@ -1985,7 +1988,7 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 		{
 			if ( lastStartTraverseTime == -1 )
 				lastStartTraverseTime = Time()
-			else if ( Time() - lastStartTraverseTime > 1 ) // maxnium of 1s mantling. enough for most traverse
+			else if ( Time() - lastStartTraverseTime > 0.5 ) // maxnium of 0.5s(was 1s) mantling. needs keep holding direction button to traverse
 				player.ClearTraverse()
 		}
 		else
@@ -2170,23 +2173,7 @@ void function PlayerTickAnimationThink( entity player, entity tick )
 			// welp, maybe skip updating when player isn't on ground could be better
 			if ( player.IsOnGround() )
 			{
-				if ( Length( < player.GetVelocity().x, player.GetVelocity().y, 0 > ) > 10 ) // walking. only calculate horizontal velocity
-				{
-					if ( file.fakeTickMovementState[ tick ] != eTickMovement.WALKING )
-					{
-						file.fakeTickMovementState[ tick ] = eTickMovement.WALKING
-						tick.Anim_ScriptedPlay( "sd_aggressive_runaim" )
-						tick.Anim_DisableUpdatePosition()
-					}
-				}
-				else // idling
-				{
-					if ( file.fakeTickMovementState[ tick ] != eTickMovement.IDLE )
-					{
-						file.fakeTickMovementState[ tick ] = eTickMovement.IDLE
-						tick.Anim_ScriptedPlay( "sd_spectre_idle" )
-					}
-				}
+				
 			}
 		}
 
@@ -2206,7 +2193,10 @@ void function OnTickPlayerJump( entity player )
 	*/
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
+	{
+		UpdatePlayerTickMovementState( player, tick )
 		PlayFragDroneSound( tick, "jump_default_3p" )
+	}
 }
 
 void function OnTickPlayerDoubleJump( entity player )
@@ -2222,6 +2212,7 @@ void function OnTickPlayerDoubleJump( entity player )
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
 	{
+		UpdatePlayerTickMovementState( player, tick )
 		// already got jump jet sound
 		//EmitSoundOnEntity( tick, "sentryfragdrone_jump_default_3p" )
 
@@ -2242,7 +2233,10 @@ void function OnTickPlayerTouchGround( entity player )
 
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
+	{
+		UpdatePlayerTickMovementState( player, tick )
 		PlayFragDroneSound( tick, "land_default_3p" )
+	}
 }
 
 void function PlayFragDroneSound( entity tick, string soundSuffix )
@@ -2253,6 +2247,8 @@ void function PlayFragDroneSound( entity tick, string soundSuffix )
 	EmitSoundOnEntity( tick, soundPrefix + "_" + soundSuffix )
 }
 
+// these funcs are not good enough
+/*
 void function TickPlayerJump( entity player, bool isAirJump = false )
 {
 	player.EndSignal( "TickPlayerTouchGround" )
@@ -2271,6 +2267,28 @@ void function UpdatePlayerTickMovementState( entity player, int expectedState )
 	entity tick = file.playerFakeNPC[ player ]
 	if ( IsAlive( tick ) )
 		file.fakeTickMovementState[ tick ] = expectedState
+}
+*/
+
+void function UpdatePlayerTickMovementState( entity player, entity tick )
+{
+	if ( Length( < player.GetVelocity().x, player.GetVelocity().y, 0 > ) > 10 ) // walking. only calculate horizontal velocity
+	{
+		if ( file.fakeTickMovementState[ tick ] != eTickMovement.WALKING )
+		{
+			file.fakeTickMovementState[ tick ] = eTickMovement.WALKING
+			tick.Anim_ScriptedPlay( "sd_aggressive_runaim" )
+			tick.Anim_DisableUpdatePosition()
+		}
+	}
+	else // idling
+	{
+		if ( file.fakeTickMovementState[ tick ] != eTickMovement.IDLE )
+		{
+			file.fakeTickMovementState[ tick ] = eTickMovement.IDLE
+			tick.Anim_ScriptedPlay( "sd_spectre_idle" )
+		}
+	}
 }
 
 void function TickPlayerTrackView( entity player )
