@@ -285,8 +285,8 @@ void function OnPlayerRespawned( entity player )
 	]
 	array<int> tickHealthValue = 
 	[
+		140,
 		85,
-		140
 	]
 
 	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 5.0, 3.0, tickOverloadDelayAdjustments[rngValue] )
