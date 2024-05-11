@@ -1831,7 +1831,7 @@ void function OnTickPlayerDamaged( entity player, var damageInfo )
 				file.playerTickDoingSuicideChase[ player ] = true
 			}
 			else if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING ) // tick overloading
-				player.Signal( "OverloadingTickTookDamage" ) // detonate immediately
+				tick.Signal( "OverloadingTickTookDamage" ) // detonate immediately
 		}
 	}
 }
@@ -2111,6 +2111,8 @@ void function PlayerTickOverloads( entity player, entity tick )
 		return
 
 	// endSignals inherit from PlayerTickThink()
+
+	tick.EndSignal( "OverloadingTickTookDamage" ) // taking damage during overloading causes insta explode
 	
 	// to end PlayerTickAnimationThink()
 	player.Signal( "TickPlayerStartsOverload" )
@@ -2159,6 +2161,13 @@ void function PlayerTickOverloads( entity player, entity tick )
 		{
 			if ( IsValid( player ) )
 			{
+				if ( IsAlive( player ) )
+				{
+					// explode. player dies without ragdoll
+					// tick will explode without issue
+					player.Die( player, player, { damageType = DMG_REMOVENORAGDOLL, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
+				}
+
 				// change to use control freeze
 				//StatusEffect_Stop( player, moveLockEffect )
 				player.UnfreezeControlsOnServer()
@@ -2177,18 +2186,32 @@ void function PlayerTickOverloads( entity player, entity tick )
 	float expectedTimer = sequenceDuration + overloadDelayAdjustment
 	//print( "overloadDelayAdjustment: " + string( overloadDelayAdjustment ) )
 	//print( "expectedTimer: " + string( expectedTimer ) )
-	thread TrackTickTimerRunsOut( tick, expectedTimer )
 
-	// can't play with ref point while parented
-	//thread PlayAnim( tick, overloadAnim )
 	tick.Anim_ScriptedPlay( overloadAnim )
 	tick.Anim_DisableUpdatePosition()
-	// explode when taking damage or timer runs out
-	WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut", "OverloadingTickTookDamage" )
-
-	// explode. player dies without ragdoll
-	// tick will explode without issue
-	player.Die( player, player, { damageType = DMG_REMOVENORAGDOLL, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
+	// can't play with ref point while parented
+	//thread PlayAnim( tick, overloadAnim )
+	
+	// if we got longer timer, do delay after animation done
+	if ( expectedTimer > sequenceDuration && expectedTimer > 0 ) // these think only available when timer is above 0. otherwise it must be a script issue
+	{
+		//print( "doing delay AFTER animation!" )
+		WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone" )
+		// if animation already done, we'd make tick idle so they don't running around
+		tick.Anim_ScriptedPlay( "sd_spectre_idle" )
+		wait overloadDelayAdjustment
+	}
+	else if ( expectedTimer < sequenceDuration && expectedTimer > 0 ) // if we got shorter timer, add timeout for animation
+	{
+		//print( "doing animation ALONG with timer!" )
+		thread TrackTickTimerRunsOut( tick, expectedTimer )
+		WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut" )
+	}
+	else // no timer adjustments or we got minus timer value
+	{
+		//print( "no any behavior change for tick!" )
+		WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone" )
+	}
 }
 
 void function TrackTickTimerRunsOut( entity tick, float expectedTimer )
