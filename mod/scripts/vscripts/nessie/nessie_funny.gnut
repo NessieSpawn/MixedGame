@@ -285,11 +285,11 @@ void function OnPlayerRespawned( entity player )
 	]
 	array<int> tickHealthValue = 
 	[
+		140,
 		85,
-		140
 	]
 
-	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 5.0, 3.0, tickOverloadDelayAdjustments[rngValue] )
+	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 5.0, 2.5, tickOverloadDelayAdjustments[rngValue] )
 	tick.SetMaxHealth( tickHealthValue[rngValue] )
 	tick.SetHealth( tickHealthValue[rngValue] )
 	player.SetMaxHealth( tickHealthValue[rngValue] )
@@ -1858,7 +1858,10 @@ void function PlayerTickStartsSuicideChase( entity player )
 	if ( suicideChaseTime > 0 )
 	{
 		if ( suicideChaseSpeedScale > 1.0 )
+		{
 			StatusEffect_AddTimed( player, eStatusEffect.speed_boost, GetSpeedBoostEffectSeverity( suicideChaseSpeedScale ), suicideChaseTime, 0.0 )
+			tick.SetNPCMoveSpeedScale( suicideChaseSpeedScale ) // does this scales up animation cycle?
+		}
 		float endTime = Time() + suicideChaseTime
 		while ( Time() < endTime )
 		{
@@ -1937,7 +1940,10 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 	statusEffectsToCleanUp.append( StatusEffect_AddEndless( player, eStatusEffect.move_slow, 0.1 ) )
 	// add basic speed boost
 	if ( moveSpeedScale > 1.0 )
+	{
 		statusEffectsToCleanUp.append( StatusEffect_AddEndless( player, eStatusEffect.speed_boost, GetSpeedBoostEffectSeverity( moveSpeedScale ) ) )
+		tick.SetNPCMoveSpeedScale( moveSpeedScale ) // does this scales up animation cycle?
+	}
 	//else // lower than 1, idk how to add slow effect...
 
 	// start third person tracking
