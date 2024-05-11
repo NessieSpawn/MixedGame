@@ -277,7 +277,23 @@ void function OnPlayerRespawned( entity player )
 		"npc_frag_drone",
 		"npc_frag_drone_throwable",
 	]
-	PlayerBecomesTick( player, tickTypes.getrandom() )
+	int rngValue = RandomInt( tickTypes.len() )
+	array<float> tickOverloadDelayAdjustments =
+	[
+		-1.28333,		// ~1.05s overload for normal frag drone
+		-0.6,			// ~0.9s overload for sentry frag drone
+	]
+	array<int> tickHealthValue = 
+	[
+		85,
+		140
+	]
+
+	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 5.0, 3.0, tickOverloadDelayAdjustments[rngValue] )
+	tick.SetMaxHealth( tickHealthValue[rngValue] )
+	tick.SetHealth( tickHealthValue[rngValue] )
+	player.SetMaxHealth( tickHealthValue[rngValue] )
+	player.SetHealth( tickHealthValue[rngValue] )
 }
 #endif
 
@@ -2150,6 +2166,8 @@ void function PlayerTickOverloads( entity player, entity tick )
 	float overloadDelayAdjustment = file.tickOverloadBehavior[ tick ].overloadDelayAdjustment
 
 	float expectedTimer = sequenceDuration + overloadDelayAdjustment
+	//print( "overloadDelayAdjustment: " + string( overloadDelayAdjustment ) )
+	//print( "expectedTimer: " + string( expectedTimer ) )
 	thread TrackTickTimerRunsOut( tick, expectedTimer )
 
 	// can't play with ref point while parented
