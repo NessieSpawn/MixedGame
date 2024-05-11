@@ -18,6 +18,6 @@ https://northstar.thunderstore.io/package/Palomar/PhaseShift_Rework/
 
 https://github.com/uniboi/HoloSprays
 
-I made them compatible with my own scripts! Thanks to their support!
+I made these repo/mods compatible with my own scripts, big thanks to their creator!
 
 spawn_mod.nut is from [cat_or_not](https://github.com/catornot), with some modifications by [Ghroth-follower](https://github.com/Ghroth-follower)

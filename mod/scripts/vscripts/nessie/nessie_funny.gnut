@@ -2150,15 +2150,24 @@ void function PlayerTickOverloads( entity player, entity tick )
 	tick.Anim_ScriptedPlay( overloadAnim )
 	tick.Anim_DisableUpdatePosition()
 	// explode when taking damage or timer runs out
-	WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut", "OnDamaged" )
+	waitthread WaitTillOwnerTakeDamageOrTickTimerRunsOut( player, tick )
 
 	// explode. player dies without ragdoll
 	// tick will explode without issue
 	player.Die( player, player, { damageType = DMG_REMOVENORAGDOLL, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
 }
 
+void function WaitTillOwnerTakeDamageOrTickTimerRunsOut( entity player, entity tick )
+{
+	player.EndSignal( "OnDamaged" ) // damage is passed to player, need such a endSignal
+	WaitSignal( tick, "OnAnimationInterrupted", "OnAnimationDone", "TickPlayerTimerRunsOut" )
+}
+
 void function TrackTickTimerRunsOut( entity tick, float expectedTimer )
 {
+	tick.EndSignal( "OnDeath" )
+	tick.EndSignal( "OnDestroy" )
+	
 	wait expectedTimer
 	tick.Signal( "TickPlayerTimerRunsOut" )
 }
