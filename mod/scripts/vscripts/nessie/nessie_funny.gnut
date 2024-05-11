@@ -289,7 +289,7 @@ void function OnPlayerRespawned( entity player )
 		85,
 	]
 
-	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 5.0, 2.5, tickOverloadDelayAdjustments[rngValue] )
+	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 3.0, 2.0, tickOverloadDelayAdjustments[rngValue] )
 	tick.SetMaxHealth( tickHealthValue[rngValue] )
 	tick.SetHealth( tickHealthValue[rngValue] )
 	player.SetMaxHealth( tickHealthValue[rngValue] )
@@ -1798,7 +1798,7 @@ entity function PlayerBecomesTick( entity player, string tickAiSettings = "npc_f
 	AddEntityCallback_OnFinalDamaged( tick, OnFakeNPCFinalDamaged )
 	AddEntityCallback_OnPostDamaged( player, OnTickPlayerDamaged )
 	// disables health regen. utility defined in modified _health_regen.gnut
-	HealthRegen_SetDisabled( false, player )
+	HealthRegen_SetDisabled( true, player )
 
 	thread PlayerTickThink( player, tick, moveSpeedScale, suicideChaseTime, suicideChaseSpeedScale, overloadDelayAdjustment )
 	thread PlayerTickAnimationThink( player, tick ) // tick animation is pretty simple compare to marvin's, use thread here
