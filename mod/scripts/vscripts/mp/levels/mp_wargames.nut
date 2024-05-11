@@ -74,7 +74,7 @@ bool function WargamesDissolveDeadEntity( entity deadEnt, var damageInfo )
 {
 	// modified settings: if entity disabled death package, we skip dissolve effect
 	if ( DeathPackage_IsDisabledForEntity( deadEnt ) )
-		return
+		return false
 
 	// we don't dissolve heavy armor units
 	if ( deadEnt.GetArmorType() == ARMOR_TYPE_HEAVY )
