@@ -545,7 +545,8 @@ void function PostDeathThread_MP( entity player, var damageInfo ) // based on ga
 	// northstar missing, fix for projectile kill replay
 	entity inflictor = DamageInfo_GetInflictor( damageInfo )
 	int inflictorEHandle = -1
-	if ( IsValid( inflictor ) && ShouldTryUseProjectileReplay( player, attacker, damageInfo, false ) )
+	// ShouldUseProjectileReplay() and it's callback are setup in _gamestate_mp.nut
+	if ( IsValid( inflictor ) && ShouldUseProjectileReplay( player, attacker, damageInfo, false ) )
 	{
 		inflictorEHandle = inflictor.GetEncodedEHandle()
 	}
