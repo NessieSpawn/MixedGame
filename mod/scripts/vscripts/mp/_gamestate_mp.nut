@@ -1600,7 +1600,10 @@ void function SetUpRoundWinningKillReplayFromDamageInfo( entity victim, var dama
 	{
 		// whenever a callback hits false, we return
 		if ( !callbackFunc( victim, attacker, replayLength, methodOfDeath ) )
+		{
+			print( "SetUpRoundWinningKillReplayFromDamageInfo(): failed to setup roundwinning replay because we failed custom checks.\n" )
 			return
+		}
 	}
 
 	// all checks passed, do replay stuffs
