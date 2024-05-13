@@ -105,6 +105,8 @@ struct
 	table<entity, bool> playerHasRGYBattery
 
 	table<entity, entity> playerFlipperMover
+
+	table<entity, bool> playerUsingFakeNPCThisLife // if player is using third person chasing cam, we shouldn't do kill replay for them
 	table<entity, entity> playerFakeNPC
 	table<entity, bool> playerFakeNPCTookDamage
 
@@ -177,15 +179,20 @@ void function Nessie_Funny_Functions_Init()
 
 	// callbacks
 	AddCallback_OnClientConnected( OnClientConnected )
-	AddCallback_OnDecoyCreated( OnDecoyCreated )
-	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
-	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )
+	AddCallback_OnPlayerRespawned( OnPlayerRespawned )
+	// northstar new adding callback
 	AddCallback_IsValidMeleeExecutionTarget( IsValidMeleeExecutionTarget )
 	AddDamageCallback( "player", OnPlayerDamaged )
 
+	// modified callback defined in mp_ability_holopilot.nut, gets called whenever a player projects hologram
+	AddCallback_OnDecoyCreated( OnDecoyCreated )
+	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
+	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )s
+	// modified callback defined in _utility_shared.nut, for us disabling replay
+	AddCallback_ShouldDoReplay( ShouldDoFunnyReplayStuffs )
+
 	// debug
 	#if NESSIE_FUNNY_DEBUG
-		AddCallback_OnPlayerRespawned( OnPlayerRespawned )
 		SetPlayerDeathsHidden( true )
 		SetDeathCamLengthForced( 0.1 )
 		SetReplayStartDelayOverride( 1.0 )
@@ -201,11 +208,46 @@ void function OnClientConnected( entity player )
 	file.playerHasRGYBattery[ player ] <- false
 
 	file.playerFlipperMover[ player ] <- null
+
+	file.playerUsingFakeNPCThisLife[ player ] <- false
 	file.playerFakeNPC[ player ] <- null
 	file.playerFakeNPCTookDamage[ player ] <- false
 
 	file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] <- 0.0
 	file.playerTickDoingSuicideChase[ player ] <- false
+}
+
+void function OnPlayerRespawned( entity player )
+{
+	// clean up variables we setup with usage of fake npcs
+	if ( !IsAlive( file.playerFakeNPC[ player ] ) ) // to prevent other files calling fake npc func before this callback
+		file.playerUsingFakeNPCThisLife[ player ] = false
+
+	// debug
+	#if NESSIE_FUNNY_DEBUG
+		array<string> tickTypes = 
+		[
+			"npc_frag_drone",
+			"npc_frag_drone_throwable",
+		]
+		int rngValue = RandomInt( tickTypes.len() )
+		array<float> tickOverloadDelayAdjustments =
+		[
+			-1.28333,		// ~1.05s overload for normal frag drone
+			-0.6,			// ~0.9s overload for sentry frag drone
+		]
+		array<int> tickHealthValue = 
+		[
+			140,
+			85,
+		]
+
+		entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 3.0, 2.0, tickOverloadDelayAdjustments[rngValue] )
+		tick.SetMaxHealth( tickHealthValue[rngValue] )
+		tick.SetHealth( tickHealthValue[rngValue] )
+		player.SetMaxHealth( tickHealthValue[rngValue] )
+		player.SetHealth( tickHealthValue[rngValue] )
+	#endif
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
@@ -268,34 +310,15 @@ void function OnPlayerDamaged( entity player, var damageInfo )
 	}
 }
 
-#if NESSIE_FUNNY_DEBUG
-void function OnPlayerRespawned( entity player )
+bool function ShouldDoFunnyReplayStuffs( entity player, entity attacker, float replayTime, int methodOfDeath )
 {
-	// debug
-	array<string> tickTypes = 
-	[
-		"npc_frag_drone",
-		"npc_frag_drone_throwable",
-	]
-	int rngValue = RandomInt( tickTypes.len() )
-	array<float> tickOverloadDelayAdjustments =
-	[
-		-1.28333,		// ~1.05s overload for normal frag drone
-		-0.6,			// ~0.9s overload for sentry frag drone
-	]
-	array<int> tickHealthValue = 
-	[
-		140,
-		85,
-	]
+	// if our player is using third person tracking camera, disable their kill replay
+	if ( file.playerUsingFakeNPCThisLife[ player ] )
+		return false
 
-	entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 3.0, 2.0, tickOverloadDelayAdjustments[rngValue] )
-	tick.SetMaxHealth( tickHealthValue[rngValue] )
-	tick.SetHealth( tickHealthValue[rngValue] )
-	player.SetMaxHealth( tickHealthValue[rngValue] )
-	player.SetHealth( tickHealthValue[rngValue] )
+	// default returning true to let other callbacks go through
+	return true
 }
-#endif
 
 // client commands
 void function NessieFunny_EnableClientCommands( bool enable )
@@ -1510,6 +1533,11 @@ void function PlayerMarvinThink( entity player, entity marvin )
 
 void function MarvinPlayerTrackView( entity player )
 {
+	// player will use third person camera, which will mess up kill replay
+	// adding this mark so we won't do replay for them
+	// this mark only gets cleared on next respawn, so make sure your fake npc kills the player along with them!
+	file.playerUsingFakeNPCThisLife[ player ] = true
+
 	player.SetTrackEntity( player ) // Sets an entity to be viewed by this player in third person
 	//player.SetTrackEntity( GetNPCArray()[0] )
 	player.SetTrackEntityPitchLookMode( "orbit" )
@@ -2419,8 +2447,12 @@ void function UpdatePlayerTickAnimation( entity player, entity tick )
 
 void function TickPlayerTrackView( entity player )
 {
-	player.SetTrackEntity( player ) // Sets an entity to be viewed by this player in third person
+	// player will use third person camera, which will mess up kill replay
+	// adding this mark so we won't do replay for them
+	// this mark only gets cleared on next respawn, so make sure your fake npc kills the player along with them!
+	file.playerUsingFakeNPCThisLife[ player ] = true
 
+	player.SetTrackEntity( player ) // Sets an entity to be viewed by this player in third person
 	player.SetTrackEntityPitchLookMode( "orbit" )
 	player.SetTrackEntityYawLookMode( "orbit" )
 	player.SetTrackEntityDistanceMode( "scriptOffset" )
