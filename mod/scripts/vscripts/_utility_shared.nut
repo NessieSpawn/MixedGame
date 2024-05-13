@@ -422,12 +422,6 @@ void function WaitForever()
 }
 
 #if SERVER
-// modified!!!! making it less hardcoded
-struct
-{
-	
-} replayCheckStruct
-
 bool function ShouldDoReplay( entity player, entity attacker, float replayTime, int methodOfDeath )
 {
 	if ( ShouldDoReplayIsForcedByCode() )
@@ -523,7 +517,7 @@ void function RemoveReplayDisabledDamageSourceId( int damageSourceId )
 
 void function AddCallback_ShouldDoReplay( bool functionref( entity player, entity attacker, float replayTime, int methodOfDeath ) callbackFunc )
 {
-	if ( file.shouldDoReplayCallbacks.contains( callbackFunc ) )
+	if ( !file.shouldDoReplayCallbacks.contains( callbackFunc ) )
 		file.shouldDoReplayCallbacks.append( callbackFunc )
 }
 //
