@@ -669,6 +669,11 @@ void function DelayedSetUpNPCSpawnedTick( entity soldier )
 	// enemy highlight
 	//if ( IsAlive( soldier ) )
 	//	AITdmExtend_EnemyThreatenHighlight( soldier )
+
+	// SP ticks already have long animation, respawn still adding them 0.25s more delay before exploding
+	// that works fine for SP because it's a case we should enjoy the game, but for multiplayer it makes them way too vulnerable
+	// we need to remove that extra delay so they can perform better in combat
+	SuicideSpectre_SetOverloadDelayAdjustment( soldier, 0.0 )
 }
 
 void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fragDrone, string droneSettings )
