@@ -279,6 +279,10 @@
 			"Path": "/modifiers/modifier_fake_ttf1.gnut",
 			"RunOn": "SERVER && MP"
 		},
+		{
+			"Path": "/modifiers/modifier_tickmode.gnut",
+			"RunOn": "SERVER && MP"
+		},
 		// modifiers end
 		// pilot utilities
 		{
