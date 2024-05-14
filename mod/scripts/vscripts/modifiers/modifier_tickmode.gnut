@@ -5,12 +5,21 @@ void function GameModifier_PlayerFakeTick_Init()
     // setup basics
     Riff_ForceTitanAvailability( eTitanAvailability.Never )
 	Riff_ForceBoostAvailability( eBoostAvailability.Disabled )
+    SetLoadoutGracePeriodEnabled( false )
+    PlayerEarnMeter_SetEnabled( false )
 
-    // player setttings
+    // player settings
     SetPlayerDeathsHidden( true )
     SetDeathCamLengthForced( 0.1 )
     SetReplayStartDelayOverride( 1.0 )
     NessyFunny_EnablePlayerTickDamageByDefault( true )
+
+    // misc settings
+    ScoreEvent_DisableCallSignEvent( true )
+    SetShouldPlayFactionDialogue( false )
+	SetBattleChatterEnabled( false )
+	SetWeaponDropsEnabled( false )
+    SetDeathHintsEnabled( false )
 
     // setup callbacks
     AddCallback_OnPlayerRespawned( OnPlayerRespawned )
