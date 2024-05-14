@@ -744,13 +744,6 @@ void function SpectreSuicideOnDamaged( entity spectre, var damageInfo )
 	// No pain anims for suicide spectres
 	DamageInfo_AddDamageFlags( damageInfo, DAMAGEFLAG_NOPAIN )
 
-	// modified here: we've added shield health for npcs
-	// now we do nothing if shield can blank out the damage
-	// no further checks, maybe not accurate but whatever
-	if ( GetShieldHealthWithFix( spectre ) - int( damage ) >= 0 )
-		return
-	//
-
 	spectre.Signal( "SuicideSpectreExploding" )
 
 	if ( !IsValid( inflictor ) || !inflictor.IsPlayer() )
