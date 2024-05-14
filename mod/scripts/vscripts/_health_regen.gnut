@@ -4,11 +4,16 @@ global function HealthRegen_Init
 global function PilotHealthRegenThinkSP
 global function PilotShieldHealthUpdate
 
-// modified
+// custom regen settings. can pass a player entity inside to modify per player
 global function HealthRegen_SetCustomRegenDelay
+global function HealthRegen_ResetCustomRegenDelay
 global function HealthRegen_SetCustomRegenRate
+global function HealthRegen_ResetCustomRegenRate
+
 global function HealthRegen_SetAlwaysFastRegen
+global function HealthRegen_ClearAlwaysFastRegenSettingsOverride // clear settings per player to make them follow global settings
 global function HealthRegen_SetDisabled
+global function HealthRegen_ClearDisabledSettingsOverride // clear settings per player to make them follow global settings
 
 // shield damaged screen effects
 global function HealthRegen_SetPilotShieldDamagedEffectEnabled
@@ -33,6 +38,17 @@ struct
 	bool alwaysFastRegen = false
 	bool disableHealthRegen = false
 
+	// allows change health regen variables per player
+	// bit complicated... WIP
+	table<entity, float> playerCustomHealthRegenDelayNormal
+	table<entity, float> playerCustomHealthRegenDelayFast
+	table<entity, float> playerCustomHealthRegenDelayStim
+	table<entity, float> playerCustomHealthRegenRateNormal
+	table<entity, float> playerCustomHealthRegenRateStim
+	table<entity, bool> playerAlwaysFastRegen
+	table<entity, bool> playerDisableHealthRegen
+
+	// shield damage screen effect settings
 	bool pilotShieldDamagedEffectEnabled = false
 	int pilotShieldDamagedEffectType = ePilotShieldDamagedEffectTypes.SEVERITY_DEPEND_ON_SHIELD_LEFT
 
@@ -147,23 +163,20 @@ void function PilotHealthRegenThinkMP( entity player )
 	{
 		wait( HEALTH_REGEN_TICK_TIME )
 
-		// modified settings!
-		if( file.disableHealthRegen )
-			continue
-
 		if ( !IsAlive( player ) )
 			continue
 
 		if ( !IsPilot( player ) )
 			continue
 
-		if ( shGlobal.proto_pilotHealthRegenDisabled )
+		// change to use wrapped function to get less hardcoded, and supports custom settings
+		//if ( shGlobal.proto_pilotHealthRegenDisabled )
+		if ( HealthRegenDisabled( player ) )
 			continue
 
-		float healthRegenRate = file.healthRegenRate 	// health regen per tick
-		// modified settings!!!
-		if ( file.customHealthRegenRateNormal > 0 )
-			healthRegenRate = file.customHealthRegenRateNormal
+		// change to use wrapped function to get less hardcoded, and supports custom settings
+		//float healthRegenRate = file.healthRegenRate 	// health regen per tick
+		float healthRegenRate = GetPlayerHealthRegenRate( player )
 
 		if ( player.GetHealth() == player.GetMaxHealth() )
 			continue
@@ -173,49 +186,32 @@ void function PilotHealthRegenThinkMP( entity player )
 			continue
 
 		// modified: update health regen delay each loop
+		// now also changes function to be wrapped
+		/*
 		healthRegenStartDelay = 5.0
-		if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) || file.alwaysFastRegen )
+		if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) )
 			healthRegenStartDelay = 2.5
+		*/
+		healthRegenStartDelay = GetPlayerHealthRegenDelay( player )
 
 		// modified settings!!!
-		if ( file.customHealthRegenDelayNormal > 0 )
-			healthRegenStartDelay = file.customHealthRegenDelayNormal
-		if ( file.customHealthRegenDelayFast > 0 )
-		{
-			if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) || file.alwaysFastRegen )
-				healthRegenStartDelay = file.customHealthRegenDelayFast
-		}
-
+		// now change to use wrapped function to get less hardcoded, and supports custom settings
+		// this may enable us to have a longer health regen delay for stim than normal regen?
+		/*
 		if ( IsHealActive( player ) )
 		{
-			// modified settings!!!
-			if( file.customHealthRegenDelayStim > 0 )
-			{
-				if ( Time() - player.p.lastDamageTime < min( file.customHealthRegenDelayStim, healthRegenStartDelay ) )
-					continue
-				else
-				{
-					if ( file.customHealthRegenRateStim > 0 )
-						healthRegenRate = file.customHealthRegenRateStim
-					else
-						healthRegenRate = healthRegenRate * ABILITY_STIM_REGEN_MOD
-				}
-			}
+			if ( Time() - player.p.lastDamageTime < min( ABILITY_STIM_REGEN_DELAY, healthRegenStartDelay ) )
+				continue
 			else
-			{
-				if ( Time() - player.p.lastDamageTime < min( ABILITY_STIM_REGEN_DELAY, healthRegenStartDelay ) )
-					continue
-				else
-				{
-					// modified settings!!!
-					if ( file.customHealthRegenRateStim > 0 )
-						healthRegenRate = file.customHealthRegenRateStim
-					else
-						healthRegenRate = healthRegenRate * ABILITY_STIM_REGEN_MOD
-				}
-			}
+				healthRegenRate = healthRegenRate * ABILITY_STIM_REGEN_MOD
 		}
 		else if ( Time() - player.p.lastDamageTime < healthRegenStartDelay )
+		{
+			continue
+		}
+		*/
+		// when having wrapped functions working, using this is good enough
+		if ( Time() - player.p.lastDamageTime < healthRegenStartDelay )
 		{
 			continue
 		}
@@ -514,27 +510,232 @@ float function PilotShieldModifyDamage( entity player, var damageInfo )
 */
 
 // modified
-void function HealthRegen_SetCustomRegenDelay( float normalRegenDelay, float fastRegenDelay, float stimRegenDelay )
+void function HealthRegen_SetCustomRegenDelay( float normalRegenDelay, float fastRegenDelay, float stimRegenDelay, entity player = null )
 {
-	file.customHealthRegenDelayNormal = normalRegenDelay
-	file.customHealthRegenDelayFast = fastRegenDelay
-	file.customHealthRegenDelayStim = stimRegenDelay
+	// if passed an player entity inside, modify their settings per entity
+	if ( IsValid( player ) )
+	{
+		if ( !( player in file.playerCustomHealthRegenDelayNormal ) )
+			file.playerCustomHealthRegenDelayNormal[ player ] <- normalRegenDelay
+		else
+			file.playerCustomHealthRegenDelayNormal[ player ] = normalRegenDelay
+		
+		if ( !( player in file.playerCustomHealthRegenDelayFast ) )
+			file.playerCustomHealthRegenDelayFast[ player ] <- fastRegenDelay
+		else
+			file.playerCustomHealthRegenDelayFast[ player ] = fastRegenDelay
+
+		if ( !( player in file.playerCustomHealthRegenDelayStim ) )
+			file.playerCustomHealthRegenDelayStim[ player ] <- stimRegenDelay
+		else
+			file.playerCustomHealthRegenDelayStim[ player ] = stimRegenDelay
+	}
+	else
+	{
+		file.customHealthRegenDelayNormal = normalRegenDelay
+		file.customHealthRegenDelayFast = fastRegenDelay
+		file.customHealthRegenDelayStim = stimRegenDelay
+	}
 }
 
-void function HealthRegen_SetCustomRegenRate( float normalRegenRate, float stimRegenRate )
+void function HealthRegen_ResetCustomRegenDelay( entity player = null )
 {
-	file.customHealthRegenRateNormal = normalRegenRate
-	file.customHealthRegenRateStim = stimRegenRate
+	// if passed an player entity inside, reset their entity custom settings instead of global one
+	if ( IsValid( player ) )
+	{
+		if ( player in file.playerCustomHealthRegenDelayNormal )
+			delete file.playerCustomHealthRegenDelayNormal[ player ]
+		if ( player in file.playerCustomHealthRegenDelayFast )
+			delete file.playerCustomHealthRegenDelayFast[ player ]
+		if ( player in file.playerCustomHealthRegenDelayStim )
+			delete file.playerCustomHealthRegenDelayStim[ player ]
+	}
+	else
+	{
+		file.customHealthRegenDelayNormal = -1
+		file.customHealthRegenDelayFast = -1
+		file.customHealthRegenDelayStim = -1
+	}
 }
 
-void function HealthRegen_SetAlwaysFastRegen( bool shouldAlways )
+float function GetPlayerHealthRegenDelay( entity player )
 {
-	file.alwaysFastRegen = shouldAlways
+	// vanilla values & modified checks
+	float healthRegenStartDelay = 5.0
+	bool shouldDoFastRegen = ShouldUseFastRegen( player ) // modified check!
+	bool shouldDoStimRegen = IsHealActive( player )
+	if ( shouldDoFastRegen )
+		healthRegenStartDelay = 2.5
+	// stim modifier
+	// in vanilla, when stim is active, game will always pick shortest regen delay between each
+	// but we may want to adjust it freely, like adding some penalty to stim, so changing that behavior!
+	// it does not break vanilla behavior because vanilla always have stim regen delay shorter than fast regen
+	if ( shouldDoStimRegen )
+		healthRegenStartDelay = ABILITY_STIM_REGEN_DELAY
+
+
+	// custom health regen settings!!!
+	// first check player's own settings, then check global settings
+	if ( player in file.playerCustomHealthRegenDelayNormal )
+		healthRegenStartDelay = file.playerCustomHealthRegenDelayNormal[ player ]
+	else if ( file.customHealthRegenDelayNormal > 0 )
+		healthRegenStartDelay = file.customHealthRegenDelayNormal
+	
+	if ( shouldDoFastRegen )
+	{
+		if ( player in file.playerCustomHealthRegenDelayFast )
+			healthRegenStartDelay = file.playerCustomHealthRegenDelayFast[ player ]
+		else if ( file.customHealthRegenDelayFast > 0 )
+			healthRegenStartDelay = file.customHealthRegenDelayFast
+	}
+
+	if ( shouldDoStimRegen )
+	{
+		if ( player in file.playerCustomHealthRegenDelayStim )
+			healthRegenStartDelay = file.playerCustomHealthRegenDelayStim[ player ]
+		else if ( file.customHealthRegenDelayStim > 0 )
+			healthRegenStartDelay = file.customHealthRegenDelayStim
+	}
+	
+	return healthRegenStartDelay
 }
 
-void function HealthRegen_SetDisabled( bool disabled )
+void function HealthRegen_SetCustomRegenRate( float normalRegenRate, float stimRegenRate, entity player = null )
 {
-	file.disableHealthRegen = disabled
+	// if passed an player entity inside, modify their settings per entity
+	if ( IsValid( player ) )
+	{
+		if ( !( player in file.playerCustomHealthRegenRateNormal ) )
+			file.playerCustomHealthRegenRateNormal[ player ] <- normalRegenRate
+		else
+			file.playerCustomHealthRegenRateNormal[ player ] = normalRegenRate
+		
+		if ( !( player in file.playerCustomHealthRegenRateStim ) )
+			file.playerCustomHealthRegenRateStim[ player ] <- stimRegenRate
+		else
+			file.playerCustomHealthRegenRateStim[ player ] = stimRegenRate
+	}
+	else
+	{
+		file.customHealthRegenRateNormal = normalRegenRate
+		file.customHealthRegenRateStim = stimRegenRate
+	}
+}
+
+void function HealthRegen_ResetCustomRegenRate( entity player = null )
+{
+	// if passed an player entity inside, reset their entity custom settings instead of global one
+	if ( IsValid( player ) )
+	{
+		if ( player in file.playerCustomHealthRegenRateNormal )
+			delete file.playerCustomHealthRegenRateNormal[ player ]
+		if ( player in file.playerCustomHealthRegenRateStim )
+			delete file.playerCustomHealthRegenRateStim[ player ]
+	}
+	else
+	{
+		file.customHealthRegenRateNormal = -1
+		file.customHealthRegenRateStim = -1
+	}
+}
+
+float function GetPlayerHealthRegenRate( entity player )
+{
+	float healthRegenRate = file.healthRegenRate // default value
+	bool shouldDoStimRegen = IsHealActive( player )
+	if ( shouldDoStimRegen )
+		healthRegenRate = healthRegenRate * ABILITY_STIM_REGEN_MOD
+
+	// custom health regen settings!!!
+	// first check player's own settings, then check global settings
+	if ( player in file.playerCustomHealthRegenRateNormal )
+		healthRegenRate = file.playerCustomHealthRegenRateNormal[ player ]
+	else if ( file.customHealthRegenRateNormal > 0 )
+		healthRegenRate = file.customHealthRegenRateNormal
+	
+	if ( shouldDoStimRegen )
+	{
+		if ( player in file.playerCustomHealthRegenRateStim )
+			healthRegenRate = file.playerCustomHealthRegenRateStim[ player ]
+		else if ( file.customHealthRegenRateStim > 0 )
+			healthRegenRate = file.customHealthRegenRateStim
+	}
+	
+	return healthRegenRate
+}
+
+void function HealthRegen_SetAlwaysFastRegen( bool shouldAlways, entity player = null )
+{
+	// if passed an player entity inside, modify their settings per entity
+	if ( IsValid( player ) )
+	{
+		if ( !( player in file.playerAlwaysFastRegen ) )
+			file.playerAlwaysFastRegen[ player ] <- shouldAlways
+		else
+			file.playerAlwaysFastRegen[ player ] = shouldAlways
+	}
+	else
+		file.alwaysFastRegen = shouldAlways
+}
+
+void function HealthRegen_ClearAlwaysFastRegenSettingsOverride( entity player )
+{
+	// clear settings per player to make them follow global settings
+	if ( player in file.playerAlwaysFastRegen )
+		delete file.playerAlwaysFastRegen[ player ]
+}
+
+bool function ShouldUseFastRegen( entity player = null )
+{
+	// player related checks
+	if ( IsValid( player ) )
+	{
+		// vanilla checks, overrides custom settings if returns true
+		if ( PlayerHasPassive( player, ePassives.PAS_FAST_HEALTH_REGEN ) )
+			return true
+	
+		// custom health regen settings
+		if ( player in file.playerAlwaysFastRegen )
+			return file.playerAlwaysFastRegen[ player ]
+	}
+
+	// default return value: global settings
+	return file.alwaysFastRegen
+}
+
+void function HealthRegen_SetDisabled( bool disabled, entity player = null )
+{
+	// if passed an player entity inside, modify their settings per entity
+	if ( IsValid( player ) )
+	{
+		if ( !( player in file.playerDisableHealthRegen ) )
+			file.playerDisableHealthRegen[ player ] <- disabled
+		else
+			file.playerDisableHealthRegen[ player ] = disabled
+	}
+	else
+		file.disableHealthRegen = disabled
+}
+
+void function HealthRegen_ClearDisabledSettingsOverride( entity player )
+{
+	// clear settings per player to make them follow global settings
+	if ( player in file.playerDisableHealthRegen )
+		delete file.playerDisableHealthRegen[ player ]
+}
+
+bool function HealthRegenDisabled( entity player = null )
+{
+	// vanilla checks, overrides custom settings if returns true
+	if ( shGlobal.proto_pilotHealthRegenDisabled )
+		return true
+
+	// player related checks( custom health regen settings )
+	if ( IsValid( player ) && player in file.playerDisableHealthRegen )
+		return file.playerDisableHealthRegen[ player ]
+
+	// default return value: global settings
+	return file.disableHealthRegen
 }
 
 void function HealthRegen_SetPilotShieldDamagedEffectEnabled( bool enabled )
