@@ -62,7 +62,7 @@ void function OnPlayerDamageTarget( entity ent, var damageInfo )
         if ( ent.GetArmorType() == ARMOR_TYPE_HEAVY )
             DamageInfo_ScaleDamage( damageInfo, 15 )
         else
-            DamageInfo_ScaleDamage( damageInfo, 2 )
+            DamageInfo_ScaleDamage( damageInfo, 3 ) // maybe reduce to 2? idk currently this works pretty much fine
     }
 }
 
@@ -84,7 +84,12 @@ void function DisableEntityInteractions()
         
         // disable titan rodeo
         foreach ( entity titan in GetNPCArrayByClass( "npc_titan" ) )
-            DisableTitanRodeo( titan )
+        {
+            // DisableTitanRodeo() needs soul to be valid before using
+            entity soul = titan.GetTitanSoul()
+            if ( IsValid( soul ) )
+                DisableTitanRodeo( titan )
+        }
 
         WaitFrame()
     }
