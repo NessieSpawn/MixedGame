@@ -38,9 +38,6 @@ global function PlayerBecomesMarvin
 global function NessyFunny_EnablePlayerTickDamageByDefault // THIS IS DEFAULT SETTING. remember that PlayerBecomesTick() parameters can bypass this
 global function PlayerBecomesTick
 
-// debug
-const NESSIE_FUNNY_DEBUG = false
-
 enum eMarvinMovement
 {
 	IDLE,
@@ -190,14 +187,6 @@ void function Nessie_Funny_Functions_Init()
 	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )s
 	// modified callback defined in _utility_shared.nut, for us disabling replay
 	AddCallback_ShouldDoReplay( ShouldDoFunnyReplayStuffs )
-
-	// debug
-	#if NESSIE_FUNNY_DEBUG
-		SetPlayerDeathsHidden( true )
-		SetDeathCamLengthForced( 0.1 )
-		SetReplayStartDelayOverride( 1.0 )
-		NessyFunny_EnablePlayerTickDamageByDefault( true )
-	#endif
 }
 
 // callbacks
@@ -222,32 +211,6 @@ void function OnPlayerRespawned( entity player )
 	// clean up variables we setup with usage of fake npcs
 	if ( !IsAlive( file.playerFakeNPC[ player ] ) ) // to prevent other files calling fake npc func before this callback
 		file.playerUsingFakeNPCThisLife[ player ] = false
-
-	// debug
-	#if NESSIE_FUNNY_DEBUG
-		array<string> tickTypes = 
-		[
-			"npc_frag_drone",
-			"npc_frag_drone_throwable",
-		]
-		int rngValue = RandomInt( tickTypes.len() )
-		array<float> tickOverloadDelayAdjustments =
-		[
-			-1.28333,		// ~1.05s overload for normal frag drone
-			-0.6,			// ~0.9s overload for sentry frag drone
-		]
-		array<int> tickHealthValue = 
-		[
-			140,
-			85,
-		]
-
-		entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 3.0, 2.0, tickOverloadDelayAdjustments[rngValue] )
-		tick.SetMaxHealth( tickHealthValue[rngValue] )
-		tick.SetHealth( tickHealthValue[rngValue] )
-		player.SetMaxHealth( tickHealthValue[rngValue] )
-		player.SetHealth( tickHealthValue[rngValue] )
-	#endif
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
@@ -1901,10 +1864,8 @@ void function PlayerTickStartsSuicideChase( entity player )
 		while ( Time() < endTime )
 		{
 			float timeLeftToExplode = floor( (endTime - Time() ) * 100 ) / 100
-			#if !NESSIE_FUNNY_DEBUG
-				//SendHudMessage( player, "距離過載剩餘：" + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
-				SendHudMessage( player, "Overloading in: " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
-			#endif
+			//SendHudMessage( player, "遭受攻擊！距離過載剩餘 " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+			SendHudMessage( player, "Took Damage! Overloading in " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
 			WaitFrame()
 		}
 	}
@@ -2115,10 +2076,8 @@ void function PlayerTickThink( entity player, entity tick, float moveSpeedScale,
 			}
 			else if ( attackHeld || zoomHeld ) // only one button held, do something
 			{
-				#if !NESSIE_FUNNY_DEBUG
-					//SendHudMessage( player, "同時按住 開火+開鏡 以進行過載", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
-					SendHudMessage( player, "Hold both ATTACK + ZOOM to overload", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
-				#endif
+				//SendHudMessage( player, "同時按住 開火+開鏡 以進行過載", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
+				SendHudMessage( player, "Hold both ATTACK + ZOOM to overload", -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
 			}
 		}
 
