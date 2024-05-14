@@ -1823,13 +1823,13 @@ void function OnTickPlayerDamaged( entity player, var damageInfo )
 
 		if ( IsAlive( tick ) && tick.ai.fragDroneArmed ) // validation tick
 		{
-			if ( !file.playerTickDoingSuicideChase[ player ] )
+			if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING ) // tick overloading
+				tick.Signal( "OverloadingTickTookDamage" ) // detonate immediately
+			else if ( !file.playerTickDoingSuicideChase[ player ] )
 			{
 				thread PlayerTickStartsSuicideChase( player )
 				file.playerTickDoingSuicideChase[ player ] = true
 			}
-			else if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING ) // tick overloading
-				tick.Signal( "OverloadingTickTookDamage" ) // detonate immediately
 		}
 	}
 }
@@ -1842,6 +1842,9 @@ void function PlayerTickStartsSuicideChase( entity player )
 
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
+
+	player.EndSignal( "TickPlayerStartsOverload" ) // overloading stops any message
+
 	tick.EndSignal( "OnDeath" )
 	tick.EndSignal( "OnDestroy" )
 
@@ -1863,6 +1866,10 @@ void function PlayerTickStartsSuicideChase( entity player )
 		float endTime = Time() + suicideChaseTime
 		while ( Time() < endTime )
 		{
+			// defensive fix
+			if ( file.fakeTickMovementState[ tick ] == eTickMovement.OVERLOADING )
+				return
+
 			float timeLeftToExplode = floor( (endTime - Time() ) * 100 ) / 100
 			SendHudMessage( player, "遭受攻擊！距離過載剩餘 " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
 			//SendHudMessage( player, "Took Damage! Overloading in " + timeLeftToExplode, -1, -0.3, 255, 255, 0, 255, 0, 0.2, 0 )
@@ -2251,13 +2258,13 @@ void function PlayerTickAnimationThink( entity player, entity tick )
 		}
 	)
 
+	// idle init
+	file.fakeTickMovementState[ tick ] <- eTickMovement.IDLE
+
 	// wait till fully arm!
 	while ( !tick.ai.fragDroneArmed )
 		WaitFrame()
-
-	// idle init
 	tick.Anim_ScriptedPlay( "sd_spectre_idle" )
-	file.fakeTickMovementState[ tick ] <- eTickMovement.IDLE
 
 	while ( true )
 	{
