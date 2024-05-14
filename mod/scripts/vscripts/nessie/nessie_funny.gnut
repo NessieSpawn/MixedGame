@@ -1877,7 +1877,7 @@ void function PlayerTickStartsSuicideChase( entity player )
 		}
 	}
 
-	waitthread PlayerTickOverloads( player, tick )
+	thread PlayerTickOverloads( player, tick )
 }
 
 // player's speed_boost effect is actually value^2, needs a utility for calculating
