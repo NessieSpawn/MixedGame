@@ -18,7 +18,7 @@ void function GameModifier_PlayerFakeTick_Init()
     AddCallback_GameStateEnter( eGameState.Prematch, OnPrematchEntered )
 }
 
-void function OnPlayerRespawned( entity playe )
+void function OnPlayerRespawned( entity player )
 {
     // set up player ticks
     array<string> tickTypes = 
@@ -53,7 +53,7 @@ void function OnPlayerDamageTarget( entity ent, var damageInfo )
         if ( ent.GetArmorType() == ARMOR_TYPE_HEAVY )
             DamageInfo_ScaleDamage( damageInfo, 15 )
         else
-            DamageInfo_ScaleDamage( damageInfo, 3 )
+            DamageInfo_ScaleDamage( damageInfo, 2 )
     }
 }
 
@@ -87,6 +87,8 @@ void function DestroyAllZiplines()
     // is it really necessary? idk, if we're not giving zipline_gun to player there shouldn't be new created ziplines
     int entityIndex = 0
     int failureCount = 0
+
+    /*
     while ( true )
     {
         if ( failureCount >= 10 )
@@ -112,6 +114,43 @@ void function DestroyAllZiplines()
             if ( entClassName == "move_rope" || entClassName == "keyframe_rope" )
                 curEnt.Destroy()
         }
+        else
+            failureCount++
+
+        entityIndex++
+    }
+    */
+
+    while ( true )
+    {
+        if ( failureCount >= 1024 )
+        {
+            //print( "we failed finding entities 1024 times!" )
+            return
+        }
+
+        entity curEnt
+        try
+        {
+            curEnt = GetEntByIndex( entityIndex )
+        }
+        catch ( ex ) 
+        {
+            failureCount++
+        }
+
+        //print( "entityIndex: " + string( entityIndex ) )
+        //print( "curEnt: " + string( curEnt ) )
+        //print( "failureCount: " + string( failureCount ) )
+        if ( IsValid( curEnt ) )
+        {
+            string entClassName = curEnt.GetClassName()
+            if ( entClassName == "move_rope" || entClassName == "keyframe_rope" )
+                curEnt.Destroy()
+            failureCount = 0
+        }
+        else
+            failureCount++
 
         entityIndex++
     }
