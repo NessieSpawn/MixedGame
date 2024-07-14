@@ -691,7 +691,8 @@ void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fra
 		// only for SP ticks I guess? MP ticks explodes really fast and I want to make them behave similar to player's tick
 		if ( fragDrone.GetAISettingsName() == "npc_frag_drone" )
 		{
-			SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 3.0 ) // same SuicideChaseTime as SP player ticks
+			//SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 3.0 ) // same SuicideChaseTime as SP player ticks
+			SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 2.1 ) // same SuicideChaseTime as SP npc ticks
 			SuicideSpectre_SetCanExplodeInMidAir( fragDrone, true ) // also allow them to trigger overload while still in mid-air
 		}
 	}
