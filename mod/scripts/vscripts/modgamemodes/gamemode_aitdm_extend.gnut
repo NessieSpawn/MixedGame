@@ -665,7 +665,8 @@ void function DelayedSetUpNPCSpawnedTick( entity soldier )
 	// SP ticks already have long animation, respawn still adding them 0.25s more delay before exploding
 	// that works fine for SP because it's a case we should enjoy the game, but for multiplayer it makes them way too vulnerable
 	// we need to remove that extra delay so they can perform better in combat
-	SuicideSpectre_SetOverloadDelayAdjustment( soldier, 0.0 )
+	// EDIT: due that we've made only SP ticks to have suicide chase behavior, this buff can be removed
+	//SuicideSpectre_SetOverloadDelayAdjustment( soldier, 0.0 )
 }
 
 void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fragDrone, string droneSettings )
@@ -676,11 +677,15 @@ void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fra
 		if ( IsAlive( fragDrone ) )
 			AITdmExtend_EnemyThreatenHighlight( fragDrone )
 		// settings modfied in _ai_suicide_spectres.gnut
-		// allow ticks to jump at titans before exploding
-		SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 3.0 ) // same SuicideChaseTime as SP player ticks
 		//SuicideSpectre_SetJumpAtTitans( fragDrone, true )
-		SuicideSpectre_SetCreateHeavyArmorDangerousArea( fragDrone, true )
-		SuicideSpectre_SetCanExplodeInMidAir( fragDrone, true )
+		SuicideSpectre_SetCreateHeavyArmorDangerousArea( fragDrone, true ) // maybe this makes npc titans behave better? idk
+		// allow ticks to jump at titans before exploding, and makes them won't overload right after getting shot
+		// only for SP ticks I guess? MP ticks explodes really fast and I want to make them behave similar to player's tick
+		if ( fragDrone.GetAISettingsName() == "npc_frag_drone" )
+		{
+			SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 3.0 ) // same SuicideChaseTime as SP player ticks
+			SuicideSpectre_SetCanExplodeInMidAir( fragDrone, true ) // also allow them to trigger overload while still in mid-air
+		}
 	}
 }
 
