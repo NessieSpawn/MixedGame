@@ -32,6 +32,13 @@ const float PLAYER_NOSPAWN_RADIUS = 1500
 const float PROJECTILE_NOSPAWN_RADIUS = 800
 const float NPC_NOSPAWN_RADIUS = 1000
 
+// modified: prevent spawning in friendly's deadly area
+const float DEADLY_AREA_DURATION = 20.0
+const int DEADLY_AREA_RADIUS = 2000 // try to spawn away from player's max damage range
+// ffa specifics: never spawn near any player's death position, but updates faster
+const float DEADLY_AREA_DURATION_FFA = 10.0
+const int DEADLY_AREA_RADIUS_FFA = 1000
+
 struct NoSpawnArea
 {
 	string id
