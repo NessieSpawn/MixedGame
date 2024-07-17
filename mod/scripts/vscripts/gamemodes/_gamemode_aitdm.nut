@@ -104,6 +104,9 @@ void function GamemodeAITdm_Init()
 		// tempfix specifics
 		SetShouldPlayDefaultMusic( true ) // play music when score or time reaches some point
 		EarnMeterMP_SetPassiveGainProgessEnable( true ) // enable earnmeter gain progressing like vanilla
+	
+		// challenge fix
+		SetupGenericTDMChallenge()
 	}
 }
 
