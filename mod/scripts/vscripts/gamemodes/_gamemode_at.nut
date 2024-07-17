@@ -660,6 +660,13 @@ void function AT_SetPlayerBonusPoints( entity player, int amount )
 
 	player.SetPlayerNetInt( "AT_bonusPoints256", stacks )
 	player.SetPlayerNetInt( "AT_bonusPoints", amount - stacks * 256 )
+
+	// challenge checks
+	if( AT_GetPlayerBonusPoints( player ) >= 600 && !HasPlayerCompletedMeritScore( player ) ) //Challenge is: "Earn $600."
+	{
+		AddPlayerScore( player, "ChallengeATAssault" )
+		SetPlayerChallengeMeritScore( player )
+	}
 }
 
 // total points, the value player actually uploaded to team score
