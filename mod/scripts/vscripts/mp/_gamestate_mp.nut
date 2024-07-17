@@ -467,6 +467,9 @@ void function GameStateEnter_WinnerDetermined_Threaded()
 	{
 		DialoguePlayWinnerDetermined() // play a faction dialogue when winner is determined. no winner dialogue till game really ends
 		ScoreEvent_MatchComplete( winningTeam )
+
+		// update match MVP stat
+		Stats_MatchMVP() // shared from _stats.nut
 	}
 	else
 		ScoreEvent_RoundComplete( winningTeam, isMatchEnd )
