@@ -460,14 +460,16 @@ void function GameStateEnter_WinnerDetermined_Threaded()
 			Remote_CallFunction_NonReplay( player, "ServerCallback_AnnounceWinner", winningTeam, announcementSubstr, ROUND_WINNING_KILL_REPLAY_SCREEN_FADE_TIME )
 	}
 	
-	// add score for match end
-	// shared from _score.nut
-	ScoreEvent_MatchComplete( winningTeam, isMatchEnd )
-	
 	WaitFrame() // wait a frame so other scripts can setup killreplay stuff
 
-	if( isMatchEnd ) // no winner dialogue till game really ends
-		DialoguePlayWinnerDetermined() // play a faction dialogue when winner is determined
+	// match end stuffs
+	if( isMatchEnd )
+	{
+		DialoguePlayWinnerDetermined() // play a faction dialogue when winner is determined. no winner dialogue till game really ends
+		ScoreEvent_MatchComplete( winningTeam )
+	}
+	else
+		ScoreEvent_RoundComplete( winningTeam, isMatchEnd )
 	
 	// set gameEndTime to current time, so hud doesn't display time left in the match
 	SetServerVar( "gameEndTime", Time() )
@@ -613,6 +615,9 @@ void function GameStateEnter_WinnerDetermined_Threaded()
 	}
 	else
 	{
+		// challenge fix
+		RegisterChallenges_OnMatchEnd()
+		
 		if ( ClassicMP_ShouldRunEpilogue() )
 		{
 			ClassicMP_SetupEpilogue()

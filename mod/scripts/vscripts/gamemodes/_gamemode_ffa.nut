@@ -25,6 +25,9 @@ void function FFA_Init()
 
 	// tempfix specifics
 	EarnMeterMP_SetPassiveGainProgessEnable( true ) // enable earnmeter gain progressing like vanilla
+
+	// challenge fix
+	SetupGenericFFAChallenge()
 }
 
 // northstar missing

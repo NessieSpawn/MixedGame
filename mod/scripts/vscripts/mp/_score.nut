@@ -620,30 +620,42 @@ void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageIn
 	UpdateMixedTimedKillStreaks( attacker )
 }
 
-void function ScoreEvent_MatchComplete( int winningTeam, bool isMatchEnd = true )
+void function ScoreEvent_MatchComplete( int winningTeam )
 {
-	string matchScoreEvent = "MatchComplete"
-	string winningScoreEvent = "MatchVictory"
-	if ( !isMatchEnd ) // round based scoring!
-	{
-		matchScoreEvent = "RoundComplete"
-		winningScoreEvent = "RoundVictory"
-	}
-
-	float scoreAddDelay = 2.0 // vanilla do have a delay for match ending score
-	if ( !isMatchEnd ) // round based scoring!
-		scoreAddDelay = 0.0 // no delay
-	thread DelayedAddMatchCompleteScore( winningScoreEvent, matchScoreEvent, winningTeam, scoreAddDelay )
+	// vanilla do have a delay for match ending score, needs thread
+	thread ScoreEvent_MatchComplete_Threaded( winningTeam )
 }
 
-void function DelayedAddMatchCompleteScore( string winningScoreEvent, string matchScoreEvent, int winningTeam, float delay )
+void function ScoreEvent_MatchComplete_Threaded( int winningTeam )
 {
-	if ( delay > 0 )
-		wait delay
+	wait 2.0 // should be accurate?
+
+	// these two score events have different display type, can be added together
 	foreach( entity player in GetPlayerArray() )
-		AddPlayerScore( player, matchScoreEvent )
-	foreach( entity winningPlayer in GetPlayerArrayOfTeam( winningTeam ) )
-		AddPlayerScore( winningPlayer, winningScoreEvent )
+	{
+		AddPlayerScore( player, "MatchComplete" )
+		SetPlayerChallengeMatchComplete( player )
+
+		if ( player.GetTeam() == winningTeam )
+		{
+			AddPlayerScore( player, "MatchVictory" )
+			SetPlayerChallengeMatchWon( player, true )
+		}
+		else
+			SetPlayerChallengeMatchWon( player, false )
+	}
+}
+
+void function ScoreEvent_RoundComplete( int winningTeam )
+{
+	// these two score events have different display type, can be added together
+	foreach( entity player in GetPlayerArray() )
+	{
+		AddPlayerScore( player, "RoundComplete" )
+
+		if ( player.GetTeam() == winningTeam )
+			AddPlayerScore( player, "RoundVictory" )
+	}
 }
 
 // vanilla behavior, northstar missing
