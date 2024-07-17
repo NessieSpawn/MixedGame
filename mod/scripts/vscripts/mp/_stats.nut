@@ -14,7 +14,7 @@ global function PreScoreEventUpdateStats
 global function PostScoreEventUpdateStats
 global function Stats_OnPlayerDidDamage
 // was be in _gamestate_mp.nut, but I feel like it should be better formatted to put it here? idk
-global function Stats_MatchMVP
+global function Stats_UpdateMatchMVP
 
 struct {
 	table< string, array<string> > refs
