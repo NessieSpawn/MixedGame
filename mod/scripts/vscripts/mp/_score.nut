@@ -8,6 +8,7 @@ global function ScoreEvent_TitanDoomed
 global function ScoreEvent_TitanKilled
 global function ScoreEvent_NPCKilled
 global function ScoreEvent_MatchComplete
+global function ScoreEvent_RoundComplete
 // vanilla behavior
 global function ScoreEvent_VictoryKill
 
