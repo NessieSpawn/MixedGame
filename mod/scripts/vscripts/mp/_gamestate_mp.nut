@@ -469,7 +469,7 @@ void function GameStateEnter_WinnerDetermined_Threaded()
 		ScoreEvent_MatchComplete( winningTeam )
 	}
 	else
-		ScoreEvent_RoundComplete( winningTeam, isMatchEnd )
+		ScoreEvent_RoundComplete( winningTeam )
 	
 	// set gameEndTime to current time, so hud doesn't display time left in the match
 	SetServerVar( "gameEndTime", Time() )
