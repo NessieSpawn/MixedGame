@@ -313,8 +313,10 @@ void function GameStateEnter_Prematch()
 void function StartGameWithoutClassicMP()
 {
 	foreach ( entity player in GetPlayerArray() )
+	{
 		if ( IsAlive( player ) )
 			player.Die()
+	}
 
 	WaitFrame() // wait for callbacks to finish
 	
@@ -328,17 +330,53 @@ void function StartGameWithoutClassicMP()
 		{
 			// likely temp, deffo needs some work
 			if ( Riff_SpawnAsTitan() == 1 )	// spawn as titan
+			{
 				thread RespawnAsTitan( player )
+				ScreenFadeFromBlack( player, 1.0, 0.2 ) // a little bit hold time to prevent camera flash from <0,0,0> point
+			}
 			else // spawn as pilot
+			{
 				RespawnAsPilot( player )
+				ScreenFadeFromBlack( player, 1.0, 0.0 )
+			}
 		}
-			
-		ScreenFadeFromBlack( player, 0 )
+
+		// better to have a screen fade like new-connecting players?	
+		//ScreenFadeFromBlack( player, 0 )
 	}
 	
 	SetGameState( eGameState.Playing )
+
+	// northstar missing: better set up a gamemode announcement
+	// this should be done by intros, but we don't have intros, so..
+	foreach ( entity player in GetPlayerArray() )
+	{
+		if ( !IsPrivateMatchSpectator( player ) )
+			thread NoClassicMPIntroGamemodeAnnouncement( player )
+	}
 }
 
+void function NoClassicMPIntroGamemodeAnnouncement( entity player )
+{
+	if ( IsPrivateMatchSpectator( player ) )
+		return
+
+	player.EndSignal( "OnDestroy" )
+
+	// respawning as pilot
+	if ( IsAlive( player ) )
+	{
+		player.EndSignal( "OnDeath" )
+		// wait for player screen fade from black, same wait as DelayedGamemodeAnnouncement() in _base_gametype_mp.gnut does
+		wait 1.7
+	}
+	else // respawning as titan
+	{
+		player.WaitSignal( "OnRespawned" )
+	}
+
+	TryGameModeAnnouncement( player )
+}
 
 // eGameState.Playing
 void function GameStateEnter_Playing()
