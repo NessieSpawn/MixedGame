@@ -2567,6 +2567,9 @@ void function VortexSphereColorUpdate( entity weapon, var sphereClientFXHandle =
 	while( IsValid( weapon ) && IsValid( weaponOwner ) )
 	{
 		vector colorVec
+
+		// vanilla behavior
+		/*
 		if ( isIonVortex )
 		{
 			float energyFrac = 1.0 - float( weaponOwner.GetSharedEnergyCount() ) / energyTotal
@@ -2579,7 +2582,26 @@ void function VortexSphereColorUpdate( entity weapon, var sphereClientFXHandle =
 		{
 			colorVec = GetVortexSphereCurrentColor( weapon.GetWeaponChargeFraction() )
 		}
+		*/
 
+		// adding a misc fix here: we don't want only ion vortex can have their color
+		// needs client side install to function on first person!
+		// maybe no need to add a playlist var for visually stuffs
+		//if ( bool( GetCurrentPlaylistVarInt( "vortex_shield_fix", 0 ) ) || weapon.HasMod( "vortex_shield_fix" ) )
+		//{
+			float chargeFrac = 1.0
+			if ( isIonVortex )
+				chargeFrac = 1.0 - float( weaponOwner.GetSharedEnergyCount() ) / energyTotal
+			else
+				chargeFrac = weapon.GetWeaponChargeFraction()
+
+			float fullHealthColor = VORTEX_SPHERE_COLOR_CHARGE_FULL
+			if ( weapon.HasMod( "pas_ion_vortex" ) )
+				fullHealthColor = VORTEX_SPHERE_COLOR_PAS_ION_VORTEX
+
+			colorVec = GetVortexSphereCurrentColor( chargeFrac, fullHealthColor )
+		//}
+		//
 
 		// update the world entity that is linked to the world FX playing on the server
 		#if SERVER
