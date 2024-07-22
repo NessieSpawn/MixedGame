@@ -40,6 +40,9 @@ void function GamemodeSpeedball_Init()
 
 	ClassicMP_SetCustomIntro( ClassicMP_DefaultNoIntro_Setup, NOINTRO_INTRO_SPEEDBALL_LENGTH )
 	ClassicMP_ForceDisableEpilogue( true )
+
+	// challenge fix
+	SetupGenericFFAChallenge()
 }
 
 // northstar missing

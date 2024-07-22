@@ -212,6 +212,13 @@ void function MarkPlayers( entity imcMark, entity militiaMark )
 	}
 	// enemies
 	PlayFactionDialogueToTeam( "mfd_markDownFriendly", deadMark.GetTeam() )
+	
+	// challenge score
+	if( !HasPlayerCompletedMeritScore( livingMark ) )
+	{
+		AddPlayerScore( livingMark, "ChallengeMFD" )
+		SetPlayerChallengeMeritScore( livingMark )
+	}
 
 	// thread this so we don't kill our own thread
 	thread AddTeamScore( livingMark.GetTeam(), 1 )
@@ -246,6 +253,13 @@ void function UpdateMarksForKill( entity victim, entity attacker, var damageInfo
 				AddPlayerScore( attacker, "MarkedTargetKilled" )
 			PlayFactionDialogueToPlayer( "mfd_youKilledMark", attacker )
 			attacker.SetPlayerGameStat( PGS_ASSAULT_SCORE, attacker.GetPlayerGameStat( PGS_ASSAULT_SCORE ) + 1 )
+		
+			// challenge score
+			if( !HasPlayerCompletedMeritScore( attacker ) )
+			{
+				AddPlayerScore( attacker, "ChallengeMFD" )
+				SetPlayerChallengeMeritScore( attacker )
+			}
 		}
 	}
 	else

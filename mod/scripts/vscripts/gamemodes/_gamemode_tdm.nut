@@ -10,6 +10,9 @@ void function GamemodeTdm_Init()
 	// tempfix specifics
 	SetShouldPlayDefaultMusic( true ) // play music when score or time reaches some point
 	EarnMeterMP_SetPassiveGainProgessEnable( true ) // enable earnmeter gain progressing like vanilla
+
+	// challenge fix
+	SetupGenericTDMChallenge()
 }
 
 void function GiveScoreForPlayerKill( entity victim, entity attacker, var damageInfo )
