@@ -12,6 +12,12 @@ void function MpTitanAbilityHover_Init()
 {
 	PrecacheParticleSystem( $"P_xo_jet_fly_large" )
 	PrecacheParticleSystem( $"P_xo_jet_fly_small" )
+
+	// modified conents
+	#if SERVER
+		// to end last hover before activating another one
+		RegisterSignal( "VTOLHoverBegin" )
+	#endif
 }
 
 // note: owner dying also triggers OwnerChanged
@@ -114,7 +120,9 @@ var function OnWeaponPrimaryAttack_TitanHover( entity weapon, WeaponPrimaryAttac
 			horizontalVelocity = 350.0
 		else
 			horizontalVelocity = 250.0
-		thread FlyerHovers( flyer, soundInfo, 3.0, horizontalVelocity )
+		// adding weapon as parameter to handle stuffs better
+		//thread FlyerHovers( flyer, soundInfo, 3.0, horizontalVelocity )
+		thread FlyerHovers( flyer, soundInfo, 3.0, horizontalVelocity, weapon )
 	#endif
 
 	return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
@@ -127,8 +135,22 @@ var function NPC_OnWeaponPrimaryAttack_TitanHover( entity weapon, WeaponPrimaryA
 	OnWeaponPrimaryAttack_TitanHover( weapon, attackParams )
 }
 
-void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTime = 3.0, float horizVel = 200.0 )
+// adding weapon as parameter to handle stuffs better
+//void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTime = 3.0, float horizVel = 200.0 )
+void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTime = 3.0, float horizVel = 200.0, entity weapon = null )
 {
+	// fixes
+	bool hasHoveringFix = bool( GetCurrentPlaylistVarInt( "vtol_hover_fix", 0 ) )
+	if ( IsValid( weapon ) && weapon.HasMod( "vtol_hover_fix" ) )
+		hasHoveringFix = true
+
+	// prevent multiple hovering to be used together
+	if ( hasHoveringFix )
+	{
+		player.Signal( "VTOLHoverBegin" )
+		player.EndSignal( "VTOLHoverBegin" )
+	}
+
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "TitanEjectionStarted" )
 
@@ -195,25 +217,35 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 		}
 	)
 
+	// fix visual stuffs
 	if ( player.LookupAttachment( "FX_L_BOT_THRUST" ) != 0 ) // BT doesn't have this attachment
 	{
+		/*
 		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_L_BOT_THRUST" ) ) )
 		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_R_BOT_THRUST" ) ) )
 		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_small" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_L_TOP_THRUST" ) ) )
 		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_small" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "FX_R_TOP_THRUST" ) ) )
+		*/
+
+		// use better function to hide effect from their owner
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "FX_L_BOT_THRUST" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "FX_R_BOT_THRUST" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_small", "FX_L_TOP_THRUST" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_small", "FX_R_TOP_THRUST" ) )
 	}
-	else if( IsPilot( player ) && player.LookupAttachment( "vent_center" ) != 0 )
+	else if( IsPilot( player ) && player.LookupAttachment( "vent_center" ) != 0 ) // modified: pilot jet effect
 	{
-		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "vent_left_back" ) ) )
-		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "vent_right_back" ) ) )
-		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_small" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "vent_center" ) ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_small", "vent_center" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_left_back" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_right_back" ) )
 	}
-	else
+	else if ( player.LookupAttachment( "thrust" ) != 0 ) // modified: non-northstar titans jet effect
 	{
-		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "vent_left" ) ) )
-		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_large" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "vent_right" ) ) )
-		activeFX.append( StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( $"P_xo_jet_fly_small" ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( "thrust" ) ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_small", "thrust" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_left" ) )
+		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_right" ) )
 	}
+	ArrayRemoveInvalid( activeFX ) // we may have failed creating effects due to attachments, better handle like this!
 
 	EmitSoundOnEntityOnlyToPlayer( player, player,  soundInfo.liftoff_1p )
 	EmitSoundOnEntityExceptToPlayer( player, player, soundInfo.liftoff_3p )
@@ -239,9 +271,14 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 			break
 
 		float height
-		if ( timePassed < LERP_IN_FLOAT )
+
+		// modified: adding a stall hovering height to make it more stable
+		if ( hasHoveringFix )
+			height = 70
+		// vanilla behavior
+		else if ( timePassed < LERP_IN_FLOAT )
 		 	height = GraphCapped( timePassed, 0, LERP_IN_FLOAT, RISE_VEL * 0.5, RISE_VEL )
-		 else
+		else
 		 	height = GraphCapped( timePassed, LERP_IN_FLOAT, LERP_IN_FLOAT + 0.75, RISE_VEL, 70 )
 
 		height *= movestunEffect
@@ -259,6 +296,22 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 	EmitSoundOnEntityOnlyToPlayer( player, player, soundInfo.descent_1p )
 	EmitSoundOnEntityExceptToPlayer( player, player, soundInfo.descent_3p )
 }
+
+// modified function for better handling hover effects
+entity function CreateTitanHoverJetEffect( entity owner, asset effectName, string attachment )
+{
+	if( owner.LookupAttachment( attachment ) > 0 )
+    {
+		entity jetFX = StartParticleEffectOnEntity_ReturnEntity( owner, GetParticleSystemIndex( effectName ), FX_PATTACH_POINT_FOLLOW, owner.LookupAttachment( attachment ) )
+		jetFX.SetOwner( owner )
+		jetFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY | ENTITY_VISIBLE_TO_ENEMY
+		return jetFX
+	}
+
+	// failed to create due to bad attachment!
+	return null
+}
+//
 
 void function AirborneThink( entity player, HoverSounds soundInfo )
 {

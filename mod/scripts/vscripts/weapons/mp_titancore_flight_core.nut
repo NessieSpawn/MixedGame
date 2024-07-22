@@ -214,7 +214,9 @@ void function PROTO_FlightCore( entity titan, float flightTime, entity weapon )
 		soundInfo.descent_3p = "Titan_Core_Flight_Descent_3P"
 		soundInfo.landing_1p = "core_ability_land_1p"
 		soundInfo.landing_3p = "core_ability_land_3p"
-		thread FlyerHovers( titan, soundInfo, flightTime, horizontalVelocity )
+		// adding weapon as parameter to handle stuffs better
+		//thread FlyerHovers( titan, soundInfo, flightTime, horizontalVelocity )
+		thread FlyerHovers( titan, soundInfo, flightTime, horizontalVelocity, weapon )
 
 		wait takeoffTime
 
