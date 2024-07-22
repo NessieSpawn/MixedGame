@@ -17,7 +17,7 @@ global function TitanReplace_EnableRoninMiscFix // fix ronin's sword core behavi
 global function TitanReplace_EnableIonMiscFix // fix fd laser core bar and splitter rifle damage scaling, make it unable to abuse tripwire bug
 global function TitanReplace_EnableMonarchMiscFix // fix multi-targeting missile burst fire count when unlocked firing
 global function TitanReplace_EnableBruteMiscFix // fix brute desyncs when fire weapon during ADSing, disallow fire weapon while sprinting
-global function TitanReplace_EnableNorthstarMiscFix // fix northstar hover stacks together when activating both ability&core
+global function TitanReplace_EnableNorthstarMiscFix // fix northstar hover stacks together when activating both ability&core, fix activating flight core multiple time will holster plasma railgun
 
 global function TitanReplace_EnableNorthstarReBalance // rebalance northstar's railgun
 global function TitanReplace_EnableMonarchReBalance // rebalance monarch's xo-16, energy siphon and disable battery executions
@@ -356,6 +356,8 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 				{
 					// prevent stacking two hovers together, use a stall number for hovering height to make it more stable
 					coreWeapon.AddMod( "vtol_hover_fix" )
+					// fix activating flight core multiple times will holster railgun
+					coreWeapon.AddMod( "flight_core_fix" )
 				}
 			}
 

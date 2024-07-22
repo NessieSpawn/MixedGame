@@ -770,9 +770,10 @@ void function SpawnNessyCostume( entity ent )
 	if( ent.IsTitan() )
 		return
 
+	ent.Signal( "SpawnNessyCostume" ) // end last TrackNessyCostumeOwner()
+
 	CreateNessyHat( ent )
 	CreateNessyBackpack( ent )
-	ent.Signal( "SpawnNessyCostume" )
 	thread TrackNessyCostumeOwner( ent )
 }
 
@@ -792,7 +793,11 @@ void function TrackNessyCostumeOwner( entity ent )
 
 	table<string, bool> results
 	results["recreateCostume"] <- false
+	results["clearCostumeManually"] <- false
 
+	// after removing all entitycallback_onkilled, game will just remove death notification... but why?
+	// welp, that's why nowhere is using this callback
+	// guess I'd change org function
 	AddEntityCallback_OnKilled( ent, OnNessyCostumeOwnerKilled )
 
 	OnThreadEnd
@@ -801,10 +806,21 @@ void function TrackNessyCostumeOwner( entity ent )
 		{
 			if ( IsValid( ent ) )
 			{
-				ClearAllNessyCostume( ent, 0, results["recreateCostume"] )
+				// normally costume clean-up will be handled by OnNessyCostumeOwnerKilled()
+				if ( results["clearCostumeManually"] && !results["recreateCostume"] )
+				{
+					//print( "Removing all costume from current player" )
+					ClearAllNessyCostume( ent, 0 )
+				}
+
 				RemoveEntityCallback_OnKilled( ent, OnNessyCostumeOwnerKilled )
+
 				if ( results["recreateCostume"] )
+				{
+					//print( "re-crating costume for current player!" )
+					ClearAllNessyCostume( ent, 0, true )
 					SpawnNessyCostume( ent )
+				}
 			}
 		}
 	)
@@ -814,7 +830,10 @@ void function TrackNessyCostumeOwner( entity ent )
 	{
 		// when a player starts embarking, needs to clear their nessy costume
 		if( ent.IsPlayer() && ent.p.isEmbarking )
+		{
+			results["clearCostumeManually"] = true
 			return
+		}
 
 		lastTickModel = ent.GetModelName()
 		WaitFrame( true ) // let's bypass script FPS limit, because PROTO_FadeModelAlphaOverTime() also does so?
@@ -831,6 +850,8 @@ void function TrackNessyCostumeOwner( entity ent )
 
 void function OnNessyCostumeOwnerKilled( entity ent, var damageInfo )
 {
+	//print( "RUNNING OnNessyCostumeOwnerKilled()" )
+
 	bool isDissolving = ent.IsDissolving() || ent.IsPlayerDecoy()
 	float propFadeOutDelay = isDissolving ? 0.0 : NESSIE_PROP_FADEOUT_DELAY
 
