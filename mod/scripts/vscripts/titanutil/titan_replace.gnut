@@ -16,7 +16,8 @@ global function TitanReplace_UseGunnerBisonVariant // bison variant
 global function TitanReplace_EnableRoninMiscFix // fix ronin's sword core behavior
 global function TitanReplace_EnableIonMiscFix // fix fd laser core bar and splitter rifle damage scaling, make it unable to abuse tripwire bug
 global function TitanReplace_EnableMonarchMiscFix // fix multi-targeting missile burst fire count when unlocked firing
-global function TitanReplace_EnableBruteMixFix // fix brute desyncs when fire weapon during ADSing, disallow fire weapon while sprinting
+global function TitanReplace_EnableBruteMiscFix // fix brute desyncs when fire weapon during ADSing, disallow fire weapon while sprinting
+global function TitanReplace_EnableNorthstarMiscFix // fix northstar hover stacks together when activating both ability&core
 
 global function TitanReplace_EnableNorthstarReBalance // rebalance northstar's railgun
 global function TitanReplace_EnableMonarchReBalance // rebalance monarch's xo-16, energy siphon and disable battery executions
@@ -106,6 +107,7 @@ struct
 	bool ionMiscFixEnabled
 	bool monarchMiscFixEnabled
 	bool bruteMiscFixEnabled
+	bool northstarMiscFixEnabled
 
 	// balances
 	bool northstarReBalanceEnabled
@@ -188,9 +190,14 @@ void function TitanReplace_EnableMonarchMiscFix( bool enable )
 	file.monarchMiscFixEnabled = enable
 }
 
-void function TitanReplace_EnableBruteMixFix( bool enable )
+void function TitanReplace_EnableBruteMiscFix( bool enable )
 {
 	file.bruteMiscFixEnabled = enable
+}
+
+void function TitanReplace_EnableNorthstarMiscFix( bool enable )
+{
+	file.northstarMiscFixEnabled = enable
 }
 
 // balances
@@ -334,8 +341,24 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 			}
 			break
 		
-		// northstar balance...
+		// northstar fix and balance...
 		case $"models/titans/light/titan_light_raptor.mdl":
+			if ( file.northstarMiscFixEnabled )
+			{
+				entity utilityWeapon = titan.GetOffhandWeapon( OFFHAND_ANTIRODEO )
+				if ( IsValid( utilityWeapon ) )
+				{
+					// prevent stacking two hovers together, use a stall number for hovering height to make it more stable
+					utilityWeapon.AddMod( "vtol_hover_fix" )
+				}
+				entity coreWeapon = titan.GetOffhandWeapon( OFFHAND_EQUIPMENT )
+				if ( IsValid( coreWeapon ) )
+				{
+					// prevent stacking two hovers together, use a stall number for hovering height to make it more stable
+					coreWeapon.AddMod( "vtol_hover_fix" )
+				}
+			}
+
 			if ( file.northstarReBalanceEnabled )
 			{
 				if ( titan.GetMainWeapons().len() > 0 )
