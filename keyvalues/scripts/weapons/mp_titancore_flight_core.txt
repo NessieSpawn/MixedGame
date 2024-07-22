@@ -15,5 +15,10 @@ WeaponData
 		rapid_detonator
 		{
 		}
+
+		// hover fix: prevent multiple hovers to use together( eg. using flight core while already activate a hover ), use a stall number for hovering height to make it more stable
+		vtol_hover_fix
+		{
+		}
 	}
 }

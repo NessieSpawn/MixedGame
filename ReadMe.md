@@ -4,6 +4,8 @@ https://github.com/Legonzaur/Northstar-HoloShift
 
 https://github.com/uniboi/ImpulseGrenade
 
+https://github.com/uniboi/HoloSprays
+
 https://github.com/JMM889901/PeePee.Flipside
 
 https://github.com/JMM889901/Northstar.MutatorPack
@@ -14,9 +16,9 @@ https://github.com/GalacticMoblin/Moblin.Archon
 
 https://github.com/Dinorush/Brute4
 
-https://northstar.thunderstore.io/package/Palomar/PhaseShift_Rework/
+https://github.com/Dinorush/TitanDebug
 
-https://github.com/uniboi/HoloSprays
+https://northstar.thunderstore.io/package/Palomar/PhaseShift_Rework/
 
 I made these repo/mods compatible with my own scripts, big thanks to their creator!
 

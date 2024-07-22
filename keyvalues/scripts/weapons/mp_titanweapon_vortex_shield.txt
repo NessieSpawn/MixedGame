@@ -133,5 +133,11 @@ WeaponData
 			"damage_near_value_titanarmor"				"*0.35"
 			"damage_far_value_titanarmor" 				"*0.35"
 		}
+
+		// vortex shield fix: better handle shield color without using ion's vortex shield
+		// maybe no need to add a playlist var for visually stuffs
+		//vortex_shield_fix
+		//{
+		//}
 	}
 }

@@ -15,4 +15,8 @@ void function Riff_TitanMiscellaneous_Fix_Init()
     AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "shoulder_rockets_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
     // brute
     AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "rocketeer_rocketstream_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+    // expedition
+    //AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "vortex_shield_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+    // northstar
+    AddPrivateMatchModeSettingEnum( "#TITAN_MISC_FIX", "vtol_hover_fix", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
 }
