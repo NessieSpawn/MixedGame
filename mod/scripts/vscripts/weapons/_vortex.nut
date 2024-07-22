@@ -2595,7 +2595,7 @@ void function VortexSphereColorUpdate( entity weapon, var sphereClientFXHandle =
 			else
 				chargeFrac = weapon.GetWeaponChargeFraction()
 
-			float fullHealthColor = VORTEX_SPHERE_COLOR_CHARGE_FULL
+			vector fullHealthColor = VORTEX_SPHERE_COLOR_CHARGE_FULL
 			if ( weapon.HasMod( "pas_ion_vortex" ) )
 				fullHealthColor = VORTEX_SPHERE_COLOR_PAS_ION_VORTEX
 

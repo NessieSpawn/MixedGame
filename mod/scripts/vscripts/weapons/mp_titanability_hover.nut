@@ -287,7 +287,7 @@ entity function CreateTitanHoverJetEffect( entity owner, asset effectName, strin
 {
 	if( owner.LookupAttachment( attachment ) > 0 )
     {
-		entity jetFX = StartParticleEffectOnEntity_ReturnEntity( player, GetParticleSystemIndex( effectName ), FX_PATTACH_POINT_FOLLOW, player.LookupAttachment( attachment ) )
+		entity jetFX = StartParticleEffectOnEntity_ReturnEntity( owner, GetParticleSystemIndex( effectName ), FX_PATTACH_POINT_FOLLOW, owner.LookupAttachment( attachment ) )
 		jetFX.SetOwner( owner )
 		jetFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY | ENTITY_VISIBLE_TO_ENEMY
 		return jetFX

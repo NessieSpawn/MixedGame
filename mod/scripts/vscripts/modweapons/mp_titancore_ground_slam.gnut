@@ -107,6 +107,7 @@ entity function CreateTitanGroundSlamJetEffect( entity owner, asset effectName, 
     // failed to create anything!
     return null
 }
+#endif
 
 #if SERVER
 void function GroundSlamDash( entity player )
