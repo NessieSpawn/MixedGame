@@ -114,6 +114,8 @@ void function PROTO_BarrageCore( entity titan, float flightTime, array<string> m
 							titan.TakeWeaponNow( "mp_titanweapon_flightcore_rockets" )
 						else // keep vanilla behavior
 							titan.TakeWeapon( "mp_titanweapon_flightcore_rockets" )
+						// vanilla behavior fix: prevent holstering main after using core ability
+						titan.SetActiveWeaponBySlot( 0 )
 					}
 				}
 

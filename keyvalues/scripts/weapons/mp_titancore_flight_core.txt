@@ -20,5 +20,10 @@ WeaponData
 		vtol_hover_fix
 		{
 		}
+
+		// flight core fix: prevent activating flight core multiple times will holster railgun
+		flight_core_fix
+		{
+		}
 	}
 }
