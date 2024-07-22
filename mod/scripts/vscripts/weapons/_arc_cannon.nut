@@ -81,6 +81,8 @@ global const SPLITTER_FORK_COUNT_MAX				= 10
 
 global const ARC_CANNON_SIGNAL_DEACTIVATED	= "ArcCannonDeactivated"
 global const ARC_CANNON_SIGNAL_CHARGEEND = "ArcCannonChargeEnd"
+// for we handling fixed charge effect on server-side
+const ARC_CANNON_SIGNAL_FIREWEAPON = "ArcCannonFireWeapon"
 
 global const ARC_CANNON_BEAM_EFFECT = $"wpn_arc_cannon_beam"
 global const ARC_CANNON_BEAM_EFFECT_MOD = $"wpn_arc_cannon_beam_mod"
@@ -128,6 +130,9 @@ function ArcCannon_Init()
 {
 	RegisterSignal( ARC_CANNON_SIGNAL_DEACTIVATED )
 	RegisterSignal( ARC_CANNON_SIGNAL_CHARGEEND )
+	// for we handling fixed charge effect on server-side
+	RegisterSignal( ARC_CANNON_SIGNAL_FIREWEAPON )
+
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
 	PrecacheImpactEffectTable( ARC_CANNON_FX_TABLE )
@@ -175,10 +180,11 @@ function ArcCannon_Stop( weapon, player = null )
 
 function ArcCannon_ChargeBegin( entity weapon )
 {
+	entity weaponOwner = weapon.GetWeaponOwner()
+	
 	#if SERVER
 		if ( weapon.HasMod( "overcharge" ) )
 		{
-			entity weaponOwner = weapon.GetWeaponOwner()
 			if ( weaponOwner.IsTitan() )
 			{
 				entity soul = weaponOwner.GetTitanSoul()
@@ -191,13 +197,37 @@ function ArcCannon_ChargeBegin( entity weapon )
 		if ( !weapon.ShouldPredictProjectiles() )
 			return
 
-		entity weaponOwner = weapon.GetWeaponOwner()
 		Assert( weaponOwner.IsPlayer() )
 		weaponOwner.StartArcCannon();
 	#endif
 
 	// effect handle
 	weapon.PlayWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge", "muzzle_flash" )
+	thread TrackArcCannonChargeEffect( weapon, weaponOwner )
+}
+
+void function TrackArcCannonChargeEffect( entity weapon, entity weaponOwner )
+{
+	// maybe better to just track owner, other weapon behavior is already handled by each function!
+	/*
+	weaponOwner.EndSignal( "OnDeath" )
+	weaponOwner.EndSignal( "OnDestroy" )
+	weapon.EndSignal( "OnDestroy" )
+
+	WaitSignal( weapon, ARC_CANNON_SIGNAL_FIREWEAPON, ARC_CANNON_SIGNAL_CHARGEEND, ARC_CANNON_SIGNAL_DEACTIVATED )
+
+	// effect handle
+	weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" )
+	*/
+
+	weapon.EndSignal( "OnDestroy" )
+	weapon.EndSignal( ARC_CANNON_SIGNAL_DEACTIVATED )
+	weapon.EndSignal( ARC_CANNON_SIGNAL_CHARGEEND )
+	weapon.EndSignal( ARC_CANNON_SIGNAL_FIREWEAPON )
+
+	WaitSignal( weaponOwner, "OnDeath", "OnDestroy" )
+
+	weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" )
 }
 
 function ArcCannon_ChargeEnd( entity weapon, entity player = null )
@@ -290,8 +320,10 @@ function FireArcCannon( entity weapon, WeaponPrimaryAttackParams attackParams )
 	// npc firing or player firing with high charge frac, do a extra sound
 	if ( owner.IsNPC() || ( charge >= GetArcCannonChargeFraction( weapon ) * ARC_CANNON_CHARGED_FIRING_SOUND_FRAC ) )
 		weapon.EmitWeaponSound_1p3p( "MegaTurret_Laser_Fire_3P", "MegaTurret_Laser_Fire_3P" )
-	if ( owner.IsNPC() ) // for npcs, stop charge effect upon firing because we've reworked charge effect method
-		weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" )
+
+	// stop charge effect upon firing because we've reworked charge effect method
+	weapon.Signal( ARC_CANNON_SIGNAL_FIREWEAPON ) // trigger TrackArcCannonChargeEffect() to end charge effect
+	weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" ) // defensive fix
 
 	local attachmentName = "muzzle_flash"
 	local attachmentIndex = weapon.LookupAttachment( attachmentName )

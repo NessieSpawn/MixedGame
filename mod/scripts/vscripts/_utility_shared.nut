@@ -85,6 +85,10 @@ struct
 {
 	// character name override
 	table<entity, string> titanCharacterNameOverride
+
+	// ShouldDoReplay() setttings and callbacks, to make it less hardcoded
+	array<int> replayDisabledDamageSourceIds
+	array< bool functionref( entity player, entity attacker, float replayTime, int methodOfDeath ) > shouldDoReplayCallbacks
 } file
 
 void function Utility_Shared_Init()
@@ -418,12 +422,6 @@ void function WaitForever()
 }
 
 #if SERVER
-// modified!!!! making it less hardcoded
-struct
-{
-	array<int> disabledDamageSourceIds
-} shouldDoReplay
-
 bool function ShouldDoReplay( entity player, entity attacker, float replayTime, int methodOfDeath )
 {
 	if ( ShouldDoReplayIsForcedByCode() )
@@ -438,12 +436,8 @@ bool function ShouldDoReplay( entity player, entity attacker, float replayTime, 
 		return false
 	}
 
-	if ( shouldDoReplay.disabledDamageSourceIds.contains( methodOfDeath ) )
-	{
-		print( "ShouldDoReplay(): Not doing a replay because the player died from specified damage: " + DamageSourceIDToString( methodOfDeath ) + ".\n" );
-		return false
-	}
-	/* // modified!!!! making it less hardcoded
+	// modified!!!! making it less hardcoded
+	/*
 	switch( methodOfDeath )
 	{
 		case eDamageSourceId.human_execution:
@@ -454,6 +448,13 @@ bool function ShouldDoReplay( entity player, entity attacker, float replayTime, 
 		}
 	}
 	*/
+	// use settings array for handling
+	if ( file.replayDisabledDamageSourceIds.contains( methodOfDeath ) )
+	{
+		print( "ShouldDoReplay(): Not doing a replay because the player died from specified damage: " + DamageSourceIDToString( methodOfDeath ) + ".\n" );
+		return false
+	}
+	//
 
 	if ( level.nv.replayDisabled )
 	{
@@ -478,6 +479,19 @@ bool function ShouldDoReplay( entity player, entity attacker, float replayTime, 
 		print( "ShouldDoReplay(): Not doing a replay because the player is a bot.\n" );
 		return false
 	}
+	
+	// run modified callbacks to let other files decide whether we should do replay
+	// Added via AddCallback_ShouldDoReplay()
+	foreach ( callbackFunc in file.shouldDoReplayCallbacks )
+	{
+		// whenever a callback hits false, we return
+		if ( !callbackFunc( player, attacker, replayTime, methodOfDeath ) )
+		{
+			print( "ShouldDoReplay(): Not doing a replay because we failed custom checks.\n" )
+			return false
+		}
+	}
+	//
 
 	return AttackerShouldTriggerReplay( attacker )
 }
@@ -485,20 +499,26 @@ bool function ShouldDoReplay( entity player, entity attacker, float replayTime, 
 // modified!!!! making it less hardcoded
 void function AddReplayDisabledDamageSourceId( int damageSourceId )
 {
-	if ( !shouldDoReplay.disabledDamageSourceIds.contains( damageSourceId ) )
+	if ( !file.replayDisabledDamageSourceIds.contains( damageSourceId ) )
 	{
 		print( "ShouldDoReplay(): Adding replay disabled damageSourceId: " + string( damageSourceId ) + ".\n"  )
-		shouldDoReplay.disabledDamageSourceIds.append( damageSourceId )
+		file.replayDisabledDamageSourceIds.append( damageSourceId )
 	}
 }
 
 void function RemoveReplayDisabledDamageSourceId( int damageSourceId )
 {
-	if ( shouldDoReplay.disabledDamageSourceIds.contains( damageSourceId ) )
+	if ( file.replayDisabledDamageSourceIds.contains( damageSourceId ) )
 	{
 		print( "ShouldDoReplay(): Removing replay disabled damageSourceId: " + string( damageSourceId ) + ".\n"  )
-		shouldDoReplay.disabledDamageSourceIds.removebyvalue( damageSourceId )
+		file.replayDisabledDamageSourceIds.removebyvalue( damageSourceId )
 	}
+}
+
+void function AddCallback_ShouldDoReplay( bool functionref( entity player, entity attacker, float replayTime, int methodOfDeath ) callbackFunc )
+{
+	if ( !file.shouldDoReplayCallbacks.contains( callbackFunc ) )
+		file.shouldDoReplayCallbacks.append( callbackFunc )
 }
 //
 
@@ -2881,8 +2901,8 @@ float function GetDeathCamLength( entity player, bool ignoreForced = false )
 	// remove for this branch
 	/*
 	#if SERVER && MP
-		if ( GetForcedDeathCamLength() > 0 && !ignoreForced )
-			return GetForcedDeathCamLength()
+		if ( GetForcedDeathCamLength( player ) > 0 && !ignoreForced )
+			return GetForcedDeathCamLength( player )
 	#endif
 	*/
 
