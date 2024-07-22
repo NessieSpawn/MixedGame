@@ -763,8 +763,13 @@ void function RemoveEntityCallback_OnDamaged( entity ent, void functionref( enti
 	Assert( index != -1, "Requested DamageCallback " + string( callbackFunc ) + " to be removed not found! " )
 	ent.e.entDamageCallbacks.fastremove( index )
 
-	if ( ent.e.entDamageCallbacks.len() == 0 && ent.e.entFinalDamageCallbacks.len() == 0 && ent.e.entPostDamageCallbacks.len() == 0 )
-		ent.SetDamageNotifications( false )
+	// MODIFIED HERE: only remove notifications for non-player non-npc entities
+	// so we can use these utilities freely
+	if ( !ent.IsPlayer() && !ent.IsNPC() )
+	{
+		if ( ent.e.entDamageCallbacks.len() == 0 && ent.e.entFinalDamageCallbacks.len() == 0 && ent.e.entPostDamageCallbacks.len() == 0 )
+			ent.SetDamageNotifications( false )
+	}
 }
 
 void function AddEntityCallback_OnFinalDamaged( entity ent, void functionref( entity ent, var damageInfo ) callbackFunc )
@@ -779,8 +784,13 @@ void function RemoveEntityCallback_OnFinalDamaged( entity ent, void functionref(
 {
 	ent.e.entFinalDamageCallbacks.fastremovebyvalue( callbackFunc )
 
-	if ( ent.e.entFinalDamageCallbacks.len() == 0 && ent.e.entPostDamageCallbacks.len() == 0 && ent.e.entDamageCallbacks.len() == 0 )
-		ent.SetDamageNotifications( false )
+	// MODIFIED HERE: only remove notifications for non-player non-npc entities
+	// so we can use these utilities freely
+	if ( !ent.IsPlayer() && !ent.IsNPC() )
+	{
+		if ( ent.e.entFinalDamageCallbacks.len() == 0 && ent.e.entPostDamageCallbacks.len() == 0 && ent.e.entDamageCallbacks.len() == 0 )
+			ent.SetDamageNotifications( false )
+	}
 }
 
 void function AddEntityCallback_OnPostDamaged( entity ent, void functionref( entity ent, var damageInfo ) callbackFunc )
@@ -798,8 +808,13 @@ void function RemoveEntityCallback_OnPostDamaged( entity ent, void functionref( 
 	Assert( index != -1, "Requested PostDamageCallback " + string( callbackFunc ) + " to be removed not found! " )
 	ent.e.entPostDamageCallbacks.fastremove( index )
 
-	if ( ent.e.entPostDamageCallbacks.len() == 0 && ent.e.entDamageCallbacks.len() == 0 && ent.e.entFinalDamageCallbacks.len() == 0 )
-		ent.SetDamageNotifications( false )
+	// MODIFIED HERE: only remove notifications for non-player non-npc entities
+	// so we can use these utilities freely
+	if ( !ent.IsPlayer() && !ent.IsNPC() )
+	{
+		if ( ent.e.entPostDamageCallbacks.len() == 0 && ent.e.entDamageCallbacks.len() == 0 && ent.e.entFinalDamageCallbacks.len() == 0 )
+			ent.SetDamageNotifications( false )
+	}
 }
 
 void function AddEntityCallback_OnKilled( entity ent, void functionref( entity, var ) callbackFunc )
@@ -822,8 +837,13 @@ void function RemoveEntityCallback_OnKilled( entity ent, void functionref( entit
 	Assert( index != -1, "Requested KilledCallback " + string( callbackFunc ) + " to be removed not found! " )
 	ent.e.entKilledCallbacks.fastremove( index )
 
-	if ( ent.e.entKilledCallbacks.len() == 0 )
-		ent.SetDeathNotifications( false )
+	// MODIFIED HERE: only remove notifications for non-player non-npc entities
+	// so we can use these utilities freely
+	if ( !ent.IsPlayer() && !ent.IsNPC() )
+	{
+		if ( ent.e.entKilledCallbacks.len() == 0 )
+			ent.SetDeathNotifications( false )
+	}
 }
 
 void function AddEntityCallback_OnPostShieldDamage( entity ent, void functionref( entity, var, float ) callbackFunc )
