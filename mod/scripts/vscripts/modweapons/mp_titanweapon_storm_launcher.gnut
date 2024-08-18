@@ -35,7 +35,7 @@ void function MpTitanWeaponStormLauncher_Init()
 	
     #if SERVER
         // adding a new damageSourceId. it's gonna transfer to client automatically
-		RegisterWeaponDamageSource( "mp_titanweapon_storm_launcher", "風暴發射器" )
+		RegisterWeaponDamageSource( "mp_titanweapon_storm_launcher", "Storm Launcher" )
 		AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_storm_launcher, StormLauncher_DamagedTarget )
     
 		// retain damage mod on refired by vortex

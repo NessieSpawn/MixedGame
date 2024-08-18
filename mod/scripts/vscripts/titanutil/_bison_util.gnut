@@ -35,7 +35,7 @@ const string NPC_BISON_PUNCH_MOD_NAME = "bison_punch_npc"
 void function BisonUtil_Init()
 {
     // adding a new damageSourceId. it's gonna transfer to client automatically
-	RegisterWeaponDamageSource( "melee_titan_punch_bison", "野牛重拳" )
+	RegisterWeaponDamageSource( "melee_titan_punch_bison", "Bison Punch" )
 
     AddDamageFinalCallback( "npc_titan", OnBisonFinalDamage )
     AddDamageFinalCallback( "player", OnBisonFinalDamage )
