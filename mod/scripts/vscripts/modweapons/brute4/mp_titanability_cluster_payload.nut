@@ -9,7 +9,7 @@ global function OnWeaponNpcPrimaryAttack_cluster_payload
 void function MpTitanAbilityClusterPayload_Init()
 {
 	#if SERVER
-		RegisterWeaponDamageSource( "mp_titanability_cluster_payload", "Cluster Payload" )
+		RegisterWeaponDamageSource( "mp_titanability_cluster_payload", "集束裝藥" )
 	#endif
 }
 

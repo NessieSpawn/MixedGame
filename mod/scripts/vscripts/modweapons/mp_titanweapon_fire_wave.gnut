@@ -14,7 +14,7 @@ void function MpTitanWeaponFireWave_Init()
 {
 #if SERVER
 	// adding a new damageSourceId. it's gonna transfer to client automatically
-	RegisterWeaponDamageSource( "mp_titanweapon_fire_wave", "Fire Wave" )
+	RegisterWeaponDamageSource( "mp_titanweapon_fire_wave", "火焰波" )
 	AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_fire_wave, FireWaveDamagedTarget )
 
 	// modified function in sh_titan.gnut, for us add stagger model animation to titan
