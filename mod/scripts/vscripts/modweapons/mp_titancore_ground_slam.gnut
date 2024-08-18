@@ -23,7 +23,7 @@ void function MpTitanWeaponGoundSlam_Init()
         RegisterSignal( "GroundSlamChargeBegin" )
 
         // adding a new damageSourceId. it's gonna transfer to client automatically
-	    RegisterWeaponDamageSource( "mp_titancore_ground_slam", "Slam Core" )
+	    RegisterWeaponDamageSource( "mp_titancore_ground_slam", "震地核心" )
 		AddDamageCallbackSourceID( eDamageSourceId.mp_titancore_ground_slam, GroundSlam_DamagedPlayerOrNPC )
 	
         // modified function in sh_titan.gnut, for us add stagger model animation to titan

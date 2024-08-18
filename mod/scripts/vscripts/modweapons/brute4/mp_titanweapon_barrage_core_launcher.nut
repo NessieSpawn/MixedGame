@@ -22,7 +22,7 @@ void function MpTitanWeaponBarrageCoreLauncher_Init()
 
 #if SERVER
 	// adding a new damageSourceId. it's gonna transfer to client automatically
-	RegisterWeaponDamageSource( "mp_titanweapon_barrage_core_launcher", "Barrage Core" ) // "Barrage Core Cluster", limited to 1 space-bar usage...
+	RegisterWeaponDamageSource( "mp_titanweapon_barrage_core_launcher", "彈幕核心" ) // "Barrage Core Cluster", limited to 1 space-bar usage...
 
 	// don't gain core meter from core weapon
 	GameModeRulesRegisterTimerCreditException( eDamageSourceId.mp_titanweapon_barrage_core_launcher )

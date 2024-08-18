@@ -16,7 +16,7 @@ struct
 void function Nessie_Useful_Commands_Init()
 {
 	// custom suicide damagesource
-	RegisterWeaponDamageSource( "farewell_cruel_world", "Farewell World" )
+	RegisterWeaponDamageSource( "farewell_cruel_world", "世界再見" )
 	// overrides northstar default killcommand
 	AddClientCommandCallback( "kill", SelfKillCommand )
 	AddClientCommandCallback( "explode", SelfExplodeCommand )
