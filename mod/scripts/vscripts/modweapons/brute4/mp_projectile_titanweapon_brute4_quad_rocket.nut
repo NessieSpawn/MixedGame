@@ -46,7 +46,7 @@ void function OnProjectileCollision_Brute4_QuadRocket( entity projectile, vector
 				popcornInfo.groupSize = 3
 				popcornInfo.hasBase = false
 
-				thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE )
+				thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE, 0.4 )
 			}
 		}
 	#endif
