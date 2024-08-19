@@ -260,7 +260,7 @@ function Brute4_StartClusterExplosions( entity projectile, entity owner, Popcorn
 	if ( explosionDelay )
 		wait explosionDelay
 
-	waitthread Brute4_ClusterRocketBursts( origin, explosionDamage, explosionDamageHeavyArmor, innerRadius, outerRadius, owner, popcornInfo, customFxTable )
+	waitthread Brute4_ClusterRocketBursts( origin, explosionDamage, explosionDamageHeavyArmor, innerRadius, outerRadius, owner, popcornInfo, customFxTable, dangerousAreaDelay )
 
 	if ( IsValid( projectile ) )
 		projectile.Destroy()
