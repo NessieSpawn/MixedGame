@@ -46,7 +46,9 @@ void function OnProjectileCollision_Brute4_QuadRocket( entity projectile, vector
 				popcornInfo.groupSize = 3
 				popcornInfo.hasBase = false
 
-				thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE, 0.4 )
+				// it seems that we make dangerous area delay a constant 0.2s could be better...( cluster delay of barrage core )
+				//thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE, 0.4 )
+				thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE )
 			}
 		}
 	#endif
