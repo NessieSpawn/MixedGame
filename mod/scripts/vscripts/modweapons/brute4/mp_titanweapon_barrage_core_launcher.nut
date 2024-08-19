@@ -189,13 +189,15 @@ void function StartClusterAfterDelay( entity projectile, vector normal) {
 		popcornInfo.groupSize = 1
 		popcornInfo.hasBase = false
 
-		thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE, 0.2 )
+		// it seems that we make dangerous area delay a constant 0.2s could be better...( cluster delay of barrage core )
+		//thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE, 0.2 )
+		thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE )
 	}
 }
 
 
 // Copy and pasted this cluster code from utility so I can disable self damage
-function Brute4_StartClusterExplosions( entity projectile, entity owner, PopcornInfo popcornInfo, customFxTable = null, float dangerousAreaDelay = -1 )
+function Brute4_StartClusterExplosions( entity projectile, entity owner, PopcornInfo popcornInfo, customFxTable = null, float dangerousAreaDelay = 0.2 )
 {
 	Assert( IsValid( owner ) )
 	owner.EndSignal( "OnDestroy" )
