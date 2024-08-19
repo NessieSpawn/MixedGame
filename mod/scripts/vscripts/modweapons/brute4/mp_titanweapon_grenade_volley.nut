@@ -14,7 +14,7 @@ void function MpTitanweaponGrenadeVolley_Init()
 {
 #if SERVER
 	// adding a new damageSourceId. it's gonna transfer to client automatically
-	RegisterWeaponDamageSource( "mp_titanweapon_grenade_volley", "榴彈齊射" )
+	RegisterWeaponDamageSource( "mp_titanweapon_grenade_volley", "#WPN_TITAN_SHOULDER_GRENADE" )
 
 	// vortex refire override
 	Vortex_AddImpactDataOverride_WeaponMod( 
