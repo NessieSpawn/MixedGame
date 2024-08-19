@@ -16,7 +16,9 @@ struct
 void function Nessie_Useful_Commands_Init()
 {
 	// custom suicide damagesource
+	//RegisterWeaponDamageSource( "farewell_cruel_world", "世界再見" )
 	RegisterWeaponDamageSource( "farewell_cruel_world", "#COCKPIT_EJECT_RARE_28" )
+
 	// overrides northstar default killcommand
 	// don't enable these commands in english gruntmode branch
 	//AddClientCommandCallback( "kill", SelfKillCommand )
