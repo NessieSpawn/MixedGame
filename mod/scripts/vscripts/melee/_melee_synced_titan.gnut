@@ -257,11 +257,19 @@ void function Init3pExecutions()
 	buddyKickshootAttackerData.targetAnimation3pPilot[ "ogre" ] <- ""
 
 	// welp actually this one don't even have pilot attached inside...
+	/*
 	TitanExcutionData buddyFlipAttackerData = file.executionData_3p[ "execution_bt_flip" ]
 	// MP titans( monarch and prime titans ) have bad pilot attachments, should be empty
 	buddyFlipAttackerData.targetAnimation3pPilot[ "stryder" ] <- ""
 	buddyFlipAttackerData.targetAnimation3pPilot[ "atlas" ] <- ""
 	buddyFlipAttackerData.targetAnimation3pPilot[ "ogre" ] <- ""
+
+	TitanExcutionData buddyDefaultAttackerData = file.executionData_3p[ "execution_bt" ]
+	// MP titans( monarch and prime titans ) have bad pilot attachments, should be empty
+	buddyDefaultAttackerData.targetAnimation3pPilot[ "stryder" ] <- ""
+	buddyDefaultAttackerData.targetAnimation3pPilot[ "atlas" ] <- ""
+	buddyDefaultAttackerData.targetAnimation3pPilot[ "ogre" ] <- ""
+	*/
 }
 
 // vanilla missing!!!! we want other files can get all executions we registered
