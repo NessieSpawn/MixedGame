@@ -571,8 +571,9 @@ void function Escalate( int team )
 int function GetSpawnPointIndex( array< entity > points, int team )
 {
 	// modified: make a new function so ai gamemodes don't have to re-decide for each spawn
-	//entity zone = DecideSpawnZone_Generic( points, team )
-	entity zone = GetCurrentSpawnZoneForTeam( team )
+	// due to spawn points refactor, let's change back to older version
+	entity zone = DecideSpawnZone_Generic( points, team )
+	//entity zone = GetCurrentSpawnZoneForTeam( team )
 	
 	if ( IsValid( zone ) )
 	{
