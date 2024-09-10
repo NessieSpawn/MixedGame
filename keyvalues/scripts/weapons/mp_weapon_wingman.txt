@@ -21,11 +21,9 @@ WeaponData
 
 	Mods
 	{
-		// northstar weapon mods
 		one_in_the_chamber
 		{
 		}
-		
 		iron_sights
 		{
 		}

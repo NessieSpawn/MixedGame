@@ -384,7 +384,7 @@ void function SetBTLoadout( entity titan )
 		// this also replaces PAS_ANTI_RODEO with PAS_HYPER_CORE
 		thread RemoveBTOffhandSmoke( titan )
 		
-		SendHudMessage(player, "已啓用SB-7274機體，數字鍵可切換裝備組\n取消\"邊境帝王\"戰鬥塗裝以使用原版帝王",  -1, 0.2, 200, 200, 225, 255, 0.15, 12, 1)
+		//SendHudMessage(player, "已啓用SB-7274機體，數字鍵可切換裝備組\n取消\"邊境帝王\"戰鬥塗裝以使用原版帝王",  -1, 0.2, 200, 200, 225, 255, 0.15, 12, 1)
 		// skin disabled
 		//SendHudMessage(player, "已启用SB-7274装备\n帝王被动将修改皮肤及处决动画\n取消\"边境帝王\"战绘以使用原版帝王",  -1, 0.2, 200, 200, 225, 255, 0.15, 12, 1);
 	}
@@ -546,7 +546,7 @@ void function SetBTOffhands( entity player )
 		{
 			if( !PlayerHasWeapon( player, "mp_titanability_smoke" ) ) // key offhand for remarking this loadout
 			{
-				SendHudMessage( player, "切換至遠征泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "切換至遠征泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
 				//Ordnance
 				//player.TakeOffhandWeapon(OFFHAND_ORDNANCE)	
 				//player.GiveOffhandWeapon("mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
@@ -577,7 +577,7 @@ void function SetBTOffhands( entity player )
 		{
 			if( !PlayerHasWeapon( player, "mp_titanweapon_heat_shield" ) ) // key offhand for remarking this loadout
 			{
-				SendHudMessage( player, "切換至擲彈兵泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "切換至擲彈兵泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
 				//Ordnance
 				player.TakeOffhandWeapon(OFFHAND_ORDNANCE)
 				player.GiveOffhandWeapon("mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE )
@@ -610,7 +610,7 @@ void function SetBTOffhands( entity player )
 		{
 			if( !PlayerHasWeapon( player, "mp_titanweapon_flame_wall" ) ) // key offhand for remarking this loadout
 			{
-				SendHudMessage( player, "切換至野獸泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
+				//SendHudMessage( player, "切換至野獸泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
 				//Ordnance
 				player.TakeOffhandWeapon(OFFHAND_ORDNANCE)	
 				player.GiveOffhandWeapon("mp_titanweapon_flame_wall", OFFHAND_ORDNANCE )

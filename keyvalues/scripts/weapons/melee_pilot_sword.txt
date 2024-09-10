@@ -2,13 +2,11 @@ WeaponData
 {
 	Mods
 	{
-		// northstar weapon mods
 		allow_as_primary
 		{
 			//"activitymodifier"								"satchel" // removed for compatibility with pilot_emptyhanded
 			"fire_rate"										"0.9" // to avoid long anim event
 		}
-		
 		pm0
 		{
 		}
