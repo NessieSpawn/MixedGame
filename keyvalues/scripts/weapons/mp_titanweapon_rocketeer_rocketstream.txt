@@ -245,13 +245,11 @@ WeaponData
 			//"npc_rest_time_between_bursts_max"		"*0.25" // 0.75
 
 			// firing behavior
-			// can't change burst behavior! will fuck up fire rate because npc bursts can't check weapon mods correctly
-			//"npc_min_burst"   								"2"
-			//"npc_max_burst"   								"3"
+			"npc_min_burst"   								"2"
+			"npc_max_burst"   								"3"
 			// trying to remove quick rest because we're adding burst to fast shots
-
-			"npc_rest_time_between_bursts_min"			"*0.67" // ~0.5
-			"npc_rest_time_between_bursts_max"			"*0.5" // 0.75
+			//"npc_rest_time_between_bursts_min"			"*0.67" // ~0.5
+			//"npc_rest_time_between_bursts_max"			"*0.5" // 0.75
 		}
 		brute4_cluster_payload_ammo
 		{
@@ -363,16 +361,11 @@ WeaponData
 			//"npc_rest_time_between_bursts_max"			"*0.4286" // ~0.75
 
 			// firing behavior
-			// can't change burst behavior! will fuck up fire rate because npc bursts can't check weapon mods correctly
-			//"npc_min_burst"   								"4"
-			//"npc_max_burst"   								"6"
+			"npc_min_burst"   								"4"
+			"npc_max_burst"   								"6"
 			// trying to remove quick rest because we're adding burst to fast shots
-			
 			//"npc_rest_time_between_bursts_min"			"*0.4" // ~0.4
 			//"npc_rest_time_between_bursts_max"			"*0.171429" // ~0.3
-
-			"npc_rest_time_between_bursts_min"			"*0.3" // 0.3
-			"npc_rest_time_between_bursts_max"			"*0.228571" // ~0.4
 		}
 
 		// pilot usage

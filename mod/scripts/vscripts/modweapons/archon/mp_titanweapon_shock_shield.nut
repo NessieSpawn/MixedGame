@@ -73,7 +73,7 @@ void function MpTitanWeaponShockShield_Init()
 
 	#if SERVER
 		// adding a new damageSourceId. it's gonna transfer to client automatically
-		RegisterWeaponDamageSource( "mp_titanweapon_shock_shield", "電擊護盾" )
+		RegisterWeaponDamageSource( "mp_titanweapon_shock_shield", "Shock Shield" )
 		// modified callback in _codecallbacks.gnut
 		/* // now hardcode a damageSourceId in mp_titanweapon_archon_arc_cannon.nut
 		AddCallback_WeaponMod_DamageSourceIdOverride( 

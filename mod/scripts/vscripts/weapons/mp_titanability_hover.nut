@@ -273,23 +273,13 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 		float height
 
 		// modified: adding a stall hovering height to make it more stable
-		// nah this doesn't working fine, vanilla works good enough
-		/*
 		if ( hasHoveringFix )
-		{
-			if ( timePassed < LERP_IN_FLOAT )
-				height = RISE_VEL
-			else
-				height = 70
-		}
-		else // vanilla behavior
-		{
-		*/	
-			if ( timePassed < LERP_IN_FLOAT )
-				height = GraphCapped( timePassed, 0, LERP_IN_FLOAT, RISE_VEL * 0.5, RISE_VEL )
-			else
-				height = GraphCapped( timePassed, LERP_IN_FLOAT, LERP_IN_FLOAT + 0.75, RISE_VEL, 70 )
-		//}	
+			height = 70
+		// vanilla behavior
+		else if ( timePassed < LERP_IN_FLOAT )
+		 	height = GraphCapped( timePassed, 0, LERP_IN_FLOAT, RISE_VEL * 0.5, RISE_VEL )
+		else
+		 	height = GraphCapped( timePassed, LERP_IN_FLOAT, LERP_IN_FLOAT + 0.75, RISE_VEL, 70 )
 
 		height *= movestunEffect
 

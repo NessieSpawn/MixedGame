@@ -11,7 +11,7 @@ void function MpWeaponFlameWallGrenade_Init()
 {
 #if SERVER
 	// main mechanic
-	RegisterWeaponDamageSource( "mp_weapon_flamewall_grenade", "#WPN_TITAN_FIREWALL" )
+	RegisterWeaponDamageSource( "mp_weapon_flamewall_grenade", "WPN_TITAN_FIREWALL" )
 
 	ThermiteDot_AddInflictorScriptName( 
 		DOT_INFLICTOR_SCRIPTNAME, 

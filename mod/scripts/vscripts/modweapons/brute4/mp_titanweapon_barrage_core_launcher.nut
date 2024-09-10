@@ -22,7 +22,7 @@ void function MpTitanWeaponBarrageCoreLauncher_Init()
 
 #if SERVER
 	// adding a new damageSourceId. it's gonna transfer to client automatically
-	RegisterWeaponDamageSource( "mp_titanweapon_barrage_core_launcher", "彈幕核心" ) // "Barrage Core Cluster", limited to 1 space-bar usage...
+	RegisterWeaponDamageSource( "mp_titanweapon_barrage_core_launcher", "Barrage Core" ) // "Barrage Core Cluster", limited to 1 space-bar usage...
 
 	// don't gain core meter from core weapon
 	GameModeRulesRegisterTimerCreditException( eDamageSourceId.mp_titanweapon_barrage_core_launcher )
@@ -189,15 +189,13 @@ void function StartClusterAfterDelay( entity projectile, vector normal) {
 		popcornInfo.groupSize = 1
 		popcornInfo.hasBase = false
 
-		// it seems that we make dangerous area delay a constant 0.2s could be better...( cluster delay of barrage core )
-		//thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE, 0.2 )
 		thread Brute4_StartClusterExplosions( projectile, owner, popcornInfo, CLUSTER_ROCKET_FX_TABLE )
 	}
 }
 
 
 // Copy and pasted this cluster code from utility so I can disable self damage
-function Brute4_StartClusterExplosions( entity projectile, entity owner, PopcornInfo popcornInfo, customFxTable = null, float dangerousAreaDelay = 0.2 )
+function Brute4_StartClusterExplosions( entity projectile, entity owner, PopcornInfo popcornInfo, customFxTable = null )
 {
 	Assert( IsValid( owner ) )
 	owner.EndSignal( "OnDestroy" )
@@ -262,7 +260,7 @@ function Brute4_StartClusterExplosions( entity projectile, entity owner, Popcorn
 	if ( explosionDelay )
 		wait explosionDelay
 
-	waitthread Brute4_ClusterRocketBursts( origin, explosionDamage, explosionDamageHeavyArmor, innerRadius, outerRadius, owner, popcornInfo, customFxTable, dangerousAreaDelay )
+	waitthread Brute4_ClusterRocketBursts( origin, explosionDamage, explosionDamageHeavyArmor, innerRadius, outerRadius, owner, popcornInfo, customFxTable )
 
 	if ( IsValid( projectile ) )
 		projectile.Destroy()
@@ -273,7 +271,7 @@ function Brute4_StartClusterExplosions( entity projectile, entity owner, Popcorn
 // ClusterRocketBurst() - does a "popcorn airburst" explosion effect over time around the origin. Total distance is based on popRangeBase
 // - returns the entity in case you want to parent it
 //------------------------------------------------------------
-function Brute4_ClusterRocketBursts( vector origin, int damage, int damageHeavyArmor, float innerRadius, float outerRadius, entity owner, PopcornInfo popcornInfo, customFxTable = null, float dangerousAreaDelay = -1 )
+function Brute4_ClusterRocketBursts( vector origin, int damage, int damageHeavyArmor, float innerRadius, float outerRadius, entity owner, PopcornInfo popcornInfo, customFxTable = null )
 {
 	owner.EndSignal( "OnDestroy" )
 
@@ -287,13 +285,7 @@ function Brute4_ClusterRocketBursts( vector origin, int damage, int damageHeavyA
 	clusterExplosionEnt.SetOwner( owner )
 	clusterExplosionEnt.SetOrigin( origin )
 
-	// ugh, you know, removing this will make AIs way to vulnerable to clusters
-	// though it makes brute4 effective against them, still not a good idea to have
-	// maybe better to create dangerous area after delay, to fake that npc reacted their explosions
-	// dangerousAreaDelay = -1 means we don't create any dangerous area
-	//AI_CreateDangerousArea_Static( clusterExplosionEnt, null, outerRadius, owner.GetTeam(), true, true, origin )
-	if ( dangerousAreaDelay > 0 )
-		thread DelayedCreateBrute4ClusterDangerousArea( clusterExplosionEnt, outerRadius, owner.GetTeam(), origin, dangerousAreaDelay )
+	// AI_CreateDangerousArea_Static( clusterExplosionEnt, null, outerRadius, owner.GetTeam(), true, true, origin )
 
 	OnThreadEnd(
 		function() : ( clusterExplosionEnt )
@@ -316,18 +308,7 @@ function Brute4_ClusterRocketBursts( vector origin, int damage, int damageHeavyA
 		WaitFrame()
 	}
 
-	// wait for whole duration could be better
-	//wait 2.5 // Should be greater than the max possible time for subexplosions to spawn
-	wait popcornInfo.duration
-}
-
-// for we handle dangerous area better
-void function DelayedCreateBrute4ClusterDangerousArea( entity clusterExplosionEnt, float outerRadius, int team, vector origin, float delay )
-{
-	clusterExplosionEnt.EndSignal( "OnDestroy" )
-
-	wait delay
-	AI_CreateDangerousArea_Static( clusterExplosionEnt, null, outerRadius, team, true, true, origin )
+	wait 2.5 // Should be greater than the max possible time for subexplosions to spawn
 }
 
 function Brute4_ClusterRocketBurst( entity clusterExplosionEnt, vector origin, damage, damageHeavyArmor, innerRadius, outerRadius, entity owner, PopcornInfo popcornInfo, customFxTable = null )
