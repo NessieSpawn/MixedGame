@@ -1,0 +1,171 @@
+global function GameModifier_PlayerFakeTick_Init
+
+void function GameModifier_PlayerFakeTick_Init()
+{
+    // setup basics
+    Riff_ForceTitanAvailability( eTitanAvailability.Never )
+	Riff_ForceBoostAvailability( eBoostAvailability.Disabled )
+    SetLoadoutGracePeriodEnabled( false )
+    PlayerEarnMeter_SetEnabled( false )
+
+    // player settings
+    SetPlayerDeathsHidden( true )
+    SetDeathCamLengthForced( 0.1 )
+    SetReplayStartDelayOverride( 1.0 )
+    NessyFunny_EnablePlayerTickDamageByDefault( true )
+
+    // misc settings
+    ScoreEvent_DisableCallSignEvent( true )
+    SetShouldPlayFactionDialogue( false )
+	SetBattleChatterEnabled( false )
+	SetWeaponDropsEnabled( false )
+    SetDeathHintsEnabled( false )
+
+    // setup callbacks
+    AddCallback_OnPlayerRespawned( OnPlayerRespawned )
+    AddDamageByCallback( "player", OnPlayerDamageTarget )
+    AddCallback_GameStateEnter( eGameState.Prematch, OnPrematchEntered )
+}
+
+void function OnPlayerRespawned( entity player )
+{
+    // set up player ticks
+    array<string> tickTypes = 
+    [
+        "npc_frag_drone",
+        "npc_frag_drone_throwable",
+    ]
+    int rngValue = RandomInt( tickTypes.len() )
+    array<float> tickOverloadDelayAdjustments =
+    [
+        -1.28333,		// ~1.05s overload for normal frag drone
+        -0.6,			// ~0.9s overload for sentry frag drone
+    ]
+    array<int> tickHealthValue = 
+    [
+        140,
+        85,
+    ]
+
+    entity tick = PlayerBecomesTick( player, tickTypes[rngValue], 1.25, 3.0, 2.0, tickOverloadDelayAdjustments[rngValue] )
+    tick.SetMaxHealth( tickHealthValue[rngValue] )
+    tick.SetHealth( tickHealthValue[rngValue] )
+    player.SetMaxHealth( tickHealthValue[rngValue] )
+    player.SetHealth( tickHealthValue[rngValue] )
+}
+
+void function OnPlayerDamageTarget( entity ent, var damageInfo )
+{
+    // amplify player damage dealt to other entities
+    if ( !ent.IsPlayer() )
+    {
+        if ( ent.GetArmorType() == ARMOR_TYPE_HEAVY )
+            DamageInfo_ScaleDamage( damageInfo, 15 )
+        else
+            DamageInfo_ScaleDamage( damageInfo, 3 ) // maybe reduce to 2? idk currently this works pretty much fine
+    }
+}
+
+void function OnPrematchEntered()
+{
+    // keep disabling mechanics that isn't good enough for ticks to use
+    thread DisableEntityInteractions()
+    thread DestroyAllZiplines()
+}
+
+void function DisableEntityInteractions()
+{
+    // actually better be handled by spawn callbacks???
+    while ( true )
+    {
+        // disable spectre leeching
+        foreach ( entity spectre in GetNPCArrayByClass( "npc_spectre" ) )
+            DisableLeeching( spectre )
+        
+        // disable titan rodeo
+        foreach ( entity titan in GetNPCArrayByClass( "npc_titan" ) )
+        {
+            // DisableTitanRodeo() needs soul to be valid before using
+            entity soul = titan.GetTitanSoul()
+            if ( IsValid( soul ) )
+                DisableTitanRodeo( titan )
+        }
+
+        WaitFrame()
+    }
+}
+
+void function DestroyAllZiplines()
+{
+    // loop through every entity to find zipline and destroy them
+    // is it really necessary? idk, if we're not giving zipline_gun to player there shouldn't be new created ziplines
+    int entityIndex = 0
+    int failureCount = 0
+
+    /*
+    while ( true )
+    {
+        if ( failureCount >= 10 )
+        {
+            entityIndex = 0
+            failureCount = 0
+            WaitFrame()
+        }
+
+        entity curEnt
+        try
+        {
+            curEnt = GetEntByIndex( entityIndex )
+        }
+        catch ( ex ) 
+        {
+            failureCount++
+        }
+
+        if ( IsValid( curEnt ) )
+        {
+            string entClassName = curEnt.GetClassName()
+            if ( entClassName == "move_rope" || entClassName == "keyframe_rope" )
+                curEnt.Destroy()
+        }
+        else
+            failureCount++
+
+        entityIndex++
+    }
+    */
+
+    while ( true )
+    {
+        if ( failureCount >= 1024 )
+        {
+            //print( "we failed finding entities 1024 times!" )
+            return
+        }
+
+        entity curEnt
+        try
+        {
+            curEnt = GetEntByIndex( entityIndex )
+        }
+        catch ( ex ) 
+        {
+            failureCount++
+        }
+
+        //print( "entityIndex: " + string( entityIndex ) )
+        //print( "curEnt: " + string( curEnt ) )
+        //print( "failureCount: " + string( failureCount ) )
+        if ( IsValid( curEnt ) )
+        {
+            string entClassName = curEnt.GetClassName()
+            if ( entClassName == "move_rope" || entClassName == "keyframe_rope" )
+                curEnt.Destroy()
+            failureCount = 0
+        }
+        else
+            failureCount++
+
+        entityIndex++
+    }
+}

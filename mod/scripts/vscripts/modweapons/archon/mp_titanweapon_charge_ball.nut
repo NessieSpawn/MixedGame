@@ -22,7 +22,8 @@ void function MpTitanWeaponChargeBall_Init()
 
 	#if SERVER
 		// adding a new damageSourceId. it's gonna transfer to client automatically
-	    RegisterWeaponDamageSource( "mp_titanweapon_charge_ball", "Charge Ball" )
+		//RegisterWeaponDamageSource( "mp_titanweapon_charge_ball", "充能電球" )
+	    RegisterWeaponDamageSource( "mp_titanweapon_charge_ball", "#WPN_TITAN_ARC_BALL" )
 
 		AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_charge_ball, ChargeBallOnDamage )
 		RegisterBallLightningDamage( eDamageSourceId.mp_titanweapon_charge_ball )

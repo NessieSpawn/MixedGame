@@ -104,7 +104,9 @@ void function PROTO_FlightCore( entity titan, float flightTime, entity weapon )
 		titan.ForceStand()
 
 	OnThreadEnd(
-		function() : ( titan, e, weaponArray, storedWeapon, storedMods ) // weaponToRestore )
+		//function() : ( titan, e )
+		//function() : ( titan, e, weaponToRestore )
+		function() : ( titan, weapon, e, weaponArray, storedWeapon, storedMods )
 		{
 			//print( weaponToRestore )
 			bool willRestoreWeapon = expect bool( storedWeapon.shouldRestore ) // IsValid( weaponToRestore ) 
@@ -120,6 +122,13 @@ void function PROTO_FlightCore( entity titan, float flightTime, entity weapon )
 							titan.TakeWeaponNow( "mp_titanweapon_flightcore_rockets" )
 						else // keep vanilla behavior
 							titan.TakeWeapon( "mp_titanweapon_flightcore_rockets" )
+
+						// vanilla behavior fix: prevent holstering main after using core ability
+						bool hasFlightCoreFix = bool( GetCurrentPlaylistVarInt( "flight_core_fix", 0 ) )
+						if ( IsValid( weapon ) && weapon.HasMod( "flight_core_fix" ) )
+							hasFlightCoreFix = true
+						if ( hasFlightCoreFix )
+							titan.SetActiveWeaponBySlot( 0 )
 					}
 				}
 

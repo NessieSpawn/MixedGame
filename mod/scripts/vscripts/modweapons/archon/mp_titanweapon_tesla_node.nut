@@ -57,7 +57,7 @@ void function MpTitanWeaponTeslaNode_Init()
 
 	#if SERVER
 		// adding a new damageSourceId. it's gonna transfer to client automatically
-		RegisterWeaponDamageSource( "mp_titanweapon_tesla_node", "Tesla Node" )
+		RegisterWeaponDamageSource( "mp_titanweapon_tesla_node", "特斯拉結點" )
 
 		file.ArcPylonsIdx = CreateScriptManagedEntArray()
 		AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_tesla_node, ArcPylon_DamagedPlayerOrNPC )
