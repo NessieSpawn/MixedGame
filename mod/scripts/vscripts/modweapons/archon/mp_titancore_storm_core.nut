@@ -29,7 +29,7 @@ void function MpTitanWeaponStormCore_Init()
 
 	#if SERVER
 		// adding a new damageSourceId. it's gonna transfer to client automatically
-	    RegisterWeaponDamageSource( "mp_titancore_storm_core", "Storm Core" )
+	    RegisterWeaponDamageSource( "mp_titancore_storm_core", "風暴核心" )
 
 		AddDamageCallbackSourceID( eDamageSourceId.mp_titancore_storm_core, StormCore_DamagedTarget )
 		//prevent player earning coremeter by storm core 
