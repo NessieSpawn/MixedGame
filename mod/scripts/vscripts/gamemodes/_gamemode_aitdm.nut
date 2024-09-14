@@ -73,6 +73,7 @@ void function GamemodeAITdm_Init()
 	{
 		// you can't be serious. gamemode_tdm spawns are for AITdm
 		//SetSpawnpointGamemodeOverride( ATTRITION ) // use bounty hunt spawns as vanilla game has no spawns explicitly defined for aitdm
+		SetSpawnpointGamemodeOverride( TEAM_DEATHMATCH )
 
 		AddCallback_GameStateEnter( eGameState.Prematch, OnPrematchStart )
 		AddCallback_GameStateEnter( eGameState.Playing, OnPlaying )
