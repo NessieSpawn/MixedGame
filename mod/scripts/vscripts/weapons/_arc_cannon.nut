@@ -49,7 +49,7 @@ global const ARC_CANNON_BEAM_COLOR					= "150 190 255"
 global const ARC_CANNON_BEAM_LIFETIME				= 0.75
 
 // modified: Sound settings
-const ARC_CANNON_CHARGED_FIRING_SOUND_FRAC 		= 0.65 // if charge frac is higher than this, we do an extra firing sound
+const ARC_CANNON_CHARGED_FIRING_SOUND_FRAC 		= 0.7 // if charge frac is higher than this, we do an extra firing sound
 
 // Player Effects
 global const ARC_CANNON_TITAN_SCREEN_SFX 		= "Null_Remove_SoundHook"
