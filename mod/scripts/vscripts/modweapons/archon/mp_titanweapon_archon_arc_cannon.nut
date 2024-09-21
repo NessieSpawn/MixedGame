@@ -58,6 +58,9 @@ global const ARCHON_CANNON_3RD_PERSON_EFFECT_MIN_DURATION = 0.2
 global const ARCHON_CANNON_DAMAGE_FALLOFF_SCALER		= 0.5		// Amount of damage carried on to the next target in the chain lightning. If 0.75, then a target that would normally take 100 damage will take 75 damage if they are one chain deep, or 56 damage if 2 levels deep
 global const ARCHON_CANNON_DAMAGE_CHARGE_RATIO		= 0.95		// 0.85 in original archon. What amount of charge is required for full damage.
 
+// Sound settings
+const ARCHON_CANNON_CHARGED_FIRING_SOUND_FRAC 		= 0.7 // if charge frac is higher than this, we do an extra firing sound
+
 //Mods
 global const ARCHON_CANNON_SIGNAL_DEACTIVATED	= "ArcCannonDeactivated"
 
@@ -386,7 +389,7 @@ function FireArchonCannon( entity weapon, WeaponPrimaryAttackParams attackParams
 	//if (weapon.GetWeaponClassName() == "mp_titanweapon_archon_arc_cannon")
 	if ( weapon.HasMod( "archon_arc_cannon" ) ) // arc cannon firing
 	{
-		if ( owner.IsNPC() || charge >= ARCHON_CANNON_DAMAGE_CHARGE_RATIO ) // npc firing or player firing with high charge frac, do a extra sound
+		if ( owner.IsNPC() || charge >= GetArchonCannonChargeFraction( weapon ) * ARCHON_CANNON_CHARGED_FIRING_SOUND_FRAC ) // npc firing or player firing with high charge frac, do a extra sound
 			weapon.EmitWeaponSound_1p3p( "MegaTurret_Laser_Fire_3P", "MegaTurret_Laser_Fire_3P")
 		// now change to use settings file
 		//if ( owner.IsNPC() ) // for npcs, stop charge effect upon firing

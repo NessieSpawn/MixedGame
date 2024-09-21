@@ -147,6 +147,14 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 				entity targetStunLaser = GetStunLaserWeapon( target )
 				if ( !shouldDoAmpedRegen && IsValid( targetStunLaser ) )
 					shouldDoAmpedRegen = targetStunLaser.HasMod( "pas_vanguard_shield" )
+				
+				// misc fix here: shield amplifier should always amp shield given to friendlies
+				// not only when target titan also has shiled amplifer
+				// titan with the passive still always receive amped regen amount
+				bool shouldFixPassive = bool( GetCurrentPlaylistVarInt( "stun_laser_fix", 0 ) ) || weapon.HasMod( "stun_laser_fix" )
+				if ( !shouldDoAmpedRegen && shouldFixPassive ) // target titan has no shield amplifier
+					shouldDoAmpedRegen = SoulHasPassive( attackerSoul, ePassives.PAS_VANGUARD_SHIELD ) || weapon.HasMod( "pas_vanguard_shield" )
+
 				if ( shouldDoAmpedRegen )
 					shieldRestoreAmount = int( 1.25 * shieldRestoreAmount )
 
