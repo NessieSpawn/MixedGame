@@ -176,6 +176,11 @@ WeaponData
 		{
 		
 		}
+
+		// fix for vanilla: shield amplifier should always amp shield given to friendlies, not only when target titan also has shiled amplifer
+		stun_laser_fix
+		{
+		}
 	}
 
 	RUI_CrosshairData
