@@ -388,8 +388,15 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 				entity ordnanceWeapon = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
 				if ( IsValid( ordnanceWeapon ) )
 				{
-					// no longer able to fire when energy go down required amount
+					// no longer fires 1 less rocket when fully locked
 					ordnanceWeapon.AddMod( "shoulder_rockets_fix" )
+				}
+				
+				entity defenseWeapon = titan.GetOffhandWeapon( OFFHAND_SPECIAL )
+				if ( IsValid( defenseWeapon ) )
+				{
+					// always regen more shield if owner has shield amplifier
+					defenseWeapon.AddMod( "stun_laser_fix" )
 				}
 			}
 
