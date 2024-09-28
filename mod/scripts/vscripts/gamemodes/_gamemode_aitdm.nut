@@ -42,6 +42,7 @@ void function GamemodeAITdm_Init()
 	{
 		// you can't be serious. gamemode_tdm spawns are for AITdm
 		//SetSpawnpointGamemodeOverride( ATTRITION ) // use bounty hunt spawns as vanilla game has no spawns explicitly defined for aitdm
+		SetSpawnpointGamemodeOverride( TEAM_DEATHMATCH )
 
 		// northstar have bad return value with GetSpawnpointGamemodeOverride()
 		// needs this to make things like dropship intro to work properly

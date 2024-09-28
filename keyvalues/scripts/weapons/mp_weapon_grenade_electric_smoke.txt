@@ -7,6 +7,12 @@ WeaponData
 		"npc_explosion_damage_heavy_armor"				"600" // 800 in vanilla
 	}
 
+	// should be vanilla missing: npc range
+	// which makes npcs throw electric smoke much more frequently than other grenades
+	// being both DOT damage, using values from firestar
+	"npc_min_range"   								"500"
+	"npc_max_range"   								"1200"
+
 	Mods
 	{
 		burn_mod_grenade_electric_smoke
