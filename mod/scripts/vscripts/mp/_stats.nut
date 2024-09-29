@@ -219,6 +219,9 @@ void function Stats_OnPlayerDidDamage( entity victim, var damageInfo )
 		if ( IsValid( soul ) && IsPetTitan( attacker ) ) // northstar missing: soul validation before using IsPetTitan()
 			attacker = GetPetTitanOwner( attacker )
 	}
+	// validate attacker
+	if ( !IsValid( attacker ) )
+		return
 
 	if ( !attacker.IsPlayer() )
 		return
