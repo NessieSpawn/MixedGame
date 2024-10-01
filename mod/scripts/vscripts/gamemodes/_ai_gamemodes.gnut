@@ -44,7 +44,10 @@ void function AiGameModes_SpawnDropShip( vector pos, vector rot, int team, int c
 	drop.team 			= team
 	drop.squadname 	= squadName
 	SetDropTableSpawnFuncs( drop, CreateSoldier, count )
+	// shall we make npcs always drop ignoring other stuffs...?
+	// oh welp, eDropStyle.FORCED can't do anything to avoid spawning failure
 	SetCallinStyle( drop, eDropStyle.ZIPLINE_NPC )
+	//SetCallinStyle( drop, eDropStyle.FORCED )
   
 	thread RunDropshipDropoff( drop )
 	
@@ -258,13 +261,25 @@ array<entity> function GetValidIntroDropShipSpawn( array<entity> introNodes )
 	if ( GetZiplineDropshipSpawns().len() == 0 )
 		return []
 	
+	array<entity> validDropshipNodes = GetZiplineDropshipSpawns()
 	foreach ( node in introNodes )
 	{
-		entity closestNode = GetClosest( GetZiplineDropshipSpawns(), node.GetOrigin() )
-		SetTeam( closestNode, node.GetTeam() )
+		// try to add each node only once
+		//entity closestNode = GetClosest( GetZiplineDropshipSpawns(), node.GetOrigin() )
+		entity closestNode = GetClosest( validDropshipNodes, node.GetOrigin() )
+		// try not to assign team if we failed distance checks?
+		//SetTeam( closestNode, node.GetTeam() )
 		
+		// never append same node multiple times
+		if ( introShipSpawns.contains( closestNode ) )
+			continue
+
 		if ( Distance( closestNode.GetOrigin(), node.GetOrigin() ) < INTRO_DROPSHIP_CUTOFF )
+		{
+			SetTeam( closestNode, node.GetTeam() )
 			introShipSpawns.append( closestNode )
+			validDropshipNodes.removebyvalue( closestNode )
+		}
 	}
 	
 	return introShipSpawns

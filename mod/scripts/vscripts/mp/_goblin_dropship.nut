@@ -616,7 +616,7 @@ function RunDropshipDropoff( CallinData Table )
 
 	if ( !spawnPoint.valid )
 	{
-		printt( "Couldn't find good spawn location for dropship" )
+		//printt( "Couldn't find good spawn location for dropship" )
 		return
 	}
 
