@@ -1214,8 +1214,13 @@ bool function ShouldSpawnSpecialistSquad( string otherSpawnWith = "" )
 
 bool function ShouldSpawnDropship( string entToSpawn = "" )
 {
-	if ( entToSpawn == "npc_stalker" ) // stalkers has been reworked and never spawn from dropship
+	// vanilla flag
+	if ( Flag( "DisableDropships" ) )
 		return false
+
+	// stalkers can do traverse now, add dropship will be pretty cool( though their animation wasn't very nice and will do spew error on landing )
+	//if ( entToSpawn == "npc_stalker" ) // stalkers has been reworked and never spawn from dropship
+	//	return false
 
 	array<entity> points = GetZiplineDropshipSpawns()
 	if ( points.len() <= 4 ) // must have more than 4 points
@@ -1223,8 +1228,12 @@ bool function ShouldSpawnDropship( string entToSpawn = "" )
 
 	// reduced chance down to 20% because dropship spawn makes npcs spread out and can sometimes fail to spawn
 	// maybe it's good to add higher chance of dropship spawn after navmesh supports traverse nodes
+	// navmesh traverse nodes are implemented, and we're always allowing npc to use dropship( quick edit: welp eDropStyle.FORCED won't help us spawn npcs )
+	// gets spreaded makes them harder to be mayhemed which is good, increasing chance to 35%
+	// welp I can't make npc dropship always success for now...
 	//return RandomInt( 3 ) == 0 // 33% chance of choose to spawn a dropship
 	return RandomInt( 100 ) < 20
+	//return RandomInt( 100 ) < 35
 }
 
 string function GetSpecialistGruntLeader()
@@ -1352,7 +1361,8 @@ bool function ReachedPlayerCheckAmount()
 
 void function SpawnIntroBatch( int team )
 {
-	array<entity> dropPodNodes = GetDroppodStartPoints()
+	//array<entity> dropPodNodes = GetDroppodStartPoints()
+	array<entity> dropPodNodes = SpawnPoints_GetDropPodStart( team )
 	array<entity> dropShipNodes = GetValidIntroDropShipSpawn( dropPodNodes )  
 	
 	array<entity> podNodes
@@ -1643,6 +1653,7 @@ void function SpawnerHeavyArmor( int team )
 						wait 2.0 // delay before next spawn
 
 					array<entity> points = SpawnPoints_GetTitan()
+					points.extend( GetTitanStartPoints() ) // add startpoints for fun!
 					entity node = FindBestSpawnForNPCDrop( points, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//thread AiGameModes_SpawnReaper( node.GetOrigin(), node.GetAngles(), team, "npc_super_spectre_aitdm", ReaperHandler )
@@ -1671,6 +1682,7 @@ void function SpawnerHeavyArmor( int team )
 						wait 2.0 // delay before next spawn
 					
 					array< entity > points = SpawnPoints_GetTitan()
+					points.extend( GetTitanStartPoints() ) // add startpoints for fun!
 					entity node = FindBestSpawnForNPCDrop( points, team, 12 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					thread ExtraSpawner_SpawnGunShip( node.GetOrigin(), node.GetAngles(), team )
@@ -1692,6 +1704,7 @@ void function SpawnerHeavyArmor( int team )
 						wait 2.0 // delay before next spawn
 					
 					array< entity > points = SpawnPoints_GetTitan()
+					points.extend( GetTitanStartPoints() ) // add startpoints for fun!
 					entity node = FindBestSpawnForNPCDrop( points, team, 10 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					thread ExtraSpawner_SpawnTitan( node.GetOrigin(), node.GetAngles(), team, true )
@@ -1713,8 +1726,7 @@ void function SpawnerHeavyArmor( int team )
 						wait 2.0 // delay before next spawn
 					
 					array< entity > points
-					points.extend( SpawnPoints_GetTitanStart( TEAM_IMC ) )
-					points.extend( SpawnPoints_GetTitanStart( TEAM_MILITIA ) )
+					points.extend( GetTitanStartPoints() )
 					points.extend( SpawnPoints_GetTitan() ) // new added because we've made a spawnpoint search function
 					entity node = FindBestSpawnForNPCDrop( points, team, 15 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
@@ -1900,9 +1912,23 @@ void function UpdateNPCSpawnLastUsedTime( entity point )
 	point.s.lastUsedTime = Time()
 }
 
+// this function now gets all valid start points for droppod
+// for regular cases we use SpawnPoints_GetDropPodStart( team )
 array<entity> function GetDroppodStartPoints()
 {
-	return GetEntArrayByClass_Expensive( "info_spawnpoint_droppod_start" )
+	//return GetEntArrayByClass_Expensive( "info_spawnpoint_droppod_start" )
+	array<entity> allDroppodStarts
+	allDroppodStarts.extend( SpawnPoints_GetDropPodStart( TEAM_IMC ) )
+	allDroppodStarts.extend( SpawnPoints_GetDropPodStart( TEAM_MILITIA ) )
+	return allDroppodStarts
+}
+
+array<entity> function GetTitanStartPoints()
+{
+	array<entity> allTitanStarts
+	allTitanStarts.extend( SpawnPoints_GetTitanStart( TEAM_IMC ) )
+	allTitanStarts.extend( SpawnPoints_GetTitanStart( TEAM_MILITIA ) )
+	return allTitanStarts
 }
 
 //------------------------------------------------------
