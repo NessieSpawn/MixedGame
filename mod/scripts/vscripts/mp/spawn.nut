@@ -533,8 +533,19 @@ entity function DecideSpawnZone_Generic( array<entity> spawnzones, int team )
 				continue
 			
 			bool spawnzoneHasEnemies = false
-			foreach ( entity enemy in GetPlayerArrayOfEnemies_Alive( team ) )
+			// modified here: add npc titans as possible enemies cuz they may owned by player?
+			array<entity> possibleEnemies
+			possibleEnemies.extend( GetPlayerArray() )
+			possibleEnemies.extend( GetNPCArrayByClass( "npc_titan" ) )
+			//foreach ( entity enemy in GetPlayerArrayOfEnemies_Alive( team ) )
+			foreach ( entity enemy in possibleEnemies )
 			{
+				if ( enemy.GetTeam() == team )
+					continue
+
+				if ( !IsAlive( enemy ) )
+					continue
+
 				if ( zone.ContainsPoint( enemy.GetOrigin() ) )
 				{
 					spawnzoneHasEnemies = true
