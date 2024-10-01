@@ -2656,7 +2656,7 @@ void function UnMuteAll( entity player )
 	Assert( player.IsPlayer() )
 
 	//Just stop all the possible fadeout sounds.
-	printt( "Stopping all fadeout for player: " + player )
+	//printt( "Stopping all fadeout for player: " + player )
 	StopSoundOnEntity( player, "1_second_fadeout" )
 	StopSoundOnEntity( player, "2_second_fadeout" )
 	StopSoundOnEntity( player, "3_second_fadeout" )

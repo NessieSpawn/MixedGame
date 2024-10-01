@@ -389,7 +389,7 @@ bool function MeleeThread_TitanVsTitan_Internal( SyncedMelee action, entity atta
 	Assert( attacker.IsPlayer() && attacker.IsTitan(), attacker + " is not Titan attacker" )
 
 	#if SERVER
-		printt( "Player", attacker, "attempting to melee", target, "TitanVsTitanMelee" )
+		//printt( "Player", attacker, "attempting to melee", target, "TitanVsTitanMelee" )
 	#endif
 
 	if ( attacker.ContextAction_IsActive() || target.ContextAction_IsActive() )
