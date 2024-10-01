@@ -5291,8 +5291,11 @@ void function ExtraSpawner_SpawnDropShip( vector pos, vector rot, int team, stri
 	drop.team			= team
 	drop.squadname		= squad
 	SetDropTableSpawnFuncs( drop, spawnFunc, count )
+	// shall we make npcs always drop ignoring other stuffs...?
+	// oh welp, eDropStyle.FORCED can't do anything to avoid spawning failure
 	SetCallinStyle( drop, eDropStyle.ZIPLINE_NPC )
-  
+	//SetCallinStyle( drop, eDropStyle.FORCED )
+
 	thread RunDropshipDropoff( drop )
 	
 	WaitSignal( drop, "OnDropoff" )
@@ -6304,7 +6307,10 @@ void function ExtraSpawner_SpawnSpecialistGruntDropShip( vector pos, vector rot,
 	for ( int i = 0; i < count - 1; i++ ) 
 		drop.npcSpawnFuncs.append( spawnFunc )
 
+	// shall we make npcs always drop ignoring other stuffs...?
+	// oh welp, eDropStyle.FORCED can't do anything to avoid spawning failure
 	SetCallinStyle( drop, eDropStyle.ZIPLINE_NPC )
+	//SetCallinStyle( drop, eDropStyle.FORCED )
   
 	thread RunDropshipDropoff( drop )
 	
@@ -6914,7 +6920,10 @@ void function ExtraSpawner_SpawnOverloadedStalkerDropShip( vector pos, vector ro
 	drop.team			= team
 	drop.squadname		= squad
 	SetDropTableSpawnFuncs( drop, spawnFunc, count )
+	// shall we make npcs always drop ignoring other stuffs...?
+	// oh welp, eDropStyle.FORCED can't do anything to avoid spawning failure
 	SetCallinStyle( drop, eDropStyle.ZIPLINE_NPC )
+	//SetCallinStyle( drop, eDropStyle.FORCED )
   
 	thread RunDropshipDropoff( drop )
 	
@@ -8771,8 +8780,6 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 		title = npc.GetPlayerName()
 	decoy.SetTitle( title )
 	decoy.SetNoTargetSmartAmmo( true ) // smart ammo won't target decoy
-	// maybe we should hide their name...? npc decoy moves identical as their owners but player decoys are rather easier to tell
-	HideName( decoy )
 
 	// create fake weapon prop
 	entity weaponProp
@@ -8844,7 +8851,7 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	// NPCMF_PREFER_SPRINT works bad for droz and davis model... they'll play intro animation sometimes
 	//decoy.EnableNPCMoveFlag( NPCMF_DISABLE_DANGEROUS_AREA_DISPLACEMENT | NPCMF_IGNORE_CLUSTER_DANGER_TIME | NPCMF_PREFER_SPRINT )
 	decoy.EnableNPCMoveFlag( NPCMF_DISABLE_DANGEROUS_AREA_DISPLACEMENT | NPCMF_IGNORE_CLUSTER_DANGER_TIME )
-	decoy.SetCanBeMeleeExecuted( false ) 
+	decoy.SetCanBeMeleeExecuted( false )
 
 	// is it a good idea to make them follow? or just standing like player decoy...
 	/*
@@ -8897,7 +8904,8 @@ void function DelayedShowNPCDecoy( entity npc, entity decoy, vector ornull veloc
 	decoy.SetInvulnerable()
 	WaitFrame() // take hold from T-posing
 
-	ShowName( decoy )
+	// maybe we should hide their name...? npc decoy moves identical as their owners but player decoys are rather easier to tell
+	//ShowName( decoy )
 	//decoy.SetNameVisibleToFriendly( false ) // try to avoid friendly player targeting them. EDIT: we've added trails and highlights, this should be fine
 	WaitFrame() // take hold from casual state
 
