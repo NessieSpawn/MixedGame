@@ -8763,13 +8763,15 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	decoy.SetOwner( npc ) // try to avoid collision?
 	decoy.ai.preventOwnerDamage = true // after setting owner, owner is able to damage them even if they're friendly
 	decoy.SetMaxHealth( health )
-	decoy.SetHealth( health ) // won't get one shot by player like normal decoys
+	decoy.SetHealth( health ) // won't get one shot by npcs like player decoys
 
 	string title = npc.GetTitle()
 	if ( npc.IsPlayer() )
 		title = npc.GetPlayerName()
 	decoy.SetTitle( title )
 	decoy.SetNoTargetSmartAmmo( true ) // smart ammo won't target decoy
+	// maybe we should hide their name...? npc decoy moves identical as their owners but player decoys are rather easier to tell
+	HideName( decoy )
 
 	// create fake weapon prop
 	entity weaponProp
