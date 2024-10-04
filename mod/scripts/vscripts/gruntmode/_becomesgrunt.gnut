@@ -21,7 +21,9 @@ const array<int> PLAYER_DAMAGE_PROTECTION_SPECIFICS =
 [
 	damagedef_reaper_nuke,
 	damagedef_frag_drone_throwable_NPC,
-	damagedef_frag_drone_explode_FD
+	damagedef_frag_drone_explode_FD,
+	damagedef_stalker_powersupply_explosion_small,
+	damagedef_stalker_powersupply_explosion_large,
 ]
 // no protection against crash damages ( adding back stepping on and melee damage protection )
 const array<int> PLAYER_DAMAGE_PROTECTION_BLACKLISTS =
@@ -37,7 +39,7 @@ const array<int> PLAYER_DAMAGE_PROTECTION_BLACKLIST_DAMAGEFLAGS =
 ]
 
 // npc damage settings!!!
-const float NPC_PILOT_DAMAGE_MULTIPLIER = 1.7 // 170% damage of normal bullets
+const float NPC_PILOT_DAMAGE_MULTIPLIER = 1.5 // 150% damage of normal bullets( was 170% )
 const int NPC_PILOT_MAX_DPS_TAKEN = 500 // npc pilots can die within 2s of consist shot
 
 const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.3 // 24 crawl damage, 30 pounce damage
@@ -313,9 +315,12 @@ void function GruntConfig( entity soldier )
 	else // specialist grunts
 	{
 		// don't easily die from specific damage
-		ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
-		ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
+		//ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
+		//ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 	}
+	// now adding these to all grunts
+	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
+	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 	
 	thread GruntTitleThink( soldier ) // specialist grunts may spawn from dropship, do a think here
 
