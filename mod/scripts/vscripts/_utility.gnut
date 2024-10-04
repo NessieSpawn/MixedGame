@@ -109,17 +109,17 @@ void function Utility_Init()
 		}
 	)
 	// modified for handling new weapon holstering system
-	AddDeathCallback( "player", OnPlayerKilled )
-}
-
-// modified for handling new weapon holstering system
-// gets killed clears all stacks of weapon holstering stuffs
-void function OnPlayerKilled( entity player, var damageInfo )
-{
-	player.p.disableOffhandWeaponsStackCount = 0
-	InitScriptWeaponHolsterSystem( player )
-	file.playerHolsterWeaponsStackCount[ player ] = 0
-	file.playerHolsterViewModelStackCount[ player ] = 0
+	// have to wrap otherwise function will be globalized!
+	AddDeathCallback( 
+		"player",
+		void function( entity player, var damageInfo )
+		{
+			player.p.disableOffhandWeaponsStackCount = 0
+			InitScriptWeaponHolsterSystem( player )
+			file.playerHolsterWeaponsStackCount[ player ] = 0
+			file.playerHolsterViewModelStackCount[ player ] = 0
+		}
+	)
 }
 
 void function GiveAllTitans()
