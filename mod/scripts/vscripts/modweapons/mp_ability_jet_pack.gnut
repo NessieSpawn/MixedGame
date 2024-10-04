@@ -526,6 +526,7 @@ void function ManageJetPackPlayerWeaponDeployment( entity player, entity weapon 
     }
 
     player.EndSignal( "OnDestroy" )
+    player.EndSignal( "OnDeath" )
     player.Signal( "ManageWeaponDeployment" )
     player.EndSignal( "ManageWeaponDeployment" )
     // stop weapon deploy think when another lift started
@@ -533,19 +534,28 @@ void function ManageJetPackPlayerWeaponDeployment( entity player, entity weapon 
     weapon.EndSignal( "JetPackLift" )
 
     // defensive clear holster weapon state
+    table results
+    results.weaponDeployed <- false
+
     OnThreadEnd(
-        function(): ( player )
+        function(): ( player, results )
         {
-            if ( IsValid( player ) )
-                DeployAndEnableWeapons( player )
+            // if we failed deploying weapon, needs to remove one stack here, so we won't have to play weapon deploy animation
+            if ( IsValid( player ) && !results.weaponDeployed )
+            {
+                if ( IsAlive( player ) )
+                    HolsterWeaponsStackDecreament( player )
+                else // player died
+                    DeployAndEnableWeapons( player )
+            }
         }
     )
 
     // wait for delay
     wait weaponDeployDelay
 
-    // no need to manually deploy now, we handle in OnThreadEnd()
-    //DeployAndEnableWeapons( player )
+    DeployAndEnableWeapons( player )
+    results.weaponDeployed = true
     //player.DeployWeapon()
     //player.Server_TurnOffhandWeaponsDisabledOff()
 }

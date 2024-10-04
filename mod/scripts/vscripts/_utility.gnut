@@ -3671,6 +3671,21 @@ void function DeployWeapons( entity player )
 		print( string( player ) + " failed to deploy weapon! " + "holster weapon stacks: " + string( file.playerHolsterWeaponsStackCount[ player ] ) )
 }
 
+// for us handling stack without have to let player deploy weapon( which may cause deploy weapon animation to play )
+void function HolsterWeaponsStackIncreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) )
+		file.playerHolsterWeaponsStackCount[ player ]++
+}
+
+void function HolsterWeaponsStackDecreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) && file.playerHolsterWeaponsStackCount[ player ] > 0 )
+		file.playerHolsterWeaponsStackCount[ player ]--
+}
+
 void function DeployViewModel( entity player )
 {
 	InitScriptWeaponHolsterSystem( player )
@@ -3691,6 +3706,21 @@ void function DeployViewModel( entity player )
 	}
 	else // debug
 		print( string( player ) + " failed to deploy viewmodel! " + "holster viewmodel stacks: " + string( file.playerHolsterViewModelStackCount[ player ] ) )
+}
+
+// for us handling stack without have to let player deploy weapon( which may cause deploy weapon animation to play )
+void function HolsterViewmodelStackIncreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) )
+		file.playerHolsterViewModelStackCount[ player ]++
+}
+
+void function HolsterViewmodelStackDecreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) && file.playerHolsterViewModelStackCount[ player ] > 0 )
+		file.playerHolsterViewModelStackCount[ player ]--
 }
 //
 
