@@ -807,7 +807,7 @@ bool function TryGruntBattleChatterOnEnt( entity player, entity ent, bool damage
 {
 	// should we ignore friendly fire cases??
 	// only do chatter if we can earn score from damage
-	if ( player.GetTeam() == victim.GetTeam() && !( FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill() ) )
+	if ( player.GetTeam() == ent.GetTeam() && !( FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill() ) )
 		return false
 
 	string className = ent.GetClassName()
