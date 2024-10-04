@@ -3705,7 +3705,15 @@ void function DeployViewModel( entity player )
 		//print( "viewmodel deployment succeeded!" ) // debug
 	}
 	else // debug
-		print( string( player ) + " failed to deploy viewmodel! " + "holster viewmodel stacks: " + string( file.playerHolsterViewModelStackCount[ player ] ) )
+	{
+		// only do debug print if we're not being override by holster weapon stacks
+		if ( file.playerHolsterWeaponsStackCount[ player ] <= 0 )
+		{
+			print( string( player ) + " failed to deploy viewmodel! " )
+			print( "holster viewmodel stacks: " + string( file.playerHolsterViewModelStackCount[ player ] ) )
+			print( "holster weapon stacks: " + string( file.playerHolsterWeaponsStackCount[ player ] ) )
+		}
+	}
 }
 
 // for us handling stack without have to let player deploy weapon( which may cause deploy weapon animation to play )
@@ -3731,6 +3739,29 @@ void function HolsterAndDisableWeapons( entity player )
 	DisableOffhandWeapons( player )
 }
 
+// for us handling stack without have to let player deploy weapon( which may cause deploy weapon animation to play )
+void function HolsterAndDisableWeaponsStackIncreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) )
+	{
+		file.playerHolsterWeaponsStackCount[ player ]++
+		player.p.disableOffhandWeaponsStackCount++
+	}
+}
+
+void function HolsterAndDisableWeaponsStackDecreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) )
+	{
+		if ( file.playerHolsterWeaponsStackCount[ player ] > 0 )
+			file.playerHolsterWeaponsStackCount[ player ]--
+		if ( player.p.disableOffhandWeaponsStackCount > 0 )
+			player.p.disableOffhandWeaponsStackCount--
+	}
+}
+
 void function HolsterViewModelAndDisableWeapons( entity player ) //Note that this skips the first person holster animation, and it appears to 3p observers you still have a gun out
 {
 	//player.DisableWeaponViewModel()
@@ -3738,6 +3769,28 @@ void function HolsterViewModelAndDisableWeapons( entity player ) //Note that thi
 	DisableOffhandWeapons( player )
 }
 
+// for us handling stack without have to let player deploy weapon( which may cause deploy weapon animation to play )
+void function HolsterViewModelAndDisableWeaponsStackIncreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) )
+	{
+		file.playerHolsterViewModelStackCount[ player ]++
+		player.p.disableOffhandWeaponsStackCount++
+	}
+}
+
+void function HolsterViewModelAndDisableWeaponsStackDecreament( entity player )
+{
+	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) )
+	{
+		if ( file.playerHolsterViewModelStackCount[ player ] > 0 )
+			file.playerHolsterViewModelStackCount[ player ]--
+		if ( player.p.disableOffhandWeaponsStackCount > 0 )
+			player.p.disableOffhandWeaponsStackCount--
+	}
+}
 
 void function DeployAndEnableWeapons( entity player )
 {

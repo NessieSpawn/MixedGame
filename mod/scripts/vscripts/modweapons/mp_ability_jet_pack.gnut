@@ -544,7 +544,7 @@ void function ManageJetPackPlayerWeaponDeployment( entity player, entity weapon 
             if ( IsValid( player ) && !results.weaponDeployed )
             {
                 if ( IsAlive( player ) )
-                    HolsterWeaponsStackDecreament( player )
+                    HolsterAndDisableWeaponsStackDecreament( player )
                 else // player died
                     DeployAndEnableWeapons( player )
             }
