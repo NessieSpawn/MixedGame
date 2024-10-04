@@ -42,7 +42,8 @@ const array<int> PLAYER_DAMAGE_PROTECTION_BLACKLIST_DAMAGEFLAGS =
 const float NPC_PILOT_DAMAGE_MULTIPLIER = 1.5 // 150% damage of normal bullets( was 170% )
 const int NPC_PILOT_MAX_DPS_TAKEN = 500 // npc pilots can die within 2s of consist shot
 
-const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.3 // 24 crawl damage, 30 pounce damage
+const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.25 // was 0.3. 20 crawl damage, 25 pounce damage
+const float PLAYER_MELEE_DAMAGE_AGAINST_PROWLERS_MULTIPLAYER = 1.5 // 60 melee damage, which could knock prowlers back and allow long-range weapons to escape
 const float NPC_SUPER_SPECTRE_ROCKET_DAMAGE_MULTIPLIER = 0.5 // 30~25 impact damage
 
 struct PlayerClassStruct
@@ -174,6 +175,13 @@ void function OnPlayerDealDamage( entity victim, var damageInfo )
 			bool isKillshot = DamageInfo_GetDamage( damageInfo ) >= ( victim.GetHealth() + GetShieldHealthWithFix( victim ) )
 			if ( isKillshot )
 				return
+		}
+
+		// prowler specific: knock them back with melee
+		if ( IsProwler( victim ) )
+		{
+			if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_MELEE )
+				DamageInfo_ScaleDamage( damageInfo, PLAYER_MELEE_DAMAGE_AGAINST_PROWLERS_MULTIPLAYER )
 		}
 	}
 
@@ -797,6 +805,11 @@ const array<string> ENEMY_REAPER_CHATTERS =
 
 bool function TryGruntBattleChatterOnEnt( entity player, entity ent, bool damageChatter = false )
 {
+	// should we ignore friendly fire cases??
+	// only do chatter if we can earn score from damage
+	if ( attacker.GetTeam() == victim.GetTeam() && !( FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill() ) )
+		return false
+
 	string className = ent.GetClassName()
 	//print( "chatter target's classname: " + className )
 
