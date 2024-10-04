@@ -554,7 +554,7 @@ void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fra
 	if ( IsValid( fragDrone ) )
 	{
 		if ( IsAlive( fragDrone ) )
-			AITdmExtend_EnemyThreatenHighlight( fragDrone )
+			GruntModeEnemyThreatenHighlight( fragDrone )
 		// settings modfied in _ai_suicide_spectres.gnut
 		//SuicideSpectre_SetJumpAtTitans( fragDrone, true )
 		SuicideSpectre_SetCreateHeavyArmorDangerousArea( fragDrone, true ) // maybe this makes npc titans behave better? idk
