@@ -965,7 +965,9 @@ void function SpawnerSquads( int team )
 					{
 						entity node = FindBestSpawnForNPCDrop( dropshipPoints, team, 15 )
 						UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
-						if ( ent == "npc_stalker" && GetCurrentPlaylistVarInt( "gruntmode_overloaded_stalkers", 0 ) == 1 ) // more powerful stalker spawn
+						// no longer uses playlist var because stalker explosions now has death protection, and their sustainbility have been nerfed by _becomesgrunt.gnut
+						//if ( ent == "npc_stalker" && GetCurrentPlaylistVarInt( "gruntmode_overloaded_stalkers", 0 ) == 1 ) // more powerful stalker spawn
+						if ( ent == "npc_stalker" )
 							thread ExtraSpawner_SpawnOverloadedStalkerDropShip( node.GetOrigin(), node.GetAngles(), team, SQUAD_SIZE )
 						else
 							thread ExtraSpawner_SpawnDropShip( node.GetOrigin(), node.GetAngles(), team, ent, SQUAD_SIZE )
@@ -974,7 +976,8 @@ void function SpawnerSquads( int team )
 
 					entity node = FindBestSpawnForNPCDrop( droppodPoints, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
-					if ( ent == "npc_stalker" && GetCurrentPlaylistVarInt( "gruntmode_overloaded_stalkers", 0 ) == 1 ) // more powerful stalker spawn
+					//if ( ent == "npc_stalker" && GetCurrentPlaylistVarInt( "gruntmode_overloaded_stalkers", 0 ) == 1 ) // more powerful stalker spawn
+					if ( ent == "npc_stalker" )
 						thread ExtraSpawner_SpawnOverloadedStalkerDropPod( node.GetOrigin(), node.GetAngles(), team )
 					else
 						thread ExtraSpawner_SpawnDropPod( node.GetOrigin(), node.GetAngles(), team, ent )
