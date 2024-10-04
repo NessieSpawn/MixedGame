@@ -108,6 +108,18 @@ void function Utility_Init()
 			file.shieldDamageToDisplay = 0.0
 		}
 	)
+	// modified for handling new weapon holstering system
+	AddDeathCallback( "player", OnPlayerKilled )
+}
+
+// modified for handling new weapon holstering system
+// gets killed clears all stacks of weapon holstering stuffs
+void function OnPlayerKilled( entity player, var damageInfo )
+{
+	player.p.disableOffhandWeaponsStackCount = 0
+	InitScriptWeaponHolsterSystem( player )
+	file.playerHolsterWeaponsStackCount[ player ] = 0
+	file.playerHolsterViewModelStackCount[ player ] = 0
 }
 
 void function GiveAllTitans()
@@ -3623,20 +3635,28 @@ void function HolsterWeapons( entity player )
 	player.HolsterWeapon()
 	
 	InitScriptWeaponHolsterSystem( player )
-	file.playerHolsterWeaponsStackCount[ player ]++
+	if ( IsAlive( player ) ) // have to be alive
+		file.playerHolsterWeaponsStackCount[ player ]++
 }
 
 void function HolsterViewModel( entity player )
 {
-	player.DisableWeaponViewModel()
-
+	// modified utility
 	InitScriptWeaponHolsterSystem( player )
-	file.playerHolsterViewModelStackCount[ player ]++
+	// deploy weapon priors enable view model, only disable viewmodel when weapon isn't holstered
+	if ( file.playerHolsterWeaponsStackCount[ player ] <= 0 )
+		player.DisableWeaponViewModel()
+
+	if ( IsAlive( player ) ) // have to be alive
+		file.playerHolsterViewModelStackCount[ player ]++
 }
 
 void function DeployWeapons( entity player )
 {
 	InitScriptWeaponHolsterSystem( player )
+	if ( !IsAlive( player ) ) // have to be alive
+		file.playerHolsterWeaponsStackCount[ player ] = 0
+	
 	if ( file.playerHolsterWeaponsStackCount[ player ] > 0 )
 		file.playerHolsterWeaponsStackCount[ player ]--
 
@@ -3654,12 +3674,16 @@ void function DeployWeapons( entity player )
 void function DeployViewModel( entity player )
 {
 	InitScriptWeaponHolsterSystem( player )
+	if ( IsAlive( player ) ) // have to be alive
+		file.playerHolsterViewModelStackCount[ player ] = 0
+
 	if ( file.playerHolsterViewModelStackCount[ player ] > 0 )
 		file.playerHolsterViewModelStackCount[ player ]--
 
 	// debug
 	//print( "player has holster viewmodel stacks: " + string( file.playerHolsterViewModelStackCount[ player ] ) )
-	if ( file.playerHolsterViewModelStackCount[ player ] <= 0 )
+	// holster weapon priors disable view model, needs both stacks to be cleared before actually enabling viewmodel
+	if ( file.playerHolsterViewModelStackCount[ player ] <= 0 && file.playerHolsterWeaponsStackCount[ player ] <= 0 )
 	{
 		if ( IsAlive( player ) )
 			player.EnableWeaponViewModel()
@@ -3704,12 +3728,16 @@ void function DeployViewModelAndEnableWeapons( entity player )
 void function DisableOffhandWeapons( entity player )
 {
 	player.Server_TurnOffhandWeaponsDisabledOn()
-	player.p.disableOffhandWeaponsStackCount++
+	if ( IsAlive( player ) ) // have to be alive
+		player.p.disableOffhandWeaponsStackCount++
 }
 
 void function EnableOffhandWeapons( entity player )
 {
 	// fix here: don't let stack go down 0
+	if ( !IsAlive( player ) ) // have to be alive before adding stacks
+		player.p.disableOffhandWeaponsStackCount = 0
+
 	if ( player.p.disableOffhandWeaponsStackCount > 0 )
 		player.p.disableOffhandWeaponsStackCount--
 
