@@ -88,6 +88,7 @@ void function BecomesGruntMode_Init()
 	//Highlight_HideDefaultEnemyHighlight( true ) // this will hide enemy's highlights
 	Highlight_SetCustomHighlightFunction( GruntModeHighlight )
 	// death effects
+	SetPlayerDeathsHidden( true ) // stop death sounds
 	SetDeathHintsEnabled( false ) // no need to do death hints since player changes loadout every respawn
 	SetDeathCamLengthForced( 0.5 ) // don't want to display a long death cam
 	SetReplayStartDelayOverride( 1.5 ) // total of 2.0s death cam( 0.5s to enable respawn + 1.5s before replay )
@@ -144,6 +145,7 @@ void function BecomesGruntMode_Init()
 	AddSpawnCallback( "npc_gunship", GunshipConfig )
 	AddSpawnCallback( "npc_dropship", DropshipConfig )
 	AddSpawnCallback( "npc_frag_drone", TickConfig )
+	AddCallback_OnReaperLaunchedFragDroneSpawned( OnLaunchedFragDroneSpawned ) // this callback is from modified _ai_superspectre.nut
 	AddSpawnCallback( "npc_turret_sentry", TurretConfig )
 
 	// ai damages
@@ -308,6 +310,12 @@ void function GruntConfig( entity soldier )
 		// hide name if they're not specialist
 		thread TryHideName( soldier ) // grunts may spawn from dropship, they'll still show name, so do a loop
 	}
+	else // specialist grunts
+	{
+		// don't easily die from specific damage
+		ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
+		ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
+	}
 	
 	thread GruntTitleThink( soldier ) // specialist grunts may spawn from dropship, do a think here
 
@@ -373,6 +381,10 @@ void function PilotConfig( entity soldier )
 	ExtraSpawner_SetNPCPilotBulletDamageScale( soldier, NPC_PILOT_DAMAGE_MULTIPLIER )
 	// nerf damage protection
 	ExtraSpawner_SetNPCPilotMaxDPSTaken( soldier, NPC_PILOT_MAX_DPS_TAKEN )
+
+	// don't easily die from specific damage
+	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
+	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 }
 
 void function MarvinConfig( entity soldier )
@@ -426,6 +438,10 @@ void function SpectreConfig( entity soldier )
 		soldier, 
 		["execution_combo", "execution_knockout"]
 	)
+
+	// don't easily die from specific damage
+	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
+	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 }
 
 void function StalkerConfig( entity soldier )
@@ -437,6 +453,41 @@ void function StalkerConfig( entity soldier )
 	soldier.SetHealth( 280 )
 
 	thread TryHideName( soldier ) // stalkers may spawn from dropship
+
+	// don't easily die from specific damage
+	// maybe no need for stalkers?
+	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
+	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
+
+	// in our gamemode, stalkers are dangerous vs titans!
+	// don't let them able to hurt titan without their awareness
+	// settings modfied in _ai_stalker.gnut
+	AiStalker_SetCreateHeavyArmorDangerousArea( soldier, true )
+
+	// setup stalkers for current gamemode
+	SetUpGruntmodeStalker( soldier )
+}
+
+void function SetUpGruntmodeStalker( entity stalker )
+{
+	// setup hitgroup
+	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_HEAD, 0.5 ) // stalkers don't take extra damage from headshot, but dies if head taken enough damage
+	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_LEFTARM, 0.35 ) // isn't a necessary bodygroup, disabling their synced melee ability after lost
+	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_RIGHTARM, 0.65 ) // modified body dismemberment. this removes their weapon and melee, makes them almost unharmful
+	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_LEFTLEG, 0.45 ) // starts crawling on losing a leg
+	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_RIGHTLEG, 0.45 ) // starts crawling on losing a leg
+
+	// setup gear overload
+	AiStalker_SetGearOverloadOnHitRequiredHealthPercent( stalker, 0.4 ) // only able to be overloaded at very low health
+
+	// setup damaged behavior
+	AiStalker_SetHealthPercentOnTransitionToCrawl( stalker, STALKER_MAINTAIN_HEALTH_ON_TRANSITION_TO_CRAWL ) // maintain current health on start crawling
+	AiStalker_SetCrawlLifeTime( 
+		stalker, 
+		8.0,		// lifeSupportDuration
+		16.0,		// maxDeathTime
+		true		// useLastAttackerToSelfTerminate
+	)
 }
 
 void function ReaperConfig( entity soldier )
@@ -492,9 +543,30 @@ void function TickConfig( entity soldier )
 	GruntModeFriendlyHighlight( soldier )
 
 	// enemy highlight
-	GruntModeEnemyThreatenHighlight( soldier )
+	//GruntModeEnemyThreatenHighlight( soldier )
 
 	soldier.SetNameVisibleToEnemy( false )
+}
+
+void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fragDrone, string droneSettings )
+{
+	// apply settings to reaper spawned ticks
+	if ( IsValid( fragDrone ) )
+	{
+		if ( IsAlive( fragDrone ) )
+			AITdmExtend_EnemyThreatenHighlight( fragDrone )
+		// settings modfied in _ai_suicide_spectres.gnut
+		//SuicideSpectre_SetJumpAtTitans( fragDrone, true )
+		SuicideSpectre_SetCreateHeavyArmorDangerousArea( fragDrone, true ) // maybe this makes npc titans behave better? idk
+		// allow ticks to jump at titans before exploding, and makes them won't overload right after getting shot
+		// only for SP ticks I guess? MP ticks explodes really fast and I want to make them behave similar to player's tick
+		if ( fragDrone.GetAISettingsName() == "npc_frag_drone" )
+		{
+			//SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 3.0 ) // same SuicideChaseTime as SP player ticks
+			SuicideSpectre_SetSuicideChaseBehavior( fragDrone, 2.1 ) // same SuicideChaseTime as SP npc ticks
+			SuicideSpectre_SetCanExplodeInMidAir( fragDrone, true ) // also allow them to trigger overload while still in mid-air
+		}
+	}
 }
 
 void function TurretConfig( entity soldier )
