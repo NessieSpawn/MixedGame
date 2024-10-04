@@ -1611,6 +1611,7 @@ void function SpawnerSquads( int team )
 						wait 2.0 // delay before next spawn
 					
 					array< entity > points = SpawnPoints_GetDropPod()
+					points.extend( GetDroppodStartPoints() ) // add startpoints for fun!
 					entity node = FindBestSpawnForNPCDrop( points, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//print( "RUNNING ExtraSpawner_SpawnProwlerSquadDropPod()" )
