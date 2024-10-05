@@ -226,6 +226,9 @@ void function AddDroppodSpawn()
 		}
 	}
 
+	// validate points using normal grunt's navmesh
+	ValidateNPCSpawnpoints( droppod.droppodSpawns )
+
 	foreach ( entity point in droppod.droppodSpawns )
 	{
 		// still better to use global lastUsedTime... I think

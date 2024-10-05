@@ -341,13 +341,15 @@ void function HandleTitanDoomedScore( entity victim, var damageInfo, bool firstD
 // Spawner_Threaded is used to keep the match populated
 void function SpawnIntroBatch_Threaded( int team )
 {
-	array<entity> dropPodNodes = GetEntArrayByClass_Expensive( "info_spawnpoint_droppod_start" )
-	array<entity> dropShipNodes = GetValidIntroDropShipSpawn( dropPodNodes )  
+	//array<entity> dropPodNodes = GetEntArrayByClass_Expensive( "info_spawnpoint_droppod_start" )
+	array<entity> dropPodNodes = SpawnPoints_GetDropPodStart( team )
+	array<entity> dropShipNodes = GetValidIntroDropShipSpawn( dropPodNodes )
+	// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+	ValidateNPCSpawnpoints( dropPodNodes, "npc_soldier" )
+	ValidateNPCSpawnpoints( dropShipNodes, "npc_soldier" )
 	
 	array<entity> podNodes
-	
 	array<entity> shipNodes
-	
 	
 	// mp_rise has weird droppod_start nodes, this gets around it
 	// To be more specific the teams aren't setup and some nodes are scattered in narnia
@@ -485,6 +487,8 @@ void function Spawner_Threaded( int team )
 						wait 2.0 // delay before next spawn
 
 					array< entity > points = SpawnPoints_GetTitan()
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_super_spectre" )
 					entity node = points[ GetSpawnPointIndex( points, team ) ]
 					thread AiGameModes_SpawnReaper( node.GetOrigin(), node.GetAngles(), team, "npc_super_spectre_aitdm", ReaperHandler )
 				}
@@ -506,6 +510,8 @@ void function Spawner_Threaded( int team )
 				string ent = file.podEntities[ index ][ RandomInt( file.podEntities[ index ].len() ) ]
 				
 				array< entity > points = GetZiplineDropshipSpawns()
+				// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+				ValidateNPCSpawnpoints( points, "npc_soldier" )
 				// Prefer dropship when spawning grunts
 				if ( CoinFlip() && ent == "npc_soldier" && points.len() != 0 )
 				{
@@ -518,6 +524,8 @@ void function Spawner_Threaded( int team )
 				}
 				
 				points = SpawnPoints_GetDropPod()
+				// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+				ValidateNPCSpawnpoints( points, "npc_soldier" )
 				entity node = points[ GetSpawnPointIndex( points, team ) ]
 				thread AiGameModes_SpawnDropPod( node.GetOrigin(), node.GetAngles(), team, ent, SquadHandler )
 			}
