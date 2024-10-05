@@ -864,7 +864,10 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 			if ( IsAlive( npc ) )
 			{
 				entity damageAttacker
-				if ( IsValid( attacker ) )
+				// vanilla won't trigger a crash where projectile fired by a npc who has already been destroyed killing the stalker
+				// needs to handle it
+				//if ( IsValid( attacker ) )
+				if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) )
 					damageAttacker = attacker
 				else
 					damageAttacker = npc

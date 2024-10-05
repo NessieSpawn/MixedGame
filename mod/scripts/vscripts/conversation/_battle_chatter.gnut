@@ -290,6 +290,10 @@ bool function DamageIsValidForPlayingChatter( entity victim, var damageInfo )
 	if ( attacker == victim )
 		return false
 
+	// team checks
+	if ( attacker.GetTeam() == victim.GetTeam() )
+		return false
+
 	// all checks passed
 	return true
 }

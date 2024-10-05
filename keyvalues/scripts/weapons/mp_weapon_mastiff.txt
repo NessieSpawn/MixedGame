@@ -1,0 +1,49 @@
+WeaponData
+{
+	Mods
+	{
+		iron_sights
+		{
+		}
+		holosight
+		{
+		}
+		redline_sight
+		{
+		}
+		threat_scope
+		{
+		}
+		extended_ammo
+		{
+		}
+		tactical_cdr_on_kill
+		{
+		}
+		pro_screen
+		{
+		}
+		pas_run_and_gun
+		{
+		}
+		pas_fast_ads
+		{
+		}
+		pas_fast_swap
+		{
+		}
+		pas_fast_reload
+		{
+		}
+		burn_mod_mastiff
+		{
+		}
+
+		// nerf npc damage if we want to enable npc headshots
+		// maybe no need to nerf though, mastiff already have very low fire rate and no matter we nerf or not, pilots can always one-shot players...
+		npc_lower_damage
+		{
+			"npc_damage_near_value"   						"--1" // 6
+		}
+	}
+}
