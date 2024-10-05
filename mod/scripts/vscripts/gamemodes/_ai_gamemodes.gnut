@@ -8,7 +8,8 @@ global function AiGameModes_SpawnReaper
 global function AiGameModes_SpawnTitan
 
 global function GetValidIntroDropShipSpawn
-
+// new modified function
+global function ValidateNPCSpawnpoints
 
 const INTRO_DROPSHIP_CUTOFF = 2000
 
@@ -44,7 +45,10 @@ void function AiGameModes_SpawnDropShip( vector pos, vector rot, int team, int c
 	drop.team 			= team
 	drop.squadname 	= squadName
 	SetDropTableSpawnFuncs( drop, CreateSoldier, count )
+	// shall we make npcs always drop ignoring other stuffs...?
+	// oh welp, eDropStyle.FORCED can't do anything to avoid spawning failure
 	SetCallinStyle( drop, eDropStyle.ZIPLINE_NPC )
+	//SetCallinStyle( drop, eDropStyle.FORCED )
   
 	thread RunDropshipDropoff( drop )
 	
@@ -257,14 +261,47 @@ array<entity> function GetValidIntroDropShipSpawn( array<entity> introNodes )
 	if ( GetZiplineDropshipSpawns().len() == 0 )
 		return []
 	
+	array<entity> validDropshipNodes = GetZiplineDropshipSpawns()
 	foreach ( node in introNodes )
 	{
-		entity closestNode = GetClosest( GetZiplineDropshipSpawns(), node.GetOrigin() )
-		SetTeam( closestNode, node.GetTeam() )
+		// try to add each node only once
+		//entity closestNode = GetClosest( GetZiplineDropshipSpawns(), node.GetOrigin() )
+		entity closestNode = GetClosest( validDropshipNodes, node.GetOrigin() )
+		// try not to assign team if we failed distance checks?
+		//SetTeam( closestNode, node.GetTeam() )
 		
+		// never append same node multiple times
+		if ( introShipSpawns.contains( closestNode ) )
+			continue
+
 		if ( Distance( closestNode.GetOrigin(), node.GetOrigin() ) < INTRO_DROPSHIP_CUTOFF )
+		{
+			SetTeam( closestNode, node.GetTeam() )
 			introShipSpawns.append( closestNode )
+			validDropshipNodes.removebyvalue( closestNode )
+		}
 	}
 	
 	return introShipSpawns
+}
+
+void function ValidateNPCSpawnpoints( array<entity> points, string npcToSpawn = "npc_soldier" )
+{
+	entity npcDummy = CreateNPC( npcToSpawn, TEAM_BOTH, <0,0,0>, <0,0,0> )
+	// have to dispatchspawn before clamping points
+	DispatchSpawn( npcDummy )
+	foreach ( point in points )
+	{
+		vector origin = point.GetOrigin()
+		npcDummy.SetOrigin( origin )
+		// search radius from mp_weapon_frag_drone.nut
+		vector ornull clampedPos = NavMesh_ClampPointForAIWithExtents( origin, npcDummy, < 20, 20, 36 > )
+		if ( clampedPos == null )
+		{
+			points.removebyvalue( point )
+			//print( string( point ) + " at " + string( origin ) + " isn't covered by " + npcToSpawn + "'s navmesh, filtering" )
+		}
+	}
+	if ( IsValid( npcDummy ) )
+		npcDummy.Destroy()
 }

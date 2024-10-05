@@ -1135,17 +1135,28 @@ void function RespawnAsTitan( entity player, bool manualPosition = false, entity
 	PlayerEarnMeter_Reset( player ) // pet titan has spawned but player haven't, needs to reset earnmeter
 
 	AddCinematicFlag( player, CE_FLAG_CLASSIC_MP_SPAWNING ) // hide hud
-	// do titanfall scoreevent
-	if ( !level.firstTitanfall )
+	
+	// should be added along with stats?
+	// copied from _replacement_titans.gnut
+	if ( Riff_SpawnAsTitan() == 0 )
 	{
-		if ( Riff_SpawnAsTitan() == 0 )	// only add score if we're not always spawn as titan
-		{
-			AddPlayerScore( player, "FirstTitanfall", player )
+		#if HAS_STATS
+		UpdatePlayerStat( player, "misc_stats", "titanFalls" )
+		#endif
+		#if SERVER && MP
+			PIN_AddToPlayerCountStat( player, "titanfalls" )
+		#endif
+	}
+	//
+	
+	// do titanfall scoreevent
+	if ( !level.firstTitanfall && Riff_SpawnAsTitan() == 0 ) // only add first-to-fall score if we're not always spawn as titan
+	{
+		AddPlayerScore( player, "FirstTitanfall", player )
 
-			#if HAS_STATS
-				UpdatePlayerStat( player, "misc_stats", "titanFallsFirst" )
-			#endif
-		}
+		#if HAS_STATS
+			UpdatePlayerStat( player, "misc_stats", "titanFallsFirst" )
+		#endif
 
 		level.firstTitanfall = true
 	}
