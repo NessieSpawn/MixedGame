@@ -44,8 +44,13 @@ WeaponData
 		npc_lower_damage
 		{
 			//"damage_headshot_scale"		"--0.5" // 1.5, breaks the damage when picking up by players...
-			"npc_damage_near_value"   		"--12" // 28
-			"npc_damage_far_value"			"--12" // 28
+			"npc_damage_near_value"   		"--14" // 26( was 28 )
+			"npc_damage_far_value"			"--14" // 26( was 28 )
+		}
+		// nerf npc burst so doubletake won't be too embarrasing
+		npc_longer_rest
+		{
+			"npc_rest_time_between_bursts_max"				"++1.0" // 4.0
 		}
 	}
 }

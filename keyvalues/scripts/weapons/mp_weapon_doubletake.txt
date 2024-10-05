@@ -1,0 +1,162 @@
+WeaponData
+{
+	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
+	//"damage_flags"									"DF_BULLET | DF_KNOCK_BACK | DF_DISMEMBERMENT | DF_GIB"
+
+	// bolt rework! will cause replay fucked up
+	//"projectile_launch_speed"						"10000"
+	//"projectile_gravity_scale"						"0.2500"
+
+	//"bolt_speed"						"1"
+	
+	// don't try to change these
+	//"bolt_gravity_enabled"				"0"
+	//"bolt_gravity_amount"				"0"
+
+	Mods
+	{
+		iron_sights
+		{
+		}
+		scope_4x
+		{
+		}
+		threat_scope
+		{
+		}
+		pro_screen
+		{
+		}
+		tactical_cdr_on_kill
+		{
+		}
+		extended_ammo
+		{
+			"ammo_clip_size"   					"*1.34"
+		}
+		stabilizer // modded stabilizer
+		{
+			"ui1_enable"		"0"
+			"ui2_enable"		"1"
+			"ui3_enable"		"0"
+			"ui4_enable"		"0"
+			"ui5_enable"		"1"
+			"zoom_fov"		"35"
+			"threat_scope_enabled"		"1"
+			"threat_scope_bounds_tagname1"	"SCR_TR_ORACLE"
+			"threat_scope_bounds_tagname2"	"SCR_BL_ORACLE"
+		}
+		ricochet
+		{
+		}
+        slammer
+        {
+        }
+		pas_fast_reload
+		{
+		}
+		pas_fast_ads
+		{
+		}
+		pas_fast_swap
+		{
+		}
+		burn_mod_doubletake
+		{
+		}
+
+		// modded
+		tripletake // visualize the middle bullet
+		{
+		}
+		arc_net // add arc nets connecting each bullet, no damage
+		{
+		}
+
+		// modded bleedout specific
+		bleedout_balance
+		{
+			// falloff
+			"damage_near_distance"			"--2700" // 1800
+			"damage_far_distance" 			"--12500" // 2500
+			
+			"damage_near_value"				"--8" // 22*3, 99 dmg on full-headshot
+			"damage_far_value"				"--15" // 15*3
+
+			"fire_rate"						"--0.3" // 1.7
+
+			"damage_headshot_scale"			"--0.5" // 1.5
+		}
+
+		// special
+		nessie_balance
+		{
+			"damage_near_value"			"*0.5"
+			"damage_far_value"			"*0.5"
+   	 		"damage_very_far_value"		"*0.5"
+			"explosion_damage"			"*0.5"
+
+			//"damage_near_value"			"21"
+			//"damage_far_value"			"21"
+			//"ammo_clip_size"			"12"
+			//"fire_rate"					"1.2"
+			//"zoom_fov"					"60"
+
+			//"dof_zoom_nearDepthStart"						"6.161"
+			//"dof_zoom_nearDepthEnd"							"9.204"
+		}
+
+		// gruntmode specifics
+		gm_shifter // grunt mode shifter specific: bit lower damage
+		{
+			// falloff
+			"damage_near_distance"			"--2700" // 1800
+			"damage_far_distance" 			"--12500" // 2500
+			"damage_near_value"				"--8" // 22*3, 99 dmg on full-headshot
+			"damage_far_value"				"--15" // 15*3
+
+			"damage_headshot_scale"			"--0.5" // 1.5
+			"fire_rate"						"--0.3" // 1.7
+		}
+
+		// npc double take's damage is way too low...
+		npc_higher_damage
+		{
+			"npc_damage_near_value"   						"++5" // 12 * 3
+			"npc_damage_far_value"							"++5" // 12 * 3
+		}
+		npc_higher_damage_headshot // in case we're allowing npc headshots
+		{
+			"npc_damage_near_value"   						"++2" // 9 * 3
+			"npc_damage_far_value"							"++2" // 9 * 3
+		}
+		// npc double take will rest way too long...
+		npc_shorter_rest
+		{
+			"npc_rest_time_between_bursts_max"				"--1.0" // 3.0, same as dmr
+		}
+	}
+
+	//Oracle/stabilizer blue dot
+	"ui5_enable"		"0"
+	"ui5_draw_cloaked"	"1"
+	UiData5
+	{
+		"ui"								"ui/volt_sights"
+		"mesh"							"models/weapons/attachments/oracle_rui_upper"
+		Args
+		{
+			vis							player_zoomfrac
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
