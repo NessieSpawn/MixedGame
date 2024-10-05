@@ -481,7 +481,7 @@ void function StalkerConfig( entity soldier )
 	SetUpGruntmodeStalker_Threaded( soldier )
 }
 
-void function SetUpGruntmodeStalker( entity stalker )
+void function SetUpGruntmodeStalker_Threaded( entity stalker )
 {
 	stalker.EndSignal( "OnDeath" )
 	stalker.EndSignal( "OnDestroy" )
