@@ -756,9 +756,7 @@ void function SpawnIntroBatch( int team )
 	ValidateNPCSpawnpoints( dropShipNodes, "npc_soldier" )
 
 	array<entity> podNodes
-	
 	array<entity> shipNodes
-	
 	
 	// mp_rise has weird droppod_start nodes, this gets around it
 	// To be more specific the teams aren't setup and some nodes are scattered in narnia
