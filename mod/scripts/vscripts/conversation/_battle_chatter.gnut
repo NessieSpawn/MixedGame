@@ -294,7 +294,7 @@ bool function DamageIsValidForPlayingChatter( entity victim, var damageInfo )
 
 	// team checks
 	// only do chatter if we can earn score from damage
-	if ( attacker.GetTeam() == victim.GetTeam() && !( FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill() ) )
+	if ( attacker.GetTeam() == victim.GetTeam() )
 		return false
 
 	// all checks passed
