@@ -478,11 +478,17 @@ void function StalkerConfig( entity soldier )
 	AiStalker_SetCreateHeavyArmorDangerousArea( soldier, true )
 
 	// setup stalkers for current gamemode
-	SetUpGruntmodeStalker( soldier )
+	SetUpGruntmodeStalker_Threaded( soldier )
 }
 
 void function SetUpGruntmodeStalker( entity stalker )
 {
+	stalker.EndSignal( "OnDeath" )
+	stalker.EndSignal( "OnDestroy" )
+
+	// wait for next frame so extra_ai_spawner won't override our settings
+	WaitEndFrame()
+	
 	// setup hitgroup
 	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_HEAD, 0.5 ) // stalkers don't take extra damage from headshot, but dies if head taken enough damage
 	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_LEFTARM, 0.35 ) // isn't a necessary bodygroup, disabling their synced melee ability after lost
@@ -494,13 +500,7 @@ void function SetUpGruntmodeStalker( entity stalker )
 	AiStalker_SetGearOverloadOnHitRequiredHealthPercent( stalker, 0.4 ) // only able to be overloaded at very low health
 
 	// setup damaged behavior
-	AiStalker_SetHealthPercentOnTransitionToCrawl( stalker, STALKER_MAINTAIN_HEALTH_ON_TRANSITION_TO_CRAWL ) // maintain current health on start crawling
-	AiStalker_SetCrawlLifeTime( 
-		stalker, 
-		8.0,		// lifeSupportDuration
-		16.0,		// maxDeathTime
-		true		// useLastAttackerToSelfTerminate
-	)
+	AiStalker_SetStaggerRequiredHealthPercent( stalker, 0.5 ) // default value
 }
 
 void function ReaperConfig( entity soldier )
