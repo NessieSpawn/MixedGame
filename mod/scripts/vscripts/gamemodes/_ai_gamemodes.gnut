@@ -8,7 +8,8 @@ global function AiGameModes_SpawnReaper
 global function AiGameModes_SpawnTitan
 
 global function GetValidIntroDropShipSpawn
-
+// new modified function
+global function ValidateNPCSpawnpoints
 
 const INTRO_DROPSHIP_CUTOFF = 2000
 
@@ -283,4 +284,25 @@ array<entity> function GetValidIntroDropShipSpawn( array<entity> introNodes )
 	}
 	
 	return introShipSpawns
+}
+
+void function ValidateNPCSpawnpoints( array<entity> points, string npcToSpawn = "npc_soldier" )
+{
+	entity npcDummy = CreateNPC( npcToSpawn, TEAM_BOTH, <0,0,0>, <0,0,0> )
+	// have to dispatchspawn before clamping points
+	DispatchSpawn( npcDummy )
+	foreach ( point in points )
+	{
+		vector origin = point.GetOrigin()
+		npcDummy.SetOrigin( origin )
+		// search radius from mp_weapon_frag_drone.nut
+		vector ornull clampedPos = NavMesh_ClampPointForAIWithExtents( origin, npcDummy, < 20, 20, 36 > )
+		if ( clampedPos == null )
+		{
+			points.removebyvalue( point )
+			//print( string( point ) + " at " + string( origin ) + " isn't covered by " + npcToSpawn + "'s navmesh, filtering" )
+		}
+	}
+	if ( IsValid( npcDummy ) )
+		npcDummy.Destroy()
 }
