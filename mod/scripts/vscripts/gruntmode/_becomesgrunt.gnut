@@ -40,9 +40,10 @@ const array<int> PLAYER_DAMAGE_PROTECTION_BLACKLIST_DAMAGEFLAGS =
 
 // npc damage settings!!!
 const float NPC_PILOT_DAMAGE_MULTIPLIER = 1.5 // 150% damage of normal bullets( was 170% )
-const int NPC_PILOT_MAX_DPS_TAKEN = 500 // npc pilots can die within 2s of consist shot
+// removed because other npcs are now stronger
+//const int NPC_PILOT_MAX_DPS_TAKEN = 500 // npc pilots can die within 2s of consist shot
 
-const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.25 // was 0.3. 20 crawl damage, 25 pounce damage
+const float NPC_PROWLER_DAMAGE_MULTIPLIER = 0.3 // 24 crawl damage, 30 pounce damage
 const float PLAYER_MELEE_DAMAGE_AGAINST_PROWLERS_MULTIPLAYER = 1.5 // 60 melee damage, which could knock prowlers back and allow long-range weapons to escape
 const float NPC_SUPER_SPECTRE_ROCKET_DAMAGE_MULTIPLIER = 0.5 // 30~25 impact damage
 
@@ -393,7 +394,8 @@ void function PilotConfig( entity soldier )
 	// setup damage scale
 	ExtraSpawner_SetNPCPilotBulletDamageScale( soldier, NPC_PILOT_DAMAGE_MULTIPLIER )
 	// nerf damage protection
-	ExtraSpawner_SetNPCPilotMaxDPSTaken( soldier, NPC_PILOT_MAX_DPS_TAKEN )
+	// removed because other npcs are now stronger
+	//ExtraSpawner_SetNPCPilotMaxDPSTaken( soldier, NPC_PILOT_MAX_DPS_TAKEN )
 
 	// don't easily die from specific damage
 	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
@@ -676,6 +678,11 @@ void function OnPlayerKilled( entity victim, entity attacker, var damageInfo )
 	PlayEnemyPlayerKilledChatter( victim, attacker )
 	PlayFriendlyPlayerKilledChatter( victim, attacker )
 	PlayTitanKilledChatter( victim, attacker )
+
+	// restore victim's next protection
+	file.playerNextDamageProtectionAllowedTime[ victim ] = Time()
+	// stop victim's existing chatter
+	StopPlayerCurrentChatter( victim )
 }
 
 void function OnNPCKilled( entity victim, entity attacker, var damageInfo )
@@ -945,16 +952,19 @@ bool function CanPlayerUseGruntChatter( entity player, bool damageChatter = fals
 
 void function PlayEnemyPlayerKilledChatter( entity victim, entity attacker )
 {
-	if ( victim.IsPlayer() )
-	{
-		// stop victim's existing chatter
-		StopPlayerCurrentChatter( victim )
-		// restore next protection
-		file.playerNextDamageProtectionAllowedTime[ victim ] = Time()
+	if ( !attacker.IsPlayer() )
+		return
 
-		if ( attacker.IsPlayer() )
-			thread DelayedEnemyKilledChatter( attacker )
-	}
+	if ( !victim.IsPlayer() )
+		return
+	
+	// should we ignore friendly fire cases??
+	// only do chatter if we can earn score from damage
+	if ( player.GetTeam() == ent.GetTeam() && !( FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill() ) )
+		return
+
+	if ( attacker.IsPlayer() )
+		thread DelayedEnemyKilledChatter( attacker )
 }
 
 void function DelayedEnemyKilledChatter( entity player )
@@ -1016,6 +1026,11 @@ void function PlayTitanKilledChatter( entity victim, entity attacker )
 		return
 
 	if ( !victim.IsTitan() )
+		return
+
+	// should we ignore friendly fire cases??
+	// only do chatter if we can earn score from damage
+	if ( player.GetTeam() == ent.GetTeam() && !( FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill() ) )
 		return
 	
 	thread DelayedTitanKilledChatter( attacker )
@@ -1080,8 +1095,8 @@ void function InitGruntModeSpawnerSettings()
 	ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson"] )
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_soldier", ["mp_weapon_rocket_launcher", "mp_weapon_mgl"] )
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_soldier", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_electric_smoke", "mp_weapon_grenade_emp"] )
-	// disable archers fire at human players and increase their damage against titans
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
+	// buff double take damage and fire rate, disable archers fire at human players and increase their damage against titans
+	ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_higher_damage", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
 	
 	ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2"] )
 	// removed arc launcher cuz they're bit too powerful
@@ -1089,7 +1104,8 @@ void function InitGruntModeSpawnerSettings()
 	// spectres don't throw grenades, just keep here
 	//ExtraSpawner_SetNPCGrenadeWeapons( "npc_spectre", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_emp"] )
 
-	ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] ) // spitfire have both holosight and aog, not adding
+	//ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] ) // spitfire have both holosight and aog, not adding
+	ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] )
 	// only re-45 and p2016 don't have "hcog" mod included... using them is good enough
 	// removed because we've disable npc pilot capability of switching to pistol
 	//ExtraSpawner_SetNPCSecondaryWeapons( "npc_pilot_elite", ["mp_weapon_autopistol", "mp_weapon_semipistol"] )
@@ -1097,10 +1113,10 @@ void function InitGruntModeSpawnerSettings()
 	// npcs cannot use gravity star
 	// CAI_BaseNPC::NPCInitWeapons - Could not create anymore shared grenade weapons, max 5. Tried to create 'mp_weapon_grenade_gravity'
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_pilot_elite", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_electric_smoke", "mp_weapon_grenade_emp"] )
-	// disable archers fire at human players and increase their damage against titans
+	// buff double take damage and fire rate, disable archers fire at human players and increase their damage against titans
 	// for pilots, add optics, extended_ammo and pro_screen for their weapons. we've added npc weapon bodygroup update!(proscreen can't show xp count for a npc though)
 	// aog goes first because spitfire and lstar both have holosight(lstar one is unfinished), wants to overwrite
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "hcog", "aog", "holosight", "scope_4x", "extended_ammo", "pro_screen"] )
+	ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_higher_damage", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "hcog", "aog", "holosight", "scope_4x", "extended_ammo", "pro_screen"] )
 
 	// npcs can't shoot "mp_weapon_pulse_lmg"
 	ExtraSpawner_SetNPCWeapons( "npc_stalker", ["mp_weapon_softball", "mp_weapon_smr", "mp_weapon_epg"] )
