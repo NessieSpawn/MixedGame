@@ -195,10 +195,12 @@ void function AddDroppodSpawn()
 	droppod.droppodSpawns.extend( SpawnPoints_GetTitan() )
 	droppod.droppodSpawns.extend( GetEntArrayByClass_Expensive( "info_spawnpoint_droppod_start" ) )
 	// remove titan start points, since grunt mode uses them as titan's spawn point
-	//droppod.droppodSpawns.extend( SpawnPoints_GetTitanStart( TEAM_IMC ) )
-	//droppod.droppodSpawns.extend( SpawnPoints_GetTitanStart( TEAM_MILITIA ) )
+	// adding back because our new logic no longer always uses start points
+	droppod.droppodSpawns.extend( SpawnPoints_GetTitanStart( TEAM_IMC ) )
+	droppod.droppodSpawns.extend( SpawnPoints_GetTitanStart( TEAM_MILITIA ) )
 	// remove droppod regular points, since grunt mode uses them to spawn npcs
-	//droppod.droppodSpawns.extend( SpawnPoints_GetDropPod() )
+	// adding back because our new logic will update spawn's lastUsedTime
+	droppod.droppodSpawns.extend( SpawnPoints_GetDropPod() )
 
 	array<entity> pilotSpawns
 	pilotSpawns.extend( SpawnPoints_GetPilot() )
@@ -209,12 +211,13 @@ void function AddDroppodSpawn()
 		// if there're nothing blocked within 3000 hu we consider use it as a spawnpoint
 		TraceResults roofCheck = TraceLine( point.GetOrigin(), point.GetOrigin() + < 0,0,3000 >, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
 		// if there're also nothing blocking the door we surely use it as a spawnpoint
-		TraceResults doorCheck = TraceLine( point.GetOrigin(), point.GetOrigin() + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
-		
+		TraceResults.lowerDoorCheck = TraceLine( point.GetOrigin(), point.GetOrigin() + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
+		TraceResults upperDoorCheck = TraceLine( point.GetOrigin() + < 0, 0, 80 >, point.GetOrigin() + < 0, 0, 80 > + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
+
 		//print( "[DROPPOD_RESPAWN] pilot spawn point at: " + string( point.GetOrigin() ) + " roofcheck: " + string( roofCheck.hitEnt ) )
 		//print( "[DROPPOD_RESPAWN] pilot spawn point at: " + string( point.GetOrigin() ) + " doorCheck: " + string( doorCheck.hitEnt ) )
 
-		if ( !IsValid( roofCheck.hitEnt ) && !IsValid( doorCheck.hitEnt ) )
+		if ( !IsValid( roofCheck.hitEnt ) && !IsValid( lowerDoorCheck.hitEnt ) && !IsValid( upperDoorCheck.hitEnt ) )
 		{
 			droppod.droppodSpawns.append( point )
 			//print( "[DROPPOD_RESPAWN] found a valid pilot spawn point at: " + string( point.GetOrigin() ) )
@@ -223,13 +226,16 @@ void function AddDroppodSpawn()
 
 	foreach ( entity point in droppod.droppodSpawns )
 	{
+		// still better to use global lastUsedTime... I think
+		if ( !( "lastUsedTime" in point.s ) )
+			point.s.lastUsedTime <- -1
 		point.s.droppodLastUsedTime <- -1
 		point.s.droppodLastUsedTeam <- TEAM_UNASSIGNED // for better checks?
 	}
 }
 
 const float SPAWN_ZONE_SEARCH_RADIUS = 1800
-const float DROPPOD_POINT_COOLDOWN = 10.0
+const float DROPPOD_POINT_COOLDOWN = 20.0 // increase from 10 because we're now using global spawn lastUsedTime
 
 // should use a better one
 entity function FindPlayerDroppodSpawnPoint( int team )
@@ -248,7 +254,9 @@ entity function FindPlayerDroppodSpawnPoint( int team )
 		{
 			entity point = spawnPoints[ RandomInt( spawnPoints.len() ) ]
 		
-			if ( Distance2D( point.GetOrigin(), zone.GetOrigin() ) < SPAWN_ZONE_SEARCH_RADIUS && point.s.droppodLastUsedTime + DROPPOD_POINT_COOLDOWN < Time() ) // smaller search
+			// still better to use global lastUsedTime... I think
+			//if ( Distance2D( point.GetOrigin(), zone.GetOrigin() ) < SPAWN_ZONE_SEARCH_RADIUS && point.s.droppodLastUsedTime + DROPPOD_POINT_COOLDOWN < Time() ) // smaller search
+			if ( Distance2D( point.GetOrigin(), zone.GetOrigin() ) < SPAWN_ZONE_SEARCH_RADIUS && point.s.lastUsedTime + DROPPOD_POINT_COOLDOWN < Time() ) // smaller search
 			{
 				chosenPoint = point
 				//print( "[DROPPOD_RESPAWN] found a point which inside spawn zone and off cooldown!" )
@@ -264,7 +272,9 @@ entity function FindPlayerDroppodSpawnPoint( int team )
 		{
 			entity point = spawnPoints[ RandomInt( spawnPoints.len() ) ]
 
-			if ( point.s.droppodLastUsedTime + DROPPOD_POINT_COOLDOWN < Time() )
+			// still better to use global lastUsedTime... I think
+			//if ( point.s.droppodLastUsedTime + DROPPOD_POINT_COOLDOWN < Time() )
+			if ( point.s.lastUsedTime + DROPPOD_POINT_COOLDOWN < Time() )
 			{
 				chosenPoint = point
 				//print( "[DROPPOD_RESPAWN] found a point which is off cooldown!" )
@@ -280,7 +290,9 @@ entity function FindPlayerDroppodSpawnPoint( int team )
 		//print( "[DROPPOD_RESPAWN] can't find any valid point! now using a random one" )
 	}
 
-	chosenPoint.s.droppodLastUsedTime = Time()
+	// still better to use global lastUsedTime... I think
+	//chosenPoint.s.droppodLastUsedTime = Time()
+	chosenPoint.s.lastUsedTime = Time()
 	//print( "[DROPPOD_RESPAWN] current respawn point origin: " + string( chosenPoint.GetOrigin() ) )
 	return chosenPoint
 }
