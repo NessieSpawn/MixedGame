@@ -1363,12 +1363,13 @@ void function SpawnIntroBatch( int team )
 {
 	//array<entity> dropPodNodes = GetDroppodStartPoints()
 	array<entity> dropPodNodes = SpawnPoints_GetDropPodStart( team )
-	array<entity> dropShipNodes = GetValidIntroDropShipSpawn( dropPodNodes )  
+	array<entity> dropShipNodes = GetValidIntroDropShipSpawn( dropPodNodes )
+	// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+	ValidateNPCSpawnpoints( dropPodNodes, "npc_soldier" )
+	ValidateNPCSpawnpoints( dropShipNodes, "npc_soldier" )
 	
 	array<entity> podNodes
-	
 	array<entity> shipNodes
-	
 	
 	// mp_rise has weird droppod_start nodes, this gets around it
 	// To be more specific the teams aren't setup and some nodes are scattered in narnia
@@ -1449,7 +1450,6 @@ void function SpawnIntroBatch( int team )
 			UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 			if ( ShouldSpawnSpecialistSquad( introSpawnClass ) )
 			{
-				array< entity > points = GetZiplineDropshipSpawns()
 				string leaderSet = GetSpecialistGruntLeader()
 				//int leaderHealth = GetSpecialistLeaderHealth( team, introSpawnClass )
 				int leaderHealth = GetSpecialistLeaderHealth( team )
@@ -1470,7 +1470,6 @@ void function SpawnIntroBatch( int team )
 			UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 			if ( ShouldSpawnSpecialistSquad( introSpawnClass ) )
 			{
-				array< entity > points = GetZiplineDropshipSpawns()
 				string leaderSet = GetSpecialistGruntLeader()
 				//int leaderHealth = GetSpecialistLeaderHealth( team, introSpawnClass )
 				int leaderHealth = GetSpecialistLeaderHealth( team )
@@ -1551,6 +1550,9 @@ void function SpawnerSquads( int team )
 				dropshipPoints.extend( GetValidIntroDropShipSpawn( GetDroppodStartPoints() ) )
 				droppodPoints.extend( GetDroppodStartPoints() )
 				string ent = file.podEntities[ index ][ RandomInt( file.podEntities[ index ].len() ) ]
+				// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+				ValidateNPCSpawnpoints( dropshipPoints, ent )
+				ValidateNPCSpawnpoints( droppodPoints, ent )
 
 				if ( ShouldSpawnSpecialistSquad( ent ) )
 				{
@@ -1612,6 +1614,8 @@ void function SpawnerSquads( int team )
 					
 					array< entity > points = SpawnPoints_GetDropPod()
 					points.extend( GetDroppodStartPoints() ) // add startpoints for fun!
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_prowler" )
 					entity node = FindBestSpawnForNPCDrop( points, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//print( "RUNNING ExtraSpawner_SpawnProwlerSquadDropPod()" )
@@ -1655,6 +1659,8 @@ void function SpawnerHeavyArmor( int team )
 
 					array<entity> points = SpawnPoints_GetTitan()
 					points.extend( GetTitanStartPoints() ) // add startpoints for fun!
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_super_spectre" )
 					entity node = FindBestSpawnForNPCDrop( points, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//thread AiGameModes_SpawnReaper( node.GetOrigin(), node.GetAngles(), team, "npc_super_spectre_aitdm", ReaperHandler )
@@ -1706,6 +1712,8 @@ void function SpawnerHeavyArmor( int team )
 					
 					array< entity > points = SpawnPoints_GetTitan()
 					points.extend( GetTitanStartPoints() ) // add startpoints for fun!
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_titan" )
 					entity node = FindBestSpawnForNPCDrop( points, team, 10 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					thread ExtraSpawner_SpawnTitan( node.GetOrigin(), node.GetAngles(), team, true )
@@ -1729,6 +1737,9 @@ void function SpawnerHeavyArmor( int team )
 					array< entity > points
 					points.extend( GetTitanStartPoints() )
 					points.extend( SpawnPoints_GetTitan() ) // new added because we've made a spawnpoint search function
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_titan" )
+					ValidateNPCSpawnpoints( points, "npc_pilot_elite" ) // validate points twice so we won't have any issue
 					entity node = FindBestSpawnForNPCDrop( points, team, 15 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//entity titan = AiGameModes_SpawnTitanRandom( node.GetOrigin(), node.GetAngles(), team )
@@ -1774,6 +1785,8 @@ void function SpawnerNPCs( int team )
 					
 					array< entity > points = SpawnPoints_GetDropPod()
 					points.extend( GetDroppodStartPoints() ) // add startpoints for fun!
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_marvin" )
 					entity node = FindBestSpawnForNPCDrop( points, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//thread AiGameModes_SpawnDropPod( node.GetOrigin(), node.GetAngles(), team, spawnEnt )
@@ -1799,6 +1812,8 @@ void function SpawnerNPCs( int team )
 
 					array< entity > points = SpawnPoints_GetDropPod()
 					points.extend( GetDroppodStartPoints() ) // add startpoints for fun!
+					// modified function from _ai_gamemodes.gnut, remove points with no navmesh covered
+					ValidateNPCSpawnpoints( points, "npc_prowler" )
 					entity node = FindBestSpawnForNPCDrop( points, team, 8 )
 					UpdateNPCSpawnLastUsedTime( node ) // setup used time for spawn
 					//thread AiGameModes_SpawnDropPod( node.GetOrigin(), node.GetAngles(), team, spawnEnt )
