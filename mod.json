@@ -1019,6 +1019,13 @@
                 "After": "Pilot_Using_TitanWeapons_Init"
 			}
 		},
+		{
+			"Path": "/modweapons/modutility/_rechamber_weapon_overhaul.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Rechamber_Weapons_Animation_Overhaul_Init"
+			}
+		},
 		// modded weapon utility end
 		// modded softball
 		{
