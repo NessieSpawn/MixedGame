@@ -295,6 +295,12 @@ void function ValidateNPCSpawnpoints( array<entity> points, string npcToSpawn = 
 	{
 		vector origin = point.GetOrigin()
 		npcDummy.SetOrigin( origin )
+		// function from _base_gametype.gnut, could fix everything!
+		if ( IsPointOutOfBounds( origin ) )
+		{
+			points.removebyvalue( point )
+			//print( string( point ) + " at " + string( origin ) + " is out of battle! filtering" )
+		}
 		// search radius from mp_weapon_frag_drone.nut
 		vector ornull clampedPos = NavMesh_ClampPointForAIWithExtents( origin, npcDummy, < 20, 20, 36 > )
 		if ( clampedPos == null )
