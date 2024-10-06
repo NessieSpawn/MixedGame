@@ -5564,7 +5564,7 @@ void function ExtraSpawner_SquadHandler( array<entity> guys )
 		{
 			// check leechable guys
 			if ( guy.GetTeam() != team )
-				guys.removebyvalue( guy )
+				guys.fastremovebyvalue( guy )
 		}
 		// Stop func if our squad has been killed off
 		if ( guys.len() == 0 )
@@ -6833,7 +6833,7 @@ void function ExtraSpawner_ProwlerSquadHandler( array<entity> guys )
 		{
 			// check leechable guys
 			if ( guy.GetTeam() != team )
-				guys.removebyvalue( guy )
+				guys.fastremovebyvalue( guy )
 		}
 		// Stop func if our squad has been killed off
 		if ( guys.len() == 0 )
@@ -11506,7 +11506,7 @@ void function RemoveEntityCallback_OnUseCarePackage( entity ent, void functionre
 	if ( !( ent in file.entityCarePackageUsedCallbacks ) )
 		return
 	if ( file.entityCarePackageUsedCallbacks[ ent ].contains( callbackFunc ) )
-		file.entityCarePackageUsedCallbacks[ ent ].removebyvalue( callbackFunc )
+		file.entityCarePackageUsedCallbacks[ ent ].fastremovebyvalue( callbackFunc )
 }
 
 void function RunEntityCallbacks_OnUseCarePackage( entity ent, entity package )
