@@ -489,7 +489,7 @@ void function SetUpGruntmodeStalker_Threaded( entity stalker )
 	stalker.EndSignal( "OnDestroy" )
 
 	// wait for next frame so extra_ai_spawner won't override our settings
-	WaitEndFrame()
+	WaitFrame()
 	
 	// setup hitgroup
 	AiStalker_SetDismemberHitGroupRequiredDamage( stalker, HITGROUP_HEAD, 0.5 ) // stalkers don't take extra damage from headshot, but dies if head taken enough damage
