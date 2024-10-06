@@ -207,7 +207,7 @@ void function SpawnLevel_Spectre( int team )
 	// This does the "Enemy x incoming" text
 	string defcon = team == TEAM_MILITIA ? "IMCdefcon" : "MILdefcon"
 
-	print( "SpawnLevel_Spectre(), team: " + string( team ) )
+	//print( "SpawnLevel_Spectre(), team: " + string( team ) )
 
 	// level spawn content
 	file.podEntities[ index ].append( "npc_spectre" ) // add spectres into droppod and dropship
@@ -221,7 +221,7 @@ void function SpawnLevel_Stalker( int team )
 	// This does the "Enemy x incoming" text
 	string defcon = team == TEAM_MILITIA ? "IMCdefcon" : "MILdefcon"
 
-	print( "SpawnLevel_Stalker(), team: " + string( team ) )
+	//print( "SpawnLevel_Stalker(), team: " + string( team ) )
 
 	// level spawn content
 	//file.marvins[ index ] = false // never remove marvin spawns ;)
@@ -236,7 +236,7 @@ void function SpawnLevel_Reaper( int team )
 	// This does the "Enemy x incoming" text
 	string defcon = team == TEAM_MILITIA ? "IMCdefcon" : "MILdefcon"
 
-	print( "SpawnLevel_Reaper(), team: " + string( team ) )
+	//print( "SpawnLevel_Reaper(), team: " + string( team ) )
 
 	// level spawn content
 	file.reapers[ index ] = true // enable reaper spawn
@@ -253,7 +253,7 @@ void function SpawnLevel_Titan( int team )
 	// This does the "Enemy x incoming" text
 	string defcon = team == TEAM_MILITIA ? "IMCdefcon" : "MILdefcon"
 
-	print( "SpawnLevel_Titan(), team: " + string( team ) )
+	//print( "SpawnLevel_Titan(), team: " + string( team ) )
 
 	// level spawn content
 	file.titans[ index ] = true // enable titan spawn
