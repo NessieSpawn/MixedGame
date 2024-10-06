@@ -210,16 +210,34 @@ void function AddDroppodSpawn()
 	pilotSpawns.extend( SpawnPoints_GetPilotStart( TEAM_MILITIA ) )
 	foreach ( entity point in pilotSpawns )
 	{
+		vector origin = point.GetOrigin()
+		vector roofTraceStart = origin
+		vector roofTraceEnd = roofTraceStart + < 0,0,65535 >
+		vector lowerDoorTraceStart = origin
+		vector lowerDoorTraceEnd = lowerDoorTraceStart + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30
+		vector upperDoorTraceStart = point.GetOrigin() + < 0, 0, 80 >
+		vector upperDoorTraceEnd = upperDoorTraceStart + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30
+		vector leftDoorTraceStart = lowerDoorTraceEnd
+		vector leftDoorTraceEnd = leftDoorTraceStart - AnglesToRight( < 0, point.GetOrigin().y, 0 > ) * 30
+		vector rightDoorTraceStart = lowerDoorTraceEnd
+		vector rightDoorTraceEnd = rightDoorTraceStart + AnglesToRight( < 0, point.GetOrigin().y, 0 > ) * 30
+
+		const int traceMask = (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS)
+		const int collisionGroup = TRACE_COLLISION_GROUP_NONE
+
 		// if there're nothing blocked within 3000 hu we consider use it as a spawnpoint
-		TraceResults roofCheck = TraceLine( point.GetOrigin(), point.GetOrigin() + < 0,0,3000 >, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
+		// now we needs roofcheck to hit sky, no only HU checks
+		TraceResults roofCheck = TraceLine( roofTraceStart, roofTraceEnd, point, traceMask, collisionGroup )
 		// if there're also nothing blocking the door we surely use it as a spawnpoint
-		TraceResults lowerDoorCheck = TraceLine( point.GetOrigin(), point.GetOrigin() + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
-		TraceResults upperDoorCheck = TraceLine( point.GetOrigin() + < 0, 0, 80 >, point.GetOrigin() + < 0, 0, 80 > + AnglesToForward( < 0,point.GetAngles().y, 0> ) * 30, point, (TRACE_MASK_SHOT | CONTENTS_BLOCKLOS), TRACE_COLLISION_GROUP_NONE )
+		TraceResults lowerDoorCheck = TraceLine( lowerDoorTraceStart, lowerDoorTraceEnd, point, traceMask, collisionGroup )
+		TraceResults upperDoorCheck = TraceLine( upperDoorTraceStart, upperDoorTraceEnd, point, traceMask, collisionGroup )
+		TraceResults leftDoorCheck = TraceLine( leftDoorTraceStart, leftDoorTraceEnd, point, traceMask, collisionGroup )
+		TraceResults rightDoorCheck = TraceLine( rightDoorTraceStart, rightDoorTraceEnd, point, traceMask, collisionGroup )
 
 		//print( "[DROPPOD_RESPAWN] pilot spawn point at: " + string( point.GetOrigin() ) + " roofcheck: " + string( roofCheck.hitEnt ) )
 		//print( "[DROPPOD_RESPAWN] pilot spawn point at: " + string( point.GetOrigin() ) + " doorCheck: " + string( doorCheck.hitEnt ) )
 
-		if ( !IsValid( roofCheck.hitEnt ) && !IsValid( lowerDoorCheck.hitEnt ) && !IsValid( upperDoorCheck.hitEnt ) )
+		if ( roofCheck.hitSky && !IsValid( lowerDoorCheck.hitEnt ) && !IsValid( upperDoorCheck.hitEnt ) && !IsValid( leftDoorCheck.hitEnt ) && !IsValid( rightDoorCheck.hitEnt ) )
 		{
 			droppod.droppodSpawns.append( point )
 			//print( "[DROPPOD_RESPAWN] found a valid pilot spawn point at: " + string( point.GetOrigin() ) )
