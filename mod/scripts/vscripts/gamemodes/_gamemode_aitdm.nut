@@ -693,7 +693,7 @@ void function SquadHandler( array<entity> guys )
 		{
 			// check leechable guys
 			if ( guy.GetTeam() != team )
-				guys.removebyvalue( guy )
+				guys.fastremovebyvalue( guy )
 		}
 		// Stop func if our squad has been killed off
 		if ( guys.len() == 0 )
