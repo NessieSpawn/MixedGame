@@ -140,7 +140,7 @@ void function DeleteNoSpawnArea( string noSpawnIdx )
 	foreach ( noSpawnArea in file.noSpawnAreas )
 	{
 		if ( noSpawnArea.id == noSpawnIdx )
-			file.noSpawnAreas.removebyvalue( noSpawnArea )
+			file.noSpawnAreas.fastremovebyvalue( noSpawnArea )
 	}
 }
 

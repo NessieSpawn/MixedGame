@@ -514,7 +514,7 @@ void function SquadHandler( array<entity> guys )
 			// Check if alive
 			if ( !IsAlive( guy ) )
 			{
-				guys.removebyvalue( guy )
+				guys.fastremovebyvalue( guy )
 				continue
 			}
 			// Stop func if our squad has been killed off
