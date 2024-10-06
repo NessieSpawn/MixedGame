@@ -1428,7 +1428,7 @@ void function AT_DroppodSquadEvent( AT_WaveOrigin campData, int spawnId, array<A
 			waitthread AT_SpawnDroppodSquad( campData, spawnId, ent, eventManager )
 			data.pendingSpawns -= SQUAD_SIZE
 			if ( data.pendingSpawns <= 0 ) // current spawn data has reached max spawn amount
-				minionDatas.removebyvalue( data ) // remove this data
+				minionDatas.fastremovebyvalue( data ) // remove this data
 			if ( GetScriptManagedNPCArrayLength_Alive( eventManager ) >= totalAllowedOnField ) // we have enough npcs on field?
 				break // stop following spawning functions
 		}

@@ -299,7 +299,7 @@ array<entity> function AntiTitanMine_NPCSearch( entity proximityMine, int teamNu
 				if ( owner.GetTeam() != target.GetTeam() )
 					continue
 				if ( owner.GetPetTitan() == target )
-					validTargets.removebyvalue( target )
+					validTargets.fastremovebyvalue( target )
 			}
 		}
 

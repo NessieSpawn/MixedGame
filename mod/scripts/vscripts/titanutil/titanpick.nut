@@ -482,7 +482,7 @@ OffhandWeaponData function GetTitanOffhandWeaponStruct( entity titan )
                 {
                     //print( "found classmod: " + mod + ", removing" )
                     titanOffhands.classMods.append( mod ) // add to array
-                    classMods.removebyvalue( mod ) // remove existing classmod
+                    classMods.fastremovebyvalue( mod ) // remove existing classmod
                     soul.soul.titanLoadout.setFileMods.removebyvalue( mod ) // remove from setFileMods
                 }
             }

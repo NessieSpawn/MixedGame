@@ -291,6 +291,7 @@ void function ValidateNPCSpawnpoints( array<entity> points, string npcToSpawn = 
 	entity npcDummy = CreateNPC( npcToSpawn, TEAM_BOTH, <0,0,0>, <0,0,0> )
 	// have to dispatchspawn before clamping points
 	DispatchSpawn( npcDummy )
+	array<entity> invalidSpawns // remove spawns later after we done foreach, otherwise
 	foreach ( point in points )
 	{
 		vector origin = point.GetOrigin()
@@ -298,15 +299,17 @@ void function ValidateNPCSpawnpoints( array<entity> points, string npcToSpawn = 
 		// function from _base_gametype.gnut, could fix everything!
 		if ( IsPointOutOfBounds( origin ) )
 		{
-			points.removebyvalue( point )
+			points.fastremovebyvalue( point ) // have to use fastremovebyvalue othewise "foreach" will offset incorrectly from next element in array
 			//print( string( point ) + " at " + string( origin ) + " is out of battle! filtering" )
+			continue
 		}
 		// search radius from mp_weapon_frag_drone.nut
 		vector ornull clampedPos = NavMesh_ClampPointForAIWithExtents( origin, npcDummy, < 20, 20, 36 > )
 		if ( clampedPos == null )
 		{
-			points.removebyvalue( point )
+			points.fastremovebyvalue( point ) // have to use fastremovebyvalue othewise "foreach" will offset incorrectly from next element in array
 			//print( string( point ) + " at " + string( origin ) + " isn't covered by " + npcToSpawn + "'s navmesh, filtering" )
+			continue
 		}
 	}
 	if ( IsValid( npcDummy ) )

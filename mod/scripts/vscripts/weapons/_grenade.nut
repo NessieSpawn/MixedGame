@@ -647,7 +647,11 @@ array<entity> function ProximityMine_NPCSearch_Default( entity proximityMine, in
 				if ( owner.GetTeam() != target.GetTeam() )
 					continue
 				if ( target.GetBossPlayer() == owner || target.GetOwner() == owner )
-					validTargets.removebyvalue( target )
+				{
+					// here may should use fastremovebyvalue?
+					//validTargets.removebyvalue( target )
+					validTargets.fastremovebyvalue( target )
+				}
 			}
 		}
 
@@ -669,7 +673,11 @@ array<entity> function ProximityMine_PlayerSearch_Default( entity proximityMine,
 		{
 			// don't damage player themselves, otherwise we damage all players including friendly ones
 			if ( IsValid( owner ) && target == owner )
-				validTargets.removebyvalue( target )
+			{
+				// here may should use fastremovebyvalue?
+				//validTargets.removebyvalue( target )
+				validTargets.fastremovebyvalue( target )
+			}
 		}
 
 		return validTargets
