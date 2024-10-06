@@ -1,0 +1,50 @@
+global function Rechamber_Weapons_Animation_Overhaul_Init
+
+global function RechamberWeaponsAnimationOveraul_SetEnabled
+
+struct
+{
+    bool animationOverhaulEnabled
+} file
+
+void function Rechamber_Weapons_Animation_Overhaul_Init()
+{
+    AddCallback_OnPlayerReload( OnWeaponReload )
+}
+
+void function OnWeaponReload( entity weapon )
+{
+    if ( !IsValid( weapon ) )
+        return
+    
+    if ( !file.animationOverhaulEnabled )
+        return
+
+    entity owner = weapon.GetWeaponOwner()
+    if ( !IsValid( owner ) || !owner.IsPlayer() )
+        return
+
+    bool canRechamber = weapon.GetWeaponSettingFloat( eWeaponVar.rechamber_time ) > 0
+    if ( !canRechamber )
+        return
+
+    // empty ammo and do full reload on this weapon
+    if ( !weapon.IsReadyToFire() ) // this will return false if weapon isn't rechambered yet
+    {
+        // anti-crash: not all weapons uses clip, avoid issue with modded weapons
+        try
+        {
+            weapon.SetWeaponPrimaryClipCount( 0 )
+        }
+        catch( ex ){}
+        // re-deploy weapon to trigger full reload
+        // should we add a mod for these weapons to do a instant deploy?
+        HolsterViewModel( player )
+        DeployViewModel( player )
+    }
+}
+
+void function RechamberWeaponsAnimationOveraul_SetEnabled( bool enable )
+{
+    file.animationOverhaulEnabled = enable
+}
