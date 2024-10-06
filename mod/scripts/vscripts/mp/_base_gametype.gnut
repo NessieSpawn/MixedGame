@@ -2099,7 +2099,9 @@ void function EntityBackInBounds( entity trigger, entity ent, entity caller, var
 {
 	//printt( "ENTITY", ent, "IS BACK IN BOUNDS OF TRIGGER", trigger )
 
-	if ( !IsValidOutOfBoundsEntity( ent, trigger ) )
+	// modified: add backInBounds parameter to fix player unable to get back in bounds
+	//if ( !IsValidOutOfBoundsEntity( ent, trigger ) )
+	if ( !IsValidOutOfBoundsEntity( ent, trigger, true ) )
 		return
 
 	//printt( "Valid Out OfBounds Entity, EntityBackInBounds" )
@@ -2168,7 +2170,9 @@ void function KillEntityOutOfBounds( entity ent, entity trigger )
 	ent.Die( svGlobal.worldspawn, svGlobal.worldspawn, { scriptType = DF_INSTANT, damageSourceId = eDamageSourceId.outOfBounds } )
 }
 
-bool function IsValidOutOfBoundsEntity( entity ent, entity trigger )
+// add backInBounds so we won't check player noclipping for that case
+//bool function IsValidOutOfBoundsEntity( entity ent, entity trigger )
+bool function IsValidOutOfBoundsEntity( entity ent, entity trigger, bool backInBounds = false )
 {
 	if ( !IsValid( ent ) )
 		return false
@@ -2189,12 +2193,17 @@ bool function IsValidOutOfBoundsEntity( entity ent, entity trigger )
 
 	if ( ent.IsPlayer() )
 	{
-		if ( ent.IsNoclipping() && !ent.Anim_IsActive() ) //Need to check for Anim_IsActive because PlayAnim() calls will set IsNoclipping() to true. This caused a bug with ejecting out of a OutOfBounds trigger
-			return false
+		// modified: only do these checks if we're not back in bounds
+		// back in bound should always valid for players...
+		if ( !backInBounds )
+		{
+			if ( ent.IsNoclipping() && !ent.Anim_IsActive() ) //Need to check for Anim_IsActive because PlayAnim() calls will set IsNoclipping() to true. This caused a bug with ejecting out of a OutOfBounds trigger
+				return false
 
-		entity parentEnt = ent.GetParent()
-		if ( IsValid( parentEnt ) && IsDropship( parentEnt ) )
-			return false
+			entity parentEnt = ent.GetParent()
+			if ( IsValid( parentEnt ) && IsDropship( parentEnt ) )
+				return false
+		}
 
 		return true
 	}
