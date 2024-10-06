@@ -6406,7 +6406,7 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			// take off existing main weapons, or sometimes they'll have a archer
 			foreach ( entity weapon in npc.GetMainWeapons() )
 				npc.TakeWeaponNow( weapon.GetWeaponClassName() )
-			npc.GiveWeapon( "mp_weapon_sniper", ["threat_scope"] ) // removed "pve_elite". we've added npc weapon bodygroup update, can add a scope for fun
+			npc.GiveWeapon( "mp_weapon_sniper", ["pve_elite", "threat_scope"] ) // we've added npc weapon bodygroup update, can add a scope for fun
 			npc.SetActiveWeaponByName( "mp_weapon_sniper" )
 
 			// removed pistol usage
