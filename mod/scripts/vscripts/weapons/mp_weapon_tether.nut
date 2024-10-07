@@ -313,6 +313,10 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 
 		foreach ( titan in enemyTitans )
 		{
+			// defensive fix, may break vanilla behavior against npcs though
+			if ( !IsAlive( titan ) )
+				continue
+
 			TraceResults traceResult = TraceLineHighDetail( projectile.GetOrigin() + <0,0,1>, titan.EyePosition(), [projectile], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
 			if ( traceResult.hitEnt != titan )
 				continue
@@ -321,6 +325,10 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 			if ( !IsEnemyTeam( titan.GetTeam(), team ) && !searchForFriendly )
 				continue
 
+			// for npcs, we shouldn't tether a frozen npc... I think?
+			if ( titan.IsNPC() && titan.IsFrozen() )
+				continue
+			
 			entity tetherEndEntForPlayer = CreateExpensiveScriptMover()
 			tetherEndEntForPlayer.SetModel( TETHER_1P_MODEL )
 			tetherEndEntForPlayer.RenderWithViewModels( true )
