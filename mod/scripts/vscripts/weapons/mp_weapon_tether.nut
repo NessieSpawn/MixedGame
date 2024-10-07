@@ -56,12 +56,10 @@ var function OnWeaponPrimaryAttack_weapon_tether( entity weapon, WeaponPrimaryAt
 entity function FireTether( entity weapon, vector pos, vector dir, bool predicted, float velocity )
 {
 	vector angVel = < RandomFloat( 720.0 ) - 360.0, RandomFloat( 720.0 ) - 360.0, RandomFloat( 720.0 ) - 360.0 >
-	entity projectile = FireWeaponGrenade_RecordData( weapon, pos, dir * velocity, angVel, 0.0, 0, 0, predicted, PROJECTILE_LAG_COMPENSATED, false )
+	entity projectile = weapon.FireWeaponGrenade( pos, dir * velocity, angVel, 0.0, 0, 0, predicted, PROJECTILE_LAG_COMPENSATED, false )
 	if ( !IsValid( projectile ) )
 		return null
-	//SetTeam( projectile, weapon.GetTeam() ) // use owner's team is better
-	entity owner = weapon.GetWeaponOwner()
-	SetTeam( projectile, owner.GetTeam() )
+	SetTeam( projectile, weapon.GetTeam() )
 	// projectile.InitMagnetic( 1600, "Weapon_TetherGun_Attach_3P_VS_3P" )
 	return projectile
 }
@@ -120,17 +118,12 @@ void function OnProjectileCollision_weapon_tether( entity projectile, vector pos
 	}
 
 	#if SERVER
-		//array<string> projectileMods = projectile.ProjectileGetMods() // vanilla behavior, no need to use Vortex_GetRefiredProjectileMods()
-		array<string> projectileMods = Vortex_GetRefiredProjectileMods( projectile ) // i don't care, let's break vanilla behavior
+		array<string> projectileMods = projectile.ProjectileGetMods()
 		bool isExplosiveTether = false
-		bool canTetherPilot = false
 		if ( projectileMods.contains( "fd_explosive_trap" ) )
 			isExplosiveTether = true
-		// modded weapon!!
-		if ( projectileMods.contains( "pilot_tether" ) )
-			canTetherPilot = true
 
-		if ( hitEnt.IsTitan() || canTetherPilot && IsAlive( hitEnt ) && !proxMineOnly )
+		if ( hitEnt.IsTitan() && IsAlive( hitEnt ) && !proxMineOnly )
 		{
 			SetForceDrawWhileParented( projectile, true )
 
@@ -178,7 +171,7 @@ void function OnProjectileCollision_weapon_tether( entity projectile, vector pos
 
 			array<entity> ziplineEnts = [ziplineAnchor, tetherEndEntForOthers, tetherEndEntForPlayer, tetherRopeForPlayer, tetherRopeForOthers]
 
-			AddTitanTether( owner, ziplineAnchor, hitEnt, ziplineEnts, ziplineAnchor, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether, canTetherPilot )
+			AddTitanTether( owner, ziplineAnchor, hitEnt, ziplineEnts, ziplineAnchor, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether )
 
 			if ( hitEnt.IsPlayer() )
 			{
@@ -194,14 +187,11 @@ void function OnProjectileCollision_weapon_tether( entity projectile, vector pos
 		else
 		{
 			thread ProximityTetherThink( projectile, owner, isExplosiveTether )
-		
-			// vanilla missing, added by Moblin.Archon
+      		// vanilla missing, added by Moblin.Archon
 			// we want arc cannon able to search for tethers, also make shotgun blast able to damage them
-			// but to keep vanilla behavior, make eva-8 unable to damage tether
-			// ( my opinion is to just fix this thing, so I removed eva-8 exception )
+			// but to keep vanilla behavior, make eva-8 unable to damage tether( also doublebarrel shotgun for northstar )
 			SetVisibleEntitiesInConeQueriableEnabled( projectile, true )//WHERE IS IT?!
-			//AddEntityCallback_OnDamaged( projectile, ConeDamageTethersException )
-			SetObjectCanBeMeleed( projectile, false ) // do we need this? I think it's better to make tethers able to be removed by bison melee
+			AddEntityCallback_OnDamaged( projectile, ConeDamageTethersException )
 		}
 	#endif
 }
@@ -270,15 +260,10 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 
 	wait 1.0 // slight delay before activation
 
-	bool canTetherPilot = Vortex_GetRefiredProjectileMods( projectile ).contains( "pilot_tether" ) // modded refire behavior
-
 	float startTime = Time()
 	float TETHER_MINE_LIFETIME
 	if ( GAMETYPE == "fd" )
 		TETHER_MINE_LIFETIME = 10000.0
-	// has limited it's placement, no need to limit duration.
-	//else if( canTetherPilot )
-	//	TETHER_MINE_LIFETIME = 15.0
 	else
 		TETHER_MINE_LIFETIME = 60.0
 
@@ -290,15 +275,11 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 		array<entity> enemyTitans = GetNPCArrayEx( "npc_titan", TEAM_ANY, team, projectile.GetOrigin(), 450 )
 		enemyTitans.extend( GetNPCArrayEx( "npc_super_spectre", TEAM_ANY, team, projectile.GetOrigin(), 450 ) )
 		array<entity> enemyPlayers = GetPlayerArrayOfEnemies_Alive( team )
-		// friendlyFire condition
-		bool searchForFriendly = FriendlyFire_ShouldMineWeaponSearchForFriendly()
-		if ( searchForFriendly )
-			enemyPlayers.extend( GetPlayerArrayOfTeam_Alive( team ) )
 
 		vector projectilePos = projectile.GetOrigin()
 		foreach ( player in enemyPlayers )
 		{
-			if ( !player.IsTitan() && !canTetherPilot ) // pilot tether
+			if ( !player.IsTitan() )
 				continue
 
 			vector playerPos = player.GetOrigin()
@@ -316,19 +297,17 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 			// defensive fix, may break vanilla behavior against npcs though
 			if ( !IsAlive( titan ) )
 				continue
-
 			TraceResults traceResult = TraceLineHighDetail( projectile.GetOrigin() + <0,0,1>, titan.EyePosition(), [projectile], TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
 			if ( traceResult.hitEnt != titan )
 				continue
 
-			// friendlyFire condition
-			if ( !IsEnemyTeam( titan.GetTeam(), team ) && !searchForFriendly )
+			if ( !IsEnemyTeam( titan.GetTeam(), team ) )
 				continue
 
 			// for npcs, we shouldn't tether a frozen npc... I think?
 			if ( titan.IsNPC() && titan.IsFrozen() )
 				continue
-			
+
 			entity tetherEndEntForPlayer = CreateExpensiveScriptMover()
 			tetherEndEntForPlayer.SetModel( TETHER_1P_MODEL )
 			tetherEndEntForPlayer.RenderWithViewModels( true )
@@ -359,7 +338,7 @@ void function ProximityTetherThink( entity projectile, entity owner, bool isExpl
 
 			projectile.proj.tetherAttached = true
 
-			AddTitanTether( owner, projectile, titan, tetherEnts, projectile, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether, canTetherPilot )
+			AddTitanTether( owner, projectile, titan, tetherEnts, projectile, tetherEndEntForPlayer, tetherEndEntForOthers, isExplosiveTether )
 
 			if ( titan.IsPlayer() )
 				thread TetherFlyIn( projectile, tetherEndEntForPlayer, tetherRopeForPlayer, owner )
@@ -414,19 +393,15 @@ float function GetTetherRopeLength( vector a, vector b )
 
 #endif
 
-
 // vanilla missing, added by Moblin.Archon
 // we want arc cannon able to search for tethers
-// but to keep vanilla behavior, make eva-8 unable to damage tether
-// ( my opinion is to just fix this thing, so I removed eva-8 exception )
-/*
+// but to keep vanilla behavior, make eva-8 unable to damage tether( also doublebarrel shotgun for northstar )
 #if SERVER
 void function ConeDamageTethersException( entity ent, var damageInfo )
 {
-	int attackerDamageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+	int damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 
-	if ( attackerDamageSourceID == eDamageSourceId.mp_weapon_shotgun )
+	if ( damageSourceID == eDamageSourceId.mp_weapon_shotgun || damageSourceID == eDamageSourceId.mp_weapon_shotgun_doublebarrel )
 		DamageInfo_SetDamage( damageInfo, 0 )
 }
 #endif
-*/
