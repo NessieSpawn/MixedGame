@@ -104,7 +104,8 @@ void function PilotTitanWeaponThink( entity player )
                         {
                             //print( "trying to create fake model for it" )
                             asset worldModelName = TITAN_WEAPON_FP_MODEL_TO_WORLD[ fpModelName ]
-                            entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName, "PROPGUN", PILOT_TITAN_WEAPON_MODEL_SCALE, false )
+                            entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName, "PROPGUN", false )
+                            fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
                             file.weaponFakeProp[ activeWeapon ] = fakeWeapon
                         }
                     }
