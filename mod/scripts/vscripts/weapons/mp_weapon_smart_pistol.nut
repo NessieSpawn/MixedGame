@@ -159,7 +159,7 @@ void function OnWeaponStartZoomOut_weapon_smart_pistol( entity weapon )
 // modified content: adding fake model for fake weapons
 // can't get eWeaponVar.playermodel... currently hardcode
 // no need to do like this anymore, now we add settings in _fake_world_waepon_model.gnut
-/*
+// EDIT: still needs to do because this weapon can be used by npcs
 const table< string, asset > FAKE_MODEL_MODS =
 {
 	["fake_smart_xo16"] = $"models/weapons/titan_xo16_shorty/w_xo16shorty.mdl",
@@ -195,7 +195,6 @@ void function CreateFakeModelForSmartPistol( entity weapon )
 		fakeModel.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE // shared const from _pilot_using_titanweapon.gnut
 }
 #endif
-*/
 
 // modified callbacks
 void function OnWeaponOwnerChanged_weapon_smart_pistol( entity weapon, WeaponOwnerChangedParams changeParams )

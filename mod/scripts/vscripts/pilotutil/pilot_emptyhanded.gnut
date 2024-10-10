@@ -20,7 +20,8 @@ void function CheckEmptyHandedModLifetime( entity player )
 
     while ( true )
     {
-        WaitFrame()
+        WaitFrame( true ) // bypass script fps limit for better visual
+        
         if ( !IsAlive( player ) ) 
             continue
         if ( player.IsTitan() )

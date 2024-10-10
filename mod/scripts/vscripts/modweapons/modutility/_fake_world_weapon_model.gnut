@@ -1,10 +1,9 @@
+untyped
 global function FakeWorldModelForWeapon_Init
 
 global function FakeWorldModel_CreateForWeapon
 global function FakeWorldModel_DestroyForWeapon
 
-// actually auto think won't work very well if weapons would drop on ground...
-// it may have those weapons hidden forever
 global function FakeWorldModel_AddModToAutoReplaceModel
 
 struct FakeWeaponModelReplace
@@ -12,7 +11,7 @@ struct FakeWeaponModelReplace
 	string modName
 	asset model
 	string attachment
-	float pilotScale // modelscale when used by pilots
+	float humanScale // modelscale when used by non-titans
 	float titanScale // modelscale when used by titans
 	bool hideOrgWeapon
 }
@@ -90,7 +89,8 @@ void function FakeWeaponModelModsThink( entity player )
 
 				if ( !IsValid( file.weaponFakeProp[ activeWeapon ] ) )
 				{
-					entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, GetCurrentWeaponReplacementModel( activeWeapon ), GetCurrentWeaponReplacementModelAttachment( activeWeapon ), GetCurrentWeaponReplacementModelScale( activeWeapon ), false )
+					entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, GetCurrentWeaponReplacementModel( activeWeapon ), GetCurrentWeaponReplacementModelAttachment( activeWeapon ), false )
+					fakeWeapon.kv.modelscale = GetCurrentWeaponReplacementModelScale( activeWeapon )
 					file.weaponFakeProp[ activeWeapon ] = fakeWeapon
 				}
 			}
@@ -109,13 +109,21 @@ void function TrackWeaponAutoHidden( entity owner, entity weapon )
 		function(): ( owner, weapon )
 		{
 			if ( IsValid( weapon ) )
+			{
+				if ( weapon in file.weaponsHiddenByAutoThink )
+				{
+					weapon.kv.rendermode = 0
+					weapon.kv.renderamt = 255
+					delete file.weaponsHiddenByAutoThink[ weapon ]
+				}
+			}
 		}
 	)
 
 	owner.WaitSignal( "OnDeath" )
 }
 
-entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", float scale = 1.0, bool hideOrgWeapon = true )
+entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", bool hideOrgWeapon = true )
 {
     //print( "RUNNING FakeWorldModel_CreateForWeapon()" )
 	entity owner = weapon.GetWeaponOwner()
@@ -130,16 +138,19 @@ entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, stri
 	prop.Highlight_SetInheritHighlight( true ) // setup highlight
 	//print( "Creating fake model!" )
 
-	thread TrackFakeModelLifeTime( weapon, owner, prop )
+	thread TrackFakeModelLifeTime( weapon, owner, prop, hideOrgWeapon )
 
     return prop
 }
 
-void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop )
+void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, bool hideOrgWeapon )
 {
 	// this hides original weapon
-	weapon.kv.rendermode = 4
-    weapon.kv.renderamt = 0
+	if ( hideOrgWeapon )
+	{
+		weapon.kv.rendermode = 4
+		weapon.kv.renderamt = 0
+	}
 
 	prop.EndSignal( "OnDestroy" )
 
@@ -151,10 +162,10 @@ void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop )
 
 	OnThreadEnd
 	(
-		function(): ( weapon, prop )
+		function(): ( weapon, prop, hideOrgWeapon )
 		{
 			// restore weapon visibility
-			if ( IsValid( weapon ) )
+			if ( IsValid( weapon ) && hideOrgWeapon )
 			{
 				weapon.kv.rendermode = 0
                 weapon.kv.renderamt = 255
@@ -203,7 +214,7 @@ void function FakeWorldModel_DestroyForWeapon( entity weapon )
     weapon.Signal( "DestroyFakeModel" ) // stop TrackFakeModelLifeTime() thread
 }
 
-void function FakeWorldModel_AddModToAutoReplaceModel( string weaponName, string modName, asset model, string attachment, float scale, bool hideOrgWeapon )
+void function FakeWorldModel_AddModToAutoReplaceModel( string weaponName, string modName, asset model, string attachment, float humanScale, float titanScale, bool hideOrgWeapon )
 {
 	if ( !( weaponName in file.replacementModelSettings ) )
 		file.replacementModelSettings[ weaponName ] <- []
@@ -212,7 +223,8 @@ void function FakeWorldModel_AddModToAutoReplaceModel( string weaponName, string
 	settings.modName = modName
 	settings.model = model
 	settings.attachment = attachment
-	settings.scale = scale
+	settings.humanScale = humanScale
+	settings.titanScale = titanScale
 	settings.hideOrgWeapon = hideOrgWeapon
 	file.replacementModelSettings[ weaponName ].append( settings )
 }
@@ -240,6 +252,7 @@ asset function GetCurrentWeaponReplacementModel( entity weapon )
 		return $""
 	
 	asset model
+	string weaponName = weapon.GetWeaponClassName()
 	array<string> mods = weapon.GetMods()
 	foreach ( settings in file.replacementModelSettings[ weaponName ] )
 	{
@@ -258,7 +271,8 @@ string function GetCurrentWeaponReplacementModelAttachment( entity weapon )
 	if ( !WeaponHasReplacementModel( weapon ) )
 		return ""
 	
-	asset attachment
+	string attachment
+	string weaponName = weapon.GetWeaponClassName()
 	array<string> mods = weapon.GetMods()
 	foreach ( settings in file.replacementModelSettings[ weaponName ] )
 	{
@@ -275,15 +289,21 @@ string function GetCurrentWeaponReplacementModelAttachment( entity weapon )
 float function GetCurrentWeaponReplacementModelScale( entity weapon )
 {
 	if ( !WeaponHasReplacementModel( weapon ) )
-		return ""
+		return 1.0
 	
 	float scale
+	entity owner = weapon.GetWeaponOwner()
+	bool ownerIsTitan = IsValid( owner ) && owner.IsTitan()
+	string weaponName = weapon.GetWeaponClassName()
 	array<string> mods = weapon.GetMods()
 	foreach ( settings in file.replacementModelSettings[ weaponName ] )
 	{
 		if ( mods.contains( settings.modName ) )
 		{
-			scale = settings.scale
+			if ( ownerIsTitan )
+				scale = settings.titanScale
+			else
+				scale = settings.humanScale
 			break
 		}
 	}
@@ -294,18 +314,19 @@ float function GetCurrentWeaponReplacementModelScale( entity weapon )
 bool function ShouldCurrentWeaponHideOrgWeapon( entity weapon )
 {
 	if ( !WeaponHasReplacementModel( weapon ) )
-		return ""
+		return true
 	
 	bool hideOrgWeapon
+	string weaponName = weapon.GetWeaponClassName()
 	array<string> mods = weapon.GetMods()
 	foreach ( settings in file.replacementModelSettings[ weaponName ] )
 	{
 		if ( mods.contains( settings.modName ) )
 		{
-			attachment = settings.attachment
+			hideOrgWeapon = settings.hideOrgWeapon
 			break
 		}
 	}
 
-	return attachment
+	return hideOrgWeapon
 }
