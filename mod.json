@@ -818,6 +818,16 @@
                 "After": "MpWeaponShotgun_Init"
             }
 		},
+		{
+			"Path": "/modweapons/northstar_miss/mp_weapon_shotgun_doublebarrel_fixed.nut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponShotgunDoubleBarrel_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponShotgunDoubleBarrel_Init"
+            }
+		},
 		// vanilla missing weapon scripts end
 		// northstar missing weapon scripts
 		{
@@ -1024,6 +1034,13 @@
 			"RunOn": "SERVER",
             "ServerCallback": {
                 "After": "Rechamber_Weapons_Animation_Overhaul_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_fake_tf1_sprint_animation.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Fake_Titanfall1_Sprint_Animation_Init"
 			}
 		},
 		// modded weapon utility end

@@ -3,13 +3,119 @@ global function FakeWorldModelForWeapon_Init
 global function FakeWorldModel_CreateForWeapon
 global function FakeWorldModel_DestroyForWeapon
 
+// actually auto think won't work very well if weapons would drop on ground...
+// it may have those weapons hidden forever
+global function FakeWorldModel_AddModToAutoReplaceModel
+
+struct FakeWeaponModelReplace
+{
+	string modName
+	asset model
+	string attachment
+	float pilotScale // modelscale when used by pilots
+	float titanScale // modelscale when used by titans
+	bool hideOrgWeapon
+}
+
+struct
+{
+	table<entity, bool> weaponsHiddenByAutoThink
+    table<entity, entity> weaponFakeProp
+
+	// settings table
+	table< string, array<FakeWeaponModelReplace> > replacementModelSettings
+} file
+
 void function FakeWorldModelForWeapon_Init()
 {
     // adding fake model for fake weapons
 	RegisterSignal( "DestroyFakeModel" )
+	AddCallback_OnClientConnected( OnClientConnected )
 }
 
-entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN" )
+void function OnClientConnected( entity player )
+{
+    thread FakeWeaponModelModsThink( player )
+}
+
+void function FakeWeaponModelModsThink( entity player )
+{
+	player.EndSignal( "OnDestroy" )
+
+    while ( true )
+    {
+        // try to create ourselves a fake weapon model if we have titan weapon active
+        // also hide that weapon
+        WaitFrame( true ) // bypass script fps limit for better visual
+
+        if ( !IsAlive( player ) )
+            continue
+
+        array<entity> weapons
+        weapons.extend( player.GetMainWeapons() )
+        weapons.extend( player.GetOffhandWeapons() )
+ 
+		foreach ( entity weapon in weapons )
+		{
+			if ( !( weapon in file.weaponsHiddenByAutoThink ) )
+			{
+				if ( WeaponHasReplacementModel( weapon ) && ShouldCurrentWeaponHideOrgWeapon( weapon ) )
+				{
+					//print( "trying to hide it!" )
+					weapon.kv.rendermode = 4
+					weapon.kv.renderamt = 0
+					file.weaponsHiddenByAutoThink[ weapon ] <- true
+					thread TrackWeaponAutoHidden( player, weapon )// restore weapon visibility on owner death
+				}
+			}
+			else
+			{
+				if ( !WeaponHasReplacementModel( weapon ) || !ShouldCurrentWeaponHideOrgWeapon( weapon ) )
+				{
+					weapon.kv.rendermode = 0
+					weapon.kv.renderamt = 255
+					delete file.weaponsHiddenByAutoThink[ weapon ]
+				}
+			}
+		}
+
+		entity activeWeapon = player.GetActiveWeapon()
+		if ( IsValid( activeWeapon ) )
+		{
+			if ( WeaponHasReplacementModel( activeWeapon ) )
+			{
+				//print( "we got pilot's active titan weapon: " + string( activeWeapon ) )
+				if ( !( activeWeapon in file.weaponFakeProp ) )
+					file.weaponFakeProp[ activeWeapon ] <- null
+
+				if ( !IsValid( file.weaponFakeProp[ activeWeapon ] ) )
+				{
+					entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, GetCurrentWeaponReplacementModel( activeWeapon ), GetCurrentWeaponReplacementModelAttachment( activeWeapon ), GetCurrentWeaponReplacementModelScale( activeWeapon ), false )
+					file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+				}
+			}
+		}
+	}
+}
+
+// restore weapon visibility on owner death
+void function TrackWeaponAutoHidden( entity owner, entity weapon )
+{
+	owner.EndSignal( "OnDestroy" )
+	weapon.EndSignal( "OnDestroy" )
+
+	OnThreadEnd
+	(
+		function(): ( owner, weapon )
+		{
+			if ( IsValid( weapon ) )
+		}
+	)
+
+	owner.WaitSignal( "OnDeath" )
+}
+
+entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", float scale = 1.0, bool hideOrgWeapon = true )
 {
     //print( "RUNNING FakeWorldModel_CreateForWeapon()" )
 	entity owner = weapon.GetWeaponOwner()
@@ -31,6 +137,10 @@ entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, stri
 
 void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop )
 {
+	// this hides original weapon
+	weapon.kv.rendermode = 4
+    weapon.kv.renderamt = 0
+
 	prop.EndSignal( "OnDestroy" )
 
 	owner.EndSignal( "OnDeath" )
@@ -41,8 +151,15 @@ void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop )
 
 	OnThreadEnd
 	(
-		function(): ( prop )
+		function(): ( weapon, prop )
 		{
+			// restore weapon visibility
+			if ( IsValid( weapon ) )
+			{
+				weapon.kv.rendermode = 0
+                weapon.kv.renderamt = 255
+			}
+
 			if ( IsValid( prop ) )
 			{
 				//print( "Destroying fake model!" )
@@ -76,11 +193,119 @@ void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop )
 				return
 		}
 
-		WaitFrame()
+		//WaitFrame()
+		WaitFrame( true ) // bypass script fps limit for better visual
 	}
 }
 
 void function FakeWorldModel_DestroyForWeapon( entity weapon )
 {
     weapon.Signal( "DestroyFakeModel" ) // stop TrackFakeModelLifeTime() thread
+}
+
+void function FakeWorldModel_AddModToAutoReplaceModel( string weaponName, string modName, asset model, string attachment, float scale, bool hideOrgWeapon )
+{
+	if ( !( weaponName in file.replacementModelSettings ) )
+		file.replacementModelSettings[ weaponName ] <- []
+	
+	FakeWeaponModelReplace settings
+	settings.modName = modName
+	settings.model = model
+	settings.attachment = attachment
+	settings.scale = scale
+	settings.hideOrgWeapon = hideOrgWeapon
+	file.replacementModelSettings[ weaponName ].append( settings )
+}
+
+bool function WeaponHasReplacementModel( entity weapon )
+{
+	string weaponName = weapon.GetWeaponClassName()
+	if ( !( weaponName in file.replacementModelSettings ) )
+		return false
+	
+	array<string> mods = weapon.GetMods()
+	foreach ( settings in file.replacementModelSettings[ weaponName ] )
+	{
+		if ( mods.contains( settings.modName ) )
+			return true
+	}
+
+	// found nothing
+	return false
+}
+
+asset function GetCurrentWeaponReplacementModel( entity weapon )
+{
+	if ( !WeaponHasReplacementModel( weapon ) )
+		return $""
+	
+	asset model
+	array<string> mods = weapon.GetMods()
+	foreach ( settings in file.replacementModelSettings[ weaponName ] )
+	{
+		if ( mods.contains( settings.modName ) )
+		{
+			model = settings.model
+			break
+		}
+	}
+
+	return model
+}
+
+string function GetCurrentWeaponReplacementModelAttachment( entity weapon )
+{
+	if ( !WeaponHasReplacementModel( weapon ) )
+		return ""
+	
+	asset attachment
+	array<string> mods = weapon.GetMods()
+	foreach ( settings in file.replacementModelSettings[ weaponName ] )
+	{
+		if ( mods.contains( settings.modName ) )
+		{
+			attachment = settings.attachment
+			break
+		}
+	}
+
+	return attachment
+}
+
+float function GetCurrentWeaponReplacementModelScale( entity weapon )
+{
+	if ( !WeaponHasReplacementModel( weapon ) )
+		return ""
+	
+	float scale
+	array<string> mods = weapon.GetMods()
+	foreach ( settings in file.replacementModelSettings[ weaponName ] )
+	{
+		if ( mods.contains( settings.modName ) )
+		{
+			scale = settings.scale
+			break
+		}
+	}
+
+	return scale
+}
+
+bool function ShouldCurrentWeaponHideOrgWeapon( entity weapon )
+{
+	if ( !WeaponHasReplacementModel( weapon ) )
+		return ""
+	
+	bool hideOrgWeapon
+	array<string> mods = weapon.GetMods()
+	foreach ( settings in file.replacementModelSettings[ weaponName ] )
+	{
+		if ( mods.contains( settings.modName ) )
+		{
+			attachment = settings.attachment
+			break
+		}
+	}
+
+	return attachment
 }
