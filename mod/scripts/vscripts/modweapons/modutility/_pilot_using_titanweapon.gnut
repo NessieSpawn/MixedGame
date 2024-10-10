@@ -82,7 +82,7 @@ void function PilotTitanWeaponThink( entity player )
                         file.weaponsHiddenByThisScript[ weapon ] <- true
                         // might helps muzzle find better position?
                         // nah this won't work, I'll just accept it
-                        weapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
+                        //weapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
                     }
                 }
             }
@@ -104,8 +104,7 @@ void function PilotTitanWeaponThink( entity player )
                         {
                             //print( "trying to create fake model for it" )
                             asset worldModelName = TITAN_WEAPON_FP_MODEL_TO_WORLD[ fpModelName ]
-                            entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName )
-                            fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
+                            entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName, "PROPGUN", PILOT_TITAN_WEAPON_MODEL_SCALE, false )
                             file.weaponFakeProp[ activeWeapon ] = fakeWeapon
                         }
                     }
@@ -123,7 +122,7 @@ void function PilotTitanWeaponThink( entity player )
                         weapon.kv.rendermode = 0
                         weapon.kv.renderamt = 255
                         delete file.weaponsHiddenByThisScript[ weapon ]
-                        weapon.kv.modelscale = 1.0
+                        //weapon.kv.modelscale = 1.0
                     }
                 }
             }

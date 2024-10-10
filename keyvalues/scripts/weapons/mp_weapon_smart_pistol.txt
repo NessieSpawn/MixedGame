@@ -203,5 +203,16 @@ WeaponData
 		//	"damage_near_value"   							"*0"
 		//	"damage_far_value"								"*0"
 		//}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+
+		// done in script: append this mod once player has changed
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
+		}
 	}
 }
