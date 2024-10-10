@@ -8,7 +8,7 @@ const float DEFAULT_SPRINT_SPEED = 260.0 // this can't be get through getSetting
 // in that case we need to replace the mod with one only have activitymodifier changed
 const array<string> MODS_TO_OVERRIDE =
 [
-
+    "empty", // needs a temp element for identifying this is a string array
 ]
 
 struct
