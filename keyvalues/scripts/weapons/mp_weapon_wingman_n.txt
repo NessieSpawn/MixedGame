@@ -189,12 +189,12 @@ WeaponData
 		}
 
 		// nessie own balance
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		//nessie_balance
+		//{
+		//	"damage_near_value"			"*0.5"
+		//	"damage_far_value"			"*0.5"
+   	 	//	"damage_very_far_value"		"*0.5"
+		//	"explosion_damage"			"*0.5"
 
 			//"rui_crosshair_index"							"1"
 			//"fast_swap_to"									"0"
@@ -229,7 +229,7 @@ WeaponData
 
 			//"spread_decay_rate"   							"11.0"
 			//"spread_decay_delay"  							".26"
-		}
+		//}
 
 		// npc usage when enabled npc headshots
 		// better not directly modifying "damage_headshot_scale" to prevent impacting player usage
@@ -239,6 +239,17 @@ WeaponData
 			// still not a good idea to change headshot damage... what if we use it on other grunts but not sniper?
 			"npc_damage_near_value"   						"--8" // 20, first version is --10(18)
 			"npc_damage_far_value"							"--7" // 16
+		}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+
+		// done in script: append this mod once player has changed
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
 		}
 	}
 

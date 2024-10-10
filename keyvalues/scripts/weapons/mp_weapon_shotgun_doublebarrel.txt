@@ -1,5 +1,8 @@
 WeaponData
 {
+	"OnWeaponActivate"				"OnWeaponActivate_weapon_shotgun_doublebarrel"
+	"OnWeaponDeactivate"			"OnWeaponDeactivate_weapon_shotgun_doublebarrel"
+
 	// Bodygroups:
 	"bodygroup1_name"	"sight_acgs"
 	"bodygroup1_set"	"0"
@@ -18,11 +21,29 @@ WeaponData
 		{
 			"viewmodel"   							"models/weapons/shotgun_doublebarrel/ptpov_shotgun_doublebarrel.mdl"
 			// note that playermodel is not networked
-			"playermodel" 							"models/weapons/shotgun_doublebarrel/w_shotgun_doublebarrel.mdl"
+			// now handled by script!
+			//"playermodel" 							"models/weapons/shotgun_doublebarrel/w_shotgun_doublebarrel.mdl"
 
 			"activitymodifier"						"pistol"
 			"ammo_no_remove_from_stockpile"			"1"
-			"ammo_clip_size"   						"4" // 2 ammo per shot
+			"ammo_clip_size"   						"4" // 2 ammo per shot, avoiding prediction issue
+			"reload_is_segmented"					"0"
+		}
+
+		// can't have "fake_tf1_sprint_anim" here because activitymodifier already modified by "tfo_doublebarrel_shotgun"
+		// or maybe we can... just need to change everything
+		fake_tf1_sprint_anim
+		{
+		}
+
+		// needs to remove "tfo_doublebarrel_shotgun" in scripts!
+		fake_tf1_sprint_anim_active
+		{
+			"viewmodel"   							"models/weapons/shotgun_doublebarrel/ptpov_shotgun_doublebarrel.mdl"
+
+			"activitymodifier"						"satchel"
+			"ammo_no_remove_from_stockpile"			"1"
+			"ammo_clip_size"   						"4" // 2 ammo per shot, avoiding prediction issue
 			"reload_is_segmented"					"0"
 		}
 	}

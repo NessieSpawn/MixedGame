@@ -1,0 +1,86 @@
+global function Fake_Titanfall1_Sprint_Animation_Init
+
+const string FAKE_TF1_SPRINT_MARK_MOD = "fake_tf1_sprint_anim" // weapon with this mod will be updated by this file
+const string FAKE_TF1_SPRINT_ACTIVE_MOD = "fake_tf1_sprint_anim_active"
+const float DEFAULT_SPRINT_SPEED = 260.0 // this can't be get through getSettingsField()! so it's current hardcoded
+
+// some weapon mod may confict when changing activitymodifier
+// in that case we need to replace the mod with one only have activitymodifier changed
+const array<string> MODS_TO_OVERRIDE =
+[
+    "tfo_doublebarrel_shotgun",
+]
+
+struct
+{
+    table<entity, bool> weaponModChangedFromThisFile
+    table< entity, array<string> > weaponModsOverrideByThisFile
+} file
+
+void function Fake_Titanfall1_Sprint_Animation_Init()
+{
+    AddSpawnCallback( "player", OnPlayerEntitySpawned )
+}
+
+void function OnPlayerEntitySpawned( entity player )
+{
+    thread CheckFakeSprintModLifetime( player )
+}
+
+void function CheckFakeSprintModLifetime( entity player )
+{
+    player.EndSignal( "OnDestroy" )
+
+    while ( true )
+    {
+        WaitFrame( true ) // bypass script fps limit for better visual
+
+        if ( !IsAlive( player ) ) 
+            continue
+        if ( player.IsTitan() )
+            continue
+
+        array<entity> weapons
+        weapons.extend( player.GetMainWeapons() )
+        weapons.extend( player.GetOffhandWeapons() )
+
+        vector velocity = player.GetVelocity()
+        float speedVal = sqrt( velocity.x * velocity.x + velocity.y * velocity.y )
+		foreach ( entity weapon in weapons )
+		{
+			//print( "we got pilot's titan weapon: " + string( weapon ) )
+			if ( !( weapon in file.weaponModChangedFromThisFile ) )
+			{
+				if ( weapon.HasMod( FAKE_TF1_SPRINT_MARK_MOD ) && !weapon.IsReloading() && speedVal <= ( DEFAULT_SPRINT_SPEED + 5 ) && player.IsSprinting() && player.IsOnGround() && !player.IsSliding() )
+				{
+					//print( "trying to hide it!" )
+					weapon.AddMod( FAKE_TF1_SPRINT_ACTIVE_MOD )
+                    foreach ( string mod in MODS_TO_OVERRIDE )
+                    {
+                        if ( weapon.HasMod( mod ) )
+                        {
+                            weapon.RemoveMod( mod )
+                            if ( !( weapon in file.weaponModsOverrideByThisFile ) )
+                                file.weaponModsOverrideByThisFile[ weapon ] <- []
+                            file.weaponModsOverrideByThisFile[ weapon ].append( mod )
+                        }
+                    }
+					file.weaponModChangedFromThisFile[ weapon ] <- true
+				}
+			}
+			else
+			{
+                if ( weapon.HasMod( FAKE_TF1_SPRINT_ACTIVE_MOD ) && ( speedVal > ( DEFAULT_SPRINT_SPEED + 5 ) || !player.IsOnGround() ) || !player.IsSprinting() || player.IsSliding() || weapon.IsReloading() )
+				{
+                    weapon.RemoveMod( FAKE_TF1_SPRINT_ACTIVE_MOD )
+                    if ( weapon in file.weaponModsOverrideByThisFile )
+                    {
+                        foreach ( mod in file.weaponModsOverrideByThisFile[ weapon ] )
+                            weapon.AddMod( mod )
+                    }
+                    delete file.weaponModChangedFromThisFile[ weapon ]
+                }
+			}
+		}
+    }
+}
