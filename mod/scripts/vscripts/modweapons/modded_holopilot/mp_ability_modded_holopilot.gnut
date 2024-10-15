@@ -189,6 +189,8 @@ entity function CreateModdedHoloPilotDecoys( entity player, int numberOfDecoysTo
 		}
 
 		SetupModdedDecoy( player, decoy, infiniteDecoy, randomDecoy, cloakDecoy )
+		// bodygroup for fun
+		decoy.SetFullBodygroup( player.GetFullBodygroup() )
 
 		// modified callbacks
 		// now we use RunCallbacks_OnDecoyCreated() for handling!
