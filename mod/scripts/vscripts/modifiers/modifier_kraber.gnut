@@ -310,10 +310,10 @@ void function GiveKraber( entity player )
         // shuriken currently disabled
         player.TakeOffhandWeapon( OFFHAND_SPECIAL )
         //player.TakeOffhandWeapon( OFFHAND_ORDNANCE )
-        array<string> kunaiMods = ["ninja_projectile", "impact_bounce", "kunai_mode"]
+        array<string> kunaiMods = ["ninja_projectile", "impact_bounce", "kunai_mode", "dissolve_instant"]
         //array<string> shurikenMods = ["ninja_projectile", "impact_bounce", "kunai_mode"]
         if ( INFINITE_CLIP ) // also give kunai double charge if kraber has infinite clip
-            kunaiMods.extend( ["amped_tacticals", "kunai_mode_amped"] )
+            kunaiMods.extend( ["amped_tacticals", "kunai_mode_amped", "dissolve_instant"] )
         player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, kunaiMods )
         //player.GiveOffhandWeapon( "mp_weapon_thermite_grenade", OFFHAND_ORDNANCE, shurikenMods )
     }
