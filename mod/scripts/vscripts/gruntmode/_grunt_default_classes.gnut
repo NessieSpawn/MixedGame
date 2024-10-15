@@ -951,6 +951,7 @@ void function BecomeBeastKing( entity player )
 	beastKingOffhands.append( "melee_pilot_sword" )
 
 	thread BeastKingThink( player, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
+	player.SetActiveWeaponByName( "melee_pilot_sword" ) // sometimes it just don't work?
 }
 
 struct BeastKingStruct
@@ -1440,10 +1441,12 @@ void function BecomeStalker( entity player )
 const float STALKER_DECOY_DURATION = 30 // doubled DECOY_DURATION
 const float STALKER_DECOY_HEALTH = 80 // can tank most npc attack. note that they still gets oneshot by players and npc pilots
 const float STALKER_DECOY_REFUND_GRACE_PERIOD = 10 // if decoy isn't shot at and gets destroyed within this time, consider it has collide with something. we'd refund player's decoy charge
+const float STALKER_DECOY_MAX_COUNT = 2 // limited to 2 charges per player
 
 struct
 {
 	table< entity, float > decoyCreationTime
+	table< entity, array<entity> > activatedDecoys
 } stalker
 
 void function OnStalkerDecoyCreated( entity player, entity decoy )
@@ -1451,7 +1454,11 @@ void function OnStalkerDecoyCreated( entity player, entity decoy )
 	if ( !IsValid( GetStalkerHolopilotDecoyWeapon( player ) ) )
 		return
 
+	if ( !( player in stalker.activatedDecoys ) )
+		stalker.activatedDecoys[ player ] <- []
+
 	stalker.decoyCreationTime[ decoy ] <- Time()
+	CheckStalkerPlayerDecoyMaxCount
 
 	// update timeout and health
 	decoy.SetTimeout( STALKER_DECOY_DURATION )
@@ -1505,7 +1512,7 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 
 	// all checks passed, try refund charge
 	if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
-		weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() )
+		weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
 }
 
 ///////////////////////////////////////////////
