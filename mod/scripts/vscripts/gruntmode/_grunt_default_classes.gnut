@@ -1499,7 +1499,7 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 	if ( !IsValid( bossPlayer ) )
 		return
 	
-	entity waepon = GetStalkerHolopilotDecoyWeapon( bossPlayer )
+	entity weapon = GetStalkerHolopilotDecoyWeapon( bossPlayer )
 	if ( !IsValid( weapon ) )
 		return
 
