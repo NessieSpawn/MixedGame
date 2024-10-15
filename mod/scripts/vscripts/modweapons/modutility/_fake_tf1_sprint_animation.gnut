@@ -51,7 +51,7 @@ void function CheckFakeSprintModLifetime( entity player )
 			//print( "we got pilot's titan weapon: " + string( weapon ) )
 			if ( !( weapon in file.weaponModChangedFromThisFile ) )
 			{
-				if ( weapon.HasMod( FAKE_TF1_SPRINT_MARK_MOD ) && !weapon.IsReloading() && speedVal <= ( DEFAULT_SPRINT_SPEED + 5 ) && player.IsSprinting() && player.IsOnGround() && !player.IsSliding() )
+				if ( weapon.HasMod( FAKE_TF1_SPRINT_MARK_MOD ) && !weapon.IsReloading() && weapon.IsReadyToFire() && speedVal <= ( DEFAULT_SPRINT_SPEED + 5 ) && !player.IsInputCommandHeld( IN_ATTACK ) && player.IsSprinting() && player.IsOnGround() && !player.IsSliding() )
 				{
 					//print( "trying to hide it!" )
 					weapon.AddMod( FAKE_TF1_SPRINT_ACTIVE_MOD )
@@ -70,7 +70,7 @@ void function CheckFakeSprintModLifetime( entity player )
 			}
 			else
 			{
-                if ( weapon.HasMod( FAKE_TF1_SPRINT_ACTIVE_MOD ) && ( speedVal > ( DEFAULT_SPRINT_SPEED + 5 ) || !player.IsOnGround() ) || !player.IsSprinting() || player.IsSliding() || weapon.IsReloading() )
+                if ( weapon.HasMod( FAKE_TF1_SPRINT_ACTIVE_MOD ) && ( player.IsInputCommandHeld( IN_ATTACK ) || speedVal > ( DEFAULT_SPRINT_SPEED + 5 ) || !player.IsOnGround() ) || !player.IsSprinting() || player.IsSliding() || weapon.IsReloading() || !weapon.IsReadyToFire() )
 				{
                     weapon.RemoveMod( FAKE_TF1_SPRINT_ACTIVE_MOD )
                     if ( weapon in file.weaponModsOverrideByThisFile )
