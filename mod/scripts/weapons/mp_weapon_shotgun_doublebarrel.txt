@@ -455,6 +455,15 @@ WeaponData
 			"npc_min_range"   								"0"
 			"npc_max_range"   								"8000"
 		}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
+		}
 	}
 
 	

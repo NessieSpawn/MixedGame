@@ -39,6 +39,7 @@ const string GM_PATH_BUILDER_CLASSNAME			= "Path_Builder"		// r97, one zipline g
 const string GM_SCOUT_CLASSNAME					= "Scout"				// nerfed g2 and archer, two grapple usage
 const string GM_FLYER_CLASSNAME					= "Flyer"				// mozambique and chargerifle, weaker jetpack
 const string GM_ASSASSIN_CLASSNAME				= "Assassin"			// silenced wingman elite, chargerifle and arc grenade
+const string GM_STALKER_CLASSNAME				= "Stalker"				// double-barrel shotgun and chargerifle, two holopilot decoy usage
 
 void function RegisterAllDefaultClass()
 {
@@ -120,7 +121,8 @@ void function RegisterAllDefaultClass()
 		false							// specialist, should this class give more score
 	)
 
-	/* // temp remove melee classes since we've got enough classes?
+	// temp remove melee classes since we've got enough classes?
+	// for my own entertainment I'd enable them for fun
 	// ninja
 	GruntMode_RegisterPlayerClass(
 		GM_NINJA_CLASSNAME,				// classname
@@ -134,7 +136,7 @@ void function RegisterAllDefaultClass()
 		BecomeBeastKing,				// loadout function
 		true							// specialist, should this class give more score
 	)
-	*/
+	//
 
     // jumper
 	GruntMode_RegisterPlayerClass(
@@ -205,6 +207,17 @@ void function RegisterAllDefaultClass()
 		BecomeAssassin,					// loadout function
 		false							// specialist, should this class give more score
 	)
+
+	// stalker
+	GruntMode_RegisterPlayerClass(
+		GM_STALKER_CLASSNAME,			// classname
+		BecomeStalker,					// loadout function
+		false							// specialist, should this class give more score
+	)
+	// holopilot settings
+	AddCallback_OnDecoyCreated( OnStalkerDecoyCreated )
+	AddCallback_PlayerDecoyDie( OnStalkerDecoyDieOrDissolve )
+	AddCallback_PlayerDecoyDissolve( OnStalkerDecoyDieOrDissolve )
 }
 
 //////////////////////////////////////////
@@ -838,6 +851,7 @@ void function BecomeSonarPulser( entity player )
 		"Respawn as Sonar Grunt"											// respawn notification
 	)
 
+	player.GetMainWeapons()[0].AddMod( "fake_tf1_sprint_anim" ) // update sprint animation
 	//player.GiveWeapon( "mp_weapon_defender", ["at_low_stockpile"] ) // 15 stockpile charge rifle
 	player.GiveWeapon( "mp_weapon_defender", ["quick_charge"] ) // quick-charge charge rifle
 	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["grunt_mode", "gm_sonarpulser"] ) // double timed pulse blade
@@ -1272,7 +1286,7 @@ void function BecomeRunner( entity player )
 		"Respawn as Runner: Longer stim, costs heath"						// respawn notification
 	)
 
-	player.GiveWeapon( "mp_weapon_autopistol", ["silencer", "gm_runner", "pas_run_and_gun", "extended_ammo"] ) // less falloff re45
+	player.GiveWeapon( "mp_weapon_autopistol", ["silencer", "gm_runner", "pas_run_and_gun", "extended_ammo", "fake_tf1_sprint_anim"] ) // less falloff re45
     player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] ) // extended ammo mgl
 	player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["octane_stim", "gm_runner"] ) // long duration stim, costs health on activation and disables health regen while activating(not compatible with "grunt_mode")
 	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
@@ -1398,6 +1412,100 @@ void function BecomeAssassin( entity player )
 	player.SetCamo( 19 ) // shadow
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+}
+
+void function BecomeStalker( entity player )
+{
+	player.SetPlayerSettings( "pilot_stalker_male" ) // have a better pov model
+
+	SimpleClassLoadout(  
+		player,
+		"mp_weapon_shotgun_doublebarrel_tfo",								// primary weapon
+		"",																	// secondary weapon
+		"",																	// grenade
+		$"models/humans/pilots/pilot_medium_stalker_m.mdl",					// imc player model
+		$"models/humans/pilots/pilot_medium_stalker_m.mdl",					// mlt player model
+		["disable_doublejump", "only_wallclimb"],							// class mods
+		"潜行者",																// title
+		"以潜行者重生"															// respawn notification
+	)
+
+	player.GetMainWeapons()[0].AddMod( "fake_tf1_sprint_anim" ) // update sprint animation
+	player.GiveWeapon( "mp_weapon_defender", ["quick_charge"] ) // quick-charge charge rifle
+	player.GiveOffhandWeapon( "mp_ability_holopilot", OFFHAND_SPECIAL, ["grunt_mode", "gm_stalker"] )
+
+	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+}
+
+const float STALKER_DECOY_DURATION = 30 // doubled DECOY_DURATION
+const float STALKER_DECOY_HEALTH = 80 // can tank most npc attack. note that they still gets oneshot by players and npc pilots
+const float STALKER_DECOY_REFUND_GRACE_PERIOD = 10 // if decoy isn't shot at and gets destroyed within this time, consider it has collide with something. we'd refund player's decoy charge
+
+struct
+{
+	table< entity, float > decoyCreationTime
+} stalker
+
+void function OnStalkerDecoyCreated( entity player, entity decoy )
+{
+	if ( !IsValid( GetStalkerHolopilotDecoyWeapon( player ) ) )
+		return
+
+	stalker.decoyCreationTime[ decoy ] <- Time()
+
+	// update timeout and health
+	decoy.SetTimeout( STALKER_DECOY_DURATION )
+	decoy.SetMaxHealth( STALKER_DECOY_HEALTH )
+	decoy.SetHealth( STALKER_DECOY_HEALTH )
+
+	// setup damage callbacks
+	// note that this requires decoy.SetDamageNotifications( true ) to take effect
+	// that one is handled by modified mp_ability_holopilot.nut file!
+	AddEntityCallback_OnDamaged( decoy, OnStalkerDecoyDamaged )
+}
+
+entity function GetStalkerHolopilotDecoyWeapon( entity player )
+{
+	entity holopilotWeapon
+	foreach ( weapon in player.GetOffhandWeapons() )
+	{
+		if ( weapon.GetWeaponClassName() == "mp_ability_holopilot" )
+		{
+			holopilotWeapon = weapon
+			break
+		}
+	}
+	if ( !IsValid( holopilotWeapon ) || !holopilotWeapon.HasMod( "gm_stalker" ) )
+		return null
+	
+	return holopilotWeapon
+}
+
+void function OnStalkerDecoyDamaged( entity decoy, var damageInfo )
+{
+	// as long as decoy takes damage, we no longer refund charge to player
+	if ( decoy in stalker.decoyCreationTime )
+		delete stalker.decoyCreationTime[ decoy ]
+}
+
+void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
+{
+	// if decoy isn't damaged and gets destroyed within our period of time...
+	// try to refund charge
+	if ( !( decoy in stalker.decoyCreationTime ) )
+		return
+
+	entity bossPlayer = decoy.GetBossPlayer()
+	if ( !IsValid( bossPlayer ) )
+		return
+	
+	entity waepon = GetStalkerHolopilotDecoyWeapon( bossPlayer )
+	if ( !IsValid( weapon ) )
+		return
+
+	// all checks passed, try refund charge
+	if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
+		weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() )
 }
 
 ///////////////////////////////////////////////
