@@ -222,8 +222,6 @@ WeaponData
 		fake_tf1_sprint_anim
 		{
 		}
-
-		// done in script: append this mod once player has changed
 		fake_tf1_sprint_anim_active
 		{
 			"activitymodifier"						"satchel"
