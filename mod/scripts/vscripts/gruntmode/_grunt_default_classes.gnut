@@ -1420,14 +1420,14 @@ void function BecomeStalker( entity player )
 
 	SimpleClassLoadout(  
 		player,
-		"mp_weapon_shotgun_doublebarrel_tfo",								// primary weapon
+		"mp_weapon_shotgun_doublebarrel",									// primary weapon
 		"",																	// secondary weapon
 		"",																	// grenade
 		$"models/humans/pilots/pilot_medium_stalker_m.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_stalker_m.mdl",					// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
-		"潜行者",																// title
-		"以潜行者重生"															// respawn notification
+		"Stalker",															// title
+		"Respawn as Stalker"												// respawn notification
 	)
 
 	player.GetMainWeapons()[0].AddMod( "fake_tf1_sprint_anim" ) // update sprint animation
