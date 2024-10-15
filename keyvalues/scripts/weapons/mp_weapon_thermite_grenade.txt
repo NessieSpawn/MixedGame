@@ -118,6 +118,9 @@ WeaponData
 		impact_bounce // use together with ninja_projectile. try to bounce from target, stick onto walls
 		{
 		}
+		dissolve_instant // use together with ninja_projectile. blink out upon impact
+		{
+		}
 
 		// gamemode kraber specifics
 		kunai_mode // use together with ninja_projectile

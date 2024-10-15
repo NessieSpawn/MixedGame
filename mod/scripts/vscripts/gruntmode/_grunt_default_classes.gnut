@@ -879,12 +879,19 @@ void function BecomeNinja( entity player )
 	player.SetMaxHealth( 150 ) // higher health
 	player.SetHealth( 150 ) // higher health
 	
-	array<entity> ninjaWeapons
+	// player will be re-give weapon upon landing... which means they'll have weapon entity changed, needs to handle that
+	//array<entity> ninjaWeapons
+	//ninjaWeapons.append( player.GiveWeapon( "mp_weapon_arc_launcher", ["smoke_launcher", "at_low_stockpile"] ) ) //4 stockple smoke launcher
+	//ninjaWeapons.append( player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] ) )
+	array<int> ninjaWeaponSlots
+	player.GiveWeapon( "mp_weapon_arc_launcher", ["smoke_launcher", "at_low_stockpile"] )
+	ninjaWeaponSlots.append( 0 )
+	player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] )
+	ninjaWeaponSlots.append( 1 )
+	
+	// offhand weapons won't return themselves and is exclusive, saving classname is enough
 	array<string> ninjaOffhands
-	ninjaWeapons.append( player.GiveWeapon( "mp_weapon_arc_launcher", ["smoke_launcher", "at_low_stockpile"] ) ) //4 stockple smoke launcher
-	ninjaWeapons.append( player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] ) )
-	// offhand weapons won't return themselves, saving classname is enough
-	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile"] ) // 2s cooldown instant kill projectile
+	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "dissolve_instant"] ) // 2s cooldown instant kill projectile
 	ninjaOffhands.append( "mp_weapon_grenade_sonar" )
 	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_ORDNANCE, ["pas_ordnance_pack"] ) // gravity star, was ["ninja_projectile"]: 2s cooldown instant kill projectile, bit slower than kunai
 	ninjaOffhands.append( "mp_weapon_grenade_gravity" )
@@ -894,10 +901,13 @@ void function BecomeNinja( entity player )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
 	player.GiveOffhandWeapon( "melee_pilot_kunai", OFFHAND_MELEE, ["grunt_mode"] )
 	ninjaOffhands.append( "melee_pilot_kunai" )
-	thread NinjaForcedWeapon( player, ninjaWeapons, ninjaOffhands ) // force ninja use given weapons
+	//thread NinjaForcedWeapon( player, ninjaWeapons, ninjaOffhands ) // force ninja use given weapons
+	thread NinjaForcedWeapon( player, ninjaWeaponSlots, ninjaOffhands )
 }
 
-void function NinjaForcedWeapon( entity player, array<entity> allowedWeapons, array<string> allowedOffhands )
+// player will be re-give weapon upon landing... which means they'll have weapon entity changed, needs to handle that
+//void function NinjaForcedWeapon( entity player, array<entity> allowedWeapons, array<string> allowedOffhands )
+void function NinjaForcedWeapon( entity player, array<int> allowedWeaponSlots, array<string> allowedOffhands )
 {
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
@@ -905,12 +915,39 @@ void function NinjaForcedWeapon( entity player, array<entity> allowedWeapons, ar
 	while( true )
 	{
 		WaitFrame()
+
 		entity activeWeapon = player.GetActiveWeapon()
-		if ( !IsValid( activeWeapon ) ) // not holding a weapon
+		if ( !IsValid( activeWeapon ) ) // not holding a weapon, must be bugged
+		{
+			if ( player.GetMainWeapons().len() > 0 ) // has another weapon
+				player.SetActiveWeaponBySlot( 0 ) // swap to it
 			continue
+		}
 		
 		string className = activeWeapon.GetWeaponClassName()
-		if ( !allowedWeapons.contains( activeWeapon ) && !allowedOffhands.contains( className ) ) // player gets a weapon from other source?
+		// debug...
+		/*
+		print( "activeWeapon: " + string( activeWeapon ) )
+		print( "className: " + className )
+		foreach ( int index, entity weapon in allowedWeapons )
+			print( "allowed weapon " + string( index ) + ": " + string( weapon ) )
+		foreach ( int index, string weaponName in allowedOffhands )
+			print( "allowed offhand waepon " + string( index ) + ": " + weaponName )
+		*/
+		
+		// player will be re-give weapon upon landing... which means they'll have weapon entity changed, needs to handle that
+		//if ( !allowedWeapons.contains( activeWeapon ) && !allowedOffhands.contains( className ) ) // player gets a weapon from other source?
+		int activeWeaponSlot
+		foreach ( int slot, entity weapon in player.GetMainWeapons() )
+		{
+			if ( weapon == activeWeapon )
+			{
+				activeWeaponSlot = slot
+				break
+			}
+		}
+		
+		if ( !allowedWeaponSlots.contains( activeWeaponSlot ) && !allowedOffhands.contains( className ) )
 		{
 			player.TakeWeaponNow( activeWeapon.GetWeaponClassName() ) // take it!
 			if ( player.GetMainWeapons().len() > 0 ) // has another weapon
@@ -947,11 +984,11 @@ void function BecomeBeastKing( entity player )
 	if ( IsValid( meleeWeapon ) )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
 	player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "gm_beastking"] ) // was having "grunt_mode", it's now oneshot kill sword
-	player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to it
+	// use beastKingThink for weapon swap
+	//player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to it
 	beastKingOffhands.append( "melee_pilot_sword" )
 
 	thread BeastKingThink( player, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
-	player.SetActiveWeaponByName( "melee_pilot_sword" ) // sometimes it just don't work?
 }
 
 struct BeastKingStruct
@@ -1121,11 +1158,12 @@ entity function CreateProwlerForBeastKing( entity player )
 	DispatchSpawn( prowler )
 
 	prowler.SetOwner( player )
+	prowler.ai.preventOwnerDamage = true
 	prowler.SetBossPlayer( player )
 	// don't follow!! the prowler will lost target
 	//NPCFollowsPlayer( prowler, player )
 	Highlight_SetOwnedHighlight( prowler, "friendly_ai" )
-	// so they won't block teammates
+	// so they won't block teammates...?
 	prowler.kv.CollisionGroup = TRACE_COLLISION_GROUP_PLAYER
 
     beastKing.classTable[player].ownedProwler = prowler
@@ -1139,9 +1177,16 @@ entity function CreateProwlerForBeastKing( entity player )
 
 void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands )
 {
-	entity activeWeapon = player.GetActiveWeapon()
-	if ( !IsValid( activeWeapon ) ) // not holding a weapon
+	// player will be re-give weapon upon landing... needs to handle that
+	if ( IsValid( player.GetParent() ) )
 		return
+
+	entity activeWeapon = player.GetActiveWeapon()
+	if ( !IsValid( activeWeapon ) ) // not holding a weapon, must be bugged
+	{
+		player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to melee
+		return
+	}
 	
 	string className = activeWeapon.GetWeaponClassName()
 	if ( !allowedOffhands.contains( className ) ) // player gets a weapon from other source?
@@ -1454,11 +1499,8 @@ void function OnStalkerDecoyCreated( entity player, entity decoy )
 	if ( !IsValid( GetStalkerHolopilotDecoyWeapon( player ) ) )
 		return
 
-	if ( !( player in stalker.activatedDecoys ) )
-		stalker.activatedDecoys[ player ] <- []
-
 	stalker.decoyCreationTime[ decoy ] <- Time()
-	CheckStalkerPlayerDecoyMaxCount
+	CheckStalkerPlayerDecoyMaxCount( player, decoy )
 
 	// update timeout and health
 	decoy.SetTimeout( STALKER_DECOY_DURATION )
@@ -1488,6 +1530,22 @@ entity function GetStalkerHolopilotDecoyWeapon( entity player )
 	return holopilotWeapon
 }
 
+void function CheckStalkerPlayerDecoyMaxCount( entity player, entity newDecoy )
+{
+	if ( !( player in stalker.activatedDecoys ) )
+		stalker.activatedDecoys[ player ] <- []
+	
+	ArrayRemoveInvalid( stalker.activatedDecoys[ player ] )
+	stalker.activatedDecoys[ player ].append( newDecoy )
+
+	if ( stalker.activatedDecoys[ player ].len() > STALKER_DECOY_MAX_COUNT )
+	{
+		entity latestDecoy = stalker.activatedDecoys[ player ][0]
+		latestDecoy.Decoy_Dissolve()
+		stalker.activatedDecoys[ player ].removebyvalue( latestDecoy )
+	}
+}
+
 void function OnStalkerDecoyDamaged( entity decoy, var damageInfo )
 {
 	// as long as decoy takes damage, we no longer refund charge to player
@@ -1513,6 +1571,7 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 	// all checks passed, try refund charge
 	if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
 		weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
+	delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
 }
 
 ///////////////////////////////////////////////
