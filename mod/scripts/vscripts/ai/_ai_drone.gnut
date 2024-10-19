@@ -1084,11 +1084,14 @@ function DroneGruntThink( entity npc, string aiSettings )
 		//}
 
 		// use more constant wait if we didn't fail anim checks and stuff
-		//wait ( RandomFloatRange( 0, 1.0 ) )
+		// acutally random wait adds a bit more fun on their behavior... maybe we'd keep it?
+		wait ( RandomFloatRange( 0, 1.0 ) )
+		/*
 		if ( failDeployChecks )
 			WaitFrame()
 		else
 			wait ( RandomFloatRange( 0, 1.0 ) )
+		*/
 
 		//dont do stuff when animating on a parent
 		if ( npc.GetParent() )

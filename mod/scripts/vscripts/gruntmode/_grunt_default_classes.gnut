@@ -961,7 +961,8 @@ void function BecomeBeastKing( entity player )
 {
 	player.SetPlayerSettings( "pilot_geist_male" ) // have a better pov model
 
-	SimpleClassLoadout(  
+	// still one issue left: beastking can't climb walls...
+	SimpleClassLoadout(
 		player,
 		"",																	// primary weapon
 		"",																	// secondary weapon
@@ -1480,7 +1481,7 @@ void function BecomeStalker( entity player )
 	player.GiveWeapon( "mp_weapon_defender", ["quick_charge"] ) // quick-charge charge rifle
 	player.GiveOffhandWeapon( "mp_ability_holopilot", OFFHAND_SPECIAL, ["grunt_mode", "gm_stalker"] )
 
-	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet. also one way to tell them from decoys is through the helmet
 }
 
 const float STALKER_DECOY_DURATION = 30 // doubled DECOY_DURATION
