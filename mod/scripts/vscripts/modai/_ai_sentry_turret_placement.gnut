@@ -194,9 +194,12 @@ void function TurretGruntThink( entity npc )
 	while ( true )
 	{
 		// use more constant wait if we didn't fail anim checks and stuff
+		// acutally random wait adds a bit more fun on their behavior... maybe we'd keep it?
+		/*
 		if ( failDeployChecks )
 			WaitFrame()
 		else
+		*/
 			wait ( RandomFloatRange( 0, 1.0 ) )
 
 		failDeployChecks = false
