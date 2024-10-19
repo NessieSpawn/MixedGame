@@ -55,5 +55,14 @@ WeaponData
 			"npc_damage_near_value"   						"--3" // 7
 			"npc_damage_far_value"							"--1" // 6
 		}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
+		}
 	}
 }

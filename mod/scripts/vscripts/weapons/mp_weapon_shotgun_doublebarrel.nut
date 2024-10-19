@@ -5,6 +5,9 @@ global function OnWeaponPrimaryAttack_shotgun_doublebarrel
 global function OnWeaponNpcPrimaryAttack_shotgun_doublebarrel
 #endif // #if SERVER
 
+// modified callback
+global function OnWeaponActivate_weapon_shotgun_doublebarrel
+global function OnWeaponDeactivate_weapon_shotgun_doublebarrel
 
 const SHOTGUN_DOUBLEBARREL_MAX_BOLTS = 8 // this is the code limit for bolts per frame... do not increase.
 
@@ -99,3 +102,56 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 
 	return 2
 }
+
+// modified callback
+void function OnWeaponActivate_weapon_shotgun_doublebarrel( entity weapon )
+{
+	// update model for other players on npc use
+	#if SERVER
+		entity owner = weapon.GetWeaponOwner()
+		if ( IsValid( owner ) && !owner.IsPlayer() )
+			CreateFakeModelForDoubleBarrelShotgun( weapon )
+	#endif
+}
+
+void function OnWeaponDeactivate_weapon_shotgun_doublebarrel( entity weapon )
+{
+
+}
+
+#if SERVER
+// modified content: adding fake model for fake weapons
+// can't get eWeaponVar.playermodel... currently hardcode
+const asset DOUBLE_BARREL_SHOTGUN_MODEL = $"models/weapons/shotgun_doublebarrel/w_shotgun_doublebarrel.md"
+const table< string, asset > FAKE_MODEL_MODS =
+{
+	["tfo_doublebarrel_shotgun"] = DOUBLE_BARREL_SHOTGUN_MODEL,
+	["fake_tf1_sprint_anim_active"] = DOUBLE_BARREL_SHOTGUN_MODEL, // this one is replacement mod, needs to handle as well
+}
+
+void function CreateFakeModelForDoubleBarrelShotgun( entity weapon )
+{
+	string fakeModelMod = ""
+	array<string> mods = weapon.GetMods()
+	foreach ( mod in mods )
+	{
+		if ( mod in FAKE_MODEL_MODS )
+		{
+			//print( "Found fakemodel mod!" )
+			fakeModelMod = mod
+			break
+		}
+	}
+
+	if ( fakeModelMod == "" )
+	{
+		//print( "Can't find fakemodel mod!" )
+		return
+	}
+
+	// can't get eWeaponVar.playermodel... currently hardcode
+	asset model = FAKE_MODEL_MODS[ fakeModelMod ]
+	// shared utility from _fake_world_weapon_model.gnut
+	entity fakeModel = FakeWorldModel_CreateForWeapon( weapon, model )
+}
+#endif
