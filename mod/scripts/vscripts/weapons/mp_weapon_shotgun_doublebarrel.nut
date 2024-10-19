@@ -5,7 +5,6 @@ global function OnWeaponPrimaryAttack_shotgun_doublebarrel
 global function OnWeaponNpcPrimaryAttack_shotgun_doublebarrel
 #endif // #if SERVER
 
-
 const SHOTGUN_DOUBLEBARREL_MAX_BOLTS = 8 // this is the code limit for bolts per frame... do not increase.
 
 struct

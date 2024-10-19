@@ -664,6 +664,8 @@ void function CreateHoloPilotDecoys( entity player, int numberOfDecoysToMake = 1
 		}
 
 		SetupDecoy_Common( player, decoy )
+		// not vanilla behavior but I'd add one: make decoys follow player's bodygroup
+		decoy.SetFullBodygroup( player.GetFullBodygroup() )
 
 		#if MP
 					thread MonitorDecoyActiveForPlayer( decoy, player )

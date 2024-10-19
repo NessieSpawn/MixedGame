@@ -8689,6 +8689,9 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	}
 	if ( IsValid( weaponProp ) )
 		weaponProp.SetParent( decoy, "PROPGUN" )
+	
+	// bodygroup for fun
+	decoy.SetFullBodygroup( npc.GetFullBodygroup() )
 
 	decoy.SetHologram() // Make this NPC a hologram. It will generate hologram impact effects when hit
 	decoy.SetPassThroughThickness( 0 )
