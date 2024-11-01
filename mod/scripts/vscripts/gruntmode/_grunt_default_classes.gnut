@@ -797,22 +797,19 @@ void function BecomeShockGrunt( entity player )
 
 void function BecomeSpectre( entity player )
 {
-	thread WaitForSpectrePlayerDrop( player ) // wait for player leaving dropship
+	thread WaitForSpectrePlayerLeaveDropship( player ) // HACK: wait for player leaving dropship because they don't have dropship animation
 }
 
-void function WaitForSpectrePlayerDrop( entity player )
+void function WaitForSpectrePlayerLeaveDropship( entity player )
 {
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 	
 	player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model, also temp use this model
 	
-	if ( GetGameState() < eGameState.Playing ) // prematch?
-	{
-		WaitFrame() // wait for player being set into dropship
-		while( IsValid( player.GetParent() ) )
-			WaitFrame() // wait for player leave dropship
-	}
+	WaitFrame() // wait for player being set into dropship
+	while( IsValid( player.GetParent() ) && player.GetParent().GetClassName() == "npc_dropship" )
+		WaitFrame() // wait for player leave dropship
 
 	SimpleClassLoadout(  
 		player,
@@ -873,7 +870,7 @@ void function BecomeNinja( entity player )
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
 		["disable_doublejump"],												// class mods
 		"Ninja",															// title
-		"Respawn as Ninja: Smoke launcher only, More health, Regenerate grenades"		// respawn notification
+		"Respawn as Ninja: Smoke launcher only, Regenerate grenades. More health, able to Wallrun"	// respawn notification
 	)
 
 	player.SetMaxHealth( 150 ) // higher health
@@ -1278,12 +1275,12 @@ void function BecomePhaseWalker( entity player )
 		player,
 		"mp_weapon_rspn101_og",												// primary weapon
 		"mp_weapon_arc_launcher",											// secondary weapon
-		"",											    // grenade
+		"",											    					// grenade
 		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model
 		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Phase Walker",														// title
-        "Respawn as Phase Walker: One portal usage"							// respawn notification
+        "Respawn as Phase Walker: One portal usage, can teleport between them"		// respawn notification
 	)
 	
 	player.GiveOffhandWeapon( "mp_ability_shifter", OFFHAND_SPECIAL, ["grunt_mode", "gm_phasewalker", "wraith_portal", "amped_tacticals"] )
@@ -1306,7 +1303,7 @@ void function BecomeHeavySniper( entity player )
 		$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Heavy Sniper",														// title
-		"Respawn as Heavy Sniper"											// respawn notification
+		"Respawn as Heavy Sniper. Weapon is able to damage heavy armor units"	// respawn notification
 	)
 
 	player.GetMainWeapons()[0].AddMod( "gm_heavysniper" ) // high heavy armor damage, bypass titan armor.

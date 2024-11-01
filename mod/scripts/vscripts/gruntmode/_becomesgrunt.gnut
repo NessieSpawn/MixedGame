@@ -656,12 +656,18 @@ void function OnPlayerChangeLoadout( entity player , PilotLoadoutDef p )
 
 void function OnPlayerRespawned( entity player )
 {	
-	if ( GetGameState() > eGameState.Prematch )
-		SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
+	// now we change to use respawn protection version of droppod, dissolve immediately after player leaving or firing weapon
+	//if ( GetGameState() > eGameState.Prematch )
+	//	SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
+	
 	//if( GetZiplineDropshipSpawns().len() != 0 )
 	//	RespawnInDropShip( player ) // bugged
 	//else
 	//	SpawnFromDroppod( player, 5 )
+
+	// infinite hold time if player stays inside, grants invincibility
+	SpawnFromDroppod( player, -1, true, true )
+	
 	thread DisableBoostBar( player ) // don't know why this causes problem
 }
 
@@ -940,7 +946,13 @@ bool function CanPlayerUseGruntChatter( entity player, bool damageChatter = fals
 	if ( !IsAlive( player ) )
 		return false
 
-	if ( IsValid( player.GetTitanSoulBeingRodeoed() ) ) // player rodeoing a titan! shouldn't do chatter
+	// animation cases
+	// in which player may have their model apart from POV, shouldn't do chatter
+	if ( player.Anim_IsActive() )
+		return false
+	if ( IsValid( player.GetParent() ) )
+		return false
+	if ( IsValid( player.GetTitanSoulBeingRodeoed() ) )
 		return false
 
 	bool nextChatterAllow = Time() >= file.playerNextChatterAllowedTime[ player ]
