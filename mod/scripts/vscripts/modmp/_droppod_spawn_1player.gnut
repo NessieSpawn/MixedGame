@@ -24,12 +24,12 @@ void function DropPodSpawn1Player_Init()
 	//AddCallback_OnRoundEndCleanup( CleanupSpawningDropPods )
 }
 
-void function SpawnFromDroppod( entity player, float destructionTime = 10, bool freezePlayerControl = true, bool enableRespawnProtection = false )
+void function SpawnFromDroppod( entity player, float destructionTime = 10, bool enableRespawnProtection = false )
 {
-	thread SpawnFromDroppod_Threaded( player, freezePlayerControl, destructionTime )
+	thread SpawnFromDroppod_Threaded( player, destructionTime, enableRespawnProtection )
 }
 
-void function SpawnFromDroppod_Threaded( entity player, float destructionTime, bool freezePlayerControl, bool enableRespawnProtection )
+void function SpawnFromDroppod_Threaded( entity player, float destructionTime, bool enableRespawnProtection )
 {
 	if ( !IsValid( player ) )
 		return
@@ -37,7 +37,7 @@ void function SpawnFromDroppod_Threaded( entity player, float destructionTime, b
 		return
 	// can't implement it good enough
 	entity spawnpoint = FindPlayerDroppodSpawnPoint( player.GetTeam() )
-	SpawnPlayerInDropPod( player, spawnpoint.GetOrigin(), spawnpoint.GetAngles(), destructionTime, freezePlayerControl, enableRespawnProtection )
+	SpawnPlayerInDropPod( player, spawnpoint.GetOrigin(), spawnpoint.GetAngles(), destructionTime, enableRespawnProtection )
 }
 
 void function CleanupSpawningDropPods()
@@ -48,7 +48,7 @@ void function CleanupSpawningDropPods()
 	file.droppods.clear()
 }
 
-void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector angles, float destructionTime = -1, bool freezePlayerControl = true, bool enableRespawnProtection = false )
+void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector angles, float destructionTime = -1, bool enableRespawnProtection = false )
 {
 	if ( !IsValid( player ) )
 		return
@@ -130,19 +130,27 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 		}
 	)
 	
+	AddCinematicFlag( player, CE_FLAG_HIDE_MAIN_HUD )
+	player.SetViewEntity( camera, true )
+
+	// better not handle player respawn here...
+	/*
+	if ( !IsAlive( player ) )
+	{
+		print( "we're respawning player on droppod spawn!" )
+		DecideRespawnPlayer( player )
+		WaitFrame() // take hold from t-pose
+	}
+	*/
+
 	HolsterAndDisableWeapons( player ) // holster weapon so they won't have weapon deploy sound out
-	DecideRespawnPlayer( player )
 
 	// attach pod and camera
 	player.SetOrigin( pod.GetOrigin() )
 	player.SetAngles( pod.GetAngles() )
 	player.SetParent( pod ) // don't use ( pod, "ATTACH", true ), which will cause visual issue while disembarking
 
-	if ( freezePlayerControl ) // make compatiblility with intros
-		player.FreezeControlsOnServer()
-	
-	AddCinematicFlag( player, CE_FLAG_HIDE_MAIN_HUD )
-	player.SetViewEntity( camera, true )
+	player.FreezeControlsOnServer()
 	
 	// wait for this
 	LaunchAnimDropPod( pod, "pod_testpath", targetOrigin, angles )
@@ -158,7 +166,7 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 		//if ( player.s.respawnCount == 1 ) // hack for first respawn, or player will facing the pod for some reason
 		//	WaitFrame()
 
-		if ( freezePlayerControl ) 
+		if( GetGameState() > eGameState.Prematch ) // make compatiblility with intros
 			player.UnfreezeControlsOnServer() // otherwise we unfreeze player in intro
 
 		player.Signal( "PlayerDroppodImpact" )
@@ -223,7 +231,7 @@ void function DroppodPlayerProtectionThink( entity player, entity pod, float max
 		endTime = Time() + 65535 // hopefully nobody will stay inside droppod for over 100mins...
 		
 	vector safeOrigin = player.GetOrigin()
-	const float droppodRadius = 15 // hopefully a good enough value
+	const float droppodRadius = 50 // hopefully a good enough value
 
 	while ( Time() < endTime )
 	{

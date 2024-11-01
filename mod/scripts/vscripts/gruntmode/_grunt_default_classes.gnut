@@ -875,6 +875,8 @@ void function BecomeNinja( entity player )
 
 	player.SetMaxHealth( 150 ) // higher health
 	player.SetHealth( 150 ) // higher health
+
+	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 	
 	// player will be re-give weapon upon landing... which means they'll have weapon entity changed, needs to handle that
 	//array<entity> ninjaWeapons
@@ -890,7 +892,7 @@ void function BecomeNinja( entity player )
 	array<string> ninjaOffhands
 	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "dissolve_instant"] ) // 2s cooldown instant kill projectile
 	ninjaOffhands.append( "mp_weapon_grenade_sonar" )
-	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_ORDNANCE, ["pas_ordnance_pack"] ) // gravity star, was ["ninja_projectile"]: 2s cooldown instant kill projectile, bit slower than kunai
+	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_ORDNANCE ) // gravity star, was ["ninja_projectile"]: 2s cooldown instant kill projectile, bit slower than kunai. now also removed "pas_ordnance_pack"
 	ninjaOffhands.append( "mp_weapon_grenade_gravity" )
 	// melee weapon
 	entity meleeWeapon = player.GetMeleeWeapon()
@@ -974,6 +976,8 @@ void function BecomeBeastKing( entity player )
     player.SetMaxHealth( 125 ) // higher health
 	player.SetHealth( 125 ) // higher health
 
+	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
 	array<string> beastKingOffhands
 	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
 	beastKingOffhands.append( "mp_weapon_grenade_emp" )
@@ -981,7 +985,7 @@ void function BecomeBeastKing( entity player )
 	entity meleeWeapon = player.GetMeleeWeapon()
 	if ( IsValid( meleeWeapon ) )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
-	player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "gm_beastking"] ) // was having "grunt_mode", it's now oneshot kill sword
+	player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "pilot_emptyhanded", "gm_beastking"] ) // was having "grunt_mode", it's now oneshot kill sword
 	// use beastKingThink for weapon swap
 	//player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to it
 	beastKingOffhands.append( "melee_pilot_sword" )
