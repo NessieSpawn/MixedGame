@@ -371,12 +371,6 @@ void function PlayPainOrDeathSounds( array<PainOrDeathSound> soundEvents, entity
 		return
 	//
 
-	// heavily modified content here
-	// new adding damageflag DF_NO_PAIN: no pain/death sound on damage
-	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_NO_PAIN )
-		return
-	//
-
 	array<string> alias_1p_victim_only
 	array<string> alias_3p_except_victim
 	array<string> alias_3p_attacker_only
@@ -401,6 +395,12 @@ void function PlayPainOrDeathSounds( array<PainOrDeathSound> soundEvents, entity
 		damageTypes = DamageInfo_GetCustomDamageType( damageInfo )
 		damageSourceID = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	}
+	//
+
+	// heavily modified content here
+	// new adding damageflag DF_NO_PAIN: no pain/death sound on damage
+	if ( damageTypes & DF_NO_PAIN )
+		return
 	//
 
 	int lastPriority = 0
