@@ -16,6 +16,7 @@ struct {
 
 void function DropPodSpawn1Player_Init()
 {
+	RegisterSignal( "SpawnPlayerInDropPod" )
 	RegisterSignal( "PlayerDroppodImpact" ) // signal for sending info messages
 
 	if ( GetMapName() != "mp_lobby" ) // don't run this in lobby
@@ -55,6 +56,9 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
+	player.Signal( "SpawnPlayerInDropPod" )
+	player.EndSignal( "SpawnPlayerInDropPod" )
+	
 	svGlobal.levelEnt.EndSignal( "CleanUpEntitiesForRoundEnd" )
 	svGlobal.levelEnt.EndSignal( "CleanUpEntitiesForMatchEnd" )
 
