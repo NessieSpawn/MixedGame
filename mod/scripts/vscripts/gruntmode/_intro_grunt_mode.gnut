@@ -188,13 +188,11 @@ void function DropshipIntro_OnClientConnected( entity player )
 void function IntroSpawnPlayerInDroppod( entity player )
 {
 	// welp respawning player like this won't work well...
-	/*
 	player.EndSignal( "OnDestroy" )
 	DecideRespawnPlayer( player ) // spawn player!
+	//player.StopPhysics() // no jumpjet sound.. but also makes player can't move... maybe jumpjet sound is fine with intro?
 	WaitFrame() // handle stuffs like camera and animation
-	*/
 
-	DecideRespawnPlayer( player ) // spawn player!
 	SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods, no respawn protection
 }
 
