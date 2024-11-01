@@ -213,6 +213,13 @@ function AddFlinch( entity attackedEnt, damageInfo )
 	//	return
 	//attackedEnt.s.nextFlinchTime = Time() + RandomFloatRange( 2.0, 4.0 )
 
+	// heavily modified content here
+	// new adding damageflag DF_NO_PAIN: no longer flinch on damage
+	// idk whether we can cancel the screen kick on client-side though
+	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_NO_PAIN )
+		return
+	//
+
 	vector damageAngles = VectorToAngles( DamageInfo_GetDamageForce( damageInfo ) )
 	vector entAngles = attackedEnt.EyeAngles()
 

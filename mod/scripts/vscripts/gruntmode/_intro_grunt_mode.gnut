@@ -179,7 +179,7 @@ void function DropshipIntro_OnClientConnected( entity player )
 		// if dropship spawns are not good for this mode, just spawn players into droppod
 		// also for very late joiner
 		if ( file.validDropshipSpawns.len() != 4 || file.introStartTime + SPAWN_IN_DROPPOD_TIME < Time() )
-			IntroSpawnPlayerInDroppod( player )
+			thread IntroSpawnPlayerInDroppod( player )
 		else
 			thread SpawnPlayerIntoDropship( player )
 	}
@@ -187,37 +187,15 @@ void function DropshipIntro_OnClientConnected( entity player )
 
 void function IntroSpawnPlayerInDroppod( entity player )
 {
-	// longer lifetime for intro droppods, (un)freeze control manually, no respawn protection
-	player.FreezeControlsOnServer()
-	SpawnFromDroppod( player, 15, false )
-	thread IntroDroppodFreezeControlThink( player )
-}
-
-void function IntroDroppodFreezeControlThink( entity player )
-{
-	player.EndSignal( "OnDeath" )
+	// welp respawning player like this won't work well...
+	/*
 	player.EndSignal( "OnDestroy" )
+	DecideRespawnPlayer( player ) // spawn player!
+	WaitFrame() // handle stuffs like camera and animation
+	*/
 
-	table results = {}
-	results.playerLanded <- false
-
-	OnThreadEnd
-	(
-		function(): ( player )
-		{
-			// if player died, nomatter what, we should unfreeze them
-			if ( IsValid( player ) && !results.playerLanded )
-				player.UnfreezeControlsOnServer()
-		}
-	)
-
-	player.WaitSignal( "PlayerDroppodImpact" ) // signaled on droppod respawn landing
-	results.playerLanded = true // player must landed safely if think goes here
-
-	// if intro has finished, we unfreeze player manually
-	// otherwise it's handled by OnGameStart() function
-	if( GetGameState() > eGameState.Prematch )
-		player.UnfreezeControlsOnServer()
+	DecideRespawnPlayer( player ) // spawn player!
+	SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods, no respawn protection
 }
 
 void function OnGameStart()
@@ -264,7 +242,7 @@ void function OnPrematchStart()
 		foreach ( entity player in GetPlayerArray() )
 		{
 			if ( !IsPrivateMatchSpectator( player ) )
-				IntroSpawnPlayerInDroppod( player )
+				thread IntroSpawnPlayerInDroppod( player )
 			else
 				RespawnPrivateMatchSpectator( player )
 		}

@@ -145,23 +145,26 @@ int function GetPlayerWallClimbModType( entity player )
 
 void function PilotWallClimbThink( entity player )
 {
-	print( string( player ) + " changed classmod! checking wall climb" )
+	//print( string( player ) + " changed classmod! checking wall climb" )
 
 	// only run for living players( dead players will also change class to "spectator", prevent updating it )
 	if ( !IsAlive( player ) )
 		return
 	// only run if player is not changing classmods through this file
 	if ( file.playerClassChangeThroughWallClimb[ player ] )
+	{
+		//print( "player class changed through wallclimb update!" )
 		return
+	}
 
 	// only run for players who have wallclimb mod
 	// ttf2 don't have other ways to modify classmods than changing class so this check is enough
 	if ( GetPlayerWallClimbModType( player ) == ePlayerWallClimbModType.NONE )
 	{
-		print( "this player don't have wall climb mod!" )
+		//print( "this player don't have wall climb mod!" )
 		return
 	}
-	print( "this player have wall climb mod!" )
+	//print( "this player have wall climb mod!" )
 
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
@@ -205,6 +208,8 @@ void function PilotWallClimbThink( entity player )
 	while ( true )
 	{
 		WaitFrame( true ) // always wait first, this ignores fps limit
+
+		//print( "running wallclimb think" )
 
 		bool lastTickOffTheWall = false
 		bool lastTickAnimActive = player.IsTraversing() || IsValid( player.GetParent() ) || player.Anim_IsActive()
@@ -278,7 +283,12 @@ void function PilotWallClimbThink( entity player )
 		bool offhandOut = false
 		entity activeWeapon = player.GetActiveWeapon()
 		if ( IsValid( activeWeapon ) )
+		{
 			offhandOut = activeWeapon.IsWeaponOffhand()
+			// melee specified case: only check attack active or not -- primary melee needs to be able to climb walls
+			if ( activeWeapon == player.GetMeleeWeapon() )
+				offhandOut = player.PlayerMelee_IsAttackActive() //|| IsValid( player.PlayerMelee_GetAttackHitEntity() )
+		}
 		
 		 // may not good if using this... but player will feel better contolling their characters
 		if ( WALLCLIMB_CLASSMODS_UPDATE )

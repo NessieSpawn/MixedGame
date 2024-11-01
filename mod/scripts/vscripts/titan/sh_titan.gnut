@@ -1539,7 +1539,15 @@ function TempLossOfAirControl( entity player, float time )
 
 bool function TitanStagger( entity titan, damageInfo )
 {
+	// heavily modified content here
+	// new adding damageflag DF_NO_PAIN: no longer stagger on damage
+	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_NO_PAIN )
+		return false
+	//
+
+
 	// nessie: really should add callbacks for handling modified damageSourceIds
+	// EDIT: I think I've done adding them
 
 	if ( !IsAlive( titan ) )
 		return false

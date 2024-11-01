@@ -666,7 +666,7 @@ void function OnPlayerRespawned( entity player )
 	//	SpawnFromDroppod( player, 5 )
 
 	// infinite hold time if player stays inside, grants invincibility
-	SpawnFromDroppod( player, -1, true, true )
+	SpawnFromDroppod( player, -1, true )
 	
 	thread DisableBoostBar( player ) // don't know why this causes problem
 }
