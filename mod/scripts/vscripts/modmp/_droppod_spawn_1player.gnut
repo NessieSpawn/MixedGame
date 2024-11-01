@@ -24,12 +24,12 @@ void function DropPodSpawn1Player_Init()
 	//AddCallback_OnRoundEndCleanup( CleanupSpawningDropPods )
 }
 
-void function SpawnFromDroppod( entity player, float destructionTime = 10 )
+void function SpawnFromDroppod( entity player, float destructionTime = 10, bool enableRespawnProtection = false )
 {
-	thread SpawnFromDroppod_Threaded( player, destructionTime )
+	thread SpawnFromDroppod_Threaded( player, destructionTime, enableRespawnProtection )
 }
 
-void function SpawnFromDroppod_Threaded( entity player, float destructionTime = 10 )
+void function SpawnFromDroppod_Threaded( entity player, float destructionTime, bool enableRespawnProtection )
 {
 	if ( !IsValid( player ) )
 		return
@@ -37,7 +37,7 @@ void function SpawnFromDroppod_Threaded( entity player, float destructionTime = 
 		return
 	// can't implement it good enough
 	entity spawnpoint = FindPlayerDroppodSpawnPoint( player.GetTeam() )
-	SpawnPlayerInDropPod( player, spawnpoint.GetOrigin(), spawnpoint.GetAngles(), destructionTime )
+	SpawnPlayerInDropPod( player, spawnpoint.GetOrigin(), spawnpoint.GetAngles(), destructionTime, enableRespawnProtection )
 }
 
 void function CleanupSpawningDropPods()
@@ -48,7 +48,7 @@ void function CleanupSpawningDropPods()
 	file.droppods.clear()
 }
 
-void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector angles, float destructionTime = -1 )
+void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector angles, float destructionTime = -1, bool enableRespawnProtection = false )
 {
 	if ( !IsValid( player ) )
 		return
@@ -58,6 +58,12 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 	svGlobal.levelEnt.EndSignal( "CleanUpEntitiesForRoundEnd" )
 	svGlobal.levelEnt.EndSignal( "CleanUpEntitiesForMatchEnd" )
 
+	// some stuffs to setup: enable notsolid, invulnerability and notarget
+	// so player won't touch triggers or be damaged
+	player.SetInvulnerable()
+	player.NotSolid()
+	player.SetNoTarget( true )
+
 	table results = {}
 	results.droppodLanded <- false
 	results.playerLanded <- false // since player's landing will sometimes delay 1 frame(eg. first spawn), have to use another var
@@ -66,7 +72,7 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 	pod.EndSignal( "OnDestroy" )
 	file.droppods.append( pod )
 
-	// add a indicator
+	// add a indicator for team players and player themselves
 	vector surfaceNormal = < 0, 0, 1 >
 	int index = GetParticleSystemIndex( $"P_ar_titan_droppoint" )
 	entity indicator = StartParticleEffectInWorld_ReturnEntity( index, targetOrigin, surfaceNormal )
@@ -103,6 +109,10 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 					player.ClearViewEntity()
 					player.UnfreezeControlsOnServer()
 					DeployAndEnableWeapons( player )
+					// protection clean up
+					player.Solid()
+					player.ClearInvulnerable()
+					player.SetNoTarget( false )
 				}
 			}
 
@@ -120,8 +130,20 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 		}
 	)
 	
+	AddCinematicFlag( player, CE_FLAG_HIDE_MAIN_HUD )
+	player.SetViewEntity( camera, true )
+
+	// better not handle player respawn here...
+	/*
+	if ( !IsAlive( player ) )
+	{
+		print( "we're respawning player on droppod spawn!" )
+		DecideRespawnPlayer( player )
+		WaitFrame() // take hold from t-pose
+	}
+	*/
+
 	HolsterAndDisableWeapons( player ) // holster weapon so they won't have weapon deploy sound out
-	DecideRespawnPlayer( player )
 
 	// attach pod and camera
 	player.SetOrigin( pod.GetOrigin() )
@@ -129,18 +151,14 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 	player.SetParent( pod ) // don't use ( pod, "ATTACH", true ), which will cause visual issue while disembarking
 
 	player.FreezeControlsOnServer()
-	AddCinematicFlag( player, CE_FLAG_HIDE_MAIN_HUD )
-	player.SetViewEntity( camera, true )
 	
 	// wait for this
 	LaunchAnimDropPod( pod, "pod_testpath", targetOrigin, angles )
 
 	results.droppodLanded = true // mark landing as true
-	if ( destructionTime != -1 )
-		thread DelayedCleanUpDroppod( pod, destructionTime ) // start droppod cleanup here
 	
 	//WaitFrame()
-	if( GetGameState() < eGameState.Postmatch )
+	if( GetGameState() < eGameState.Postmatch ) // anti-crash, should be pretty much well
 	{
 		player.ClearParent()
 		player.ClearViewEntity()
@@ -148,7 +166,7 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 		//if ( player.s.respawnCount == 1 ) // hack for first respawn, or player will facing the pod for some reason
 		//	WaitFrame()
 
-		if ( GetGameState() > eGameState.Prematch ) // make compatiblility with intros
+		if( GetGameState() > eGameState.Prematch ) // make compatiblility with intros
 			player.UnfreezeControlsOnServer() // otherwise we unfreeze player in intro
 
 		player.Signal( "PlayerDroppodImpact" )
@@ -167,6 +185,59 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 		DeployAndEnableWeapons( player )
 
 		results.playerLanded = true // mark as player landed
+		
+		// droppod player respawn protection
+		player.Solid()
+		if ( enableRespawnProtection )
+			thread DroppodPlayerProtectionThink( player, pod, destructionTime )
+		else // clean up immediately
+		{
+			player.ClearInvulnerable()
+			player.SetNoTarget( false )
+			// normal dissolve think
+			if ( destructionTime != -1 )
+				thread DelayedCleanUpDroppod( pod, destructionTime ) // start droppod cleanup here
+		}
+	}
+}
+
+void function DroppodPlayerProtectionThink( entity player, entity pod, float maxDuration )
+{
+	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "OnDeath" )
+	pod.EndSignal( "OnDestroy" )
+
+	player.EndSignal( "OnPrimaryAttack" )
+
+	// invincibility handled by SpawnPlayerInDropPod(), this function is just for cleaning it up
+	//player.SetInvulnerable()
+
+	OnThreadEnd
+	(
+		function(): ( player, pod )
+		{
+			if ( IsValid( player ) )
+			{
+				player.ClearInvulnerable()
+				player.SetNoTarget( false )
+			}
+			if ( IsValid( pod ) )
+				CleanupRespawnDroppod( pod )
+		}
+	)
+
+	float endTime = Time() + maxDuration
+	if ( maxDuration == -1 ) // infinite hold time
+		endTime = Time() + 65535 // hopefully nobody will stay inside droppod for over 100mins...
+		
+	vector safeOrigin = player.GetOrigin()
+	const float droppodRadius = 50 // hopefully a good enough value
+
+	while ( Time() < endTime )
+	{
+		WaitFrame()
+		if ( Distance( player.GetOrigin(), safeOrigin ) > droppodRadius )
+			break
 	}
 }
 

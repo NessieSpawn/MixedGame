@@ -1854,8 +1854,14 @@
 		{
 			"Path": "/events/ClassWar.gnut",
 			"RunOn": "SERVER && MP"
-		}
+		},
 		// mutator pack end
+		// damage flag modifiers
+		{
+			"Path": "/damageflags_mod/modded_damageflag_const.gnut",
+			"RunOn": "SERVER"
+		}
+		// damage flag modifiers end
 	],
 
 	"Localisation": [

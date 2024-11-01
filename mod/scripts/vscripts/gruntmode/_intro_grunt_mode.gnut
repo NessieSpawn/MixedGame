@@ -179,10 +179,23 @@ void function DropshipIntro_OnClientConnected( entity player )
 		// if dropship spawns are not good for this mode, just spawn players into droppod
 		// also for very late joiner
 		if ( file.validDropshipSpawns.len() != 4 || file.introStartTime + SPAWN_IN_DROPPOD_TIME < Time() )
-			SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods
+			thread IntroSpawnPlayerInDroppod( player )
 		else
 			thread SpawnPlayerIntoDropship( player )
 	}
+}
+
+void function IntroSpawnPlayerInDroppod( entity player )
+{
+	// welp respawning player like this won't work well...
+	/*
+	player.EndSignal( "OnDestroy" )
+	DecideRespawnPlayer( player ) // spawn player!
+	WaitFrame() // handle stuffs like camera and animation
+	*/
+
+	DecideRespawnPlayer( player ) // spawn player!
+	SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods, no respawn protection
 }
 
 void function OnGameStart()
@@ -229,7 +242,7 @@ void function OnPrematchStart()
 		foreach ( entity player in GetPlayerArray() )
 		{
 			if ( !IsPrivateMatchSpectator( player ) )
-				SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods
+				thread IntroSpawnPlayerInDroppod( player )
 			else
 				RespawnPrivateMatchSpectator( player )
 		}
