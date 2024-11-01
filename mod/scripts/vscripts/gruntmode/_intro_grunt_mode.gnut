@@ -179,10 +179,45 @@ void function DropshipIntro_OnClientConnected( entity player )
 		// if dropship spawns are not good for this mode, just spawn players into droppod
 		// also for very late joiner
 		if ( file.validDropshipSpawns.len() != 4 || file.introStartTime + SPAWN_IN_DROPPOD_TIME < Time() )
-			SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods
+			IntroSpawnPlayerInDroppod( player )
 		else
 			thread SpawnPlayerIntoDropship( player )
 	}
+}
+
+void function IntroSpawnPlayerInDroppod( entity player )
+{
+	// longer lifetime for intro droppods, (un)freeze control manually, no respawn protection
+	player.FreezeControlsOnServer()
+	SpawnFromDroppod( player, 15, false )
+	thread IntroDroppodFreezeControlThink( player )
+}
+
+void function IntroDroppodFreezeControlThink( entity player )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+
+	table results = {}
+	results.playerLanded <- false
+
+	OnThreadEnd
+	(
+		function(): ( player )
+		{
+			// if player died, nomatter what, we should unfreeze them
+			if ( IsValid( player ) && !results.playerLanded )
+				player.UnfreezeControlsOnServer()
+		}
+	)
+
+	player.WaitSignal( "PlayerDroppodImpact" ) // signaled on droppod respawn landing
+	results.playerLanded = true // player must landed safely if think goes here
+
+	// if intro has finished, we unfreeze player manually
+	// otherwise it's handled by OnGameStart() function
+	if( GetGameState() > eGameState.Prematch )
+		player.UnfreezeControlsOnServer()
 }
 
 void function OnGameStart()
@@ -229,7 +264,7 @@ void function OnPrematchStart()
 		foreach ( entity player in GetPlayerArray() )
 		{
 			if ( !IsPrivateMatchSpectator( player ) )
-				SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods
+				IntroSpawnPlayerInDroppod( player )
 			else
 				RespawnPrivateMatchSpectator( player )
 		}
