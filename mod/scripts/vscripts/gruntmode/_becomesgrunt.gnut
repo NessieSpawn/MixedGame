@@ -655,21 +655,39 @@ void function OnPlayerChangeLoadout( entity player , PilotLoadoutDef p )
 }
 
 void function OnPlayerRespawned( entity player )
-{	
-	// now we change to use respawn protection version of droppod, dissolve immediately after player leaving or firing weapon
-	//if ( GetGameState() > eGameState.Prematch )
-	//	SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
+{
+	if ( GetGameState() > eGameState.Prematch )
+		thread InGameSpawnFromDroppod( player )
 	
+	thread DisableBoostBar( player ) // don't know why this causes problem
+}
+
+void function InGameSpawnFromDroppod( entity player )
+{
+	player.EndSignal( "OnDestroy" )
+
+	// first time respawn? take 1 frame hold
+	if ( player.s.respawnCount == 1 )
+	{
+		player.SetInvulnerable()
+		player.NotSolid()
+		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
+
+		WaitFrame()
+
+		player.ClearInvulnerable()
+		player.Solid()
+		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
+	}
+
+	//SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
+
 	//if( GetZiplineDropshipSpawns().len() != 0 )
 	//	RespawnInDropShip( player ) // bugged
 	//else
 	//	SpawnFromDroppod( player, 5 )
 
-	// infinite hold time if player stays inside, grants invincibility
-	if ( GetGameState() > eGameState.Prematch )
-		SpawnFromDroppod( player, -1, true )
-	
-	thread DisableBoostBar( player ) // don't know why this causes problem
+	SpawnFromDroppod( player, -1, true ) // infinite hold time if player stays inside, grants invincibility
 }
 
 void function DisableBoostBar( entity player )
