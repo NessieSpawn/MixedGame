@@ -666,6 +666,8 @@ void function InGameSpawnFromDroppod( entity player )
 {
 	player.EndSignal( "OnDestroy" )
 
+	//print( "player.s.respawnCount: " + string( player.s.respawnCount ) )
+
 	// first time respawn? take 1 frame hold
 	if ( player.s.respawnCount == 1 )
 	{
