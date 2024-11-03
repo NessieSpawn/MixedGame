@@ -1115,7 +1115,8 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 		wait delay
 
     // wait for player landing
-    waitthread WaitForPlayerDropBeforeSpawnProwler( player )
+    waitthread WaitForPlayerLandingBeforeSpawningProwler( player )
+
 	entity prowler = CreateProwlerForBeastKing( player )
     prowler.EndSignal( "OnDestroy" )
     prowler.EndSignal( "OnDeath" )
@@ -1141,13 +1142,23 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 	prowler.WaitSignal( "OnDeath" ) // wait for prowler death
 }
 
-void function WaitForPlayerDropBeforeSpawnProwler( entity player )
+void function WaitForPlayerLandingBeforeSpawningProwler( entity player )
 {
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
 
-	WaitFrame() // wait this frame before player actually being set parented
+	// first time respawn? wait for player take hold and screen fade from black
+	if ( player.s.respawnCount == 1 )
+		wait 1
+	else
+		WaitFrame() // wait this frame before player actually being set parented
+	
+	// wait for player clear parent
 	while( IsValid( player.GetParent() ) )
+		WaitFrame()
+
+	// wait for player landing ground
+	while ( !player.IsOnGround() )
 		WaitFrame()
 }
 
