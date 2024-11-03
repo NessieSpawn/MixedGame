@@ -1144,20 +1144,10 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 
 void function WaitForPlayerLandingBeforeSpawningProwler( entity player )
 {
-	player.EndSignal( "OnDeath" )
-	player.EndSignal( "OnDestroy" )
+	// wait for the moment when player able to act
+	WaitForPlayerDrop( player )
 
-	// first time respawn? wait for player take hold and screen fade from black
-	if ( player.s.respawnCount == 1 )
-		wait 1
-	else
-		WaitFrame() // wait this frame before player actually being set parented
-	
-	// wait for player clear parent
-	while( IsValid( player.GetParent() ) )
-		WaitFrame()
-
-	// wait for player landing ground
+	// wait for player landing
 	while ( !player.IsOnGround() )
 		WaitFrame()
 }
@@ -1712,6 +1702,19 @@ void function WaitForPlayerDropThenNotify( entity player, string notification )
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
 
+	// wait for the moment when player able to receive notifications
+	waitthread WaitForPlayerDrop( player )
+
+	// this can't handle dropships
+	//player.WaitSignal( "PlayerDroppodImpact" )
+	NSSendInfoMessageToPlayer( player, notification )
+}
+
+void function WaitForPlayerDrop( entity player )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+
 	// first time respawn? wait for player take hold and screen fade from black
 	if ( player.s.respawnCount == 1 )
 		wait 1
@@ -1720,10 +1723,9 @@ void function WaitForPlayerDropThenNotify( entity player, string notification )
 	
 	while( IsValid( player.GetParent() ) ) // spawning from dropship or droppod
 		WaitFrame()
-
-	// this can't handle dropships
-	//player.WaitSignal( "PlayerDroppodImpact" )
-	NSSendInfoMessageToPlayer( player, notification )
+	
+	while ( GetGameState() <= eGameState.Prematch ) // prematch will prevent notifications from showing up, and prevents player from moving
+		WaitFrame()
 }
 
 void function CreateIMCGruntHelmetForPlayer( entity player )
