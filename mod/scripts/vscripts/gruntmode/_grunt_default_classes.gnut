@@ -868,13 +868,13 @@ void function BecomeNinja( entity player )
 		"",																	// grenade
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
-		["disable_doublejump"],												// class mods
+		["disable_doublejump", "pas_wallhang"],								// class mods
 		"忍者",																	// title
 		"以忍者重生：無主武器，生命較高，可以跑墻。携帶煙霧發射器，投擲物會自動回復"		// respawn notification
 	)
 
-	player.SetMaxHealth( 150 ) // higher health
-	player.SetHealth( 150 ) // higher health
+	player.SetMaxHealth( 125 ) // higher health
+	player.SetHealth( 125 ) // higher health
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 	
