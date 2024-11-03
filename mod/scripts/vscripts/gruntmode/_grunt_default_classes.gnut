@@ -868,13 +868,13 @@ void function BecomeNinja( entity player )
 		"",																	// grenade
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
-		["disable_doublejump"],												// class mods
+		["disable_doublejump", "pas_wallhang"],								// class mods
 		"Ninja",															// title
 		"Respawn as Ninja: Smoke launcher only, Regenerate grenades. More health, able to Wallrun"	// respawn notification
 	)
 
-	player.SetMaxHealth( 150 ) // higher health
-	player.SetHealth( 150 ) // higher health
+	player.SetMaxHealth( 125 ) // higher health
+	player.SetHealth( 125 ) // higher health
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 	
