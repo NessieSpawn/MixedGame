@@ -671,15 +671,21 @@ void function InGameSpawnFromDroppod( entity player )
 	// first time respawn? take 1 frame hold
 	if ( player.s.respawnCount == 1 )
 	{
+		// don't get killed during this state
 		player.SetInvulnerable()
 		player.NotSolid()
 		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
+		player.SetNoTarget( true )
 
-		WaitFrame()
+		//WaitFrame()
+		wait 0.1 // required to take hold before screen fade
+		ScreenFadeFromBlack( player, 1.0, 0.5 ) // bit shorter hold time because this isn't very stable due to player respawn
+		wait 0.2 // seems more stable?
 
 		player.ClearInvulnerable()
 		player.Solid()
 		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
+		player.SetNoTarget( false )
 	}
 
 	//SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
