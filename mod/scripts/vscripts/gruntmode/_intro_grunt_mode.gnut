@@ -190,8 +190,25 @@ void function IntroSpawnPlayerInDroppod( entity player )
 	// welp respawning player like this won't work well...
 	player.EndSignal( "OnDestroy" )
 	DecideRespawnPlayer( player ) // spawn player!
+	player.EndSignal( "OnDeath" )
+
+	// don't get killed during this state
+	player.SetInvulnerable()
+	player.NotSolid()
+	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
+	player.SetNoTarget( true )
+	
 	//player.StopPhysics() // no jumpjet sound.. but also makes player can't move... maybe jumpjet sound is fine with intro?
-	WaitFrame() // handle stuffs like camera and animation
+	
+	//WaitFrame() // handle stuffs like camera and animation
+	wait 0.1 // required to take hold before screen fade
+	ScreenFadeFromBlack( player, 2.0, 1.0 ) // bit shorter fade time because this isn't very stable due to player respawn
+	wait 0.2 // seems more stable?
+
+	player.ClearInvulnerable()
+	player.Solid()
+	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
+	player.SetNoTarget( false )
 
 	SpawnFromDroppod( player, 15 ) // longer lifetime for intro droppods, no respawn protection
 }

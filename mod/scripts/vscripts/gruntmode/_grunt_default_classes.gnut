@@ -1701,7 +1701,12 @@ void function WaitForPlayerDropThenNotify( entity player, string notification )
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
 
-	WaitFrame() // wait this frame before player actually being set parented
+	// first time respawn? wait for player take hold and screen fade from black
+	if ( player.s.respawnCount == 1 )
+		wait 1
+	else
+		WaitFrame() // wait this frame before player actually being set parented
+	
 	while( IsValid( player.GetParent() ) ) // spawning from dropship or droppod
 		WaitFrame()
 
