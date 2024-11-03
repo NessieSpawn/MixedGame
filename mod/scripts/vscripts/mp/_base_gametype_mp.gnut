@@ -258,14 +258,14 @@ void function CodeCallback_OnClientConnectionCompleted( entity player )
 
 	FinishClientScriptInitialization( player )
 
-	// Added via AddCallback_OnClientConnected
-	foreach ( callbackFunc in svGlobal.onClientConnectedCallbacks )
-		callbackFunc( player )
-
-	// modified variables set up
+	// modified variables set up, before other script callbacks do
 	file.playerDeathHintAllowedTime[ player ] <- 0.0
 	file.playerDisableForcedRespawn[ player ] <- false
 	file.playerActiveWeaponBeforeDeathPackage[ player ] <- null
+
+	// Added via AddCallback_OnClientConnected
+	foreach ( callbackFunc in svGlobal.onClientConnectedCallbacks )
+		callbackFunc( player )
 
 	if ( !Flag( "PlayerDidSpawn") )
 		__PlayerDidSpawn( player )
