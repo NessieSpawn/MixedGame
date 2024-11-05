@@ -172,6 +172,7 @@ void function ElectricGrenadeSmokescreen( entity projectile, asset fx, float del
 
 	// HARDCODED for gruntmode: gm_beastking has no self-damage
 	// though we can do it with AddDamageCallbackSourceId(), it can't handle cases when projectile is absorbed by vortex sphere
+	// this may also cause damage sound to be removed, which might make it harder to tell whether beastking is inside or not
 	if ( Vortex_GetRefiredProjectileMods( projectile ).contains( "gm_beastking" ) )
 		smokescreen.explosionFlags = SF_ENVEXPLOSION_NO_DAMAGEOWNER
 
