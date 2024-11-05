@@ -942,6 +942,7 @@ void function AnimEvent_attach_wingman( entity ent )
 void function AnimEvent_spawn_decoy1( entity ent )
 {
 	// add npc execution compatibility!
+	// could temp remove player think for debugging
 	if ( ent.IsPlayer() )
 	{
 		entity decoy = ent.CreateAnimatedPlayerDecoy( "pt_mp_execution_attacker_hologram_01" )
@@ -951,11 +952,10 @@ void function AnimEvent_spawn_decoy1( entity ent )
 	}
 	else
 	{
-		// props don't have special dissolve effect
-		//entity decoy = CreatePropAsDecoyForEnt( ent )
-		//decoy.Anim_Play( "pt_mp_execution_attacker_hologram_01" )
-		entity decoy = CreateFakeDecoyForNPC( ent )
-		decoy.Anim_ScriptedPlay( "pt_mp_execution_attacker_hologram_01" )
+		// props don't have special dissolve effect. now fixed by adding holopilot flash effect
+		entity decoy = CreatePropAsDecoyForEnt( ent )
+		//entity decoy = CreateFakeDecoyForNPC( ent )
+		FakeDecoyAnimPlay( decoy, "pt_mp_execution_attacker_hologram_01" )
 	}
 }
 
@@ -971,11 +971,10 @@ void function AnimEvent_spawn_decoy2( entity ent )
 	}
 	else
 	{
-		// props don't have special dissolve effect
-		//entity decoy = CreatePropAsDecoyForEnt( ent )
-		//decoy.Anim_Play( "pt_mp_execution_attacker_hologram_02" )
-		entity decoy = CreateFakeDecoyForNPC( ent )
-		decoy.Anim_ScriptedPlay( "pt_mp_execution_attacker_hologram_02" )
+		// props don't have special dissolve effect. now fixed by adding holopilot flash effect
+		entity decoy = CreatePropAsDecoyForEnt( ent )
+		//entity decoy = CreateFakeDecoyForNPC( ent )
+		FakeDecoyAnimPlay( decoy, "pt_mp_execution_attacker_hologram_02" )
 	}
 }
 
@@ -991,11 +990,10 @@ void function AnimEvent_spawn_decoy3( entity ent )
 	}
 	else
 	{
-		// props don't have special dissolve effect
-		//entity decoy = CreatePropAsDecoyForEnt( ent )
-		//decoy.Anim_Play( "pt_mp_execution_attacker_hologram_03" )
-		entity decoy = CreateFakeDecoyForNPC( ent )
-		decoy.Anim_ScriptedPlay( "pt_mp_execution_attacker_hologram_03" )
+		// props don't have special dissolve effect. now fixed by adding holopilot flash effect
+		entity decoy = CreatePropAsDecoyForEnt( ent )
+		//entity decoy = CreateFakeDecoyForNPC( ent )
+		FakeDecoyAnimPlay( decoy, "pt_mp_execution_attacker_hologram_03" )
 	}
 }
 
@@ -1004,14 +1002,15 @@ void function HoloPilot_Execution_DecoySetup( entity decoy )
 	/*decoy.SetMaxHealth( 50 )
 	decoy.SetHealth( 50 )*/
 	SetObjectCanBeMeleed( decoy, false )
-	// add npc execution compatibility! we use prop to play animations
-	if ( decoy.IsPlayerDecoy() )
+	// add npc execution compatibility! we use prop or npc to play animations
+	if ( decoy.IsPlayerDecoy() || decoy.IsNPC() )
 	{
 		decoy.SetNameVisibleToOwner( false )
 		decoy.SetNameVisibleToFriendly( false )
 		decoy.SetNameVisibleToEnemy( false )
-		decoy.SetTimeout( DECOY_DURATION )
 	}
+	if ( decoy.IsPlayerDecoy() )
+		decoy.SetTimeout( DECOY_DURATION )
 	decoy.NotSolid()
 	AddAnimEvent( decoy, "decoy_dissolve", HoloPilot_Execution_DissolveDecoy ) //Doesn't seem to work for decoy entities?
 }
@@ -1037,7 +1036,9 @@ entity function CreatePropAsDecoyForEnt( entity ent )
 
 entity function CreateFakeDecoyForNPC( entity ent )
 {
-	string className = ent.GetClassName()
+	string className = "npc_pilot_elite" // pilots don't have dialogue
+	if ( ent.IsNPC() )
+		className = ent.GetClassName()
 	int team = ent.GetTeam()
 	vector origin = ent.GetOrigin()
 	//vector angles = < 0, ent.GetAngles().y, 0 >
@@ -1060,6 +1061,23 @@ entity function CreateFakeDecoyForNPC( entity ent )
 	thread HoloPilot_Execution_MonitorLifeTime( ent, decoy )
 
 	return decoy
+}
+
+void function FakeDecoyAnimPlay( entity decoy, string animation )
+{
+	if ( decoy.IsNPC() )
+		decoy.Anim_ScriptedPlay( animation )
+	else
+		decoy.Anim_Play( animation )
+
+	WaittillAnimDone( decoy )
+
+	// freeze npc decoy if we done animation, waiting for them dissolving
+	if ( decoy.IsNPC() )
+	{
+		if ( !decoy.IsFrozen() )
+			decoy.Freeze()
+	}
 }
 
 // take some useful functions from SetupDecoy_Common()
@@ -1101,11 +1119,22 @@ void function SetupPropDecoy( entity owner, entity prop )
 
 	//prop.e.hasDefaultEnemyHighlight = true
 	//SetDefaultMPEnemyHighlight( prop )
+
+	// bodygroup for fun
+	prop.SetFullBodygroup( owner.GetFullBodygroup() )
 }
 
 void function DissolveFakeDecoy( entity prop )
 {
+	// we'd fix a effect for prop decoy, cuz they don't have a proper effect for dissolving
+	if ( !prop.IsNPC() )
+	{
+		int attachIndex = prop.LookupAttachment( "CHESTFOCUS" )
+		if ( attachIndex > 0 )
+			StartParticleEffectOnEntity( prop, GetParticleSystemIndex( GHOST_FLASH_EFFECT ), FX_PATTACH_POINT_FOLLOW, attachIndex )
+	}
 	prop.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 0 ) // props can't get Decoy_Dissolve() particle effects
+	
 	// take things from fakestruct, for cleaning up
 	if ( prop in propDecoy.propDecoyFakeStruct )
 	{

@@ -212,6 +212,7 @@ void function DroppodPlayerProtectionThink( entity player, entity pod, float max
 	pod.EndSignal( "OnDestroy" )
 
 	player.EndSignal( "OnPrimaryAttack" )
+	player.EndSignal( "OnMelee" ) // nessie modified signal, sent on melee attach active
 
 	// invincibility handled by SpawnPlayerInDropPod(), this function is just for cleaning it up
 	//player.SetInvulnerable()

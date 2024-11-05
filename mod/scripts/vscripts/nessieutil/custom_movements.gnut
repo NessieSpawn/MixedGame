@@ -24,6 +24,9 @@ global function UnforceCrouch_DecreaseStack
 
 // temp setting use player.kv stuffs is enough
 
+// stack system for one-handed weapon usage
+// WIP( 11/4/2024 )
+
 struct PlayerMovementStruct
 {
     float ornull gravityScale
