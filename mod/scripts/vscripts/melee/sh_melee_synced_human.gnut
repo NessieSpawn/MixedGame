@@ -1002,14 +1002,15 @@ void function HoloPilot_Execution_DecoySetup( entity decoy )
 	/*decoy.SetMaxHealth( 50 )
 	decoy.SetHealth( 50 )*/
 	SetObjectCanBeMeleed( decoy, false )
-	// add npc execution compatibility! we use prop to play animations
-	if ( decoy.IsPlayerDecoy() )
+	// add npc execution compatibility! we use prop or npc to play animations
+	if ( decoy.IsPlayerDecoy() || decoy.IsNPC() )
 	{
 		decoy.SetNameVisibleToOwner( false )
 		decoy.SetNameVisibleToFriendly( false )
 		decoy.SetNameVisibleToEnemy( false )
-		decoy.SetTimeout( DECOY_DURATION )
 	}
+	if ( decoy.IsPlayerDecoy() )
+		decoy.SetTimeout( DECOY_DURATION )
 	decoy.NotSolid()
 	AddAnimEvent( decoy, "decoy_dissolve", HoloPilot_Execution_DissolveDecoy ) //Doesn't seem to work for decoy entities?
 }
