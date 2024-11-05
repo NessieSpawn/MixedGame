@@ -128,5 +128,12 @@ WeaponData
 			"regen_ammo_refill_start_delay"					"++1"
 			"regen_ammo_refill_rate"						"--45.5" // 2s cooldown
 		}
+
+		// gruntmode specifics
+		gm_beastking // very short cooldown firestar
+		{
+			"regen_ammo_refill_rate"						"*3.2"	// ~7s cooldown( firestar duration is 6s )
+			"explosion_damage_heavy_armor"					"*1.1"	// 66 damage per tick
+		}
 	}
 }

@@ -136,6 +136,7 @@ void function RegisterAllDefaultClass()
 		BecomeBeastKing,				// loadout function
 		true							// specialist, should this class give more score
 	)
+	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_grenade_electric_smoke, BeastKingSmokeDamageTarget )
 	//
 
     // jumper
@@ -820,7 +821,7 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 		$"",																// mlt player model
 		["normal_wallclimb"],												// class mods
 		"Spectre",															// title
-		"Respawn as Spectre: Double jumping"								// respawn notification
+		"Respawn as Spectre: Able to Double jump"							// respawn notification
 	)
 
 	//player.GiveWeapon( "mp_weapon_defender", ["at_low_stockpile"] ) // 15 stockpile charge rifle
@@ -870,7 +871,7 @@ void function BecomeNinja( entity player )
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
 		["disable_doublejump", "pas_wallhang"],								// class mods
 		"Ninja",															// title
-		"Respawn as Ninja: Smoke launcher only, Regenerate grenades. More health, able to Wallrun"	// respawn notification
+		"Respawn as Ninja: Smoke launcher only, Regenerate grenades. Able to Wallrun/Wallhang"	// respawn notification
 	)
 
 	player.SetMaxHealth( 125 ) // higher health
@@ -970,7 +971,7 @@ void function BecomeBeastKing( entity player )
 		$"models/humans/pilots/pilot_heavy_drex_m.mdl",					    // mlt player model
 		["normal_wallclimb"],												// class mods
 		"Beast King",														// title
-		"Respawn as Beast King: Melee only, press USE to move your prowler"		// respawn notification
+		"Respawn as Beast King: Melee only, press USE to move your prowler. Regenerate grenades. Able to Double jump"		// respawn notification
 	)
 	
     player.SetMaxHealth( 125 ) // higher health
@@ -979,7 +980,14 @@ void function BecomeBeastKing( entity player )
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 
 	array<string> beastKingOffhands
-	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
+	// alt version: smoke as tactical, arc nade as ordnance
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_electric_smoke", OFFHAND_TACTICAL, ["gm_beastking"] ) // regenerating electric smoke grenade, very short cooldown and won't do self damage
+	//beastKingOffhands.append( "mp_weapon_grenade_electric_smoke" )
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking_burn", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
+	// current version: firestar as tactical
+	player.GiveOffhandWeapon( "mp_weapon_thermite_grenade", OFFHAND_ORDNANCE, ["gm_beastking"] ) // very short cooldown firestar
+	beastKingOffhands.append( "mp_weapon_thermite_grenade" )
+	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_TACTICAL, ["gm_beastking"] ) // regenerating emp grenade, high heavyarmor damage
 	beastKingOffhands.append( "mp_weapon_grenade_emp" )
 	// melee weapon
 	entity meleeWeapon = player.GetMeleeWeapon()
@@ -993,11 +1001,35 @@ void function BecomeBeastKing( entity player )
 	thread BeastKingThink( player, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
 }
 
+void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
+{
+	if ( !IsValid( ent ) )
+		return
+
+	entity inflictor = DamageInfo_GetInflictor( damageInfo )
+
+	if( !IsValid( inflictor ) )
+		return
+	if( !inflictor.IsProjectile() )
+		return
+
+	array<string> mods = Vortex_GetRefiredProjectileMods( inflictor ) // modded weapon refire behavior
+
+	// remove self damage if we have beast king weapon mod
+	if ( mods.contains( "gm_beastking" ) )
+	{
+		entity attacker = DamageInfo_GetAttacker( damageInfo )
+		if( IsValid( attacker ) && attacker == ent )
+			DamageInfo_SetDamage( damageInfo, 0 )
+	}
+}
+
 struct BeastKingStruct
 {
 	entity ownedProwler
 	float lastRecallTime
 	float lastNotifyTime
+	bool prolwerFirstSpawn
 }
 
 struct
@@ -1056,6 +1088,10 @@ void function BeastKingRecallProwler( entity player )
 	if ( player.IsInvulnerable() || player.IsPhaseShifted() )
 		return
 
+	// maybe not first spawn yet
+	if ( !beastKing.classTable[player].prolwerFirstSpawn )
+		return
+
     entity prowler = beastKing.classTable[player].ownedProwler
     float lastRecallTime = beastKing.classTable[player].lastRecallTime
 	float lastNotifyTime = beastKing.classTable[player].lastNotifyTime
@@ -1073,7 +1109,7 @@ void function BeastKingRecallProwler( entity player )
     {
 		if ( Time() - lastNotifyTime >= BEAST_KING_NOTIFICATION_COOLDOWN ) // notification cooldown
 		{
-        	SendHudMessage( player, "Can't move frequently",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+        	//SendHudMessage( player, "Can't move frequently",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 			beastKing.classTable[player].lastNotifyTime = Time() // update
 		}
         return
@@ -1122,6 +1158,7 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
     waitthread WaitForPlayerLandingBeforeSpawningProwler( player )
 
 	entity prowler = CreateProwlerForBeastKing( player )
+	beastKing.classTable[player].prolwerFirstSpawn = true
     prowler.EndSignal( "OnDestroy" )
     prowler.EndSignal( "OnDeath" )
 
@@ -1153,6 +1190,10 @@ void function WaitForPlayerLandingBeforeSpawningProwler( entity player )
 
 	// wait for player landing
 	while ( !player.IsOnGround() )
+		WaitFrame()
+
+	// wait for player leaving droppod( they have invulnerability while inside )
+	while ( player.IsInvulnerable() )
 		WaitFrame()
 }
 
