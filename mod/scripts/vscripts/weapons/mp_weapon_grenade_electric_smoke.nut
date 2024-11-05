@@ -170,6 +170,11 @@ void function ElectricGrenadeSmokescreen( entity projectile, asset fx, float del
 	// modified to add: lifetime should match projectile's ignition time
 	smokescreen.lifetime = projectile.GetProjectileWeaponSettingFloat( eWeaponVar.grenade_ignition_time )
 
+	// HARDCODED for gruntmode: gm_beastking has no self-damage
+	// though we can do it with AddDamageCallbackSourceId(), it can't handle cases when projectile is absorbed by vortex sphere
+	if ( Vortex_GetRefiredProjectileMods( projectile ).contains( "gm_beastking" ) )
+		smokescreen.explosionFlags = SF_ENVEXPLOSION_NO_DAMAGEOWNER
+
 	Smokescreen( smokescreen )
 }
 #endif

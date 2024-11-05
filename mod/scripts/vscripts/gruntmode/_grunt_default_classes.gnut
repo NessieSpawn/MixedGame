@@ -1017,6 +1017,7 @@ void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
 	array<string> mods = Vortex_GetRefiredProjectileMods( inflictor ) // modded weapon refire behavior
 
 	// remove self damage if we have beast king weapon mod
+	// still bug if projectile is absorbed by vortex sphere... so I hardcoded it inside mp_weapon_grenade_electric_smoke.nut
 	if ( mods.contains( "gm_beastking" ) )
 	{
 		entity attacker = DamageInfo_GetAttacker( damageInfo )
