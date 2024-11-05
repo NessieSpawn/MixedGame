@@ -1052,6 +1052,10 @@ void function BeastKingThink( entity player, array<string> allowedOffhands )
 
 void function BeastKingRecallProwler( entity player )
 {
+	// player invulnerable, can't move prowler
+	if ( player.IsInvulnerable() || player.IsPhaseShifted() )
+		return
+
     entity prowler = beastKing.classTable[player].ownedProwler
     float lastRecallTime = beastKing.classTable[player].lastRecallTime
 	float lastNotifyTime = beastKing.classTable[player].lastNotifyTime
@@ -1175,7 +1179,40 @@ entity function CreateProwlerForBeastKing( entity player )
 
 	PlayProwlerAppearFX( prowler ) // phase out effect
 
+	// sync invulnerability, notarget and solid states
+	// ( this means prowler will lose target on owner phase shift... I think? also idk how to check solid state, is player.kv.solid useful? )
+	thread PlayerAndProwlerSenseTogether( player, prowler )
+
 	return prowler
+}
+
+void function PlayerAndProwlerSenseTogether( entity player, entity prowler )
+{
+	player.EndSignal( "OnDestroy" )
+    player.EndSignal( "OnDeath" )
+	prowler.EndSignal( "OnDestroy" )
+    prowler.EndSignal( "OnDeath" )
+
+	while ( true )
+	{
+		if ( player.GetNoTarget() && !prowler.GetNoTarget() )
+		{
+			prowler.SetNoTarget( true )
+			prowler.EnableNPCFlag( NPC_IGNORE_ALL ) // also stop searching for enemies
+		}
+		else if ( prowler.GetNoTarget() )
+		{
+			prowler.SetNoTarget( false )
+			prowler.DisableNPCFlag( NPC_IGNORE_ALL )
+		}
+
+		if ( player.IsInvulnerable() && !prowler.IsInvulnerable() )
+			prowler.SetInvulnerable()
+		else if ( prowler.IsInvulnerable() )
+			prowler.ClearInvulnerable()
+
+		WaitFrame()
+	}
 }
 
 void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands )

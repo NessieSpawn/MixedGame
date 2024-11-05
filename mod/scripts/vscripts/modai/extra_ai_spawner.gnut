@@ -4030,6 +4030,8 @@ bool function IsValidNPCAssaultTarget( entity ent )
 // should never assault any flight target
 bool function IsAirFlightTarget( entity ent )
 {
+	if ( IsDropship( ent ) )
+		return true
 	if ( IsAirDrone( ent ) )
 		return true
 	if ( IsGunship( ent ) )
