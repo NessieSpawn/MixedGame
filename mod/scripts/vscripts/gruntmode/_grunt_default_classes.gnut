@@ -981,13 +981,13 @@ void function BecomeBeastKing( entity player )
 
 	array<string> beastKingOffhands
 	// alt version: smoke as tactical, arc nade as ordnance
-	//player.GiveOffhandWeapon( "mp_weapon_grenade_electric_smoke", OFFHAND_TACTICAL, ["gm_beastking"] ) // regenerating electric smoke grenade, very short cooldown and won't do self damage
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_electric_smoke", OFFHAND_SPECIAL, ["gm_beastking"] ) // regenerating electric smoke grenade, very short cooldown and won't do self damage
 	//beastKingOffhands.append( "mp_weapon_grenade_electric_smoke" )
 	//player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking_burn", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
 	// current version: firestar as tactical
 	player.GiveOffhandWeapon( "mp_weapon_thermite_grenade", OFFHAND_ORDNANCE, ["gm_beastking"] ) // very short cooldown firestar
 	beastKingOffhands.append( "mp_weapon_thermite_grenade" )
-	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_TACTICAL, ["gm_beastking"] ) // regenerating emp grenade, high heavyarmor damage
+	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_SPECIAL, ["gm_beastking"] ) // regenerating emp grenade, high heavyarmor damage
 	beastKingOffhands.append( "mp_weapon_grenade_emp" )
 	// melee weapon
 	entity meleeWeapon = player.GetMeleeWeapon()
@@ -1075,11 +1075,9 @@ void function BeastKingThink( entity player, array<string> allowedOffhands )
     )
 
 	thread BeastKingProwlerSpawner( player )
-	while( true )
-	{
-		WaitFrame()
-		CheckBeastKingWeapon( player, allowedOffhands )
-	}
+	thread BeastKingForcedWeapon( player, allowedOffhands )
+
+	WaitForever() // wait for endsignals to trigger
 }
 
 void function BeastKingRecallProwler( entity player )
@@ -1154,8 +1152,8 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 	if ( delay > 0 )
 		wait delay
 
-    // wait for player landing
-    waitthread WaitForPlayerLandingBeforeSpawningProwler( player )
+    // wait for player landing and exit droppod
+    waitthread WaitForPlayerAbleToSummonProwler( player )
 
 	entity prowler = CreateProwlerForBeastKing( player )
 	beastKing.classTable[player].prolwerFirstSpawn = true
@@ -1183,17 +1181,22 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 	prowler.WaitSignal( "OnDeath" ) // wait for prowler death
 }
 
-void function WaitForPlayerLandingBeforeSpawningProwler( entity player )
+void function WaitForPlayerAbleToSummonProwler( entity player )
+{
+	WaitForPlayerLanding( player )
+
+	// wait for player leaving droppod( they have invulnerability while inside )
+	while ( player.IsInvulnerable() )
+		WaitFrame()
+}
+
+void function WaitForPlayerLanding( entity player )
 {
 	// wait for the moment when player able to act
 	WaitForPlayerDrop( player )
 
 	// wait for player landing
 	while ( !player.IsOnGround() )
-		WaitFrame()
-
-	// wait for player leaving droppod( they have invulnerability while inside )
-	while ( player.IsInvulnerable() )
 		WaitFrame()
 }
 
@@ -1270,6 +1273,21 @@ void function PlayerAndProwlerSenseTogether( entity player, entity prowler )
 	}
 }
 
+void function BeastKingForcedWeapon( entity player, array<string> allowedOffhands )
+{
+	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "OnDeath" )
+
+	// wait for player landing ground
+	waitthread WaitForPlayerLanding( player )
+
+	while( true )
+	{
+		CheckBeastKingWeapon( player, allowedOffhands )
+		WaitFrame()
+	}
+}
+
 void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands )
 {
 	// player will be re-give weapon upon landing... needs to handle that
@@ -1279,7 +1297,14 @@ void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands
 	entity activeWeapon = player.GetActiveWeapon()
 	if ( !IsValid( activeWeapon ) ) // not holding a weapon, must be bugged
 	{
+		// update weapon to do deploy animation( VERY HACKY )
+		player.TakeOffhandWeapon( OFFHAND_MELEE )
+		player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "pilot_emptyhanded", "gm_beastking"] )
+		
+		// same think as sword core
+		player.HolsterWeapon()
 		player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to melee
+		player.DeployWeapon()
 		return
 	}
 	
