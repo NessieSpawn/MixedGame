@@ -1199,17 +1199,31 @@ void function PlayerAndProwlerSenseTogether( entity player, entity prowler )
 		{
 			prowler.SetNoTarget( true )
 			prowler.EnableNPCFlag( NPC_IGNORE_ALL ) // also stop searching for enemies
+			//print( "trying to stop prowler enemy sensing..." )
 		}
-		else if ( prowler.GetNoTarget() )
+		else if ( !player.GetNoTarget() && prowler.GetNoTarget() )
 		{
 			prowler.SetNoTarget( false )
 			prowler.DisableNPCFlag( NPC_IGNORE_ALL )
+			//print( "trying to restore prowler enemy sensing..." )
+		}
+
+		if ( player.GetNoTarget() && IsValid( prowler.GetEnemy() ) )
+		{
+			prowler.ClearEnemy()
+			//print( "due that player cannot be targeted, prowler's enemy has been cleared" )
 		}
 
 		if ( player.IsInvulnerable() && !prowler.IsInvulnerable() )
+		{
 			prowler.SetInvulnerable()
-		else if ( prowler.IsInvulnerable() )
+			//print( "prowler is now invulnerable" )
+		}
+		else if ( !player.IsInvulnerable() && prowler.IsInvulnerable() )
+		{
 			prowler.ClearInvulnerable()
+			//print( "prowler is now vulnerable" )
+		}
 
 		WaitFrame()
 	}
