@@ -84,5 +84,11 @@ WeaponData
 		{
 			"regen_ammo_refill_rate"						"*0"
 		}
+
+		gm_beastking // cooldown is equal to smoke duration
+		{
+			"regen_ammo_refill_rate"						"*3" // ~6s cooldown
+			"grenade_ignition_time"							"++1" // 6s duration. script has been modified and changing ignition will extend smoke duration
+		}
 	}
 }
