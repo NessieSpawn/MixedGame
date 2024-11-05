@@ -871,7 +871,7 @@ void function BecomeNinja( entity player )
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
 		["disable_doublejump", "pas_wallhang"],								// class mods
 		"Ninja",															// title
-		"Respawn as Ninja: Smoke launcher only, Regenerate grenades. Able to Wallrun/Wallhang"	// respawn notification
+		"Respawn as Ninja: Smoke launcher only, uses Throwing knife, Regenerate grenades. Able to Wallrun/Wallhang"	// respawn notification
 	)
 
 	player.SetMaxHealth( 125 ) // higher health
@@ -971,6 +971,7 @@ void function BecomeBeastKing( entity player )
 		$"models/humans/pilots/pilot_heavy_drex_m.mdl",					    // mlt player model
 		["normal_wallclimb"],												// class mods
 		"Beast King",														// title
+		//"Respawn as Beast King: Melee only, press USE to move your prowler. Regenerate grenades, Electric Smoke won't do self damage. Able to Double jump"	// respawn notification
 		"Respawn as Beast King: Melee only, press USE to move your prowler. Regenerate grenades. Able to Double jump"		// respawn notification
 	)
 	
