@@ -136,6 +136,7 @@ void function RegisterAllDefaultClass()
 		BecomeBeastKing,				// loadout function
 		true							// specialist, should this class give more score
 	)
+	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_grenade_electric_smoke, BeastKingSmokeDamageTarget )
 	//
 
     // jumper
@@ -870,7 +871,7 @@ void function BecomeNinja( entity player )
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
 		["disable_doublejump", "pas_wallhang"],								// class mods
 		"忍者",																	// title
-		"以忍者重生：無主武器，生命較高，可以跑墻。携帶煙霧發射器，投擲物會自動回復"		// respawn notification
+		"以忍者重生：可以跑墻/挂墻。無主武器。携帶煙霧發射器，可使用飛刀且投擲物自動回復"		// respawn notification
 	)
 
 	player.SetMaxHealth( 125 ) // higher health
@@ -970,7 +971,8 @@ void function BecomeBeastKing( entity player )
 		$"models/humans/pilots/pilot_heavy_drex_m.mdl",					    // mlt player model
 		["normal_wallclimb"],												// class mods
 		"馴獸師",																// title
-		"以馴獸師重生：携帶一隻獵獸(每10s重生)，按 使用 召喚至指定位置。生命略高，可以二段跳躍。無主武器"				    // respawn notification
+		//"以馴獸師重生：携帶一隻獵獸，按 使用 召喚至指定位置。可以二段跳躍。無主武器。電子烟幕無自傷且投擲物自動恢復"		// respawn notification
+		"以馴獸師重生：携帶一隻獵獸，按 使用 召喚至指定位置。可以二段跳躍。無主武器。投擲物自動恢復"		// respawn notification
 	)
 	
     player.SetMaxHealth( 125 ) // higher health
@@ -979,7 +981,14 @@ void function BecomeBeastKing( entity player )
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 
 	array<string> beastKingOffhands
-	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
+	// alt version: smoke as tactical, arc nade as ordnance
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_electric_smoke", OFFHAND_SPECIAL, ["gm_beastking"] ) // regenerating electric smoke grenade, very short cooldown and won't do self damage
+	//beastKingOffhands.append( "mp_weapon_grenade_electric_smoke" )
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking_burn", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
+	// current version: firestar as tactical
+	player.GiveOffhandWeapon( "mp_weapon_thermite_grenade", OFFHAND_ORDNANCE, ["gm_beastking"] ) // very short cooldown firestar
+	beastKingOffhands.append( "mp_weapon_thermite_grenade" )
+	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_SPECIAL, ["gm_beastking"] ) // regenerating emp grenade, high heavyarmor damage
 	beastKingOffhands.append( "mp_weapon_grenade_emp" )
 	// melee weapon
 	entity meleeWeapon = player.GetMeleeWeapon()
@@ -993,11 +1002,36 @@ void function BecomeBeastKing( entity player )
 	thread BeastKingThink( player, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
 }
 
+void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
+{
+	if ( !IsValid( ent ) )
+		return
+
+	entity inflictor = DamageInfo_GetInflictor( damageInfo )
+
+	if( !IsValid( inflictor ) )
+		return
+	if( !inflictor.IsProjectile() )
+		return
+
+	array<string> mods = Vortex_GetRefiredProjectileMods( inflictor ) // modded weapon refire behavior
+
+	// remove self damage if we have beast king weapon mod
+	// still bug if projectile is absorbed by vortex sphere... so I hardcoded it inside mp_weapon_grenade_electric_smoke.nut
+	if ( mods.contains( "gm_beastking" ) )
+	{
+		entity attacker = DamageInfo_GetAttacker( damageInfo )
+		if( IsValid( attacker ) && attacker == ent )
+			DamageInfo_SetDamage( damageInfo, 0 )
+	}
+}
+
 struct BeastKingStruct
 {
 	entity ownedProwler
 	float lastRecallTime
 	float lastNotifyTime
+	bool prolwerFirstSpawn
 }
 
 struct
@@ -1043,17 +1077,19 @@ void function BeastKingThink( entity player, array<string> allowedOffhands )
     )
 
 	thread BeastKingProwlerSpawner( player )
-	while( true )
-	{
-		WaitFrame()
-		CheckBeastKingWeapon( player, allowedOffhands )
-	}
+	thread BeastKingForcedWeapon( player, allowedOffhands )
+
+	WaitForever() // wait for endsignals to trigger
 }
 
 void function BeastKingRecallProwler( entity player )
 {
 	// player invulnerable, can't move prowler
 	if ( player.IsInvulnerable() || player.IsPhaseShifted() )
+		return
+
+	// maybe not first spawn yet
+	if ( !beastKing.classTable[player].prolwerFirstSpawn )
 		return
 
     entity prowler = beastKing.classTable[player].ownedProwler
@@ -1073,7 +1109,7 @@ void function BeastKingRecallProwler( entity player )
     {
 		if ( Time() - lastNotifyTime >= BEAST_KING_NOTIFICATION_COOLDOWN ) // notification cooldown
 		{
-        	SendHudMessage( player, "不可連續召喚",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+        	//SendHudMessage( player, "不可連續召喚",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 			beastKing.classTable[player].lastNotifyTime = Time() // update
 		}
         return
@@ -1118,10 +1154,11 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 	if ( delay > 0 )
 		wait delay
 
-    // wait for player landing
-    waitthread WaitForPlayerLandingBeforeSpawningProwler( player )
+    // wait for player landing and exit droppod
+    waitthread WaitForPlayerAbleToSummonProwler( player )
 
 	entity prowler = CreateProwlerForBeastKing( player )
+	beastKing.classTable[player].prolwerFirstSpawn = true
     prowler.EndSignal( "OnDestroy" )
     prowler.EndSignal( "OnDeath" )
 
@@ -1146,7 +1183,16 @@ void function BeastKingProwlerSpawner( entity player, float delay = 0.0 ) // the
 	prowler.WaitSignal( "OnDeath" ) // wait for prowler death
 }
 
-void function WaitForPlayerLandingBeforeSpawningProwler( entity player )
+void function WaitForPlayerAbleToSummonProwler( entity player )
+{
+	WaitForPlayerLanding( player )
+
+	// wait for player leaving droppod( they have invulnerability while inside )
+	while ( player.IsInvulnerable() )
+		WaitFrame()
+}
+
+void function WaitForPlayerLanding( entity player )
 {
 	// wait for the moment when player able to act
 	WaitForPlayerDrop( player )
@@ -1229,6 +1275,21 @@ void function PlayerAndProwlerSenseTogether( entity player, entity prowler )
 	}
 }
 
+void function BeastKingForcedWeapon( entity player, array<string> allowedOffhands )
+{
+	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "OnDeath" )
+
+	// wait for player landing ground
+	waitthread WaitForPlayerLanding( player )
+
+	while( true )
+	{
+		CheckBeastKingWeapon( player, allowedOffhands )
+		WaitFrame()
+	}
+}
+
 void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands )
 {
 	// player will be re-give weapon upon landing... needs to handle that
@@ -1238,7 +1299,14 @@ void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands
 	entity activeWeapon = player.GetActiveWeapon()
 	if ( !IsValid( activeWeapon ) ) // not holding a weapon, must be bugged
 	{
+		// update weapon to do deploy animation( VERY HACKY )
+		player.TakeOffhandWeapon( OFFHAND_MELEE )
+		player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "pilot_emptyhanded", "gm_beastking"] )
+		
+		// same think as sword core
+		player.HolsterWeapon()
 		player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to melee
+		player.DeployWeapon()
 		return
 	}
 	
