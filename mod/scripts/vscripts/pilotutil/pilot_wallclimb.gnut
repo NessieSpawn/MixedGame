@@ -30,6 +30,13 @@ const array<string> AMPED_WALLCLIMB_MODS =
 	"amped_wallclimb",
 ]
 
+// HARDCODED for handling melee_hybrid weapons
+const array<string> PRIMARY_MELEE_MODS =
+[
+	"allow_as_primary",
+	"super_charged",
+]
+
 enum ePlayerWallClimbModType
 {
 	NONE, // no valid wallclimb mod
@@ -212,7 +219,7 @@ void function PilotWallClimbThink( entity player )
 		//print( "running wallclimb think" )
 
 		bool lastTickOffTheWall = false
-		bool lastTickAnimActive = player.IsTraversing() || IsValid( player.GetParent() ) || player.Anim_IsActive()
+		bool lastTickAnimActive = PlayerAnimationActive( player )
 		if ( isClimbingWall && !player.IsWallRunning() ) // considering player has left the wall?
 		{
 			//player.EnableWeaponViewModel() // clean up viewmodel holster
@@ -276,6 +283,7 @@ void function PilotWallClimbThink( entity player )
 		}
 		lastTickOnGround = player.IsOnGround()
 
+		// below are classmod update logic
 		// noclipping
 		if ( player.IsNoclipping() )
 			continue
@@ -286,18 +294,19 @@ void function PilotWallClimbThink( entity player )
 		{
 			offhandOut = activeWeapon.IsWeaponOffhand()
 			// melee specified case: only check attack active or not -- primary melee needs to be able to climb walls
-			if ( activeWeapon == player.GetMeleeWeapon() )
+			entity meleeWeapon = player.GetMeleeWeapon()
+			if ( IsValid( meleeWeapon ) && activeWeapon == meleeWeapon && PlayerHasPrimaryMeleeWeapon( player ) )
 				offhandOut = player.PlayerMelee_IsAttackActive() //|| IsValid( player.PlayerMelee_GetAttackHitEntity() )
 		}
 		
-		 // may not good if using this... but player will feel better contolling their characters
+		// may not good if using this... but player will feel better contolling their characters
 		if ( WALLCLIMB_CLASSMODS_UPDATE )
 		{
 			lastTickHasJumpJetSound = PlayerHasJumpJetSound( player ) // get this before classmods update
 			// classmods management checks
 			// only check try changing classmods if player is not climbing a wall, also avoid changing model breaks animations
 			// update for this frame
-			bool thisFrameAnimActive = player.IsTraversing() || IsValid( player.GetParent() ) || player.Anim_IsActive()
+			bool thisFrameAnimActive = PlayerAnimationActive( player )
 			//print( "isClimbingWall: " + string( isClimbingWall ) )
 			//print( "groundTouched: " + string( groundTouched ) )
 			if ( !isClimbingWall && groundTouched && !thisFrameAnimActive && !offhandOut )
@@ -448,6 +457,28 @@ void function PilotWallClimbThink( entity player )
 			}
 		}
 	}
+}
+
+// for checking animations that influnces control&hitbox
+bool function PlayerAnimationActive( entity player )
+{
+	return player.IsTraversing() || player.IsZiplining() || player.IsSliding() || IsValid( player.GetParent() ) || player.Anim_IsActive()
+}
+
+// uses hardcoded array for checking melee weapon
+bool function PlayerHasPrimaryMeleeWeapon( entity player )
+{
+	entity weapon = player.GetMeleeWeapon()
+	if ( !IsValid( weapon ) )
+		return false
+	
+	foreach ( string mod in PRIMARY_MELEE_MODS )
+	{
+		if ( weapon.HasMod( mod ) )
+			return true
+	}
+
+	return false
 }
 
 vector function LimitVelocityHorizontal( vector vel, float speed )
