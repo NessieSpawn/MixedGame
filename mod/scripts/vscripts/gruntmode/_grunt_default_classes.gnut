@@ -891,7 +891,7 @@ void function BecomeNinja( entity player )
 	
 	// offhand weapons won't return themselves and is exclusive, saving classname is enough
 	array<string> ninjaOffhands
-	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "dissolve_instant"] ) // 2s cooldown instant kill projectile
+	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "dissolve_instant", "impact_bounce"] ) // 2s cooldown instant kill projectile
 	ninjaOffhands.append( "mp_weapon_grenade_sonar" )
 	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_ORDNANCE ) // gravity star, was ["ninja_projectile"]: 2s cooldown instant kill projectile, bit slower than kunai. now also removed "pas_ordnance_pack"
 	ninjaOffhands.append( "mp_weapon_grenade_gravity" )
