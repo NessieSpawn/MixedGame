@@ -367,7 +367,7 @@ void function ArchonMainWeaponSuperChargedThink( entity owner, float coreDuratio
 				string modToRemove = expect string( results.clipUpgrade ) // get upgrade
 				mods.fastremovebyvalue( "tesla_core_charged" ) // remove super charged
 				if ( modToRemove != "" )
-					mods.removebyvalue( modToRemove )
+					mods.fastremovebyvalue( modToRemove )
 				if ( modToGive != "" )
 					mods.append( modToGive )
 

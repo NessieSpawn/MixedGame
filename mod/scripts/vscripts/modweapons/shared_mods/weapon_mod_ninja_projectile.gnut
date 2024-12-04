@@ -82,7 +82,7 @@ void function OnProjectileCollision_ninja_projectile( entity projectile, vector 
     #if SERVER
         if ( didStick ) // successfully sticked!
         {
-            if ( mods.contains( "kunai_mode" ) ) // dissolve the projectile immediately if we're in kunai_mode
+            if ( mods.contains( "dissolve_instant" ) ) // dissolve the projectile immediately
             {
                 projectile.SetReducedEffects() // hide trail..? doesn't seem to work on client-side
                 projectile.Dissolve( ENTITY_DISSOLVE_PHASESHIFT, Vector( 0, 0, 0 ), 500 )

@@ -40,6 +40,7 @@ void function OctaneStimThink( entity player, float duration, int maxDamage, boo
 	player.EndSignal( "OnDestroy" )
 	player.Signal( "OctaneStimStart" )
 	player.EndSignal( "OctaneStimStart" )
+
 	OnThreadEnd(
 		function(): ( player )
 		{
@@ -50,13 +51,21 @@ void function OctaneStimThink( entity player, float duration, int maxDamage, boo
 			}
 		}
 	)
-	float startTime = Time()
+	
 	float damageTaken = min( fabs( float( player.GetHealth() ) - 1.0 ), float( maxDamage ) )
 	//print( "damageTaken: " + string( damageTaken ) )
-	player.TakeDamage( int( damageTaken ), player, player, { scriptType = DF_BYPASS_SHIELD, damageSourceId = eDamageSourceId.bleedout } )
+	// we now added DF_NO_PAIN which makes player won't flinch thirdperson model on damage
+	player.TakeDamage( int( damageTaken ), player, player, { scriptType = DF_BYPASS_SHIELD | DF_NO_PAIN, damageSourceId = eDamageSourceId.bleedout } )
+	
+	// HACK one handed weapon usage
+	float startTime = Time()
+	float endTime = startTime + duration
+	bool screenFlashed = false
+	
 	while( true )
 	{
 		wait 0.1
+
 		if( IsValid( player ) )
 		{
 			player.p.lastDamageTime = Time()
@@ -64,7 +73,18 @@ void function OctaneStimThink( entity player, float duration, int maxDamage, boo
 		}
 		else
 			return
-		if( Time() >= startTime + duration )
+
+		float latency = player.GetLatency()
+		float screenFlashTime = endTime - latency
+		if( !screenFlashed && Time() >= screenFlashTime )
+		{
+			//print( "stim screen flashed!" )
+			// idk how to implement it good enough though
+			//ScreenFade( player, 1, 1, 0, 155, 0.2, 0.2, (FFADE_IN | FFADE_PURGE) )
+			screenFlashed = true
+		}
+		
+		if( Time() >= endTime )
 		{
 			if( IsValid( player ) )
 			{
@@ -73,6 +93,10 @@ void function OctaneStimThink( entity player, float duration, int maxDamage, boo
 			}
 			return
 		}
+
+		// stim ended unexpectly
+		if ( StatusEffect_Get( player, eStatusEffect.stim_visual_effect ) == 0.0 )
+			return
 	}
-}
+} 
 #endif

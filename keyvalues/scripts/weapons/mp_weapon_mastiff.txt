@@ -123,5 +123,12 @@ WeaponData
 			//"zoom_fov"					"60"
 			//"ads_move_speed_scale"							"0.9"
 		}
+
+		// nerf npc damage if we want to enable npc headshots
+		// maybe no need to nerf though, mastiff already have very low fire rate and no matter we nerf or not, pilots can always one-shot players...
+		npc_lower_damage
+		{
+			"npc_damage_near_value"   						"--1" // 6
+		}
 	}
 }

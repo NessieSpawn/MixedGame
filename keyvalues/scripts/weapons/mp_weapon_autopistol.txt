@@ -107,5 +107,14 @@ WeaponData
 			"damage_very_far_value"   						"*0.1"
 			"impulse_force"									"++250" // to lift player off ground. horizontal speed limitation done in script!
 		}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
+		}
 	}
 }

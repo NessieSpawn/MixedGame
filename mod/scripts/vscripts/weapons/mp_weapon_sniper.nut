@@ -293,7 +293,7 @@ void function BoltArrayThink( entity bolt )
 	OnThreadEnd(
 		function(): ( bolt )
 		{
-			file.floatingBolts.removebyvalue( bolt )
+			file.floatingBolts.fastremovebyvalue( bolt )
 		}
 	)
 

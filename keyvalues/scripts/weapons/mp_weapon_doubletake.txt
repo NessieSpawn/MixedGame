@@ -119,6 +119,23 @@ WeaponData
 			"damage_headshot_scale"			"--0.5" // 1.5
 			"fire_rate"						"--0.3" // 1.7
 		}
+
+		// npc double take's damage is way too low...
+		npc_higher_damage
+		{
+			"npc_damage_near_value"   						"++5" // 12 * 3
+			"npc_damage_far_value"							"++5" // 12 * 3
+		}
+		npc_higher_damage_headshot // in case we're allowing npc headshots
+		{
+			"npc_damage_near_value"   						"++2" // 9 * 3
+			"npc_damage_far_value"							"++2" // 9 * 3
+		}
+		// npc double take will rest way too long...
+		npc_shorter_rest
+		{
+			"npc_rest_time_between_bursts_max"				"--1.0" // 3.0, same as dmr
+		}
 	}
 
 	//Oracle/stabilizer blue dot
