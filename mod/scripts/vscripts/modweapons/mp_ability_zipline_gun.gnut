@@ -354,14 +354,17 @@ entity function CreateZiplinePlacementRope( entity player, entity anchorEnd )
 	vector startPos = data.startPos
     vector endPos = data.endPos
 	vector startPosWithOffset = startPos + ZIPLINE_ANCHOR_OFFSET
-	vector endPosWithOffset = endPos + ZIPLINE_ANCHOR_OFFSET
+	// no need to offset endpos
+	//vector endPosWithOffset = endPos + ZIPLINE_ANCHOR_OFFSET
 
     entity startEnt = CreateExpensiveScriptMover()
     startEnt.SetOrigin( startPosWithOffset )
     entity endEnt = CreateExpensiveScriptMover()
-    endEnt.SetOrigin( endPosWithOffset )
+   	//endEnt.SetOrigin( endPosWithOffset )
+	endEnt.SetOrigin( endPos )
 
-    float ropeLength = Distance( startPosWithOffset, endPosWithOffset )
+    //float ropeLength = Distance( startPosWithOffset, endPosWithOffset )
+	float ropeLength = Distance( startPosWithOffset, endPos )
     entity rope = CreateRope( <0,0,0>, <0,0,0>, ropeLength, endEnt, startEnt, 0, 0, ZIPLINE_ROPE_MODEL )
     rope.SetOwner( player )
 	rope.SetBossPlayer( player )
@@ -490,7 +493,9 @@ void function ZiplineGun_FireZipline_Threaded( entity player, bool infinite, flo
 
     entity ziplineEndEnt = CreateExpensiveScriptMover()
 	ziplineEndEnt.SetModel( $"models/dev/empty_model.mdl" )
-    ziplineEndEnt.SetOrigin( endWithOffset )
+    // no need to offset endpos
+	//ziplineEndEnt.SetOrigin( endWithOffset )
+	ziplineEndEnt.SetOrigin( endPos )
 	ziplineEndEnt.EndSignal( "OnDestroy" )
 
 	entity anchorStart = ZiplineGun_CreateAnchorEntity( startPos, ZIPLINE_ANCHOR_ANGLES, 0.0 )

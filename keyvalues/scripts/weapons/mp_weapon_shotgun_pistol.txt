@@ -218,6 +218,15 @@ WeaponData
 			"fire_rate"						"--0.4" // 2.6
 			"damage_headshot_scale"			"--0.25" // 1.25
 		}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
+		}
 	}
 
 	//Acog

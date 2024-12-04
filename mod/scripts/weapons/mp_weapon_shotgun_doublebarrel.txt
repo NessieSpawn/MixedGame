@@ -428,7 +428,8 @@ WeaponData
 
 			// visual effect, using amped mastiff ones
 			// note: trails are done in script so client without mod installed can see them
-			"impact_effect_table" 							"bullet_mastiff"
+			// also impact effect has been changed so it won't block too much player's view
+			"impact_effect_table" 							"bullet_mastiff" // "titan_shotgun_bullet"
 
 			// Damage - When Used by NPCs
 			"damage_headshot_scale"							"1.25" // was 1.5. we added modified setting that allows npc to deal headshot damage
@@ -453,6 +454,15 @@ WeaponData
 			"npc_max_engage_range_heavy_armor"				"2000"
 			"npc_min_range"   								"0"
 			"npc_max_range"   								"8000"
+		}
+
+		// fake tf1's pistol sprint animation( satchel's ) for fun
+		fake_tf1_sprint_anim
+		{
+		}
+		fake_tf1_sprint_anim_active
+		{
+			"activitymodifier"						"satchel"
 		}
 	}
 

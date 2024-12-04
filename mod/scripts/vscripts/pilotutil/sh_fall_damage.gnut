@@ -56,7 +56,7 @@ void function AddPlayerCallback_OnTakeFallDamage( entity player, void functionre
 
 void function RemovePlayerCallback_OnTakeFallDamage( entity player, void functionref( entity player, var damageInfo ) callbackFunc )
 {
-    serverFile.playerTakeFallDamageCallbacks[ player ].removebyvalue( callbackFunc )
+    serverFile.playerTakeFallDamageCallbacks[ player ].fastremovebyvalue( callbackFunc )
 }
 
 void function RunPlayerCallback_OnTakeFallDamage( entity player, var damageInfo )

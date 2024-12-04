@@ -85,10 +85,17 @@ WeaponData
 		{
 			"regen_ammo_refill_rate"						"*0"
 		}
+
 		// beast king: higher heavyArmor damage
 		gm_beastking
 		{
-			"explosion_damage_heavy_armor"					"*2.0" // 1200, was *2.5, but beastKing's sword already got some titan damage
+			"regen_ammo_refill_rate"						"*1.6" // built-in ordnance pack
+			"explosion_damage_heavy_armor"					"*3" // 1200
+		}
+
+		gm_beastking_burn // alt version to be used together with burn_mod_emp_grenade
+		{
+			"explosion_damage_heavy_armor"					"*2.0" // 1200 with burn_mod_emp_grenade, was *2.5, but beastKing's sword already got some titan damage
 		}
 	}
 }
