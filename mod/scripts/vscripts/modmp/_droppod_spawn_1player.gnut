@@ -175,8 +175,20 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 
 		player.Signal( "PlayerDroppodImpact" )
 		RemoveCinematicFlag( player, CE_FLAG_HIDE_MAIN_HUD )
+		vector posBeforeFix = player.GetOrigin()
 		FindNearestSafeSpotAndPutEntity( player, 1 ) // defensive fix
-		player.SetAngles( angles ) // always facing the spawnpoint
+		if ( player.GetOrigin() != posBeforeFix )
+		{
+			print( "player droppod landing position fixed!" )
+			// update pod position to player's new pos
+			pod.Anim_Stop() // stop any droppod sequence pending
+			pod.SetAbsOrigin( player.GetOrigin() )
+			player.SetOrigin( pod.GetOrigin() )
+		}
+		// idk why pods moving everywhere... turns out it needs to set abs origin
+		//print( "player pos: " + string( player.GetOrigin() ) )
+		//print( "pod pos: " + string( pod.GetOrigin() ) )
+		player.SetAbsAngles( angles ) // always facing the spawnpoint. seems SetAbsAngles could handle it
 
 		// give loadout again so they'll have weapon deploy animations
 		if ( Loadouts_CanGivePilotLoadout( player ) ) // to fit vanilla: give loadout upon touched ground, so they'll have weapon's first deploy animation
