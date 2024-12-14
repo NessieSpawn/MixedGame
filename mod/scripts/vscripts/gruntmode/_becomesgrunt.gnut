@@ -665,13 +665,14 @@ void function OnPlayerRespawned( entity player )
 void function InGameSpawnFromDroppod( entity player )
 {
 	player.EndSignal( "OnDestroy" )
-	RemoveGamemodeAnnouncementForPlayer( player ) // remove gamemode announcement, we send it after player landing
 
 	//print( "player.s.respawnCount: " + string( player.s.respawnCount ) )
 
 	// first time respawn? take 1 frame hold, otherwise player will face wrong direction( maybe it's fixed by SetAbsOrigin? idk )
 	if ( player.s.respawnCount == 1 )
 	{
+		RemoveGamemodeAnnouncementForPlayer( player ) // remove gamemode announcement, we send it after player landing
+		
 		// don't get killed during this state
 		HideName( player )
 		player.SetInvulnerable()
@@ -689,6 +690,9 @@ void function InGameSpawnFromDroppod( entity player )
 		player.Solid()
 		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
 		player.SetNoTarget( false )
+
+		// do gamemode announcement
+		thread WaitForPlayerDisembarksDroppod( player )
 	}
 
 	//SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
@@ -699,8 +703,6 @@ void function InGameSpawnFromDroppod( entity player )
 	//	SpawnFromDroppod( player, 5 )
 
 	SpawnFromDroppod( player, -1, true ) // infinite hold time if player stays inside, grants invincibility
-	// do gamemode announcement
-	thread WaitForPlayerDisembarksDroppod( player )
 }
 
 void function WaitForPlayerDisembarksDroppod( entity player )
