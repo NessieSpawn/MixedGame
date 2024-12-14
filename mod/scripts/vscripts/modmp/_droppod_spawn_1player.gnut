@@ -183,7 +183,7 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 			// update pod position to player's new pos
 			pod.Anim_Stop() // stop any droppod sequence pending
 			pod.SetAbsOrigin( player.GetOrigin() )
-			player.SetOrigin( pod.GetOrigin() )
+			//player.SetOrigin( pod.GetOrigin() )
 		}
 		// idk why pods moving everywhere... turns out it needs to set abs origin
 		//print( "player pos: " + string( player.GetOrigin() ) )
