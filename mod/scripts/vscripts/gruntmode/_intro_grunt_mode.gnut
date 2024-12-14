@@ -193,6 +193,7 @@ void function IntroSpawnPlayerInDroppod( entity player )
 	player.EndSignal( "OnDeath" )
 
 	// don't get killed during this state
+	HideName( player )
 	player.SetInvulnerable()
 	player.NotSolid()
 	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
@@ -205,6 +206,7 @@ void function IntroSpawnPlayerInDroppod( entity player )
 	ScreenFadeFromBlack( player, 2.0, 1.0 ) // bit shorter fade time because this isn't very stable due to player respawn
 	wait 0.2 // seems more stable?
 
+	ShowName( player )
 	player.ClearInvulnerable()
 	player.Solid()
 	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE

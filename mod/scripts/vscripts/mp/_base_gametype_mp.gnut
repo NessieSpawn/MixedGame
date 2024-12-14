@@ -9,6 +9,8 @@ global function DecideRespawnPlayer
 global function RespawnAsPilot
 global function RespawnAsTitan
 global function TryGameModeAnnouncement
+// modified function, basically for gamemodes that needs to grant player control later after their join( eg. gruntmode )
+global function RemoveGamemodeAnnouncementForPlayer
 
 // modified callback: allowing change something before player actually respawns
 global function AddCallback_OnPlayerDecideRespawn
@@ -139,6 +141,9 @@ void function BaseGametype_Init_MPSP()
 	// funny ragdoll impact effects
 	AddCallback_OnPilotBecomesTitan( OnPilotBecomesTitan )
 	AddCallback_OnTitanBecomesPilot( OnTitanBecomesPilot )
+
+	// modified signal for handling gamemode announcement
+	RegisterSignal( "RemoveGamemodeAnnouncement" )
 }
 
 void function SetIntermissionCamera( entity camera )
@@ -336,6 +341,7 @@ void function HandleRespawningLateJoiners( entity player )
 void function DelayedGamemodeAnnouncement( entity player )
 {
 	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "RemoveGamemodeAnnouncement" )
 	
 	const float fadeInWait = 1.7
 	float connectionTime = Time()
@@ -347,6 +353,12 @@ void function DelayedGamemodeAnnouncement( entity player )
 	wait announcementDelay
 	if ( GetGameState() == eGameState.Playing )
 		TryGameModeAnnouncement( player )
+}
+
+// modified function, basically for gamemodes that needs to grant player control later after their join( eg. gruntmode )
+void function RemoveGamemodeAnnouncementForPlayer( entity player )
+{
+	player.Signal( "RemoveGamemodeAnnouncement" )
 }
 
 void function CodeCallback_OnClientDisconnected( entity player, string reason )
