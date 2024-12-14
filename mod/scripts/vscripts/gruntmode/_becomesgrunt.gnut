@@ -707,9 +707,12 @@ void function WaitForPlayerDisembarksDroppod( entity player )
 {
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
-	
+
+	// wait for player parent update
+	WaitFrame()
 	while ( IsValid( player.GetParent() ) )
 		WaitFrame()
+	
 	TryGameModeAnnouncement( player )
 }
 
