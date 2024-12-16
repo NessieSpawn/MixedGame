@@ -77,7 +77,7 @@ void function BecomesGruntMode_Init()
 
 	// specifics!!!!
 	// night combat simulation
-	if ( GetCurrentPlaylistVarFloat( "gruntmode_night_chance", 0 ) > 0 )
+	if ( GetCurrentPlaylistVarFloat( "gruntmode_night_chance", 0.33 ) > 0 )
 	{
 		if ( RandomInt( 1 / GetCurrentPlaylistVarFloat( "gruntmode_night_chance", 0.33 ) ) == 0 )
 			Night_Combat_Settings_Init()
