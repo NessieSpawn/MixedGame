@@ -1,5 +1,5 @@
 {
-	"Name" : "GruntMode Overhaul",
+	"Name" : "Gruntmode Overhaul",
 	"Description" : "Based on Gruntmode and update it to be compatible with current version of Northstar",
 	"Version": "1.0.0",
 	"LoadPriority": 3,
