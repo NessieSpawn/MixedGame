@@ -11,10 +11,10 @@ const int MARVINS_PER_TEAM = 0
 const int PROWLERS_PER_TEAM = 3
 const int PROWLER_SQUADS_PER_TEAM = 0 // prowler squad: 2 cqb prowler with 3 small prowlers
 
-const int REAPERS_PER_TEAM = 2 // was 3, reduced reaper spawn since we're using tick spawner reapers
-const int GUNSHIPS_PER_TEAM = 2
+const int REAPERS_PER_TEAM = 3
+const int GUNSHIPS_PER_TEAM = 0
 
-const int PILOTS_PER_TEAM = 3
+const int PILOTS_PER_TEAM = 4
 const int TITANS_PER_TEAM = 0
 
 const float WEAPON_PACKAGE_INTERVAL = 55.0 // time for each weapon care package( gruntmode_weapon_carepackage 1 )
@@ -22,11 +22,11 @@ const float AMMO_PACKAGE_INTERVAL = 35.0 // time for each ammo care package
 
 // escalator default value
 // can be modified by playlistvar
-const int LEVEL_SPECTRES = 50
-const int LEVEL_STALKERS = 100
-const int LEVEL_REAPERS = 180
+const int LEVEL_SPECTRES = 150
+const int LEVEL_STALKERS = 380
+const int LEVEL_REAPERS = 600
 //const int LEVEL_GUNSHIPS = 200 // has been merged to reaper spawns
-const int LEVEL_TITANS = 250
+const int LEVEL_TITANS = 0
 
 // RNG default value
 // can be modified by playlistvar
