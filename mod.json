@@ -1,6 +1,6 @@
 {
-	"Name" : "Super Mixed Game",
-	"Description" : "",
+	"Name" : "GruntMode Overhaul",
+	"Description" : "Based on Gruntmode and update it to be compatible with current version of Northstar",
 	"Version": "1.0.0",
 	"LoadPriority": 3,
 
