@@ -1,6 +1,6 @@
 {
 	"Name" : "Grunt Mode Overhaul",
-	"Description" : "Based on Grunt Mode and update it to be compatible with Northstar V1.29.0",
+	"Description" : "Based on original Grunt Mode and update it to be compatible with Northstar V1.29.0",
 	"Version": "1.0.1",
 	"LoadPriority": 3,
 
