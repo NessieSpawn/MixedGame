@@ -1383,7 +1383,8 @@ void function BecomeRavenant( entity player )
 
 	SimpleClassLoadout(  
 		player,
-		"mp_weapon_hemlok",													// primary weapon
+		//"mp_weapon_hemlok",													// primary weapon(deprecated)
+		"mp_weapon_rspn101_og",												// primary weapon, switch from phase walker
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_satchel",											    // grenade
 		$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
@@ -1411,7 +1412,8 @@ void function BecomePhaseWalker( entity player )
 
 	SimpleClassLoadout(  
 		player,
-		"mp_weapon_rspn101_og",												// primary weapon
+		//"mp_weapon_rspn101_og",												// primary weapon
+		"mp_weapon_hemlok",													// new weapon, same as wraith's trailer
 		"mp_weapon_arc_launcher",											// secondary weapon
 		"",											    // grenade
 		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model

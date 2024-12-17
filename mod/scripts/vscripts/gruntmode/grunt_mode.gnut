@@ -139,6 +139,8 @@ void function Modded_Gamemode_GruntMode_Init()
 
 	AddCallback_OnClientConnected( OnPlayerConnected )
 
+	SetShouldPlayDefaultMusic( true ) // play music when score or time reaches some point
+
 	ClassicMP_ForceDisableEpilogue( true )
 	Riff_ForceBoostAvailability( eBoostAvailability.Disabled )
 	Riff_ForceTitanAvailability( eTitanAvailability.Never )
