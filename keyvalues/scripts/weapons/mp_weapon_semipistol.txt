@@ -173,5 +173,23 @@ WeaponData
 		{
 			"activitymodifier"						"satchel"
 		}
+
+		// just for fun here: tf1's burst mode( burnmod )
+		burst
+		{
+			"fire_rate"   					"12"
+			"burst_fire_count"				"3"
+			"burst_fire_delay"				"0.28"
+
+			"viewkick_pitch_hardScale"		"1.2"
+			"viewkick_pitch_base" 			"-0.4"
+			"viewkick_pitch_random"   		"-0.25"
+			"viewkick_yaw_base"   			"0.15"
+			"viewkick_yaw_random" 			"0.5"
+
+			"damage_near_value"   			"25" // damage adjusted to tf2 value. tf1 value 60
+			// new adding adjustment, cuz org tf2 p2016 is very powerful on headshot
+			"damage_headshot_scale"			"1.5"
+		}
 	}
 }
