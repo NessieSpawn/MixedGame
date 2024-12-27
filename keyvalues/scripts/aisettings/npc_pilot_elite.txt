@@ -1,4 +1,7 @@
 // note: this file has been fully reworked, most stuffs using grunt ones
+// because northstar adding npc_pilot_elite.txt inside keyvalues
+// I have to... move this file to keyvalues, too
+// idk which behavior will be broken because keyvalues can't remove lines
 
 npc_pilot_elite
 {
