@@ -1,6 +1,6 @@
 {
-	"Name" : "Super Mixed Game Client-Side",
-	"Description" : "",
+	"Name" : "Grunt Mode Overhaul Client-Side",
+	"Description" : "Access to all features if server has installed Grunt Mode Overhaul",
 	"Version": "1.0.0",
 	"LoadPriority": 3,
 
