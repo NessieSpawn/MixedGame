@@ -7,4 +7,7 @@ void function MpWeaponLMG_Init()
     // burnmod replace
 	ModdedBurnMods_AddReplacementBurnMod( "apex_rampage", "burn_mod_apex_rampage" )
 #endif
+
+    // signal for being used by sound fix
+    RegisterSignal( "LmgWeaponFire" )
 }

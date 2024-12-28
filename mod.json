@@ -818,6 +818,16 @@
                 "After": "MpWeaponShotgun_Init"
             }
 		},
+		{
+			"Path": "/modweapons/vanilla_miss/mp_weapon_hemlok_fixed.nut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponHemlok_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponHemlok_Init"
+            }
+		},
 		// vanilla missing weapon scripts end
 		// northstar missing weapon scripts
 		{
