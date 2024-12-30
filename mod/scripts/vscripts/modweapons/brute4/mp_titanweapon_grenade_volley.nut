@@ -121,11 +121,13 @@ function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, isN
 		nade.SetModel( $"models/weapons/grenades/m20_f_grenade_projectile.mdl" )
 		#if SERVER
 			nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_grenade_volley ) // change damageSourceID
-			EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
+			// change every grenade sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 			Grenade_Init( nade, weapon )
 		#else
 			SetTeam( nade, weaponOwner.GetTeam() ) // helps magnetic find target?
 		#endif
+		EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 
 		// fix for trail effect, so clients without scripts installed can see the trail
 		StartParticleEffectOnEntity( nade, GetParticleSystemIndex( $"weapon_40mm_projectile" ), FX_PATTACH_ABSORIGIN_FOLLOW, -1 )

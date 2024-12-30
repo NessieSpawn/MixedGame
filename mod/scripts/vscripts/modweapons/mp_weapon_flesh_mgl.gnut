@@ -48,10 +48,12 @@ void function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams
 	{
 		entity weaponOwner = weapon.GetWeaponOwner()
 		#if SERVER
-			EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
+			// change every grenade sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
 			// will set proj.onlyAllowSmartPistolDamage = true, which makes us cannot destroy it by normal weapons
 			Grenade_Init( nade, weapon )
 		#endif
+		EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
 
 		if( weapon.HasMod( "nessie_mgl" ) ) // nessie mgl support
 			nade.SetModel( $"models/domestic/nessy_doll.mdl" )
