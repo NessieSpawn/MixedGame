@@ -156,7 +156,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
         )
 
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelFXData_AddHealthFX(
                 modelName,
@@ -245,7 +245,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
         )
 
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelFXData_AddHealthFX(
                 modelName,
@@ -312,7 +312,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
             BUDDY_TITAN_MODEL_EFFECT_VISIBILITYFLAGS        // visibilityFlags
         )
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
@@ -383,7 +383,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
             BUDDY_TITAN_MODEL_EFFECT_VISIBILITYFLAGS        // visibilityFlags
         )
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
@@ -496,7 +496,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
             BUDDY_TITAN_MODEL_EFFECT_VISIBILITYFLAGS        // visibilityFlags
         )
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
@@ -566,7 +566,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
             BUDDY_TITAN_MODEL_EFFECT_VISIBILITYFLAGS        // visibilityFlags
         )
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
@@ -755,7 +755,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
         array<float> damage_states = GetTitanDamageStateHealthValues()
         
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelFXData_AddHealthFX(
                 modelName,
@@ -844,7 +844,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
         )
 
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelFXData_AddHealthFX(
                 modelName,
@@ -902,7 +902,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
 
         //fire fx
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelFXData_AddHealthFX(
                 modelName,
@@ -1048,7 +1048,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
 
         //Right Shoulder Damage
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
@@ -1124,7 +1124,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
             "titan_armor_damage"                // sound
         )
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
@@ -1155,7 +1155,7 @@ void function RegisterBuddyTitanServerModelFX( asset modelName )
             BUDDY_TITAN_MODEL_EFFECT_VISIBILITYFLAGS        // visibilityFlags
         )
         // don't allow loop effects if server turned playlistvar off, for optimization
-        if ( !enableServerLoopingEffects )
+        if ( enableServerLoopingEffects )
         {
             ServerModelBodyGroupFX_Register(
                 modelName,
