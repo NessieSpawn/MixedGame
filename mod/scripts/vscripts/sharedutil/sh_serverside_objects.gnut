@@ -1,0 +1,7 @@
+global function Sh_Serverside_Objects_Folder_Init
+
+void function Sh_Serverside_Objects_Folder_Init()
+{
+    AddPrivateMatchModeSettingEnum( "#SERVERSIDE_OBJECTS", "bt_titan_server_effects", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+    AddPrivateMatchModeSettingEnum( "#SERVERSIDE_OBJECTS", "gunship_server_effects", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+}

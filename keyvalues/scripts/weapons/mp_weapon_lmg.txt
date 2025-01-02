@@ -132,10 +132,18 @@ WeaponData
 		// bleedout
 		bleedout_balance
 		{
-			"fire_rate"   									"--1" // 8, may cause desync
+			// remove fire rate penalty -- introduce reload time penalty
+			//"fire_rate"   									"--1" // 8, may cause desync
 			"damage_near_value"   							"--10" // 25
 			"damage_far_value"								"--8" // 17, 14 shots to kill 225hp
 			"damage_very_far_value"							"--8" // 12, 19 shots to kill 225hp
+
+			// reload time penalty -- same values as apex legends
+			"reload_time" 									"*1.214286"
+			"reload_time_late1"								"*1.333333"
+			"reloadempty_time"								"*1.261261"
+			"reloadempty_time_late1"						"*1.287554"
+			"reloadempty_time_late2"						"*1.487805"
 		}
 
 		// gruntmode specifics
@@ -144,6 +152,13 @@ WeaponData
 			"damage_near_value"   							"--10" // 25
 			"damage_far_value"								"--8" // 17
 			"damage_very_far_value"							"--8" // 12
+
+			// reload time penalty -- same values as apex legends
+			"reload_time" 									"*1.214286"
+			"reload_time_late1"								"*1.333333"
+			"reloadempty_time"								"*1.261261"
+			"reloadempty_time_late1"						"*1.287554"
+			"reloadempty_time_late2"						"*1.487805"
 		}
 	}
 }
