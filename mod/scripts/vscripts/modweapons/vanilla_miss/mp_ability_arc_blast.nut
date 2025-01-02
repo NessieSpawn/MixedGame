@@ -24,6 +24,8 @@ var function OnWeaponPrimaryAttack_ability_arc_blast( entity weapon, WeaponPrima
 
 	if ( weapon.HasMod( "drone_summoner" ) )
 	{
+		// remove for this branch
+		/*
 		#if SERVER
 			entity owner = weapon.GetWeaponOwner()
 			entity drone = SpawnDroneFromPlayer( owner, VALID_DRONE_TYPES[ RandomInt( VALID_DRONE_TYPES.len() ) ] )
@@ -33,6 +35,7 @@ var function OnWeaponPrimaryAttack_ability_arc_blast( entity weapon, WeaponPrima
 
 			return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
 		#endif
+		*/
 	}
 }
 

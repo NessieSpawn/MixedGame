@@ -12,8 +12,11 @@ void function MpWeaponHemlok_Init()
     //ModdedBurnMods_AddReplacementBurnMod( "lmg", "burn_mod_modded_hemlok" )
 
     // burnmod blacklist
+    // remove for this branch
+	/*
     ModdedBurnMods_AddDisabledMod( "starburst" )
 	ModdedBurnMods_AddDisabledMod( "lmg" )
+    */
 #endif
 
     // sound fix signals
