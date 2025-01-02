@@ -920,6 +920,9 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 			Remote_CallFunction_NonReplay( attackerInfo.attacker, "ServerCallback_SetAssistInformation", attackerInfo.damageSourceId, attacker.GetEncodedEHandle(), victim.GetEncodedEHandle(), attackerInfo.time )
 			AddPlayerScore( attackerInfo.attacker, eventName, victim, displayTypeOverride, -1, 1.0, victim )
 			attackerInfo.attacker.AddToPlayerGameStat( PGS_ASSISTS, 1 )
+			// northstar new adding fix: player assist callback
+			foreach ( callback in svGlobal.onPlayerAssistCallbacks )
+				callback( attackerInfo.attacker, victim )
 		}
 	}
 }
