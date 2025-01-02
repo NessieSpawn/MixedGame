@@ -110,6 +110,16 @@
                 "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
             }
 		},
+		{
+			"Path": "/sharedutil/sh_serverside_objects.gnut",
+			"RunOn": "( CLIENT || SERVER ) && MP",
+            "ServerCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            },
+			"ClientCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            }
+		},
 		// shared utilities end
 		// weapons
 		// modded brute4 utilities
