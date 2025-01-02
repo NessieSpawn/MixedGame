@@ -454,7 +454,11 @@ void function ActivateArcTrap( entity owner, entity mover, entity projectile, en
 	if( mods.contains( "one_time_arc_trap" ) )
 	{
 		if ( IsValid( projectile ) )
-			projectile.GrenadeExplode( < 0, 0, 1 > ) // explode after use
+		{
+			// dissolving a used trap gives better visual
+			//projectile.GrenadeExplode( < 0, 0, 1 > ) // explode after use
+			projectile.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 100 )
+		}
 	}
 }
 
