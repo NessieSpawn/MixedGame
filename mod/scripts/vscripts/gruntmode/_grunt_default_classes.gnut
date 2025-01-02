@@ -573,7 +573,6 @@ void function BecomeSpecialistGrunt( entity player )
 	// drone spawning ability( two times usage )
 	// maybe spawn one drone and one tick could be better...
 	//player.GiveOffhandWeapon( "mp_weapon_frag_drone", OFFHAND_SPECIAL, ["drone_spawner_anim"] )
-	player.GiveOffhandWeapon( "mp_ability_arc_blast", OFFHAND_SPECIAL, ["drone_summoner", "gm_specialist"] )
 
 	// model updated -- no longer uses fake spectre model
 	/*
@@ -636,6 +635,8 @@ void function SpecialistGruntThink( entity player )
 
 	// refill ticks first
 	RefillSpecialistGruntTicks( player )
+	// give drones
+	player.GiveOffhandWeapon( "mp_ability_arc_blast", OFFHAND_SPECIAL, ["drone_summoner", "gm_specialist"] )
 	// carepackage refilling ticks think
 	AddEntityCallback_OnUseCarePackage( player, OnSpecialistGruntUseCarePackage )
 
@@ -671,6 +672,9 @@ void function RefillSpecialistGruntTicks( entity player )
 	// refill turret if we have less turrets than max count
 	if ( PlayerInventory_CountBurnRef( player, "burnmeter_ticks" ) < SPECIALIST_GRUNT_TICK_MAX_COUNT )
 		PlayerInventory_PushInventoryItemByBurnRef( player, "burnmeter_ticks" ) // give one usage of turret
+	// remove current drone weapon because we may have entered infinite fire_duration
+	player.TakeOffhandWeapon( OFFHAND_SPECIAL )
+	player.GiveOffhandWeapon( "mp_ability_arc_blast", OFFHAND_SPECIAL, ["drone_summoner", "gm_specialist"] )
 }
 
 array<entity> function GetGruntPlayerOwnedDrones( entity player )
