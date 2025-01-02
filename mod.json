@@ -103,9 +103,6 @@
 		{
 			"Path": "/sharedutil/sh_mod_installation_check.gnut",
 			"RunOn": "CLIENT && MP",
-            "ServerCallback": {
-                "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
-            },
 			"ClientCallback": {
                 "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
             }
