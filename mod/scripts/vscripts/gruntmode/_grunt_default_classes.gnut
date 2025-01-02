@@ -134,7 +134,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_BEAST_KING_CLASSNAME,		// classname
 		BecomeBeastKing,				// loadout function
-		true							// specialist, should this class give more score
+		true							// specialist, should this class give more score. beast king also has prowlers which gives enemy 2 points in gruntmode
 	)
 	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_grenade_electric_smoke, BeastKingSmokeDamageTarget )
 	//
@@ -171,7 +171,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_HEAVY_SNIPER_CLASSNAME,		// classname
 		BecomeHeavySniper,				// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score( value has been changed )
 	)
 
 	// runner
@@ -240,12 +240,18 @@ void function BecomeAssaultGrunt( entity player )
 		"mp_weapon_r97",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
-		$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
-		$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
+		// all normal grunts now uses random model
+		$"",																// imc player model
+		$"",																// mlt player model
+		//$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
+		//$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"突擊步兵",																// title
 		"以突擊步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	RandomGruntModel( player )
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -262,12 +268,18 @@ void function BecomeHeavyGrunt( entity player )
 		"mp_weapon_lmg",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"",																	// grenade
-		$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
-		$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		// all normal grunts now uses random model
+		$"",																// imc player model
+		$"",																// mlt player model
+		//$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
+		//$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"重裝步兵",																// title
 		"以重裝步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_heavy" ) // damage nerfed spitfire
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
@@ -285,12 +297,18 @@ void function BecomeRiflemanGrunt( entity player )
 		"mp_weapon_vinson",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
-		$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
-		$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		// all normal grunts now uses random model
+		$"",																// imc player model
+		$"",																// mlt player model
+		//$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
+		//$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"步槍兵",																// title
 		"以步槍兵重生"												 			// respawn notification
 	)
+
+	// gives random grunt model based on team
+	RandomGruntModel( player )
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -307,12 +325,18 @@ void function BecomeShotgunGrunt( entity player )
 		"mp_weapon_shotgun",												// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
-		$"models/humans/grunts/imc_grunt_shotgun.mdl",						// imc player model
-		$"models/humans/grunts/mlt_grunt_shotgun.mdl",						// mlt player model
+		// all normal grunts now uses random model
+		$"",																// imc player model
+		$"",																// mlt player model
+		//$"models/humans/grunts/imc_grunt_shotgun.mdl",						// imc player model
+		//$"models/humans/grunts/mlt_grunt_shotgun.mdl",						// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"霰彈步兵",																// title
 		"以霰彈步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_shotgun" ) // fire-rate nerfed eva-8
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
@@ -330,18 +354,53 @@ void function BecomeSniperGrunt( entity player )
 		"mp_weapon_dmr",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_grenade_electric_smoke",									// grenade
-		$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
-		$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		// all normal grunts now uses random model
+		$"",																// imc player model
+		$"",																// mlt player model
+		//$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
+		//$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"狙擊步兵",																// title
 		"以狙擊步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_sniper" ) // nerfed dmr
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 	
 	// mlt specific pov camo
 	ApplyMLTGruntCamo( player )
+}
+
+// gives random grunt model based on team
+void function RandomGruntModel( entity player )
+{
+	asset modelName = $"models/humans/grunts/imc_grunt_rifle.mdl"
+	if ( player.GetTeam() == TEAM_MILITIA )
+	{
+		const array<asset> randomModels = 
+		[
+			$"models/humans/grunts/mlt_grunt_rifle.mdl",
+			$"models/humans/grunts/mlt_grunt_lmg.mdl",
+			$"models/humans/grunts/mlt_grunt_smg.mdl",
+			$"models/humans/grunts/mlt_grunt_shotgun.mdl",
+		]
+		modelName = randomModels[ RandomInt( randomModels.len() ) ]
+	}
+	else
+	{
+		const array<asset> randomModels = 
+		[
+			$"models/humans/grunts/imc_grunt_rifle.mdl",
+			$"models/humans/grunts/imc_grunt_lmg.mdl",
+			$"models/humans/grunts/imc_grunt_smg.mdl",
+			$"models/humans/grunts/imc_grunt_shotgun.mdl",
+		]
+		modelName = randomModels[ RandomInt( randomModels.len() ) ]
+	}
+	player.SetModel( modelName )
 }
 
 void function BecomeEngineer( entity player )
@@ -377,6 +436,12 @@ void function EngineerThink( entity player )
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 
+	//PlayerInventory_PushInventoryItemByBurnRef( player, ENGINEER_TURRET_BURNMETER ) // give one usage of turret
+	// refill turrets first
+	RefillEngineerTurrets( player )
+	// carepackage refilling turret think
+	AddEntityCallback_OnUseCarePackage( player, OnEngineerUseCarePackage )
+
 	OnThreadEnd
 	(
 		function(): ( player )
@@ -389,16 +454,17 @@ void function EngineerThink( entity player )
 		}
 	)
 
-	PlayerInventory_PushInventoryItemByBurnRef( player, ENGINEER_TURRET_BURNMETER ) // give one usage of turret
-	// carepackage refilling turret think
-	AddEntityCallback_OnUseCarePackage( player, OnEngineerUseCarePackage )
-
 	thread EngineerTurretsHandler( player )
 
 	player.WaitSignal( "OnDeath" ) // wait for player's death
 }
 
 void function OnEngineerUseCarePackage( entity player, entity pod )
+{
+	RefillEngineerTurrets( player )
+}
+
+void function RefillEngineerTurrets( entity player )
 {
 	// refill turret if we have less turrets than max count
 	if ( PlayerInventory_CountBurnRef( player, ENGINEER_TURRET_BURNMETER ) < ENGINEER_TURRET_MAX_COUNT )
@@ -492,23 +558,31 @@ void function BecomeSpecialistGrunt( entity player )
 		"mp_weapon_lstar",													// primary weapon
 		"mp_weapon_mgl",													// secondary weapon
 		"",																	// grenade
-		$"",																// imc player model
-		$"",																// mlt player model
+		// model updated -- no longer uses fake spectre model
+		//$"",																// imc player model
+		//$"",																// mlt player model
+		$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
+		$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"特種步兵",																// title
-		"以特種步兵重生：可釋放兩架無人機"										// respawn notification
+		"以特種步兵重生：可使用無人機和炸蛛"										// respawn notification
 	)
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 	
 	// drone spawning ability( two times usage )
-	player.GiveOffhandWeapon( "mp_weapon_frag_drone", OFFHAND_SPECIAL, ["drone_spawner_anim"] )
+	// maybe spawn one drone and one tick could be better...
+	//player.GiveOffhandWeapon( "mp_weapon_frag_drone", OFFHAND_SPECIAL, ["drone_spawner_anim"] )
+	player.GiveOffhandWeapon( "mp_ability_arc_blast", OFFHAND_SPECIAL, ["drone_summoner", "gm_specialist"] )
 
+	// model updated -- no longer uses fake spectre model
+	/*
 	player.SetModel( $"models/robots/spectre/imc_spectre.mdl" ) // safe to reset model
 	// attach a fake head to it
 	CreateMechanicalHeadForPlayer( player )
 	// modified in _ai_spawn_content.gnut, attach fake backpack for drone grunt
 	HACK_DroneGruntModel( player )
+	*/
 
 	// doing a better check now!
 	thread SpecialistGruntThink( player )
@@ -531,8 +605,10 @@ const float SPECIALIST_GRUNT_RECALL_RANGE = 600
 const float SPECIALIST_GRUNT_RECALL_COOLDOWN = 3.0
 const float SPECIALIST_GRUNT_NOTIFICATION_COOLDOWN = 2.0
 // drone settings
-const int SPECIALIST_GRUNT_DRONE_HEALTH = 70
-const int SPECIALIST_GRUNT_DRONE_MAX_COUNT = 2
+const int SPECIALIST_GRUNT_DRONE_HEALTH = 110 // 70 when having 2 drones
+const int SPECIALIST_GRUNT_DRONE_MAX_COUNT = 1 // don't forget to adjust this value when updating offhand weapons
+// ticks
+const int SPECIALIST_GRUNT_TICK_MAX_COUNT = 1 // this only limits ticks in inventory, thrown ticks won't be destroyed even reached max count
 
 void function SpecialistGruntThink( entity player )
 {
@@ -555,6 +631,11 @@ void function SpecialistGruntThink( entity player )
 		AddButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, SpecialistGruntRecallDrones )
 	}
 
+	// refill ticks first
+	RefillSpecialistGruntTicks( player )
+	// carepackage refilling ticks think
+	AddEntityCallback_OnUseCarePackage( player, OnSpecialistGruntUseCarePackage )
+
     OnThreadEnd(
         function(): ( player )
         {
@@ -565,6 +646,9 @@ void function SpecialistGruntThink( entity player )
 					RemoveButtonPressedPlayerInputCallback( player, IN_USE, SpecialistGruntRecallDrones )
 					RemoveButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, SpecialistGruntRecallDrones )
 				}
+
+				RemoveEntityCallback_OnUseCarePackage( player, OnSpecialistGruntUseCarePackage )
+				PlayerInventory_TakeAllInventoryItems( player ) // clear inventory
             }
         }
     )
@@ -572,6 +656,18 @@ void function SpecialistGruntThink( entity player )
 	thread SpecialistGruntDronesHandler( player )
 
 	player.WaitSignal( "OnDeath" ) // wait for player's death
+}
+
+void function OnSpecialistGruntUseCarePackage( entity player, entity pod )
+{
+	RefillSpecialistGruntTicks( player )
+}
+
+void function RefillSpecialistGruntTicks( entity player )
+{
+	// refill turret if we have less turrets than max count
+	if ( PlayerInventory_CountBurnRef( player, "burnmeter_ticks" ) < SPECIALIST_GRUNT_TICK_MAX_COUNT )
+		PlayerInventory_PushInventoryItemByBurnRef( player, "burnmeter_ticks" ) // give one usage of turret
 }
 
 array<entity> function GetGruntPlayerOwnedDrones( entity player )
@@ -792,6 +888,10 @@ void function BecomeShockGrunt( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.GiveOffhandWeapon( "mp_weapon_arc_trap", OFFHAND_INVENTORY, ["limited_arc_trap", "gm_shock_grunt"] ) // 2 activation arc trap, destroys itself on owner death
+
+	// differ them from stalker
+	player.SetSkin( 1 )
+	player.SetCamo( 18 ) // ocean
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1442,8 +1542,11 @@ void function BecomeHeavySniper( entity player )
 		"mp_weapon_sniper",													// primary weapon
 		"",																	// secondary weapon
 		"mp_weapon_grenade_electric_smoke",									// grenade
-		$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
-		$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		// model updated: other normal grunts now uses random model, heavy snipers should use lmg grunt model like specialists!
+		//$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
+		//$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
+		$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"重裝狙擊手",															// title
 		"以重裝狙擊手重生。主武器可直接對裝甲造成傷害"												 		// respawn notification
@@ -1798,15 +1901,15 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 
 	if ( !IsFFAGame() ) // two teams modes
 	{
-		if ( player.GetTeam() == TEAM_IMC )
-		{
-			if ( imcModelValid )
-				player.SetModel( imcPlayerModel )
-		}
 		if ( player.GetTeam() == TEAM_MILITIA )
 		{
 			if ( mltModelValid )
 				player.SetModel( mltPlayerModel )
+		}
+		else
+		{
+			if ( imcModelValid )
+				player.SetModel( imcPlayerModel )
 		}
 	}
 	else // ffa games

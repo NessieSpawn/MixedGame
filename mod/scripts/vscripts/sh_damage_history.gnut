@@ -18,6 +18,8 @@ global function GetLastDamageSourceStringForAttacker
 global function TotalDamageOverTime_BlendedOut
 global function ClearRecentDamageHistory
 global function AttackerDamagesSort
+// new adding feature: allow scripts modify npc kill steal prevention value, so we can better handle npc gamemodes
+global function DamageHistory_SetNPCKillStealPreventionTime
 
 global struct AttackerDamage
 {
@@ -50,6 +52,13 @@ global struct AssistingPlayerStruct
 	int damageSourceId
 	float assistTime
 }
+
+// modified settings goes here
+struct
+{
+	float npcKillStealPreventionTime = MAX_NPC_KILL_STEAL_PREVENTION_TIME
+} ile
+//
 
 void function DamageHistoryInit()
 {
@@ -372,7 +381,9 @@ AssistingPlayerStruct function GetLatestAssistingPlayerInfo( entity ent )
 		if ( history.time <= lastTime )
 			continue
 
-		if ( currentTime - history.time >= MAX_NPC_KILL_STEAL_PREVENTION_TIME )
+		// I feel like this shouldn't be a const, better leave a setting for everybody
+		//if ( currentTime - history.time >= MAX_NPC_KILL_STEAL_PREVENTION_TIME )
+		if ( currentTime - history.time >= file.npcKillStealPreventionTime )
 			continue
 
 		lastTime = history.time
@@ -468,4 +479,10 @@ float function TotalDamageOverTime_BlendedOut( entity soul, float start, float e
 	}
 
 	return totalAcquiredDamage
+}
+
+// new adding feature: allow scripts modify npc kill steal prevention value, so we can better handle npc gamemodes
+void function DamageHistory_SetNPCKillStealPreventionTime( float preventionTime )
+{
+	file.npcKillStealPreventionTime = preventionTime
 }

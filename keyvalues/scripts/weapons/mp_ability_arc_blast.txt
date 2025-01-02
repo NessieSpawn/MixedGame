@@ -65,5 +65,19 @@ WeaponData // client script required
 		{
 			"regen_ammo_refill_rate"						"*0"
 		}
+
+		// gruntmode specific, to avoid overriding ticks
+		drone_summoner
+		{
+		}
+		// hopefully this can sync with clients...
+		gm_specialist
+		{
+			"ammo_clip_size"   								"1"
+			"ammo_default_total"							"1"
+			"ammo_min_to_fire"								"1"
+			"ammo_per_shot"									"1"
+			"regen_ammo_refill_rate"						"0"
+		}
 	}
 }

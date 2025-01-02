@@ -1203,8 +1203,23 @@ void function InitGruntModeSpawnerSettings()
 	// modified function in class_wallrun.gnut
 	Wallrun_SetProtectionForRodeoPlayerStyle( eRodeoPlayerProtectionStyle.PROTECTION_AGAINST_NON_AGGRO_NPC ) // modified function in class_wallrun.gnut. player can be damaged by npcs aggro at them
 
+	// modified functions in _base_gametype.gnut
+	GameMode_SetCanUseNPCAsLastAttacker( true ) // allow use npcs as last attacker, so we can get more accurate score from npcs
+	GameMode_SetUseLastValidAttacker( true ) // allow finding from entity's damage history for last valid attacker, so we can get more accurate score from npcs
+
+	// damage history settings, for better handling npc score
+	GameMode_SetPlayerDamageHistoryLifeTime( 30.0 ) // modified function from _codecallbacks.gnut
+	TitanHealth_SetNPCTitanDamageHistoryLifeTime( 30.0 ) // modified function from _titan_health.gnut
+	ExtraSpawner_SetNPCDamageHistoryLifeTime( 12.0 )
+
+	// modified function in _ai_suicide_spectres.gnut
+	SuicideSpectre_SetUseGlobalChainExplosionTimer( false ) // sets npc owned ticks to have constant explosion timer. chain explosion delay is calculated per player
+
 	// modified function in levels_util.gnut
 	Levels_SetNPCAssistScoreEnabled( true ) // award assist score to players on npc killing each other, so players won't complain
+
+	// modified function in sh_damage_history.gnut
+	DamageHistory_SetNPCKillStealPreventionTime( 3.0 ) // transfer score to player if npc killed an target. value is higher than ( TITAN_PLAYEREJECT_DURATION * 2 ), which helps us handle nuke eject & stuffs
 }
 
 //////////////////////////////////////////////
