@@ -551,7 +551,7 @@ void function EngineerTurretsHandler( entity player )
 
 void function BecomeSpecialistGrunt( entity player )
 {
-	player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model
+	//player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model
 
 	SimpleClassLoadout(  
 		player,
@@ -583,6 +583,9 @@ void function BecomeSpecialistGrunt( entity player )
 	// modified in _ai_spawn_content.gnut, attach fake backpack for drone grunt
 	HACK_DroneGruntModel( player )
 	*/
+
+	// mlt specific pov camo
+	ApplyMLTGruntCamo( player )
 
 	// doing a better check now!
 	thread SpecialistGruntThink( player )
