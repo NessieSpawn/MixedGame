@@ -56,8 +56,8 @@ global struct AssistingPlayerStruct
 // modified settings goes here
 struct
 {
-	float npcKillStealPreventionTime = MAX_NPC_KILL_STEAL_PREVENTION_TIME
-} ile
+	float npcKillStealPreventionTime = 0.0 // MAX_NPC_KILL_STEAL_PREVENTION_TIME isn't 
+} file
 //
 
 void function DamageHistoryInit()
