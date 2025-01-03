@@ -3,6 +3,13 @@ global function OnProjectileCollision_ClusterRocket
 
 void function OnProjectileCollision_ClusterRocket( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	// modded weapon
+	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
+	if( mods.contains( "brute4_grenade_volley" ) )
+		return OnProjectileCollision_titanweapon_grenade_volley( projectile, pos, normal, hitEnt, hitbox, isCritical )
+	//
+
+	// vanilla behavior
 	entity weaponOwner = projectile.GetOwner()
 	//array<string> mods = projectile.ProjectileGetMods() // vanilla behavior, not changing to Vortex_GetRefiredProjectileMods()
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior

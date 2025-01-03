@@ -11,6 +11,12 @@ global function OnWeaponAttemptOffhandSwitch_titanweapon_dumbfire_rockets
 
 var function OnWeaponPrimaryAttack_titanweapon_multi_cluster( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// modded weapons
+	if( weapon.HasMod( "brute4_grenade_volley" ) )
+		return OnWeaponPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+	//
+
+	// vanilla behavior
 	int ammoReq = weapon.GetAmmoPerShot()
 	bool shouldPredict = weapon.ShouldPredictProjectiles()
 	#if CLIENT
@@ -35,6 +41,12 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_dumbfire_rockets( entity 
 
 var function OnWeaponPrimaryAttack_titanweapon_dumbfire_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// modded weapon
+	if( weapon.HasMod( "brute4_grenade_volley" ) )
+		return OnWeaponNpcPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+	//
+
+	// vanilla behavior
 	bool shouldPredict = weapon.ShouldPredictProjectiles()
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
 

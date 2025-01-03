@@ -1894,7 +1894,9 @@ void function NPCModdedBruteLoadout( entity titan )
 	// we have buffed quad rocket that have higher projectile speed and can make npcs do explosion damage
 	// no need to use multi-targeting missile( which extra_spawner branch uses )
 	//titan.GiveOffhandWeapon( "mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	// change to use cluster missile weapon mod for npc animations
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 	//Titan Core
 	titan.GiveOffhandWeapon( "mp_titancore_flight_core", OFFHAND_EQUIPMENT )
 	//Melee
@@ -1960,7 +1962,9 @@ void function NPCModdedBrute4Loadout( entity titan )
 	//Tactical
 	titan.GiveOffhandWeapon( "mp_titanability_rocketeer_ammo_swap", OFFHAND_ANTIRODEO, ["brute4_cluster_payload"] )
 	//Offence
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	// change to use cluster missile weapon mod for npc animations
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 	//Titan Core
 	titan.GiveOffhandWeapon( "mp_titancore_flight_core", OFFHAND_EQUIPMENT, ["brute4_barrage_core"] )
 	//Melee
@@ -3422,7 +3426,9 @@ void function VanguardBruteLoadout( entity titan )
 	// we have buffed quad rocket that have higher projectile speed and can make npcs do explosion damage
 	// no need to use multi-targeting missile( which extra_spawner branch uses )
 	//titan.GiveOffhandWeapon( "mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
+	// change to use cluster missile weapon mod for npc animations
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
 	//Titan Core. leaving it unchanged, vanguard can't use hover
 	// EDIT: maybe change it to upgrade core with no upgrading?( only recharges shield. max shield increased to 2500 in NPCVanguard_SetUpTitan() )
 	//titan.GiveOffhandWeapon( "mp_titancore_flight_core", OFFHAND_EQUIPMENT )
