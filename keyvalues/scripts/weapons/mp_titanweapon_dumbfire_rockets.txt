@@ -195,6 +195,10 @@ WeaponData
 			"viewkick_hipfire_weaponFraction_vmScale" 		"0.5"
 			"viewkick_ads_weaponFraction" 					"0.1"
 			"viewkick_ads_weaponFraction_vmScale" 			"0.2"
+
+			// wtffffffffff
+			"deploy_time" 									"0.1"
+			"raise_time"  									"0.1"
 		}
 
 		magnetic_rollers
