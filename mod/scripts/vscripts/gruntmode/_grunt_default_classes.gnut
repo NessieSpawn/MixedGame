@@ -551,7 +551,23 @@ void function EngineerTurretsHandler( entity player )
 
 void function BecomeSpecialistGrunt( entity player )
 {
-	//player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model
+	thread WaitForSpecialistGruntLeaveDropship( player )
+}
+
+void function WaitForSpecialistGruntLeaveDropship( entity player )
+{
+	// thinks for spectre model, no longer used!
+	/*
+	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "OnDeath" )
+	
+	player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model, also temp use this model
+	
+	WaitFrame() // wait for player being set into dropship
+	while( IsValid( player.GetParent() ) && player.GetParent().GetClassName() == "npc_dropship" )
+		WaitFrame() // wait for player leave dropship
+	*/
+
 	player.SetPlayerSettings( "pilot_grapple_male" )
 
 	SimpleClassLoadout(  
@@ -899,7 +915,7 @@ void function BecomeShockGrunt( entity player )
 
 	// differ them from stalker
 	player.SetSkin( 1 )
-	player.SetCamo( 18 ) // ocean
+	player.SetCamo( 18 ) // sea
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -939,6 +955,10 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 	//WaitFrame() // wait a frame. was waiting for altpilot_recoverFromSpectre(), but the function has been removed!
 	player.SetModel( $"models/robots/spectre/imc_spectre.mdl" ) // safe to set model
 	//player.SetTargetInfoIcon( $"ui/targetinfo_spectre_bounty" ) // will appear an error
+
+	// better POV
+	player.SetSkin( 1 )
+	player.SetCamo( 136 ) // haze white
 }
 
 void function BecomeSonarPulser( entity player )
@@ -1613,7 +1633,7 @@ void function BecomePathBuilder( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
 
 	player.SetSkin( 1 )
-	player.SetCamo( 18 ) // ocean
+	player.SetCamo( 18 ) // sea
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1641,7 +1661,7 @@ void function BecomeScout( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.SetSkin( 1 )
-	player.SetCamo( 18 ) // ocean
+	player.SetCamo( 18 ) // sea
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1682,7 +1702,7 @@ void function BecomeFlyer( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.SetSkin( 1 )
-	player.SetCamo( 19 ) // shadow
+	player.SetCamo( 19 ) // overcast
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1710,7 +1730,7 @@ void function BecomeAssassin( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.SetSkin( 1 )
-	player.SetCamo( 19 ) // shadow
+	player.SetCamo( 19 ) // overcast
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
