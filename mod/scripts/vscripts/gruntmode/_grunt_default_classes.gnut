@@ -1516,6 +1516,7 @@ void function BecomeShifter( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
 
 	// attach a fake head to it
+	// actually no need for phase shift pilot, just for the head break effect
 	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
@@ -1573,7 +1574,7 @@ void function BecomePhaseWalker( entity player )
 
 	// attach a fake head to it
 	// actually no need for phase shift pilot, just for the head break effect
-	//CreateMechanicalHeadForPlayer( player )
+	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
 	player.SetCamo( 31 ) // white
@@ -1632,7 +1633,7 @@ void function BecomeRunner( entity player )
 
 	// attach a fake head to it
 	// actually no need for phase shift pilot, just for the head break effect
-	//CreateMechanicalHeadForPlayer( player )
+	CreateMechanicalHeadForPlayer( player )
 
 	// looks like octane legendary skin? just to differ it's pov model from spectres
 	// now we could use phase shift pilot model, I think
