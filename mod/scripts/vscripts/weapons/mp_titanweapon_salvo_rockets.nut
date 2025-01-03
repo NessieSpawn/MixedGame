@@ -1,6 +1,7 @@
 untyped
 
 global function OnWeaponPrimaryAttack_titanweapon_salvo_rockets
+// modified callbacks
 global function OnProjectileCollision_titanweapon_salvo_rockets
 
 #if SERVER
@@ -56,6 +57,7 @@ var function OnWeaponPrimaryAttack_titanweapon_salvo_rockets( entity weapon, Wea
 	return firedMissiles.len() * weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
 }
 
+// modified callbacks
 void function OnProjectileCollision_titanweapon_salvo_rockets( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
 	// saved only for client-side in this branch

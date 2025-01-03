@@ -78,6 +78,7 @@ WeaponData // client script required
 			"ammo_min_to_fire"								"1"
 			"ammo_per_shot"									"1"
 			"regen_ammo_refill_rate"						"0"
+			"fire_duration"									"999999" // so player without client-install can know that weapon is drained out. remember to re-give weapon on getting care package
 		}
 	}
 }
