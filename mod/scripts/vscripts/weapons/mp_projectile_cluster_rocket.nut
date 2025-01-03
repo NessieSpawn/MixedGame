@@ -3,10 +3,10 @@ global function OnProjectileCollision_ClusterRocket
 
 void function OnProjectileCollision_ClusterRocket( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
+	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 	// modded weapon
 	// saved only for client-side in this branch
 #if CLIENT
-	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 	if( mods.contains( "brute4_grenade_volley" ) )
 		return OnProjectileCollision_titanweapon_grenade_volley( projectile, pos, normal, hitEnt, hitbox, isCritical )
 #endif
