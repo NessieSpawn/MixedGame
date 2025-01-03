@@ -9,8 +9,8 @@ WeaponData
 	"grenade_roll_vel_frac_per_second"				"0.1"
 
 	// changed from vanilla: ammo_instant does not make sense, only breaks hud elements
-	// can be changed in mod, guess I'd keep vanilla value
-	//"cooldown_type"                                 "ammo_instant"
+	// can't be changed in mod... guess I'd break vanilla behavior
+	"cooldown_type"                                 "ammo"
 
 	Mods
 	{
@@ -168,7 +168,7 @@ WeaponData
 			"grenade_arc_indicator_bounce_count"			"2"
 
 			// HUD
-			"cooldown_type"                                 "ammo"
+			//"cooldown_type"                                 "ammo"
 
 			// needs to adjust viewkick for cluster missile
 			"viewkick_pitch_base" 							"-0.2"
