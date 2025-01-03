@@ -62,7 +62,7 @@ WeaponData
 			"impact_effect_table"							"exp_softball_grenade"
 
 			//firing sound, overwrites rocket salve's with empty ones
-			//real trail effect done in script so other clients can hear it
+			//sound effect done in script so other clients can hear it
 			"fire_sound_1_player_1p"						"Null_Remove_SoundHook"
 			"fire_sound_1_player_3p"						"Null_Remove_SoundHook"
 
