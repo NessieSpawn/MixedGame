@@ -964,7 +964,7 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 	// better POV
 	// SPECTRES CAN'T CHANGE SKIN! WILL MAKE THEM INVISIBLE!
 	//player.SetSkin( 1 )
-	//player.SetCamo( 136 ) // haze white
+	//player.SetCamo( 135 ) // haze white
 }
 
 void function BecomeSonarPulser( entity player )
@@ -1465,15 +1465,19 @@ void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands
 
 void function BecomeJumper( entity player )
 {
-    player.SetPlayerSettings( "pilot_nomad_female" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
+    //player.SetPlayerSettings( "pilot_nomad_female" ) // have a better pov model
 
 	SimpleClassLoadout(  
 		player,
 		"mp_weapon_esaw",												    // primary weapon
 		"mp_weapon_mgl",													// secondary weapon
 		"",											                        // grenade
-		$"models/humans/pilots/pilot_light_jester_f.mdl",					// imc player model
-		$"models/humans/pilots/pilot_light_jester_f.mdl",				    // mlt player model
+		// runner no longer uses stim pilot model, change this back to male
+		//$"models/humans/pilots/pilot_light_jester_f.mdl",					// imc player model
+		//$"models/humans/pilots/pilot_light_jester_f.mdl",				    // mlt player model
+		$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
+		$"models/humans/pilots/pilot_light_jester_m.mdl",				    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"機動兵",																// title
 		"以機動兵重生：可以部署一個跳板"						                	// respawn notification
@@ -1568,7 +1572,8 @@ void function BecomePhaseWalker( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
 
 	// attach a fake head to it
-	CreateMechanicalHeadForPlayer( player )
+	// actually no need for phase shift pilot, just for the head break effect
+	//CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
 	player.SetCamo( 31 ) // white
@@ -1603,31 +1608,36 @@ void function BecomeHeavySniper( entity player )
 
 void function BecomeRunner( entity player )
 {
-	player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
+	//player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model
 
 	SimpleClassLoadout(  
 		player,
 		"",												    				// primary weapon
 		"",																	// secondary weapon
 		"",											                        // grenade
-		$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
-		$"models/humans/pilots/pilot_light_jester_m.mdl",				    // mlt player model
+		//$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
+		//$"models/humans/pilots/pilot_light_jester_m.mdl",				    // mlt player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // imc player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"奔跑者",																// title
 		"以奔跑者重生：可無限次使用長時間激素，消耗生命值"						    	// respawn notification
 	)
-
-	// attach a fake head to it
-	CreateMechanicalHeadForPlayer( player )
 
 	player.GiveWeapon( "mp_weapon_autopistol", ["silencer", "gm_runner", "pas_run_and_gun", "extended_ammo", "fake_tf1_sprint_anim"] ) // less falloff re45
     player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] ) // extended ammo mgl
 	player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["octane_stim", "gm_runner"] ) // long duration stim, costs health on activation and disables health regen while activating(not compatible with "grunt_mode")
 	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
 
-	// looks like octane legendary skin?
-	player.SetSkin( 1 )
-	player.SetCamo( 136 ) // haze white
+	// attach a fake head to it
+	// actually no need for phase shift pilot, just for the head break effect
+	//CreateMechanicalHeadForPlayer( player )
+
+	// looks like octane legendary skin? just to differ it's pov model from spectres
+	// now we could use phase shift pilot model, I think
+	//player.SetSkin( 1 )
+	//player.SetCamo( 135 ) // haze white
 }
 
 void function BecomePathBuilder( entity player )
