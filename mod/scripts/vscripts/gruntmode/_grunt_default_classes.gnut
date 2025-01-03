@@ -2082,7 +2082,7 @@ void function CreateMechanicalHeadForPlayer( entity player )
 	entity head = CreatePropDynamic( $"models/humans/pilots/pilot_light_ged_m_head_gib.mdl" )
 	head.SetParent( player, "HEADSHOT" )
 	head.Highlight_SetInheritHighlight( true ) // setup highlight
-	head.SetOrigin( < 0, 0, -7 > ) // tweak on position
+	head.SetOrigin( < 0, 0, -6 > ) // tweak on position. should be lower because models other than phase shift pilot don't have a scaf for covering non-linking head
 	// EDIT: we need to change headshot effect otherwise player will drop an extra head on being executed
 	//DeathPackage_RemoveEntityHeadshotFXOverride( player ) // remove headshotFX override, we drop the head on getting headshot at
 	DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_pilot" )
