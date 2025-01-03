@@ -957,8 +957,9 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 	//player.SetTargetInfoIcon( $"ui/targetinfo_spectre_bounty" ) // will appear an error
 
 	// better POV
-	player.SetSkin( 1 )
-	player.SetCamo( 136 ) // haze white
+	// SPECTRES CAN'T CHANGE SKIN! WILL MAKE THEM INVISIBLE!
+	//player.SetSkin( 1 )
+	//player.SetCamo( 136 ) // haze white
 }
 
 void function BecomeSonarPulser( entity player )
