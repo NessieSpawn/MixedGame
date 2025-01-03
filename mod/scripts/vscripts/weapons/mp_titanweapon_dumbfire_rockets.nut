@@ -12,8 +12,11 @@ global function OnWeaponAttemptOffhandSwitch_titanweapon_dumbfire_rockets
 var function OnWeaponPrimaryAttack_titanweapon_multi_cluster( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_grenade_volley" ) )
 		return OnWeaponPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
@@ -42,8 +45,11 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_dumbfire_rockets( entity 
 var function OnWeaponPrimaryAttack_titanweapon_dumbfire_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
+	// saved only for client-side in this branch
+#if CLIENT
 	if( weapon.HasMod( "brute4_grenade_volley" ) )
 		return OnWeaponNpcPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+#endif
 	//
 
 	// vanilla behavior
