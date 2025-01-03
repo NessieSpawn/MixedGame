@@ -63,6 +63,8 @@ function BaseGametype_Init()
 		level.titanAlwaysAvailableForTeam <- [ 0, 0, 0, 0 ]
 
 		level.missingPlayersTimeout <- null
+		// northstar new settings
+		level.customOOBTimer <- 0.0
 
 		CreateTeamColorControlPoints()
 
@@ -2062,10 +2064,16 @@ void function EntityOutOfBounds( entity trigger, entity ent, entity caller, var 
 
 	//printt( "Valid Out OfBounds Entity, EntityOutOfBounds" )
 
+	// northstar new settings
+	float overridenOOBTimer = expect float( level.customOOBTimer )
 	if ( !(ent in file.outOfBoundsTable) ) //Note that we never remove the ent from the table after adding it
 	{
 		OutOfBoundsDataStruct initialDataStruct
 		initialDataStruct.timeBackInBound = max( 0, Time() - OUT_OF_BOUNDS_DECAY_TIME )
+
+		// northstar new settings
+		if( overridenOOBTimer > 0.0 )
+			initialDataStruct.timeLeftBeforeDyingFromOutOfBounds = overridenOOBTimer
 
 		ManageAddEntToOutOfBoundsTable( ent,  initialDataStruct  )
 	}
@@ -2082,6 +2090,13 @@ void function EntityOutOfBounds( entity trigger, entity ent, entity caller, var 
 		float decayTime = max( 0, Time() - dataStruct.timeBackInBound - OUT_OF_BOUNDS_DECAY_DELAY )
 		float outOfBoundsTimeRegained = decayTime * ( OUT_OF_BOUNDS_TIME_LIMIT / OUT_OF_BOUNDS_DECAY_TIME )
 		float deadTime = clamp( dataStruct.timeLeftBeforeDyingFromOutOfBounds + outOfBoundsTimeRegained, 0.0, OUT_OF_BOUNDS_TIME_LIMIT )
+
+		// northstar new settings
+		if( overridenOOBTimer > 0.0 )
+		{
+			outOfBoundsTimeRegained = decayTime * ( overridenOOBTimer / OUT_OF_BOUNDS_DECAY_TIME )
+			deadTime = clamp( dataStruct.timeLeftBeforeDyingFromOutOfBounds + outOfBoundsTimeRegained, 0.0, overridenOOBTimer )
+		}
 
 		//printt( "Decay Time: " + decayTime + ", outOfBoundsTimeRegained:" + outOfBoundsTimeRegained + ", timeLeftBeforeDyingFromOutOfBounds: " + dataStruct.timeLeftBeforeDyingFromOutOfBounds + ", deadTime: " + deadTime  )
 

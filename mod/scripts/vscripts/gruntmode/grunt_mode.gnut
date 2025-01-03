@@ -402,6 +402,7 @@ int function GruntMode_GetScoreValue( entity ent, bool isDoomedShot = false )
 void function HandleScoreForPlayerOrNPCKill( entity victim, entity attacker, var damageInfo )
 {
 	// if victim is a non-titan npc that owned by players, don't add score
+	// currently this function is a stub
 	if ( !VictimIsValidForAITdmScore( victim ) )
 		return
 	
@@ -430,6 +431,16 @@ void function HandleScoreForPlayerOrNPCKill( entity victim, entity attacker, var
 	int scoreToAdd = GruntMode_GetScoreValue( victim )
 	if ( scoreToAdd > 0 )
 		AddAITdmTeamScore( attacker, scoreToAdd ) // this can handle both players' and npcs' kills
+
+	// some score event for player killing each other
+	if ( attacker.IsPlayer() && victim.IsPlayer() )
+	{
+		string scoreEvent = "KillGrunt"
+		if ( victim.IsMechanical() )
+			scoreEvent = "KillSpectre"
+		// no need to set any other param because this gamemode don't really have earnmeter system
+		AddPlayerScore( attacker, scoreEvent, victim )
+	}
 }
 
 bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var damageInfo )
@@ -465,7 +476,8 @@ bool function AttackerIsValidForAITdmScore( entity victim, entity attacker, var 
 bool function VictimIsValidForAITdmScore( entity victim )
 {
 	// if victim is a non-titan npc that owned by players, don't add score
-	// vanilla doesn't seem to have this check
+	// vanilla doesn't seem to have this check, they have npc hacked mark
+	// in this gamemode beast king can use prowlers for attacking, but those prowlers are pretty powerful so I think maybe good to add score to players?
 	/*
 	if ( victim.IsNPC() && !victim.IsTitan() )
 	{
