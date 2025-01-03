@@ -103,11 +103,18 @@
 		{
 			"Path": "/sharedutil/sh_mod_installation_check.gnut",
 			"RunOn": "CLIENT && MP",
-            "ServerCallback": {
-                "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
-            },
 			"ClientCallback": {
                 "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
+            }
+		},
+		{
+			"Path": "/sharedutil/sh_serverside_objects.gnut",
+			"RunOn": "( CLIENT || SERVER ) && MP",
+            "ServerCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            },
+			"ClientCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
             }
 		},
 		// shared utilities end
@@ -797,8 +804,24 @@
 			"ClientCallback":{
 				"After": "MpTitanWeaponGoundSlam_Init"
 			}
-		}
+		},
 		// modded titancores end
+		// client&server synced objects
+		{
+			"Path": "/client/modobjects/cl_mixed_game_effects_init.gnut",
+			"RunOn": "CLIENT && MP",
+			"ClientCallback":{
+				"After": "Cl_MixedGame_Model_Effects_Init"
+			}
+		},
+		{
+			"Path": "/client/modobjects/cl_titan_buddy_mixedgame.nut",
+			"RunOn": "CLIENT && MP"
+		},
+		{
+			"Path": "/client/modobjects/cl_gunship_mixedgame.nut",
+			"RunOn": "CLIENT && MP"
+		}
 	],
 
 	"Localisation": [

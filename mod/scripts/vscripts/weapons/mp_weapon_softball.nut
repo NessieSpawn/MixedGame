@@ -91,12 +91,14 @@ function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, isN
 	if ( nade )
 	{
 		#if SERVER
-			EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
+			// change every grenade sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 			Grenade_Init( nade, weapon )
 		#else
 			entity weaponOwner = weapon.GetWeaponOwner()
 			SetTeam( nade, weaponOwner.GetTeam() )
 		#endif
+		EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 	}
 }
 

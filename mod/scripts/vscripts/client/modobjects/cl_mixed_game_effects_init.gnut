@@ -1,0 +1,10 @@
+global function Cl_MixedGame_Model_Effects_Init
+
+void function Cl_MixedGame_Model_Effects_Init()
+{
+    // buddy titans
+    ClTitanBuddy_MixedGame_Init( $"models/titans/buddy/titan_buddy.mdl" )
+    // gunship
+    ClGunship_MixedGame_Init( $"models/vehicle/straton/straton_imc_gunship_01.mdl" )
+    ClGunship_MixedGame_Init( $"models/vehicle/hornet/hornet_fighter.mdl" )
+}

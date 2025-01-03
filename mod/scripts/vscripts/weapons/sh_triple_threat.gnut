@@ -193,9 +193,10 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 		// EDIT: owner always can't hear server-side sound if we play it right after grenade launch
 		// unless we do client-side sound event
 		#if SERVER
-			EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
+			// change every grenade sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 		#endif
-		// EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
+		EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 		
 		Grenade_Init( nade, weapon )
 		#if SERVER
