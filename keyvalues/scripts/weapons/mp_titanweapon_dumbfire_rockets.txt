@@ -8,6 +8,10 @@ WeaponData
 	"grenade_bounce_extra_vertical_randomness"		"0.2"
 	"grenade_roll_vel_frac_per_second"				"0.1"
 
+	// changed from vanilla: ammo_instant does not make sense, only breaks hud elements
+	// can't be changed in mod... guess I'd break vanilla behavior
+	"cooldown_type"                                 "ammo"
+
 	Mods
 	{
 		clustermissile_fast_recharge
@@ -97,7 +101,7 @@ WeaponData
 			"damage_near_value_titanarmor"   				"10"
 			"damage_near_value_titanarmor"					"10"
 
-			"explosion_damage"								"25" // was 40. too easy to kill a pilot with 40 damage... but only when they're grounded
+			"explosion_damage"								"30" // was 40. too easy to kill a pilot with 40 damage... but only when they're grounded
 			"explosion_damage_heavy_armor"					"230"
 
 			// npc usage
@@ -107,7 +111,7 @@ WeaponData
 			"npc_damage_near_value_titanarmor"				"10"
 
 			// add npc explosion damages: this weapon mod rely on explosions to deal damage
-			"npc_explosion_damage"							"20" // was 40
+			"npc_explosion_damage"							"25" // was 40
 			"npc_explosion_damage_heavy_armor"				"230"
 
 			// last version missing these which made grenade volley for npcs extremely powerful
@@ -126,8 +130,8 @@ WeaponData
 			"npc_charge_time_min"							"1.0"	// for rocketpod animation time
 			"npc_charge_time_max"							"1.0"
 
-			"explosion_inner_radius"  						"120" // was 160. softball uses 50 while satchel uses 120
-			"explosionradius" 								"200" // was 240. softball uses 150, frag grenade uses 320, satchel uses 250
+			"explosion_inner_radius"  						"160" // softball uses 50 while satchel uses 120, once tried 120 but was too bad
+			"explosionradius" 								"240" // softball uses 150, frag grenade uses 320, satchel uses 250. once tried 200 but was too bad
 			"impulse_force"   								"500" // was 1. 500 is value for PHYS_EXPLOSION_LARGE( though in TF|2 500 isn't enough at all )
 
 			//ammo, adjust from cluster missile's maxnium of 180 ammo
@@ -162,6 +166,31 @@ WeaponData
 			"grenade_arc_impact_indicator_effect"			"grenade_arc_impact_proto_orange"
 			"grenade_arc_indicator_show_from_hip"			"1"
 			"grenade_arc_indicator_bounce_count"			"2"
+
+			// HUD
+			//"cooldown_type"                                 "ammo"
+
+			// needs to adjust viewkick for cluster missile
+			"viewkick_pitch_base" 							"-0.2"
+			"viewkick_pitch_random"   						"0.3"
+			"viewkick_pitch_softScale"						"0.7"
+			"viewkick_pitch_hardScale"						"0.1"
+
+			"viewkick_yaw_base"   							"-0.25"
+			"viewkick_yaw_random" 							"0.5"
+			"viewkick_yaw_softScale"  						"0.3"
+			"viewkick_yaw_hardScale"  						"2.0"
+
+			"viewkick_roll_base"  							"0.0"
+			"viewkick_roll_randomMin" 						"0.6"
+			"viewkick_roll_randomMax" 						"0.8"
+			"viewkick_roll_softScale" 						"0.2"
+			"viewkick_roll_hardScale" 						"0.2"
+
+			"viewkick_hipfire_weaponFraction" 				"0.4"
+			"viewkick_hipfire_weaponFraction_vmScale" 		"0.5"
+			"viewkick_ads_weaponFraction" 					"0.1"
+			"viewkick_ads_weaponFraction_vmScale" 			"0.2"
 		}
 
 		magnetic_rollers
