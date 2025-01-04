@@ -268,7 +268,8 @@ void function DroppodPlayerProtectionThink( entity player, entity pod, float max
 				break
 
 			// trying to use ability or cook grenade
-			if ( activeWeapon.IsWeaponOffhand() )
+			// player can have only offhand weapons such as melee... needs to check main weapon count as well
+			if ( player.GetMainWeapons().len() > 0 && activeWeapon.IsWeaponOffhand() )
 				break
 
 			// trying to lock with weapon
