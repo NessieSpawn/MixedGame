@@ -948,7 +948,8 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 		"",																	// grenade
 		$"",																// imc player model
 		$"",																// mlt player model
-		["normal_wallclimb", "spectre_model"],								// class mods
+		//["normal_wallclimb", "spectre_model"],								// class mods
+		["normal_wallclimb"],												// class mods
 		"幽靈戰士",																// title
 		"以幽靈戰士重生：可以二段跳躍"												// respawn notification
 	)
