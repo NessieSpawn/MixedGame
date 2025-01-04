@@ -255,6 +255,11 @@ void function DroppodPlayerProtectionThink( entity player, entity pod, float max
 		WaitFrame()
 		if ( Distance( player.GetOrigin(), safeOrigin ) > droppodRadius )
 			break
+		
+		entity activeWeapon = player.GetActiveWeapon()
+		// trying to use ability or cook grenade
+		if ( IsValid( activeWeapon ) && activeWeapon.IsWeaponOffhand() )
+			break
 	}
 }
 
