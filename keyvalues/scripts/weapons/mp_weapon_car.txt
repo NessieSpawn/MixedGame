@@ -179,6 +179,17 @@ WeaponData
 			"spread_decay_rate"   							"30.0"
 			"spread_decay_delay"  							"0.3"
 		}
+
+		// gruntmode specific
+		gm_specialist
+		{
+			// bit longer reload
+			"reload_time" 									"*1.3" // 2.35s. alternator is 2.3s
+			"reload_time_late1"								"*1.3"
+			"reloadempty_time"								"*1.25" // 3.1625s
+			"reloadempty_time_late1"						"*1.25"
+			"reloadempty_time_late2"						"*1.25"
+		}
 	}
 
 	RUI_CrosshairData
