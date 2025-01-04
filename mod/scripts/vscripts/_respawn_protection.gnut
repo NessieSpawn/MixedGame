@@ -52,7 +52,28 @@ void function ProectionHighlightThink( entity player, float duration )
 	while( Time() - startTime <= duration )
 	{
 		Highlight_SetEnemyHighlight( player, "sp_enemy_pilot" )
-		player.Highlight_SetParam( 2, 0, < 255,215,0 > )
+		player.Highlight_SetParam( 2, 0, < 255,215,0 > ) // gold highlight
+
 		WaitFrame()
+
+		if ( player.IsTitan() )
+			break
+
+		// weapon checks to break protection early
+		entity activeWeapon = player.GetActiveWeapon()
+		if ( IsValid( activeWeapon ) )
+		{
+			// trying to use ability or cook grenade
+			if ( activeWeapon.IsWeaponOffhand() )
+				break
+
+			// trying to charge up weapon
+			if ( activeWeapon.IsChargeWeapon() && activeWeapon.GetWeaponChargeFraction() > 0 )
+				break
+
+			// trying to lock with weapon
+			if ( activeWeapon.GetWeaponSettingBool( eWeaponVar.attack_button_presses_ads ) && player.GetZoomFrac() == 1 )
+				break
+		}
 	}
 }
