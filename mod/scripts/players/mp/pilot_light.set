@@ -31,6 +31,8 @@
 		ClassMods
 		{
 			// for us becoming a spectre. requires client-side install
+			// gibs model won't work in mods, this will make clients desync...
+			/*
 			spectre_model
 			{
 				gibModel0				"models/humans/pilots/pilot_light_ged_m_head_gib.mdl"
@@ -39,6 +41,7 @@
 				gibModel3				"models/robots/spectre/spectre_assault_d_gib_arm_l.mdl"
 				gibModel4				"models/robots/spectre/spectre_assault_d_gib_arm_r.mdl"
 			}
+			*/
 		}
 	}
 
