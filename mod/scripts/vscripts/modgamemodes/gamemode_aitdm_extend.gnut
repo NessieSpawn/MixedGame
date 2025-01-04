@@ -21,11 +21,11 @@ const int TITANS_PER_TEAM = 0
 
 // escalator default value
 // can be modified by playlistvar
-const int LEVEL_SPECTRES = 80
-const int LEVEL_STALKERS = 150
-const int LEVEL_REAPERS = 230
+const int LEVEL_SPECTRES = 150
+const int LEVEL_STALKERS = 380
+const int LEVEL_REAPERS = 720
 //const int LEVEL_GUNSHIPS = 280 // has been merged to reaper spawns
-const int LEVEL_TITANS = 330
+const int LEVEL_TITANS = 0
 
 // RNG default value
 // can be modified by playlistvar
