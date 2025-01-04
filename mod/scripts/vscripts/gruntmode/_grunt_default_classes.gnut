@@ -948,7 +948,7 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 		"",																	// grenade
 		$"",																// imc player model
 		$"",																// mlt player model
-		["normal_wallclimb"],												// class mods
+		["normal_wallclimb", "spectre_model"],								// class mods
 		"Spectre",															// title
 		"Respawn as Spectre: Able to Double jump"							// respawn notification
 	)
