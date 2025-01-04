@@ -57,7 +57,7 @@ void function Cl_SpectreModel_Init( asset model_name )
 	//----------------------
 	// model Lights - Friend
 	//----------------------
-	ModelFX_BeginData( "friend_lights", model, "friend", true )
+	ModelFX_BeginData( "friend_lights", model_name, "friend", true )
 		ModelFX_HideFromLocalPlayer()
 		ModelFX_AddTagSpawnFX( "EYEGLOW",		$"P_spectre_eye_friend" )
 	ModelFX_EndData()
@@ -65,7 +65,7 @@ void function Cl_SpectreModel_Init( asset model_name )
 	//----------------------
 	// model Lights - Foe
 	//----------------------
-	ModelFX_BeginData( "foe_lights", model, "foe", true )
+	ModelFX_BeginData( "foe_lights", model_name, "foe", true )
 		ModelFX_HideFromLocalPlayer()
 		ModelFX_AddTagSpawnFX( "EYEGLOW",		$"P_spectre_eye_foe" )
 	ModelFX_EndData()
