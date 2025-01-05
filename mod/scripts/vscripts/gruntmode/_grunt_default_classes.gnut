@@ -185,14 +185,14 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_PATH_BUILDER_CLASSNAME,		// classname
 		BecomePathBuilder,				// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score( value has been changed )
 	)
 
 	// scout
 	GruntMode_RegisterPlayerClass(
 		GM_SCOUT_CLASSNAME,				// classname
 		BecomeScout,					// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score( value has been changed )
 	)
 
 	// flyer
@@ -419,7 +419,7 @@ void function BecomeEngineer( entity player )
 		"以工程師重生：携帶一架炮臺"											// respawn notification
 	)
 
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	thread EngineerThink( player ) // death will clear player's turret item
 
@@ -602,6 +602,9 @@ void function WaitForSpecialistGruntLeaveDropship( entity player )
 	HACK_DroneGruntModel( player )
 	*/
 
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
+
 	// mlt specific pov camo
 	ApplyMLTGruntCamo( player )
 
@@ -621,7 +624,7 @@ struct
 } specialistGrunt
 
 // drone recall
-const bool SPECIALIST_GRUNT_DRONE_RECALL_ENABLED = true
+const bool SPECIALIST_GRUNT_DRONE_RECALL_ENABLED = false // temporary disable drone recall because drones won't block owner bullets
 const float SPECIALIST_GRUNT_RECALL_RANGE = 600
 const float SPECIALIST_GRUNT_RECALL_COOLDOWN = 3.0
 const float SPECIALIST_GRUNT_NOTIFICATION_COOLDOWN = 2.0
@@ -757,7 +760,8 @@ void function SpecialistGruntDronesHandler( entity player )
 			drone.SetMaxHealth( SPECIALIST_GRUNT_DRONE_HEALTH )
 			drone.SetHealth( drone.GetMaxHealth() )
 			// send notification
-			SendHudMessage( player, "按 使用 可以將無人機移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+			if ( SPECIALIST_GRUNT_DRONE_RECALL_ENABLED )
+				SendHudMessage( player, "按 使用 可以將無人機移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 		}
 
 		// hit max drones?
@@ -881,7 +885,9 @@ void function BecomeShieldCaptain( entity player )
 	)
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
-	DeathPackage_RemoveEntityHeadshotFXOverride( player ) // shield captains use pilot headshot fx
+	
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
 
 	thread WaitForShieldCaptainPlayerDrop( player )
 }
@@ -1037,7 +1043,7 @@ void function BecomeNinja( entity player )
 	entity meleeWeapon = player.GetMeleeWeapon()
 	if ( IsValid( meleeWeapon ) )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
-	player.GiveOffhandWeapon( "melee_pilot_kunai", OFFHAND_MELEE, ["grunt_mode"] )
+	player.GiveOffhandWeapon( "melee_pilot_kunai", OFFHAND_MELEE, ["grunt_mode", "fake_human_melee"] )
 	ninjaOffhands.append( "melee_pilot_kunai" )
 	//thread NinjaForcedWeapon( player, ninjaWeapons, ninjaOffhands ) // force ninja use given weapons
 	thread NinjaForcedWeapon( player, ninjaWeaponSlots, ninjaOffhands )
@@ -1366,7 +1372,8 @@ entity function CreateProwlerForBeastKing( entity player )
 
     beastKing.classTable[player].ownedProwler = prowler
     beastKing.classTable[player].lastRecallTime = Time() - BEAST_KING_RECALL_COOLDOWN // make recall valid
-    SendHudMessage( player, "獵獸已重生。按 使用 可以將其移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+    if ( BEAST_KING_PROWLER_RECALL_ENABLED )
+		SendHudMessage( player, "獵獸已重生。按 使用 可以將其移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 
 	PlayProwlerAppearFX( prowler ) // phase out effect
 
@@ -1485,7 +1492,7 @@ void function BecomeJumper( entity player )
 	)
 
     player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "infinite_jump_pad", "gm_jumper"] )
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	// attach a fake head to it
 	CreateMechanicalHeadForPlayer( player )
@@ -1496,7 +1503,8 @@ void function BecomeJumper( entity player )
 
 void function BecomeShifter( entity player )
 {
-    player.SetPlayerSettings( "pilot_light_female" ) // have a better pov model
+    //player.SetPlayerSettings( "pilot_light_female" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_light_male" )
 
 	// not using the model $"models/Humans/heroes/imc_hero_ash.mdl" since we've assigned it to boss titans
 	SimpleClassLoadout(  
@@ -1504,8 +1512,10 @@ void function BecomeShifter( entity player )
 		"mp_weapon_doubletake",												// primary weapon
 		"mp_weapon_arc_launcher",											// secondary weapon
 		"",											                        // grenade
-		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model
-		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // mlt player model
+		//$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model
+		//$"models/humans/pilots/pilot_light_ged_f.mdl",					    // mlt player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // imc player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"相位兵",															// title
         "以相位兵重生：可使用一次長時間相位"						            // respawn notification
@@ -1514,7 +1524,7 @@ void function BecomeShifter( entity player )
 	player.GetMainWeapons()[0].AddMod( "tripletake" ) // visualize middle bullet(client prediction required)
     player.GetMainWeapons()[0].AddMod( "gm_shifter" ) // nerfed doubletake
     player.GiveOffhandWeapon( "mp_ability_shifter", OFFHAND_SPECIAL, ["grunt_mode", "gm_shifter"] )
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	// attach a fake head to it
 	// actually no need for phase shift pilot, just for the head break effect
@@ -1544,7 +1554,7 @@ void function BecomeRavenant( entity player )
 	// 160 crouchwalk speed. there's a "courch_walk_boost" classmod for us handling crouch speed, adding this is just for better stand-to-crouch transition
 	player.SetPlayerSettingPosMods( PLAYERPOSE_CROUCHING, ["coliseum"] )
 
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	// attach a fake head to it
 	CreateMechanicalHeadForPlayer( player )
@@ -1571,7 +1581,7 @@ void function BecomePhaseWalker( entity player )
 	)
 	
 	player.GiveOffhandWeapon( "mp_ability_shifter", OFFHAND_SPECIAL, ["grunt_mode", "gm_phasewalker", "wraith_portal", "amped_tacticals"] )
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	// attach a fake head to it
 	// actually no need for phase shift pilot, just for the head break effect
@@ -1604,6 +1614,9 @@ void function BecomeHeavySniper( entity player )
 	//player.GetMainWeapons()[0].AddMod( "titandamage_weapon" ) // no need to aim weakpoint to deal damage. the mod has been removed and build into gm_heavysniper now
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
+
 	// mlt specific pov camo
 	ApplyMLTGruntCamo( player )
 }
@@ -1611,7 +1624,7 @@ void function BecomeHeavySniper( entity player )
 void function BecomeRunner( entity player )
 {
 	//player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
-	player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_light_male" )
 
 	SimpleClassLoadout(  
 		player,
@@ -1630,7 +1643,7 @@ void function BecomeRunner( entity player )
 	player.GiveWeapon( "mp_weapon_autopistol", ["silencer", "gm_runner", "pas_run_and_gun", "extended_ammo", "fake_tf1_sprint_anim"] ) // less falloff re45
     player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] ) // extended ammo mgl
 	player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["octane_stim", "gm_runner"] ) // long duration stim, costs health on activation and disables health regen while activating(not compatible with "grunt_mode")
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	// attach a fake head to it
 	// actually no need for phase shift pilot, just for the head break effect
@@ -1659,7 +1672,7 @@ void function BecomePathBuilder( entity player )
 	)
 
 	player.GiveOffhandWeapon( "mp_ability_grapple", OFFHAND_SPECIAL, ["zipline_gun", "gm_pathbuilder"] ) // normal speed zipline, 
-	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	player.SetSkin( 1 )
 	player.SetCamo( 18 ) // sea
