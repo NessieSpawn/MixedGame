@@ -174,5 +174,9 @@ WeaponData
 		{
 			"melee_damage" "--210" // 90, 3 shots killing another ninja, one shot killing grunts
 		}
+
+		fake_human_melee
+		{
+		}
 	}
 }
