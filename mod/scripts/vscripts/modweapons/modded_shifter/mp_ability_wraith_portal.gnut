@@ -28,12 +28,12 @@ const float PORTAL_FX_TICKRATE = 1.5
 const float PORTAL_DURATION = 30 // should be a multipiler of PORTAL_FX_TICKRATE, could be PORTAL_DURATION + PORTAL_FX_TICKRATE * 2 in actrual
 const float PORTAL_MAX_DISTANCE = 4200 // was 3500, may should set higher since lastPos wasn't very accurate
 // speed boost
-const float PORTAL_SPEED_BOOST_SEVERITY = 0.15
+const float PORTAL_SPEED_BOOST_SEVERITY = 0.15 // was 0.25. this ability no longer holsters weapon now, guess we grant less speed boost
 const bool PORTAL_FORCE_HOLSTER = false
 
 // portal modifiers
 const float PORTAL_MAX_DISTANCE_GRUNT = 2800 // grunt mode specific: destroy portals on death, less distance
-const float PORTAL_SPEED_BOOST_SEVERITY_GRUNT = 0.25 // pretty fast
+const float PORTAL_SPEED_BOOST_SEVERITY_GRUNT = 0.1 // was 0.25, which is pretty fast
 const bool PORTAL_FORCE_HOLSTER_GRUNT = true
 
 const bool shouldDoWarpEffect = true // warp is so annoying! can turn it off if need( before I able to remove extra nodes )
