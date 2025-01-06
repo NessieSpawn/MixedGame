@@ -219,7 +219,7 @@ const int TITAN_STEPPING_ON_DAMAGE_NPC_PILOT = 250
 const int NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND = 300 // pilots will only take 300 dmg per second
 
 // damage dealt by prowler multiplyer
-// base damage for MP: claw: 80, pounce: 100
+// base damage for MP: claw: 80, pounce: 100. can use these value for checking attack type, I think?
 // this is now served as default value, can be modified by other files through ExtraSpawner_SetProwlerMeleeDamageScale()
 const float PROWLER_MELEE_DAMAGE_MULTIPLIER = 0.4 // was 0.5
 // damage dealt by prowler to heavy armor units multiplyer
