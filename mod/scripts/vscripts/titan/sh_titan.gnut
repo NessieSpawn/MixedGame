@@ -572,7 +572,7 @@ function TitanEjectPlayer( entity ejectTitan, bool instant = false ) //TODO: Thi
 			// modified behavior: offset stored damage history time if we did self-destruction
 			if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
 			{
-				float timeElapsed = Time() - e.ejectStartTime
+				float timeElapsed = Time() - expect float ( e.ejectStartTime )
 				DamageHistory_OffsetDamageTime( titan, timeElapsed )
 			}
 			//
@@ -1132,7 +1132,7 @@ function NuclearCoreExplosion( vector origin, e )
 		// modified behavior: offset stored damage history time if we did self-destruction
 		if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
 		{
-			float timeElapsed = Time() - e.ejectStartTime
+			float timeElapsed = Time() - expect float ( e.ejectStartTime )
 			DamageHistory_OffsetDamageTime( titan, timeElapsed )
 		}
 

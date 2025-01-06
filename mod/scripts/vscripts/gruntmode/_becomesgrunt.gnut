@@ -1219,7 +1219,7 @@ void function InitGruntModeSpawnerSettings()
 	Levels_SetNPCAssistScoreEnabled( true ) // award assist score to players on npc killing each other, so players won't complain
 
 	// modified function in sh_damage_history.gnut
-	DamageHistory_EnableOffsetDamageTimeForSelfDestruct( true ) // move damage time along with time of self-destruction, that way we can get more accurate damage time on them
+	DamageHistory_EnableOffsetDamageTimeForSelfDestruction( true ) // move damage time along with time of self-destruction, that way we can get more accurate damage time on them
 	DamageHistory_SetNPCKillStealPreventionTime( 3.0 ) // transfer score to player if npc killed an target. value is higher than ( TITAN_PLAYEREJECT_DURATION * 2 ), which helps us handle nuke eject & stuffs
 }
 

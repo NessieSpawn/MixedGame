@@ -88,11 +88,11 @@ void function ClearRecentDamageHistory( entity player )
 
 DamageHistoryStruct function StoreDamageHistoryAndUpdate( entity storeEnt, float maxTime, float damage, vector damageOrigin, int damageType, int damageSourceId, entity attacker = null, array<string> weaponMods = [] )
 {
-	// damage history can be disabled for self-destucting units
-	if ( DamageHistory_IsDisabledOnEntity( player ) )
-		return
-
 	DamageHistoryStruct damageHistory
+
+	// damage history can be disabled for self-destucting units
+	if ( DamageHistory_IsDisabledOnEntity( storeEnt ) )
+		return damageHistory
 
 	float time = Time()
 
@@ -149,6 +149,9 @@ DamageHistoryStruct function StoreDamageHistoryAndUpdate( entity storeEnt, float
 
 float function GetLastDamageTime( entity player )
 {
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
 	if ( !player.e.recentDamageHistory.len() )
 		return -1.0
 
@@ -157,6 +160,9 @@ float function GetLastDamageTime( entity player )
 
 array<DamageHistoryStruct> function GetDamageEventsForTime( entity player, float hitTime )
 {
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
 	float time = Time() - hitTime
 
 	array<DamageHistoryStruct> events
