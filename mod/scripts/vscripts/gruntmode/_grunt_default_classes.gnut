@@ -186,14 +186,14 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_PATH_BUILDER_CLASSNAME,		// classname
 		BecomePathBuilder,				// loadout function
-		true							// specialist, should this class give more score( value has been changed )
+		false							// specialist, should this class give more score
 	)
 
 	// scout
 	GruntMode_RegisterPlayerClass(
 		GM_SCOUT_CLASSNAME,				// classname
 		BecomeScout,					// loadout function
-		true							// specialist, should this class give more score( value has been changed )
+		false							// specialist, should this class give more score
 	)
 
 	// flyer
