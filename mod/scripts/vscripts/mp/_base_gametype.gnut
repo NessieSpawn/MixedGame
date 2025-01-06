@@ -937,7 +937,7 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 		// This gets the last player that did damage to the entity so that we can give him the kill
 		AssistingPlayerStruct attackerInfo = GetLatestAssistingPlayerInfo( ent )
 		// only override attacker if assisting one is valid!
-		if ( IsValid( attacker ) )
+		if ( IsValid( attackerInfo.player ) )
 		{
 			attacker = attackerInfo.player
 			// Hack - attacker history isn't on client to calculate if a player should get credit for a kill when AI steals the final killing shot while a player is damaging them.
