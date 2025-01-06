@@ -130,8 +130,9 @@ WeaponData
 			"npc_rest_time_between_bursts_min"				"9.0"
 			"npc_rest_time_between_bursts_max"				"14.0"
 
-			"npc_charge_time_min"							"1.0"	// for rocketpod animation time
-			"npc_charge_time_max"							"1.0"
+			// makes npcs have a fire delay. no need because we've reduced npc damage against pilots
+			//"npc_charge_time_min"							"1.0"	// for rocketpod animation time
+			//"npc_charge_time_max"							"1.0"
 
 			"explosion_inner_radius"  						"160" // softball uses 50 while satchel uses 120, once tried 120 but was too bad
 			"explosionradius" 								"240" // softball uses 150, frag grenade uses 320, satchel uses 250. once tried 200 but was too bad
