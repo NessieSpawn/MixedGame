@@ -1806,6 +1806,10 @@ entity function GetBountyBossDamageOwner( entity attacker, entity titan )
 	}
 
 	// other damages or non-owner npcs, not sure how it happens, just use this titan's last attacker
+	if ( IsValid( GetLastAttacker( titan ) ) )
+		return GetLastAttacker( titan )
+	
+	// last attacker doesn't work, get latestAssistingPlayerInfo
 	return GetLatestAssistingPlayerInfo( titan ).player
 }
 
