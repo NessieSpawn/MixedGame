@@ -895,7 +895,7 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 				// modified behavior: offset stored damage history time if we did self-destruction
 				if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
 				{
-					float timeElapsed = Time() - e.overloadStartTime
+					float timeElapsed = Time() - expect float ( e.overloadStartTime )
 					DamageHistory_OffsetDamageTime( npc, timeElapsed )
 				}
 
