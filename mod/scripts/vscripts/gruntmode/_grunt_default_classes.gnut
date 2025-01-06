@@ -137,6 +137,7 @@ void function RegisterAllDefaultClass()
 		true							// specialist, should this class give more score. beast king also has prowlers which gives enemy 2 points in gruntmode
 	)
 	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_grenade_electric_smoke, BeastKingSmokeDamageTarget )
+	AddDamageCallbackSourceID( eDamageSourceId.prowler_melee, BeastKingProwlerDamageTarget )
 	//
 
     // jumper
@@ -1168,6 +1169,51 @@ void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
 		if( IsValid( attacker ) && attacker == ent )
 			DamageInfo_SetDamage( damageInfo, 0 )
 	}
+}
+
+const float BEAST_KING_PROWLER_DAMAGE_AGAINST_PLAYER_SCALE = 0.5 // 40 for claw and 50 for pounce, at least no more instant kills
+const float BEAST_KING_PROWLER_DAMAGE_AGAINST_HEAVY_ARMOR_SCALE = 5.0 // 300-400 for claw and 500 for pounce, bit lower than normal prowlers
+
+void function BeastKingProwlerDamageTarget( entity victim, var damageInfo )
+{
+	entity attacker = DamageInfo_GetAttacker( damageInfo )
+    if( !IsValid( attacker ) )
+        return
+	if( !attacker.IsNPC() )
+		return
+
+	// class table for checking prowler ownership
+	entity bossPlayer = attacker.GetBossPlayer()
+	if ( !IsValid( bossPlayer ) )
+		return
+	
+	if ( !( bossPlayer in beastKing.classTable ) )
+		return
+	if ( !IsAlive( beastKing.classTable[bossPlayer].ownedProwler ) )
+		return
+	
+	float damageScale = 1.0
+
+	bool nerfDamage = false
+	bool heavyArmorTarget = false
+	// prowler's craw damage is 80, pounce damage is 100
+	if ( victim.IsPlayer() ) // nerf it's damage agains players
+		nerfDamage = true
+	if ( victim.IsNPC() )
+	{
+		// a npc owned by player, do reduce damage
+		if ( IsValid( victim.GetBossPlayer() ) )
+			nerfDamage = true
+	}
+	if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+		heavyArmorTarget = true
+
+	if ( heavyArmorTarget )
+		damageScale *= BEAST_KING_PROWLER_DAMAGE_AGAINST_HEAVY_ARMOR_SCALE
+	else if ( nerfDamage )
+		damageScale *= BEAST_KING_PROWLER_DAMAGE_AGAINST_PLAYER_SCALE
+
+	DamageInfo_ScaleDamage( damageInfo, damageScale )
 }
 
 struct BeastKingStruct

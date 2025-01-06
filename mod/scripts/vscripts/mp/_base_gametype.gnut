@@ -931,6 +931,25 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 			attacker = newAttacker
 	}
 
+	// modified here: allow player to get score from npc kills!
+	if ( !attacker.IsPlayer() )
+	{
+		// This gets the last player that did damage to the entity so that we can give him the kill
+		AssistingPlayerStruct attackerInfo = GetLatestAssistingPlayerInfo( ent )
+		attacker = attackerInfo.player
+
+		if ( !IsValid( attacker ) )
+			return true
+
+		// Hack - attacker history isn't on client to calculate if a player should get credit for a kill when AI steals the final killing shot while a player is damaging them.
+		array<entity> playerArray = GetPlayerArray()
+		foreach ( player in playerArray )
+		{
+			Remote_CallFunction_Replay( player, "ServerCallback_SetAssistInformation", attackerInfo.damageSourceId, attacker.GetEncodedEHandle(), ent.GetEncodedEHandle(), attackerInfo.assistTime )
+		}
+	}
+	//
+
 	// modified, added via AddCallback_PlayerOrNPCKilledAttackerOverride
 	foreach ( callbackFunc in file.playerOrNPCKilledAttackerOverrideCallbacks )
 		attacker = callbackFunc( ent, attacker, damageInfo )
@@ -958,6 +977,9 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 		thread TitanVO_DelayedTitanDown( ent )
 	}
 
+	// modified here: allow player to get score from npc kills!
+	// move these checks before callbacks
+	/*
 	if ( !attacker.IsPlayer() )
 	{
 		// This gets the last player that did damage to the entity so that we can give him the kill
@@ -974,6 +996,7 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 			Remote_CallFunction_Replay( player, "ServerCallback_SetAssistInformation", attackerInfo.damageSourceId, attacker.GetEncodedEHandle(), ent.GetEncodedEHandle(), attackerInfo.assistTime )
 		}
 	}
+	*/
 
 	// player attacker only from here down
 
