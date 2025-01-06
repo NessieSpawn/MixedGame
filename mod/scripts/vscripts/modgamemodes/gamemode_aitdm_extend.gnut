@@ -785,9 +785,9 @@ void function InitExtraSpawnerSettings()
 	Levels_SetNPCAssistScoreEnabled( true ) // award assist score to players on npc killing each other, so players won't complain
 
 	// modified function in sh_damage_history.gnut
-	// transfer score to player if npc killed an target. value is higher than ( TITAN_PLAYEREJECT_DURATION * 2 ), which helps us handle nuke eject & stuffs
 	// removed because in normal gamemodes player should be easier to secure kills, and npc titan needs kills for more core meter charge
-	//DamageHistory_SetNPCKillStealPreventionTime( 3.0 )
+	//DamageHistory_EnableOffsetDamageTimeForSelfDestruction( true ) // move damage time along with time of self-destruction, that way we can get more accurate damage time on them
+	//DamageHistory_SetNPCKillStealPreventionTime( 2.0 ) // transfer score to player if npc killed an target
 }
 
 //////////////////////////////////////////////
