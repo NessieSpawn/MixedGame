@@ -812,6 +812,11 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 {
 	Assert( !StalkerMeltingDown( npc ) )
 
+	// modified variable: store gear overload start time, so we can offset damage history
+	// mainly because at this point stalkers no longer takes damage and after explosion their damage history will become old
+	table e
+	e.overloadStartTime <- Time()
+
 	if ( !IsCrawling( npc ) && StalkerCanCrawl( npc ) )
 		thread FallAndBecomeCrawlingStalker( npc )
 
@@ -863,7 +868,7 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 	entity fx = PlayFXOnEntity( STALKER_REACTOR_CRITICAL_FX, nukeFXInfoTarget )
 
 	OnThreadEnd(
-	function() : ( nukeFXInfoTarget, fx, npc, attacker )
+	function() : ( nukeFXInfoTarget, fx, npc, attacker, e )
 		{
 			if ( IsValid( npc ) )
 				StopSoundOnEntity( nukeFXInfoTarget, STALKER_REACTOR_CRITICAL_SOUND )
@@ -886,6 +891,14 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 					damageAttacker = npc
 
 				vector force = GetDeathForce()
+
+				// modified behavior: offset stored damage history time if we did self-destruction
+				if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
+				{
+					float timeElapsed = Time() - e.overloadStartTime
+					DamageHistory_OffsetDamageTime( npc, timeElapsed )
+				}
+
 				npc.Die( damageAttacker, npc, { force = force, scriptType = DF_GIB, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
 			}
 		}

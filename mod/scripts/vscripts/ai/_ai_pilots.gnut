@@ -345,6 +345,10 @@ function NpcPilotEmbarksTitan( entity pilot, entity titan )
 						entity titanLastAttacker = GetLastAttacker( titan )
 						if ( IsValid( titanLastAttacker ) )
 							attacker = titanLastAttacker
+						// also, transfer damage history to pilot, so that we can give score to last assisting player if this case ever happened
+						if ( !DamageHistory_IsDisabledOnEntity( pilot ) && IsValid( titan.GetTitanSoul() ) )
+							pilot.e.recentDamageHistory = titan.GetTitanSoul().e.recentDamageHistory
+						
 						pilot.Die( attacker, attacker, { damageSourceId = damagedef_suicide, scriptType = DF_RAGDOLL } )
 					}
 				}
