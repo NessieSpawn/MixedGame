@@ -587,12 +587,18 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 		ScoreEvent_PlayerAssist( damageHistorySaver, attacker, "TitanAssist" )
 	}
 	*/
+
+	// soul checks now wrapped inside ScoreEvent_PlayerAssist(), no longer needs extra checks
+	/*
 	entity titanSoul = victim.GetTitanSoul()
 	if ( IsValid( titanSoul ) )
 	{
 		// wrap into this function
 		ScoreEvent_PlayerAssist( titanSoul, attacker, "TitanAssist" )
 	}
+	*/
+
+	ScoreEvent_PlayerAssist( victim, attacker, "TitanAssist" )
 }
 
 void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageInfo )
@@ -870,6 +876,13 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 	// add error handle
 	if ( !IsValid( victim ) || victim.IsMarkedForDeletion() )
 		return
+
+	// titan damage history stores in titanSoul
+	if ( victim.IsTitan() )
+	{
+		if ( IsValid( victim.GetTitanSoul() ) )
+			victim = victim.GetTitanSoul()
+	}
 
 	table<int, bool> alreadyAssisted
 	foreach( DamageHistoryStruct attackerInfo in victim.e.recentDamageHistory )
