@@ -931,7 +931,7 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 			attacker = newAttacker
 	}
 
-	// modified here: allow player to get score from npc kills!
+	// modified here: allow player to get score when npc steal the kill!
 	if ( !attacker.IsPlayer() )
 	{
 		// This gets the last player that did damage to the entity so that we can give him the kill

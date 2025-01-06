@@ -373,6 +373,14 @@ AssistingPlayerStruct function GetLatestAssistingPlayerInfo( entity ent )
 	float currentTime = Time()
 	AssistingPlayerStruct assistingPlayerInfo
 
+	// titan damage history stores in titanSoul
+	// this check is not vanilla behavior!
+	if ( ent.IsTitan() )
+	{
+		if ( IsValid( ent.GetTitanSoul() ) )
+			ent = ent.GetTitanSoul()
+	}
+
 	foreach ( history in ent.e.recentDamageHistory )
 	{
 		if ( !IsValid( history.attacker ) || !history.attacker.IsPlayer() )
