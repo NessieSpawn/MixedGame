@@ -709,7 +709,9 @@ bool function PlayerTriesSyncedMelee( entity player, entity target )
 function TransferDamageHistoryToTarget( entity target )
 {
 	entity titanSoul = target.GetTitanSoul()
-	target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
+	// we can have damage history disabled now, needs to check
+	if ( !DamageHistory_IsDisabledOnEntity( target ) )
+		target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
 }
 
 bool function DoSyncedMelee( entity player, entity target )

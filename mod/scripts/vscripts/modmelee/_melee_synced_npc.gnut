@@ -472,7 +472,12 @@ void function PlayerBeingSyncedMelee( entity target )
     {
         entity titanSoul = target.GetTitanSoul()
         if( IsValid( titanSoul ) )
-            target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
+        {
+            // we can have damage history disabled now, needs to check
+	        // this function is already DEPRECATED though...
+            if ( !DamageHistory_IsDisabledOnEntity( target ) )
+                target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
+        }
     }
 
     if( target.IsTitan() )
