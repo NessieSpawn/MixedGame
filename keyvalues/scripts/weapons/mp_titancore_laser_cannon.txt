@@ -116,5 +116,10 @@ WeaponData
 		{
 			//spawns a cloud of electric smoke on impact
 		}
+
+		// pretty much a placeholder mod for fixing npc execution behavior!
+		npc_execution_laser_core
+		{
+		}
 	}
 }
