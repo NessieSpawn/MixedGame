@@ -1122,6 +1122,7 @@ void function ReplaceExecutionAttackerLoadout_Threaded( entity guy, string prima
 			equipmentSaved = true // mark as equipment saved
 		}
 
+		/*
 		if ( equipment != "" )
 		{
 			entity weapon = guy.GetOffhandWeapon( OFFHAND_EQUIPMENT )
@@ -1133,6 +1134,7 @@ void function ReplaceExecutionAttackerLoadout_Threaded( entity guy, string prima
 				guy.TakeOffhandWeapon( OFFHAND_EQUIPMENT )
 			}
 		}
+		*/
 
 		// apply new weapons after certain weapon being taken, or game might crash because of dual smart ammo weapons
 		// primary 
