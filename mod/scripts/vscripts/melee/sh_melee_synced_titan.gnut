@@ -341,7 +341,7 @@ void function Execution_Ion_Prime( entity attacker )
 		"", [],		// "mp_titanability_laser_trip", won't use during execution
 		"mp_titanweapon_laser_lite", [],
 		"", [],		// "melee_titan_punch_ion", won't use during execution
-		coreWeapon, []
+		coreWeapon, ["npc_execution_laser_core"]
 	)
 }
 

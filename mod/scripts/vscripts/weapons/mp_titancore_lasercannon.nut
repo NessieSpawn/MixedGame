@@ -254,8 +254,8 @@ bool function OnAbilityCharge_LaserCannon( entity weapon )
 			// welp it's kinda funny but... 1.0 move_slow severity for npc will crash the game
 			// they'll move like weirdly some animation, and the game just boom
 			//StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 1.0, coreDuration + coreChargeTime, coreChargeTime )
-			StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 0.6, coreDuration + coreChargeTime, coreChargeTime )
-			StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, 0.6, coreDuration + coreChargeTime, coreChargeTime )
+			StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 0.9, coreDuration + coreChargeTime, coreChargeTime )
+			StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, 0.9, coreDuration + coreChargeTime, coreChargeTime )
 		}
 	}
 #endif // #if SERVER
@@ -646,12 +646,12 @@ void function OnAbilityEnd_LaserCannon( entity weapon )
 	else
 	{
 		// modified for handling npc laser core animation
-		if ( !( player in file.entUsingFakeLaserCore ) )
+		if ( !( player in file.entUsingFakeLaserCore ) && !weapon.HasMod( "npc_execution_laser_core" ) )
 			EmitSoundOnEntity( player, "Titan_Core_Laser_FireStop_3P" )
 	}
 
 	// modified for handling npc laser core animation
-	if ( !( player in file.entUsingFakeLaserCore ) )
+	if ( !( player in file.entUsingFakeLaserCore ) && !weapon.HasMod( "npc_execution_laser_core" ) )
 	{
 		// vanilla check
 		if ( player.IsNPC() && IsAlive( player ) )
@@ -672,7 +672,7 @@ void function OnAbilityEnd_LaserCannon( entity weapon )
 	}
 
 	// modified for handling npc laser core animation
-	if ( !( player in file.entUsingFakeLaserCore ) )
+	if ( !( player in file.entUsingFakeLaserCore ) && !weapon.HasMod( "npc_execution_laser_core" ) )
 	{
 		StopSoundOnEntity( player, "Titan_Core_Laser_FireBeam_3P" )
 		StopSoundOnEntity( player, LASER_FIRE_SOUND_1P )
@@ -747,10 +747,13 @@ void function Laser_DamagedTargetInternal( entity target, var damageInfo )
 
 	// HACK fix here: if our npc is using fake laser core
 	// they still fire from their back for about 1 tick, which shouldn't deal any damage
-	if ( IsValid( attacker ) && attacker.IsNPC() && NPCInValidFakeLaserCoreState( attacker, true ) )
+	if ( IsValid( attacker ) && attacker.IsNPC() )
 	{
-		DamageInfo_SetDamage( damageInfo, 0 )
-		return
+		if ( NPCInValidFakeLaserCoreState( attacker, true ) || ( IsValid( weapon ) && weapon.HasMod( "npc_execution_laser_core" ) ) )
+		{
+			DamageInfo_SetDamage( damageInfo, 0 )
+			return
+		}
 	}
 	//
 
