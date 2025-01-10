@@ -925,7 +925,13 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 					continue
 			}
 		}
-		
+
+		// assist is now allowed if it's a friendly player and we disabled score
+		bool friendlyPlayerAssist = attackerInfo.attacker.GetTeam() == victim.GetTeam()
+		bool shouldAddScoreForFriendlyAssist = FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill()
+		if ( friendlyPlayerAssist && !shouldAddScoreForFriendlyAssist )
+			continue
+
 		bool exists = attackerInfo.attacker.GetEncodedEHandle() in alreadyAssisted ? true : false
 		if( attackerInfo.attacker != attacker && !exists )
 		{
