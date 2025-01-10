@@ -1904,6 +1904,9 @@ void function CheckStalkerPlayerDecoyMaxCount( entity player, entity newDecoy )
 	if ( stalker.activatedDecoys[ player ].len() > STALKER_DECOY_MAX_COUNT )
 	{
 		entity latestDecoy = stalker.activatedDecoys[ player ][0]
+		// never refund charge on this case
+		if ( decoy in stalker.decoyCreationTime )
+			delete stalker.decoyCreationTime[ decoy ]
 		latestDecoy.Decoy_Dissolve()
 		stalker.activatedDecoys[ player ].removebyvalue( latestDecoy )
 	}
@@ -1935,6 +1938,7 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 	if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
 		weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
 	delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
+	stalker.activatedDecoys[ player ].removebyvalue( decoy ) // also don't forget to make it no longer takes up a decoy slot for player
 }
 
 ///////////////////////////////////////////////
