@@ -32,26 +32,26 @@ const array<asset> DRONE_SPAWNER_ALLOWED_MODEL =
 
 	$"models/robots/spectre/imc_spectre.mdl",
 
-	$"models/humans/grunts/imc_grunt_shield_captain.mdl"
+	$"models/humans/grunts/imc_grunt_shield_captain.mdl",
 ]
 
 // change model for those incompatible to kinda fitable ones
 const array<asset> LIGHT_PILOT_MODELS =
-{
+[
 	$"models/humans/pilots/pilot_light_ged_m.mdl", 
 	$"models/humans/pilots/pilot_light_ged_f.mdl", 
 	$"models/humans/pilots/pilot_light_jester_m.mdl", 
 	$"models/humans/pilots/pilot_light_jester_f.mdl", 
-}
-const asset LIGHT_PILOT_REPLACEMENT_MODEL = $"models/robots/spectre/imc_spectre.mdl",
+]
+const asset LIGHT_PILOT_REPLACEMENT_MODEL = $"models/robots/spectre/imc_spectre.mdl"
 
 const array<asset> HEAVY_PILOT_MODELS =
-{
+[
 	$"models/humans/pilots/pilot_heavy_drex_m.mdl", 
 	$"models/humans/pilots/pilot_heavy_drex_f.mdl", 
 	$"models/humans/pilots/pilot_heavy_roog_m.mdl", 
 	$"models/humans/pilots/pilot_heavy_roog_f.mdl", 
-}
+]
 const asset HEAVY_PILOT_REPLACEMENT_MODEL = $"models/humans/grunts/imc_grunt_shield_captain.mdl"
 
 void function PlayerDroneThrow_Init()
