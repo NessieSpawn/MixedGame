@@ -733,6 +733,7 @@ void function SpecialistGruntDronesHandler( entity player )
 
 	array<entity> handledDrones
 	array<entity> handledTicks
+	array<entity> explodingTicks
 
 	OnThreadEnd(
 		function(): ( player, handledDrones, handledTicks )
@@ -796,6 +797,7 @@ void function SpecialistGruntDronesHandler( entity player )
 	{
 		ArrayRemoveDead( handledDrones )
 		ArrayRemoveDead( handledTicks )
+		ArrayRemoveDead( explodingTicks )
 
 		foreach ( entity drone in GetGruntPlayerOwnedDrones( player ) )
 		{
@@ -818,6 +820,9 @@ void function SpecialistGruntDronesHandler( entity player )
 		foreach ( entity tick in GetGruntPlayerOwnedTicks( player ) )
 		{
 			if ( handledTicks.contains( tick ) )
+				continue
+			// don't check ticks detonated by this file!
+			if ( explodingTicks.contains( tick ) )
 				continue
 
 			handledTicks.append( tick )
@@ -843,8 +848,10 @@ void function SpecialistGruntDronesHandler( entity player )
 				if ( IsAlive( tick ) && tick.ai.fragDroneArmed )
 				{
 					// tick explosion is delayed, remove it from aray
-					handledTicks[i].Signal( "SuicideSpectreForceExplode" )
+					tick.Signal( "SuicideSpectreForceExplode" )
 					handledTicks.remove( i )
+					// no longer check it
+					explodingTicks.append( tick )
 				}
 			}
 		}
