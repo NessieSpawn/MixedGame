@@ -187,7 +187,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_PATH_BUILDER_CLASSNAME,		// classname
 		BecomePathBuilder,				// loadout function
-		true							// specialist, should this class give more score
+		false							// specialist, should this class give more score
 	)
 
 	// scout
@@ -1626,7 +1626,9 @@ void function BecomeJumper( entity player )
 		"Respawn as Jumper: One jump pad usage"						        // respawn notification
 	)
 
-    player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "infinite_jump_pad", "gm_jumper"] )
+	// no longer allow infinite jump pad because we've added npc jump pad usage...
+    //player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "infinite_jump_pad", "gm_jumper"] )
+	player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "gm_jumper"] )
 	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	// attach a fake head to it
