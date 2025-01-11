@@ -85,6 +85,7 @@ void function BecomesGruntMode_Init()
 
 	// score
 	ScoreEvent_DisableCallSignEvent( true ) // since players are grunts, never show callsign things
+	ScoreEvent_DisablePilotAssist( true ) // since players are grunts, never do assist score for killing each other
 	// health regen
 	HealthRegen_SetCustomRegenDelay( 6.0, 6.0, 6.0 ) // grunt's health regen delay is forced to be 6.0(no matter pas_fast_health_regen is equiped)
 	HealthRegen_SetCustomRegenRate( 4.0, 4.0 ) // grunt's health regen rate is forced to be 4.0
