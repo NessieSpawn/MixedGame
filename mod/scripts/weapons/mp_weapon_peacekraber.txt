@@ -73,11 +73,11 @@ WeaponData
 
 	// Damage - When Used by Players
 	"damage_type" 									"bullet"
-	"damage_near_distance"							"500"
-	"damage_far_distance" 							"1000"
+	"damage_near_distance"							"500" // mastiff uses 350
+	"damage_far_distance" 							"750" // mastiff uses 750
 	// since rechamber has been nerfed, maybe no need to nerf damage
 	"damage_near_value"   							"15"
-	"damage_far_value"								"10" //"15" // range also been nerfed in script
+	"damage_far_value"								"11" //"15" // bolt life time also been nerfed in script
 	"damage_near_value_titanarmor"					"40"
 	"damage_far_value_titanarmor" 					"30"
 
@@ -139,9 +139,14 @@ WeaponData
 	"bolt_hitsize_grow1_time"						"0.075"
 	"bolt_hitsize_grow1_size"						"1.0"
 	"bolt_hitsize_grow2_time"						"0.075"
+
+	// after 0.1s weapon should no longer has client prediction, should be safe to change bolt size
+	//"bolt_hitsize_grow2_size"						"2.5"
+	//"bolt_hitsize_growfinal_lerptime"				"0.18"
+	//"bolt_hitsize_growfinal_size"					"4.0"
 	"bolt_hitsize_grow2_size"						"2.5"
 	"bolt_hitsize_growfinal_lerptime"				"0.18"
-	"bolt_hitsize_growfinal_size"					"4.0"
+	"bolt_hitsize_growfinal_size"					"3.0"
 
 	//"bolt_hitsize"								"0.5"
 	//"bolt_hitsize_grow1_time"						"0.075"
