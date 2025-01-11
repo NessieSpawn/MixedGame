@@ -2090,8 +2090,8 @@ void function WaitForGravityMasterLanding( entity player )
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
-		"重力大師",															// title
-        "以重力大師重生：可使用一次重力電梯，逆轉範圍内重力"					// respawn notification
+		"Gravity Master",													// title
+        "Respawn as Gravity Master: One Gravity Lift usage, lifts any human inside"			// respawn notification
 	)
 	
 	//player.SetActiveWeaponByName( "mp_weapon_peacekraber" ) // will this fix crosshair???
