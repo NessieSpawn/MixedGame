@@ -18,7 +18,7 @@ const STEALTH_TEAM_JUMPJET_DBL = $"P_jump_jet_stealth_DBL"
 const STEALTH_PENEMY_JUMPJET_DBL = $"P_jump_jet_stealth_DBL"
 
 // modified shared utility
-global function MeleeSyncedTitan_GetDefaultExecutionRefForTitanVsTitan3p // wrapped monarch and fake-bt stuffs inside
+global function MeleeSyncedTitan_GetExecutionRefForTitanVsTitan3p // wrapped monarch and fake-bt stuffs inside
 global function MeleeSyncedTitan_TitanHasPilot
 global function SetCallback_OnGetTitan3pExecutionRef // modified callback that allows changing the method we get execution ref
 
@@ -609,7 +609,7 @@ void functionref( SyncedMelee action, entity attacker, entity target ) function 
 	TitanLoadoutDef loadout = soul.soul.titanLoadout // GetActiveTitanLoadout( attacker )
 	#endif
 
-	string executionRef = MeleeSyncedTitan_GetDefaultExecutionRefForTitanVsTitan3p( attacker, target )
+	string executionRef = MeleeSyncedTitan_GetExecutionRefForTitanVsTitan3p( attacker, target )
 	//if ( executionRef in file.executionData_3p )
 	if ( executionRef in file.executionData_3p && !useClassicExecution ) // only do 3p execution if we have an ref registered
 		return TitanVsTitan_3p
@@ -648,7 +648,7 @@ void functionref( SyncedMelee action, entity attacker, entity target ) function 
 }
 
 // modified: wrap any execution ref changes into this function
-string function MeleeSyncedTitan_GetDefaultExecutionRefForTitanVsTitan3p( entity attacker, entity target, string forcedRef = "" )
+string function MeleeSyncedTitan_GetExecutionRefForTitanVsTitan3p( entity attacker, entity target, string forcedRef = "" )
 {
 	// if we have callback, run it
 	if ( file.onGetTitan3pExecutionRefCallback != null )
@@ -2730,7 +2730,7 @@ void function TitanVsTitan_3p( SyncedMelee action, entity attacker, entity targe
 	string attackerType = GetSoulTitanSubClass( attackerSoul )
 
 	// get execution ref from default value
-	string defaultExecution = MeleeSyncedTitan_GetDefaultExecutionRefForTitanVsTitan3p( attacker, target, executionRef )
+	string defaultExecution = MeleeSyncedTitan_GetExecutionRefForTitanVsTitan3p( attacker, target, executionRef )
 	bool notUsingDefaultExecution = false
 	if ( executionRef != defaultExecution )
 	{
