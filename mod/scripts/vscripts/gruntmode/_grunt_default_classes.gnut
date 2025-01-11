@@ -633,7 +633,7 @@ const float SPECIALIST_GRUNT_NOTIFICATION_COOLDOWN = 2.0
 const int SPECIALIST_GRUNT_DRONE_HEALTH = 130 // 70 when having 2 drones
 const int SPECIALIST_GRUNT_DRONE_MAX_COUNT = 1 // don't forget to adjust this value when updating offhand weapons
 // ticks
-const int SPECIALIST_GRUNT_TICK_MAX_COUNT = 1 // this only limits ticks in inventory, thrown ticks won't be destroyed even reached max count
+const int SPECIALIST_GRUNT_TICK_MAX_COUNT = 1 // EDIT: thrown ticks will try to detonate themselves! -- this only limits ticks in inventory, thrown ticks won't be destroyed even reached max count
 
 void function SpecialistGruntThink( entity player )
 {
@@ -711,14 +711,31 @@ array<entity> function GetGruntPlayerOwnedDrones( entity player )
 	return drones
 }
 
+array<entity> function GetGruntPlayerOwnedTicks( entity player )
+{
+	array<entity> ticks
+	foreach ( entity tick in GetNPCArrayByClass( "npc_frag_drone" ) )
+	{
+		// seems no need to add armed check?
+		//if ( IsAlive( tick ) && tick.ai.fragDroneArmed && tick.GetBossPlayer() == player )
+		if ( IsAlive( tick ) && tick.GetBossPlayer() == player )
+			ticks.append( tick )
+	}
+	// should we also append tick projectile?
+
+	return ticks
+}
+
 void function SpecialistGruntDronesHandler( entity player )
 {
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 
 	array<entity> handledDrones
+	array<entity> handledTicks
+
 	OnThreadEnd(
-		function(): ( player, handledDrones )
+		function(): ( player, handledDrones, handledTicks )
 		{
 			// player still valid!
 			if ( IsValid( player ) )
@@ -730,6 +747,31 @@ void function SpecialistGruntDronesHandler( entity player )
 					if ( IsAlive( drone ) )
 						drone.Die()
 				}
+				// destroy ticks, including those haven't landed yet
+				foreach ( entity tick in GetNPCArrayByClass( "npc_frag_drone" ) )
+				{
+					if ( IsAlive( tick ) && tick.GetBossPlayer() == player )
+					{
+						if ( tick.ai.fragDroneArmed )
+							handledTicks.append( tick ) // gets cleared later
+						else // isn't armed yet, dissolving it
+						{
+							tick.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+							tick.SetNoTarget( true )
+							tick.EnableNPCFlag( NPC_IGNORE_ALL )
+							tick.NotSolid()
+						}
+					}
+				}
+				// tick won't be spawned if owner isn't valid anymore, only needs to clear projectile in this case
+				foreach ( entity projectile in GetProjectileArrayEx( "any", player.GetTeam(), TEAM_ANY, Vector( 0, 0, 0 ), -1 ) )
+				{
+					if ( projectile.GetClassName() == "grenade" && projectile.GetThrower() == player )
+					{
+						if ( projectile.ProjectileGetWeaponClassName() == "mp_weapon_frag_drone" )
+							projectile.Destroy()
+					}
+				}
 			}
 			else // player became invalid
 			{
@@ -740,12 +782,20 @@ void function SpecialistGruntDronesHandler( entity player )
 						drone.Die()
 				}
 			}
-        }
+
+			// clear all ticks, should've handle player invalid cases!
+			foreach ( entity tick in handledTicks )
+			{
+				if ( IsValid( tick ) )
+					tick.Signal( "SuicideSpectreForceExplode" )
+			}
+		}
 	)
 
 	while ( true )
 	{
 		ArrayRemoveDead( handledDrones )
+		ArrayRemoveDead( handledTicks )
 
 		foreach ( entity drone in GetGruntPlayerOwnedDrones( player ) )
 		{
@@ -765,6 +815,14 @@ void function SpecialistGruntDronesHandler( entity player )
 				SendHudMessage( player, "按 使用 可以將無人機移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 		}
 
+		foreach ( entity tick in GetGruntPlayerOwnedTicks( player ) )
+		{
+			if ( handledTicks.contains( tick ) )
+				continue
+
+			handledTicks.append( tick )
+		}
+
 		// hit max drones?
 		int overloadedDroneCount = handledDrones.len() - SPECIALIST_GRUNT_DRONE_MAX_COUNT
 		if ( overloadedDroneCount > 0 )
@@ -773,6 +831,21 @@ void function SpecialistGruntDronesHandler( entity player )
 			{
 				if ( IsAlive( handledDrones[i] ) )
 					handledDrones[i].Die()
+			}
+		}
+		// hit max ticks?
+		int overloadedTickCount = handledTicks.len() - SPECIALIST_GRUNT_TICK_MAX_COUNT
+		if ( overloadedTickCount > 0 )
+		{
+			for ( int i = 0; i < overloadedTickCount; i++ )
+			{
+				entity tick = handledTicks[i]
+				if ( IsAlive( tick ) && tick.ai.fragDroneArmed )
+				{
+					// tick explosion is delayed, remove it from aray
+					handledTicks[i].Signal( "SuicideSpectreForceExplode" )
+					handledTicks.remove( i )
+				}
 			}
 		}
 
@@ -1904,11 +1977,14 @@ void function CheckStalkerPlayerDecoyMaxCount( entity player, entity newDecoy )
 	if ( stalker.activatedDecoys[ player ].len() > STALKER_DECOY_MAX_COUNT )
 	{
 		entity latestDecoy = stalker.activatedDecoys[ player ][0]
-		// never refund charge on this case
-		if ( decoy in stalker.decoyCreationTime )
-			delete stalker.decoyCreationTime[ decoy ]
-		latestDecoy.Decoy_Dissolve()
-		stalker.activatedDecoys[ player ].removebyvalue( latestDecoy )
+		if ( IsValid( latestDecoy ) )
+		{
+			// never refund charge on this case
+			if ( latestDecoy in stalker.decoyCreationTime )
+				delete stalker.decoyCreationTime[ latestDecoy ]
+			latestDecoy.Decoy_Dissolve()
+			stalker.activatedDecoys[ player ].removebyvalue( latestDecoy )
+		}
 	}
 }
 
@@ -1921,11 +1997,6 @@ void function OnStalkerDecoyDamaged( entity decoy, var damageInfo )
 
 void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 {
-	// if decoy isn't damaged and gets destroyed within our period of time...
-	// try to refund charge
-	if ( !( decoy in stalker.decoyCreationTime ) )
-		return
-
 	entity bossPlayer = decoy.GetBossPlayer()
 	if ( !IsValid( bossPlayer ) )
 		return
@@ -1933,12 +2004,19 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 	entity weapon = GetStalkerHolopilotDecoyWeapon( bossPlayer )
 	if ( !IsValid( weapon ) )
 		return
+	
+	// firstly making dissolving decoy no longer takes up a slot for player
+	stalker.activatedDecoys[ bossPlayer ].removebyvalue( decoy )
 
-	// all checks passed, try refund charge
-	if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
-		weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
-	delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
-	stalker.activatedDecoys[ player ].removebyvalue( decoy ) // also don't forget to make it no longer takes up a decoy slot for player
+	// if decoy isn't damaged and gets destroyed within our period of time...
+	// try to refund charge
+	if ( decoy in stalker.decoyCreationTime )
+	{
+		// all checks passed, try refund charge
+		if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
+			weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
+		delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
+	}
 }
 
 ///////////////////////////////////////////////
