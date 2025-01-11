@@ -338,7 +338,6 @@ void function Execution_Ion_Prime( entity attacker )
 	{
 		//coreWeapon = "mp_titancore_siege_mode" // change to placeholder core weapon if a npc ever used this execution
 		coreMods.append( "npc_execution_laser_core" )
-		print( "npc trying to use execution_ion_prime..." )
 	}
 
 	MeleeSyncedTitan_ReplaceExecutionAttackerLoadout( 
