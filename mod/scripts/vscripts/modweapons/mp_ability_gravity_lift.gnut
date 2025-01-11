@@ -253,7 +253,7 @@ void function GravityLiftLifeTime( entity projectile, entity trigger, array<enti
 	float maxTimePctExtend = LIFT_MAX_LIFETIME_EXTEND
 	if ( mods.contains( "gm_gravitymaster" ) )
 	{
-		liftHeight = LIFT_LIFETIME_GRUNT
+		liftLifeTime = LIFT_LIFETIME_GRUNT
 		maxTimePctExtend = LIFT_MAX_LIFETIME_EXTEND_GRUNT
 	}
 
