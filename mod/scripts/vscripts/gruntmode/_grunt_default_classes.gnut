@@ -2050,17 +2050,42 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 
 void function BecomeGravityMaster( entity player )
 {
+	thread WaitForGravityMasterLanding( player )
+}
+
+void function WaitForGravityMasterLanding( entity player )
+{
 	player.SetPlayerSettings( "pilot_grapple_female" ) // have a better pov model
 
-	WaitFrame() // wait for player being set into dropship
+	//WaitFrame() // wait for player being set into dropship
+
+	string primaryWeapon = ""
+	string secondaryWeapon = ""
+
+	// player inside dropship... this case they'll need a weapon in hand
+	// welp this will make weapon on player's back
+	// but after waiting 1 frame crosshair will be fixed?
+	// can't be fixed! let's just give player weapon upon landing, who will ever care players inside dropship?
+	/*
+	if ( player.GetParent().GetClassName() == "npc_dropship" )
+	{
+		primaryWeapon = "mp_weapon_peacekraber"
+		secondaryWeapon = "mp_weapon_arc_launcher"
+	}
+	else // inside droppod?
+	{
+		// give weapon upon player landing!
+		thread GravityMasterWeaponThink( player )
+	}
+	*/
 
 	SimpleClassLoadout(  
 		player,	
 		// kinda special, peace kraber needs to be given after player landing, otherwise player won't have crosshair till they switch weapon								
 		//"mp_weapon_peacekraber",											// primary weapon
 		//"mp_weapon_arc_launcher",											// secondary weapon
-		"",																	// primary weapon
-		"",																	// secondary weapon
+		primaryWeapon,														// primary weapon
+		secondaryWeapon,													// secondary weapon
 		"",											    					// grenade
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
@@ -2068,11 +2093,11 @@ void function BecomeGravityMaster( entity player )
 		"重力大師",															// title
         "以重力大師重生：可使用一次重力電梯，逆轉範圍内重力"					// respawn notification
 	)
-
-	// player inside dropship... this case they'll need a weapon in hand
-	if ( player.GetParent().GetClassName() == "npc_dropship" )
-		player.GiveWeapon( "mp_weapon_peacekraber" )
 	
+	//player.SetActiveWeaponByName( "mp_weapon_peacekraber" ) // will this fix crosshair???
+	// give weapon upon player landing!
+	thread GravityMasterWeaponThink( player )
+
 	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_SPECIAL, ["grunt_mode", "gravity_lift", "gm_gravitymaster"] )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -2080,9 +2105,6 @@ void function BecomeGravityMaster( entity player )
 
 	player.SetSkin( 1 )
 	player.SetCamo( 31 ) // light
-
-	// refresh weapon upon player landing!
-	thread GravityMasterWeaponThink( player )
 }
 
 void function GravityMasterWeaponThink( entity player )

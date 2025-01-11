@@ -4,6 +4,8 @@ global function MpAbilityGravityLift_Init
 global function OnWeaponTossReleaseAnimEvent_ability_gravity_lift
 global function OnProjectileCollision_ability_gravity_lift
 
+const float LIFT_FORCE_TO_LEAVE_GROUND = 325 // if player is on ground, always need a higher value to make them leave ground!
+
 // Gravity Lift
 const float LIFT_THROW_POWER_SCALE = 0.3
 const float LIFT_HEIGHT = 1200
@@ -20,16 +22,16 @@ const float LIFT_MAX_LIFETIME_EXTEND = 1.5 // cap to 1.5x lifetime
 const bool LIFT_FREEFALL_SOUND_ENABLED = false // do freefall sound after exiting lift. sound fix at lift top is always included
 
 // gruntmode player usage
-const float LIFT_HEIGHT_GRUNT = 1000
-const float LIFT_RISE_SPEED_GRUNT = 200 // grunt jet pack value is 150
+const float LIFT_HEIGHT_GRUNT = 900
+const float LIFT_RISE_SPEED_GRUNT = 210 // grunt jet pack value is 150
 const float LIFT_HORIZONTAL_MOVE_SPEED_GRUNT = 150 // grunt jet pack value is 150
 const float LIFT_AIR_ACCELERATION_GRUNT = 2000 // higher for better control
-const float LIFT_PULL_SPEED_HORIZON_GRUNT = 200 // grunt jet pack value is 200
+const float LIFT_PULL_SPEED_HORIZON_GRUNT = 300 // grunt jet pack value is 200
 const float LIFT_PULL_SPEED_VERTICAl_GRUNT = 240 // grunt jet pack is 180
 const float LIFT_TOP_TIME_LIMIT_GRUNT = 0.5 // similar to horizon one
-const float LIFT_LIFETIME_GRUNT = 10
+const float LIFT_LIFETIME_GRUNT = 12 // was 10, obviously needs a longer life time for better controlling
 const float LIFT_COOLDOWN_GRUNT = 0.5 // time between second lift, actually nowhere used for now!
-const float LIFT_MAX_LIFETIME_EXTEND_GRUNT = 1.5 // 1.0 means cannot extend duration
+const float LIFT_MAX_LIFETIME_EXTEND_GRUNT = 1.3333 // was 1.5. 1.0 means cannot extend duration
 const bool LIFT_FREEFALL_SOUND_ENABLED_GRUNT = true // still nowhere used!
 
 // classname checks
@@ -544,6 +546,8 @@ void function EntityInGravityLift( entity ent, entity trigger )
 		ent.kv.gravity = 0.0001 // never uses 0.0, it means default gravity
 		vector airSpeed = ent.GetVelocity() //GetEntityGravLiftVelocity( ent, horizontalMoveSpeed )
 		airSpeed.z = reachedHighest ? 0.0 : riseSpeed
+		if ( ent.IsOnGround() ) // have to force player off ground!!
+			airSpeed.z = LIFT_FORCE_TO_LEAVE_GROUND
 		if ( LIFT_LERP_TO_HIGHEST_PART ) // lerp to highest part
 		{
 			if ( nearHighest ) // near top check
