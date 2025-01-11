@@ -331,8 +331,15 @@ void function Execution_Ion_Prime( entity attacker )
 {
 	string coreWeapon = "mp_titancore_laser_cannon"
 	// we've add fake laser core for npc execution, should be fine now
-	//if ( attacker.IsNPC() ) // saved for npc execution condition: never fire a lasercannon
-	//	coreWeapon = "mp_titancore_siege_mode" // change to placeholder core weapon if a npc ever used this execution
+	// still better to add a mod for npcs, for identifying
+	// because npcs may run over all anim events before animation actually starts, which can't be handled with most Anim_Active() checks
+	array<string> coreMods = []
+	if ( attacker.IsNPC() ) // saved for npc execution condition: never fire a lasercannon
+	{
+		//coreWeapon = "mp_titancore_siege_mode" // change to placeholder core weapon if a npc ever used this execution
+		coreMods.append( "npc_execution_laser_core" )
+		print( "npc trying to use execution_ion_prime..." )
+	}
 
 	MeleeSyncedTitan_ReplaceExecutionAttackerLoadout( 
 		attacker, 
@@ -341,7 +348,7 @@ void function Execution_Ion_Prime( entity attacker )
 		"", [],		// "mp_titanability_laser_trip", won't use during execution
 		"mp_titanweapon_laser_lite", [],
 		"", [],		// "melee_titan_punch_ion", won't use during execution
-		coreWeapon, ["npc_execution_laser_core"]
+		coreWeapon, coreMods
 	)
 }
 

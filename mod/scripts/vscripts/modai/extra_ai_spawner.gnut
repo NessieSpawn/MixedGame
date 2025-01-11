@@ -899,7 +899,12 @@ void function OnReaperChangeTeam( entity reaper )
 					if ( ent.IsProjectile() )
 						ent.Destroy()
 					else if ( ent.IsNPC() && !ent.ai.fragDroneArmed )
+					{
 						ent.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+						ent.SetNoTarget( true )
+						ent.EnableNPCFlag( NPC_IGNORE_ALL )
+						ent.NotSolid()
+					}
 				}
 			}
 		}

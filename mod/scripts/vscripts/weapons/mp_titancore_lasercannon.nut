@@ -232,7 +232,7 @@ bool function OnAbilityCharge_LaserCannon( entity weapon )
 	//PrintFunc()
 	//print( "player.Anim_IsActive(): " + string( player.Anim_IsActive() ) )
 	//if ( player.IsNPC() )
-	if ( player.IsNPC() && !player.Anim_IsActive() )
+	if ( player.IsNPC() && !player.Anim_IsActive() && !weapon.HasMod( "npc_execution_laser_core" ) )
 	{
 		player.SetVelocity( <0,0,0> )
 		
@@ -300,11 +300,14 @@ void function OnAbilityChargeEnd_LaserCannon( entity weapon )
 
 	// check for npc executions to work!
 	// don't want it intterupt execution animations
-	//PrintFunc()
-	//print( "IsTitanCoreFiring( player ): " + string( IsTitanCoreFiring( player ) ) )
-	//print( "player.Anim_IsActive(): " + string( player.Anim_IsActive() ) )
-	if ( player.IsNPC() && IsAlive( player ) && ( IsTitanCoreFiring( player ) || !player.Anim_IsActive() ) )
-		player.Anim_Stop()
+	if ( !weapon.HasMod( "npc_execution_laser_core" ) )
+	{
+		//PrintFunc()
+		//print( "IsTitanCoreFiring( player ): " + string( IsTitanCoreFiring( player ) ) )
+		//print( "player.Anim_IsActive(): " + string( player.Anim_IsActive() ) )
+		if ( player.IsNPC() && IsAlive( player ) && IsTitanCoreFiring( player )  )
+			player.Anim_Stop()
+	}
 	#endif
 }
 
@@ -323,7 +326,7 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 #if SERVER
 	if ( player.IsNPC() && player.Anim_IsActive() )
 	{
-		if ( !NPCInValidFakeLaserCoreState( player ) )
+		if ( weapon.HasMod( "npc_execution_laser_core" ) && !NPCInValidFakeLaserCoreState( player ) )
 			return true
 	}
 #endif
@@ -377,7 +380,7 @@ bool function OnAbilityStart_LaserCannon( entity weapon )
 		//print( "IsValid( player.GetParent() ): " + string( IsValid( player.GetParent() ) ) )
 		// player.ContextAction_IsMeleeExecution() can't get a npc's state
 		// modded behavior
-		if ( player.Anim_IsActive() )
+		if ( player.Anim_IsActive() || weapon.HasMod( "npc_execution_laser_core" ) )
 		{
 			// they can't aim laser core if use during execution, do some fake effect
 			thread FakeExecutionLaserCannonThink( player, weapon )
