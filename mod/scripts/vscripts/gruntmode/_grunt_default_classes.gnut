@@ -769,6 +769,7 @@ void function SpecialistGruntDronesHandler( entity player )
 							tick.SetNoTarget( true )
 							tick.EnableNPCFlag( NPC_IGNORE_ALL )
 							tick.NotSolid()
+							tick.SetInvulnerable() // can still take radius damage after nonsolid!
 						}
 					}
 				}
