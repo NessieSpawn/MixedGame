@@ -1962,6 +1962,9 @@ void function OnStalkerDecoyCreated( entity player, entity decoy )
 	// note that this requires decoy.SetDamageNotifications( true ) to take effect
 	// that one is handled by modified mp_ability_holopilot.nut file!
 	AddEntityCallback_OnDamaged( decoy, OnStalkerDecoyDamaged )
+
+	// track owner life time
+	thread StalkerDecoyDissolveOwnerDeath( player, decoy )
 }
 
 entity function GetStalkerHolopilotDecoyWeapon( entity player )
@@ -2003,6 +2006,17 @@ void function CheckStalkerPlayerDecoyMaxCount( entity player, entity newDecoy )
 	}
 }
 
+void function StalkerDecoyDissolveOwnerDeath( entity player, entity decoy )
+{
+	player.EndSignal( "OnDestroy" )
+	decoy.EndSignal( "OnDestroy" )
+	
+	player.WaitSignal( "OnDeath" )
+	// decoy still valid!
+	if ( stalker.activatedDecoys[ player ].contains( decoy ) )
+		decoy.Decoy_Dissolve()
+}
+
 void function OnStalkerDecoyDamaged( entity decoy, var damageInfo )
 {
 	// as long as decoy takes damage, we no longer refund charge to player
@@ -2038,10 +2052,15 @@ void function BecomeGravityMaster( entity player )
 {
 	player.SetPlayerSettings( "pilot_grapple_female" ) // have a better pov model
 
+	WaitFrame() // wait for player being set into dropship
+
 	SimpleClassLoadout(  
-		player,									
-		"mp_weapon_peacekraber",											// primary weapon
-		"mp_weapon_arc_launcher",											// secondary weapon
+		player,	
+		// kinda special, peace kraber needs to be given after player landing, otherwise player won't have crosshair till they switch weapon								
+		//"mp_weapon_peacekraber",											// primary weapon
+		//"mp_weapon_arc_launcher",											// secondary weapon
+		"",																	// primary weapon
+		"",																	// secondary weapon
 		"",											    					// grenade
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
@@ -2049,14 +2068,37 @@ void function BecomeGravityMaster( entity player )
 		"重力大師",															// title
         "以重力大師重生：可使用一次重力電梯，逆轉範圍内重力"					// respawn notification
 	)
+
+	// player inside dropship... this case they'll need a weapon in hand
+	if ( player.GetParent().GetClassName() == "npc_dropship" )
+		player.GiveWeapon( "mp_weapon_peacekraber" )
 	
-	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_SPECIAL, ["grunt_mode", "gm_gravitymaster"] )
+	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_SPECIAL, ["grunt_mode", "gravity_lift", "gm_gravitymaster"] )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 
 	player.SetSkin( 1 )
 	player.SetCamo( 31 ) // light
+
+	// refresh weapon upon player landing!
+	thread GravityMasterWeaponThink( player )
+}
+
+void function GravityMasterWeaponThink( entity player )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+
+	waitthread WaitForPlayerLanding( player )
+
+	WaitFrame() // wait for player HUD back
+	foreach ( entity mainWeapon in player.GetMainWeapons() )
+		player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
+	
+	// give weapons
+	player.GiveWeapon( "mp_weapon_peacekraber" )
+	player.GiveWeapon( "mp_weapon_arc_launcher" )
 }
 
 ///////////////////////////////////////////////

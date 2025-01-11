@@ -253,7 +253,7 @@ void function GravityLiftLifeTime( entity projectile, entity trigger, array<enti
 	float maxTimePctExtend = LIFT_MAX_LIFETIME_EXTEND
 	if ( mods.contains( "gm_gravitymaster" ) )
 	{
-		liftHeight = LIFT_LIFETIME_GRUNT
+		liftLifeTime = LIFT_LIFETIME_GRUNT
 		maxTimePctExtend = LIFT_MAX_LIFETIME_EXTEND_GRUNT
 	}
 
@@ -424,6 +424,7 @@ void function EntityInGravityLift( entity ent, entity trigger )
 	float liftHeight = LIFT_HEIGHT
 	float riseSpeed = LIFT_RISE_SPEED
 	float horizontalMoveSpeed = LIFT_HORIZONTAL_MOVE_SPEED
+	float liftAirAcceleration = LIFT_AIR_ACCELERATION
 	float topTimeLimit = LIFT_TOP_TIME_LIMIT
 	array<string> mods = file.gravLiftTriggerMods[ trigger ]
 	if ( mods.contains( "gm_gravitymaster" ) )
@@ -431,6 +432,7 @@ void function EntityInGravityLift( entity ent, entity trigger )
 		liftHeight = LIFT_HEIGHT_GRUNT
 		riseSpeed = LIFT_RISE_SPEED_GRUNT
 		horizontalMoveSpeed = LIFT_HORIZONTAL_MOVE_SPEED_GRUNT
+		liftAirAcceleration = LIFT_AIR_ACCELERATION_GRUNT
 		topTimeLimit = LIFT_TOP_TIME_LIMIT_GRUNT
 	}
 
@@ -522,7 +524,7 @@ void function EntityInGravityLift( entity ent, entity trigger )
 			storedStats.lastTickVel = ent.GetVelocity()
 			// player specific settings
 			ent.kv.airSpeed = horizontalMoveSpeed
-			ent.kv.airAcceleration = LIFT_AIR_ACCELERATION
+			ent.kv.airAcceleration = liftAirAcceleration
 			ent.SetGroundFrictionScale( 0.0 )
 		}
 
