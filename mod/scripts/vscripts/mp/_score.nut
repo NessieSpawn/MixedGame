@@ -40,6 +40,7 @@ global function AddTitanKilledDialogueEvent
 // nessie modify
 global function ScoreEvent_DisableCallSignEvent
 global function ScoreEvent_EnableComebackEvent // doesn't exsit in vanilla, make it a setting
+global function ScoreEvent_DisablePilotAssist // here just for removing PilotAssist for gruntmode
 // funny things to be shared with other files, add more kill streak stuffs
 global function UpdateUntimedKillStreaks
 global function UpdateMixedTimedKillStreaks
@@ -79,6 +80,7 @@ struct
 	bool disableCallSignEvent = false
 	bool headshotDialogue = false
 	bool comebackEvent = false
+	bool disablePilotAssist = false
 } file
 
 void function Score_Init()
@@ -423,7 +425,9 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	if ( !victim.IsTitan() ) // titan assist handled by ScoreEvent_TitanKilled()
 	{
 		// wrap into this function
-		ScoreEvent_PlayerAssist( victim, attacker, "PilotAssist" )
+		// allow script to toggle this off, for gruntmode
+		if ( !file.disablePilotAssist )
+			ScoreEvent_PlayerAssist( victim, attacker, "PilotAssist" )
 	}
 }
 
@@ -965,4 +969,9 @@ void function ScoreEvent_EnableHeadshotDialogue( bool enable )
 void function ScoreEvent_EnableComebackEvent( bool enable )
 {
 	file.comebackEvent = enable
+}
+
+void function ScoreEvent_DisablePilotAssist( bool disable )
+{
+	file.disablePilotAssist = disable
 }
