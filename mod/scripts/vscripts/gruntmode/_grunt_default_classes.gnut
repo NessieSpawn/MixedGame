@@ -40,6 +40,7 @@ const string GM_SCOUT_CLASSNAME					= "Scout"				// nerfed g2 and archer, two gr
 const string GM_FLYER_CLASSNAME					= "Flyer"				// mozambique and chargerifle, weaker jetpack
 const string GM_ASSASSIN_CLASSNAME				= "Assassin"			// silenced wingman elite, chargerifle and arc grenade
 const string GM_STALKER_CLASSNAME				= "Stalker"				// double-barrel shotgun and chargerifle, two holopilot decoy usage
+const string GM_GRAVITYMASTER_CLASSNAME			= "Gravity_Master"		// peacekraber and thunderbolt, one gravity lift usage
 
 void function RegisterAllDefaultClass()
 {
@@ -186,7 +187,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_PATH_BUILDER_CLASSNAME,		// classname
 		BecomePathBuilder,				// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score
 	)
 
 	// scout
@@ -220,6 +221,13 @@ void function RegisterAllDefaultClass()
 	AddCallback_OnDecoyCreated( OnStalkerDecoyCreated )
 	AddCallback_PlayerDecoyDie( OnStalkerDecoyDieOrDissolve )
 	AddCallback_PlayerDecoyDissolve( OnStalkerDecoyDieOrDissolve )
+
+	// gravity master
+	GruntMode_RegisterPlayerClass(
+		GM_GRAVITYMASTER_CLASSNAME,		// classname
+		BecomeGravityMaster,			// loadout function
+		false							// specialist, should this class give more score
+	)
 }
 
 //////////////////////////////////////////
@@ -1657,7 +1665,7 @@ void function BecomeShifter( entity player )
 	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
-	player.SetCamo( 30 ) // black
+	player.SetCamo( 30 ) // dark
 }
 
 void function BecomeRavenant( entity player )
@@ -1714,7 +1722,7 @@ void function BecomePhaseWalker( entity player )
 	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
-	player.SetCamo( 31 ) // white
+	player.SetCamo( 31 ) // light
 }
 
 void function BecomeHeavySniper( entity player )
@@ -2024,6 +2032,31 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 			weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
 		delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
 	}
+}
+
+void function BecomeGravityMaster( entity player )
+{
+	player.SetPlayerSettings( "pilot_grapple_female" ) // have a better pov model
+
+	SimpleClassLoadout(  
+		player,									
+		"mp_weapon_peacekraber",											// primary weapon
+		"mp_weapon_arc_launcher",											// secondary weapon
+		"",											    					// grenade
+		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
+		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
+		["disable_doublejump", "only_wallclimb"],							// class mods
+		"重力大師",															// title
+        "以重力大師重生：可使用一次重力電梯，逆轉範圍内重力"					// respawn notification
+	)
+	
+	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_SPECIAL, ["grunt_mode", "gm_gravitymaster"] )
+	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
+
+	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
+	player.SetSkin( 1 )
+	player.SetCamo( 31 ) // light
 }
 
 ///////////////////////////////////////////////

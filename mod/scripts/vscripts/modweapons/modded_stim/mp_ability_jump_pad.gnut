@@ -21,6 +21,25 @@ const float JUMP_PAD_VIEW_PUNCH_SOFT_TITAN = 120.0
 const float JUMP_PAD_VIEW_PUNCH_HARD_TITAN = 20.0
 const float JUMP_PAD_VIEW_PUNCH_RAND_TITAN = 20.0
 
+// classname checks
+const bool JUMP_PAD_ALLOW_HEAVYARMOR = false
+const array<string> JUMP_PAD_ALLOWED_CLASSES =
+[
+	// player
+	"player",
+	// npc
+	"npc_soldier",
+	"npc_stalker",
+	"npc_spectre",
+	"npc_prowler",
+	"npc_marvin",
+	"npc_pilot_elite",
+	// projectile
+
+	// prop
+
+]
+
 struct JumpPadStruct
 {
 	entity tower
@@ -145,8 +164,10 @@ void function OnJumpPadPlanted( entity projectile )
 void function JumpPadInitilaize( entity player )
 {
     // defined in mp_ability_heal.nut
-    //file.playerInJumpPadCooldown[player] <- false
-	file.playerInJumpPad[player] <- false
+	//if ( !( player in file.playerInJumpPadCooldown ) )
+    //	file.playerInJumpPadCooldown[player] <- false
+	if ( !( player in file.playerInJumpPad ) )
+		file.playerInJumpPad[player] <- false
 }
 
 /* // now using file.playerInJumpPad
@@ -255,16 +276,19 @@ void function JumpPadTriggerEnter( entity trigger, entity ent )
 {
 	if( !IsAlive( ent ) )
 		return
-	if( !ent.IsPlayer() )
+	// allow npcs to use jump pad now
+	//if( !ent.IsPlayer() )
+	//	return
+	if ( !EntityAllowedToUseJumpPad( ent ) )
 		return
 	if( ent.IsPhaseShifted() )
 		return
 	if( ent.GetParent() != null )
 		return
-	if( ent.IsTitan() )
-		return
 	//if( IsPlayerInJumpPadCooldown( player ) )
 	//	return
+	// allow npc usage, always initialize here
+	JumpPadInitilaize( ent )
 	if ( file.playerInJumpPad[ ent ] ) // already in jumppad?
 		return
 	
@@ -275,12 +299,31 @@ void function JumpPadTriggerEnter( entity trigger, entity ent )
 
 void function JumpPadTriggerLeave( entity trigger, entity ent )
 {
-	if( !ent.IsPlayer() )
-		return
+	// allow npcs to use jump pad now
+	//if( !ent.IsPlayer() )
+	//	return
+	// allow npc usage, always initialize here
+	JumpPadInitilaize( ent )
 
 	// this only marks player as left jump pad
 	if ( file.playerInJumpPad[ ent ] )
 		file.playerInJumpPad[ ent ] = false
+}
+
+bool function EntityAllowedToUseJumpPad( entity ent )
+{
+	if ( !IsValid( ent ) )
+		return false
+
+	// only affects pilots, npcs, prop_physics and grenades
+	if ( !JUMP_PAD_ALLOW_HEAVYARMOR && ent.GetArmorType() == ARMOR_TYPE_HEAVY )
+		return false
+	string className = ent.GetClassName()
+	if ( !JUMP_PAD_ALLOWED_CLASSES.contains( className ) )
+		return false
+
+	// all checks passed
+	return true
 }
 
 void function GiveJumpPadEffect( entity player )
@@ -289,21 +332,26 @@ void function GiveJumpPadEffect( entity player )
 	for( int i = 0; i < 3; i++ ) // was 5
 		EmitSoundOnEntity( player, "Boost_Card_SentryTurret_Deployed_3P" )
 	//Remote_CallFunction_Replay( player, "ServerCallback_ScreenShake", 5, 10, 0.5 )
-	player.ViewPunch( player.GetOrigin(), JUMP_PAD_VIEW_PUNCH_SOFT, JUMP_PAD_VIEW_PUNCH_HARD, JUMP_PAD_VIEW_PUNCH_RAND )
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+		player.ViewPunch( player.GetOrigin(), JUMP_PAD_VIEW_PUNCH_SOFT, JUMP_PAD_VIEW_PUNCH_HARD, JUMP_PAD_VIEW_PUNCH_RAND )
 
 	vector targetVelocity
-	if( player.IsInputCommandHeld( IN_DUCK ) || player.IsInputCommandHeld( IN_DUCKTOGGLE ) ) // further but lower
+	if( player.IsPlayer() && ( player.IsInputCommandHeld( IN_DUCK ) || player.IsInputCommandHeld( IN_DUCKTOGGLE ) ) ) // further but lower
 		targetVelocity = < player.GetVelocity().x * 1.5, player.GetVelocity().y * 1.5, 550 >
 	else // higher
 		targetVelocity = < player.GetVelocity().x * 1.3, player.GetVelocity().y * 1.3, 750 >
 	thread JumpPadForcedVelocity( player, targetVelocity ) // maybe not a good idea: prevent jump higher through manually jump input, also prevents tap strafe
 
-	player.TouchGround() // regen doublejump
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+		player.TouchGround() // regen doublejump
 
 	thread JumpPadFlying( player ) // signal sender
-	//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
-	thread JumpPadTrailThink( player )
-	thread JumpPadTripleJumpThink( player )
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+	{
+		//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
+		thread JumpPadTrailThink( player )
+		thread JumpPadTripleJumpThink( player )
+	}
 }
 
 void function JumpPadFlying( entity player )
@@ -345,11 +393,13 @@ void function JumpPadForcedVelocity( entity player, vector targetVelocity )
 	while( Time() < startTime + forcedTime )
 	{
 		player.SetVelocity( targetVelocity )
-		player.ConsumeDoubleJump() // disable double jump
+		if ( player.IsPlayer() ) // add compatibliity for npc usage
+			player.ConsumeDoubleJump() // disable double jump
 		WaitFrame()
 	}
 
-	player.TouchGround() // restore one doublejump usage
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+		player.TouchGround() // restore one doublejump usage
 }
 
 void function JumpPadTripleJumpThink( entity player )
