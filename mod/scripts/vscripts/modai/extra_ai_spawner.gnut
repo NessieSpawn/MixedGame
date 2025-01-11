@@ -904,6 +904,7 @@ void function OnReaperChangeTeam( entity reaper )
 						ent.SetNoTarget( true )
 						ent.EnableNPCFlag( NPC_IGNORE_ALL )
 						ent.NotSolid()
+						ent.SetInvulnerable() // can still take radius damage after nonsolid!
 					}
 				}
 			}

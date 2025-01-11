@@ -135,19 +135,7 @@ WeaponData
 	"projectile_inherit_owner_velocity_scale"		"0.2"
 	
 	// this one is truly overpowered, should nerf
-	"bolt_hitsize"									"0.5"
-	"bolt_hitsize_grow1_time"						"0.075"
-	"bolt_hitsize_grow1_size"						"1.0"
-	"bolt_hitsize_grow2_time"						"0.075"
-
-	// after 0.1s weapon should no longer has client prediction, should be safe to change bolt size
-	//"bolt_hitsize_grow2_size"						"2.5"
-	//"bolt_hitsize_growfinal_lerptime"				"0.18"
-	//"bolt_hitsize_growfinal_size"					"4.0"
-	"bolt_hitsize_grow2_size"						"2.5"
-	"bolt_hitsize_growfinal_lerptime"				"0.18"
-	"bolt_hitsize_growfinal_size"					"3.0"
-
+	// original value
 	//"bolt_hitsize"								"0.5"
 	//"bolt_hitsize_grow1_time"						"0.075"
 	//"bolt_hitsize_grow1_size"						"4.0"
@@ -156,6 +144,18 @@ WeaponData
 	//"bolt_hitsize_growfinal_lerptime"				"0.18"
 	//"bolt_hitsize_growfinal_size"					"6.0"
 	//"bolt_bounce_frac"								"1.0"
+
+	// after 0.1s weapon should no longer has client prediction, should be safe to change bolt size
+	// welp northstar uses 4.0 hitsize at 0.075s... should be fine?
+	// current value is basically doubled size of kraber's, base bolt_hitsize uses mastiff one
+	"bolt_hitsize"									"0.5"
+	"bolt_hitsize_grow1_time"						"0.035" // original value is 0.75, kraber uses 0.035, mastiff uses 0.025
+	"bolt_hitsize_grow1_size"						"1.0"
+	"bolt_hitsize_grow2_time"						"0.08" // original value is 0.75, kraber uses 0.08, mastiff uses 0.18
+	"bolt_hitsize_grow2_size"						"2.0"
+	"bolt_hitsize_growfinal_lerptime"				"0.18"
+	"bolt_hitsize_growfinal_size"					"4.0"
+
    	"titanarmor_critical_hit_required"              "1"
 	"critical_hit"									"1"
 
