@@ -90,13 +90,22 @@ WeaponData
 	"ammo_display_as_clips"							"0"
 	"reload_is_segmented"							"0"
 
+	// better use same reload as kraber
+	//"reload_time" 									"2.5"
+	//"reload_time_late1" 							"2.2"
+	//"reload_time_late2" 							"0"
+	//"reloadempty_time"								"3.5"
+	//"reloadempty_time_late1"						"2.5"
+	//"reloadempty_time_late2"						"1.7"
+	//"reloadempty_time_late2"						"1.1"
 	"reload_time" 									"2.5"
-	"reload_time_late1" 							"2.2"
-	"reload_time_late2" 							"0"
-	"reloadempty_time"								"3.5"
-	"reloadempty_time_late1"						"2.5"
-	"reloadempty_time_late2"						"1.7"
-	"reloadempty_time_late2"						"1.1"
+	"reload_time_late1" 							"1.52"
+	"reload_time_late2" 							"0.63"
+	"reloadempty_time"								"3.61"
+	"reloadempty_time_late1"						"2.63"
+	"reloadempty_time_late2"						"1.75"
+	"reloadempty_time_late3"						"0.55"
+
 	"rechamber_time"								"1.1"//"0.924"
 	"viewmodel_offset_ads"							"0 0 0"
 

@@ -134,7 +134,7 @@ WeaponData
 			"regen_ammo_refill_rate"						"*0"
 		}
 		// gruntmode class
-		gm_gravitymaster
+		gm_gravitymaster // use together with gravity_lift
 		{
 		}
 
