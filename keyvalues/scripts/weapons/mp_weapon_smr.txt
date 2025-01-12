@@ -211,6 +211,16 @@ WeaponData
 
 			"damage_near_value"   							"--9" // 41 on bodyshot, 45.1 on headshot
 			"damage_far_value"								"--9" // 41 on bodyshot, 45.1 on headshot
+		
+			// bit nerf reload, otherwise MGL will seem embarrasing
+			"reload_time" 									"*1.116667" // ~3.35s, MGL is 3.75s
+			"reload_time_late1"								"*1.116667"
+			"reload_time_late2"								"*1.116667"
+			"reload_time_late3"								"*1.116667"
+			"reloadempty_time"								"*1.116667"
+			"reloadempty_time_late1"						"*1.116667"
+			"reloadempty_time_late2"						"*1.116667"
+			"reloadempty_time_late3"						"*1.116667"
 		}
 	}
 }
