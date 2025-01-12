@@ -63,6 +63,11 @@ void function OnWeaponOwnerChanged_weapon_peacekraber (entity weapon, WeaponOwne
 		isWeaponActive = false
 	}
 	#endif
+
+	// disable run_and_gun on server-side
+	#if SERVER
+	Disable_RunAndGun_ServerSide( weapon, changeParams )
+	#endif
 }
 #if CLIENT
 void function CrosshairCycle() {

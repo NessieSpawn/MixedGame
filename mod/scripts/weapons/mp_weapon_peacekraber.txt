@@ -130,9 +130,10 @@ WeaponData
 	"fx_muzzle_flash_world"							"wpn_muzzleflash_40mm"
 	"fx_muzzle_flash_attach"						"muzzle_flash"
 
-	"critical_hit_damage_scale"						"1.3"
+	// pilot weapons never has critical hit damage scale
+	"critical_hit_damage_scale"						"1.0" // was 1.3
 	"critical_hit"									"1"
-	"projectile_inherit_owner_velocity_scale"		"0.2"
+	"projectile_inherit_owner_velocity_scale"		"0.2" // ??????????
 	
 	// this one is truly overpowered, should nerf
 	// original value
@@ -176,8 +177,13 @@ WeaponData
 	"allow_empty_click"   							"1"
 	"empty_reload_only"   							"0"
 	"trigger_snipercam"   							"0"
-	"allow_headshots" 								"0"
-	"primary_fire_does_not_block_sprint"			"1"
+
+	// try to allow headshots, with bit less headshot damage scale
+	"allow_headshots" 								"1"
+	"damage_headshot_scale"							"1.1" // new adding, 16.5 damage at close range( equals to 17 damage and falls off at range )
+	"headshot_distance" 							"800" // same as mastiff
+
+	"primary_fire_does_not_block_sprint"			"1" // ????????????
 	"ads_move_speed_scale"							"0.5"
 	"aimassist_disable_hipfire"						"0"
 	"aimassist_disable_ads"							"0"
@@ -329,19 +335,67 @@ WeaponData
 	"sprintcycle_time"								".55"
 	"sprint_fractional_anims"						"0"
 
+	// lifetime actually handled by script
 	"projectile_lifetime"							"0.5"
 	"projectile_damage_reduction_per_bounce"		"0.0"
 	"projectile_damages_owner"						"0"
 
-	// Crosshair
+	// Crosshair, actually handled by script
 	"red_crosshair_range" 							"300"
 	active_crosshair_count				"0"
 
+	// more fixes to be reliable
+	"anim_alt_idleAttack"	"1"
+
+	// Bodygroups:
+	"bodygroup1_name"	"scope_dcom"
+	"bodygroup1_set"	"0"
+	"bodygroup2_name"	"scope_zoom"
+	"bodygroup2_set"	"0"
+	"bodygroup3_name"	"ammo"
+	"bodygroup3_set"	"0" // not enabled because we'll eject shotgun shells
+	"bodygroup4_name"	"scope_outline"
+	"bodygroup4_set"	"0"
+	"bodygroup5_name"	"scope_oracle"
+	"bodygroup5_set"	"1" // looks better with this scope?
+	"bodygroup6_name"	"proscreen"
+	"bodygroup6_set"	"0"
+
+	"clip_bodygroup"						"at_rifle_magazine"
+    "clip_bodygroup_index_shown"			"0"
+    "clip_bodygroup_index_hidden"			"1"
+    "clip_bodygroup_show_for_milestone_0"	"1"
+    "clip_bodygroup_show_for_milestone_1"	"0"
+    "clip_bodygroup_show_for_milestone_2"	"1"
+    "clip_bodygroup_show_for_milestone_3"	"1"
+
+	// not enabled because we'll eject shotgun shells
+	//"bodygroup_ammo_index_count"			"6"
+
+
+	// Ammo Counter
+	// Kraber
+	//"ui1_enable"		"1"
+	//UiData1
+	//{
+	//	"ui"									"ui/kraber_ammo_counter"
+	//	"mesh"							"models/weapons/attachments/kraber_rui_lower"
+	//	Args
+	//	{
+	//		vis						player_zoomfrac
+	//		ammo						weapon_ammo
+	//		clipSize					weapon_clipSize
+	//	}
+	//}
+
+	// Wingman
 	"ui6_enable"		"1"
 	UiData6
 	{
 		"ui"							"ui/b3wing_ammo_counter"
-		"mesh"						"models/weapons/attachments/sniper_scope_rui_upper"
+		// changing mesh. will it work for kraber model?
+		//"mesh"							"models/weapons/attachments/sniper_scope_rui_upper"
+		"mesh"							"models/weapons/attachments/kraber_rui_lower"
 		Args
 		{
 			ammo						weapon_ammo
@@ -349,6 +403,7 @@ WeaponData
 			clipCount					weapon_stockpileClipCount
 		}
 	}
+
 	RUI_CrosshairData
 	{
 		DefaultArgs
@@ -368,4 +423,17 @@ WeaponData
 			"ui"						"ui/crosshair_lstar"
 			"base_spread"				"4"
 		}
+	} // northstar missing scope...
+
+
+	// modified contents here
+	Mods
+	{
+		// disable primary_fire_does_not_block_sprint on server-side
+		// effect done in script _disable_run_and_gun_on_server.gnut
+		disable_run_and_gun_server
+		{
+
+		}
+	}
 }
