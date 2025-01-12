@@ -23,7 +23,7 @@ const DEPLOYABLE_SHIELD_HEALTH = 850
 // for bleedout_balance
 const DEPLOYABLE_SHIELD_HEALTH_NERFED = 380
 // for gm_fortress
-const DEPLOYABLE_SHIELD_HEALTH_GRUNT = 410 // shield captain shield value is 100. since this shield cannot be moved and owner weapon is limited, it can be higher?
+const DEPLOYABLE_SHIELD_HEALTH_GRUNT = 580 // shield captain shield value is 100. since this shield cannot be moved and owner weapon is limited, it can be higher?
 
 const DEPLOYABLE_SHIELD_RADIUS = 84
 const DEPLOYABLE_SHIELD_HEIGHT = 89
