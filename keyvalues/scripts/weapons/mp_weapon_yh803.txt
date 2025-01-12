@@ -1,5 +1,13 @@
 WeaponData
 {
+	MP_BASE
+	{
+		// remove lead for whatever, missile hitsize is fucked
+		"npc_lead_time_scale"							"0.0" // 0.0011
+		"npc_lead_time_min_dist"						"100"
+		"npc_lead_time_max_dist"						"4000"
+	}
+
 	// Effects
 	"fire_sound_1_player_1p"						"TDay_MegaTurret_Fire_A"
 	"fire_sound_1_player_3p"						"TDay_MegaTurret_Fire_A"
@@ -13,7 +21,7 @@ WeaponData
 
 	"impact_effect_table" 							"exp_rocket_shoulder" // exp_small
 
-	"projectile_launch_speed"						"2200" // first version uses 1500, vanilla uses 800, plasma turret uses 2000, smr uses 3300, salvo rocket uses 2200, tf|1 smr uses 2800
+	"projectile_launch_speed"						"2800" // first version uses 1500, second version uses 2200, vanilla uses 800, plasma turret uses 2000, smr uses 3300, salvo rocket uses 2200, tf|1 smr uses 2800, rocket drone uses 1600
 
 	"npc_min_burst"									"5" // first version uses 4, vanilla uses 3, plasma turret uses 6
 	"npc_max_burst"									"5" // first version uses 6, vanilla uses 3, plasma turret uses 6
@@ -49,7 +57,7 @@ WeaponData
 	"npc_min_engage_range"							"0"
 	"npc_max_engage_range"							"1600"
 	"npc_min_engage_range_heavy_armor"				"400"
-	"npc_max_engage_range_heavy_armor"				"2000"
+	"npc_max_engage_range_heavy_armor"				"2200"
 
 	"npc_spread_defocused_cone_multiplier"			"1.0"
 
@@ -60,11 +68,14 @@ WeaponData
 		{
 			"npc_damage_near_value"   						"*0.3" // 15
 			"npc_damage_far_value"							"*0.3" // 15
-			"npc_explosion_damage"							"*0.3" // 9
+			"npc_explosion_damage"							"*0.4" // 12, was * 0.3( 9 ), but this turret can't land shots well...
 
-			"npc_damage_near_value_titanarmor"				"*0.6" // 118.2
-			"npc_damage_far_value_titanarmor" 				"*0.6" // 118.2
-			"npc_explosion_damage_heavy_armor"				"*0.6" // 54
+			//"npc_damage_near_value_titanarmor"				"*0.6" // 118.2
+			//"npc_damage_far_value_titanarmor" 				"*0.6" // 118.2
+			//"npc_explosion_damage_heavy_armor"				"*0.6" // 54
+
+			"npc_damage_near_value_titanarmor"				"*0.710066" // ~140
+			"npc_damage_far_value_titanarmor" 				"*0.710066" // ~140
 		}
 	}
 }
