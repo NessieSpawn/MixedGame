@@ -2146,8 +2146,8 @@ void function BecomeFortress( entity player )
 		$"models/humans/grunts/imc_grunt_shield_captain.mdl",				// imc player model
 		$"models/humans/grunts/imc_grunt_shield_captain.mdl",				// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
-		"堡壘",																// title
-		"以堡壘重生：強力的反泰坦武器，可使用一次強化掩體"						// respawn notification
+		"Fortress",															// title
+		"Respawn as Fortress: Powerful anti-titan weapon, one Hard Cover usage"					// respawn notification
 	)
 
 	player.GetMainWeapons()[0].AddMod( "gm_fortress" ) // less damage against human, less dmage on headshot, more damage against titans
