@@ -118,8 +118,10 @@ int function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, boo
 				bolt.kv.gravity = 4.0
 				bolt.kv.lifetime = 10.0
 				#if SERVER
-					EmitSoundOnEntity( bolt, MORTAR_SHOT_SFX_LOOP )
+					// change every projectile sound to be sync with client!
+					//EmitSoundOnEntity( bolt, MORTAR_SHOT_SFX_LOOP )
 				#endif
+				EmitSoundOnEntity( bolt, MORTAR_SHOT_SFX_LOOP )
 			}
 			else
 			{

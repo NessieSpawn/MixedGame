@@ -43,9 +43,11 @@ var function OnWeaponPrimaryAttack_titanweapon_salvo_rockets( entity weapon, Wea
 	{
 		#if SERVER
 			missile.SetOwner( player )
-			EmitSoundOnEntity( missile, SALVOROCKETS_MISSILE_SFX_LOOP )
+			// change every projectile sound to be sync with client!
+			//EmitSoundOnEntity( missile, SALVOROCKETS_MISSILE_SFX_LOOP )
 		#endif
 		SetTeam( missile, player.GetTeam() )
+		EmitSoundOnEntity( missile, SALVOROCKETS_MISSILE_SFX_LOOP )
 	}
 
 	if ( player.IsPlayer() )

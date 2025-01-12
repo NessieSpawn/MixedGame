@@ -101,9 +101,12 @@ var function OnWeaponTossReleaseAnimEvent_weapon_deployable_cover( entity weapon
 		PlayerUsedOffhand( player, weapon )
 
 		#if SERVER
+		// change every projectile sound to be sync with client!
+		/*
 		string projectileSound = GetGrenadeProjectileSound( weapon )
 		if ( projectileSound != "" )
 			EmitSoundOnEntity( deployable, projectileSound )
+		*/
 
 		weapon.w.lastProjectileFired = deployable
 		#endif
@@ -111,6 +114,9 @@ var function OnWeaponTossReleaseAnimEvent_weapon_deployable_cover( entity weapon
 		#if BATTLECHATTER_ENABLED && SERVER
 			TryPlayWeaponBattleChatterLine( player, weapon )
 		#endif
+		string projectileSound = GetGrenadeProjectileSound( weapon )
+		if ( projectileSound != "" )
+			EmitSoundOnEntity( deployable, projectileSound )
 	}
 	
 	#if SERVER && MP
