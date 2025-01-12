@@ -345,7 +345,7 @@ WeaponData
 	active_crosshair_count				"0"
 
 	// more fixes to be reliable
-	"anim_alt_idleAttack"	"1"
+	//"anim_alt_idleAttack"	"1" // desyncs if client-side not installed!
 
 	// Bodygroups:
 	"bodygroup1_name"	"scope_dcom"
@@ -357,7 +357,7 @@ WeaponData
 	"bodygroup4_name"	"scope_outline"
 	"bodygroup4_set"	"0"
 	"bodygroup5_name"	"scope_oracle"
-	"bodygroup5_set"	"1" // looks better with this scope?
+	"bodygroup5_set"	"0" // looks better with this scope? nah nevermind
 	"bodygroup6_name"	"proscreen"
 	"bodygroup6_set"	"0"
 
