@@ -491,7 +491,11 @@ void function EntityInGravityLift( entity ent, entity trigger )
 					BouncePlayerFromLift( ent, expect vector( storedStats.lastTickVel ), horizontalPullSpeed, verticalPullSpeed ) // last tick's velocity can mostly get player's move direction
 			
 				if ( results.bouncedFromLift && IsValid( trigger ) ) // remove entity from current trigger if it's force bounced!
-					ScriptTriggerRemoveEntity( trigger, ent )
+				{
+					// using this needs an anti-crash
+					if ( ent in trigger.e.scriptTriggerData.entities )
+						ScriptTriggerRemoveEntity( trigger, ent )
+				}
 			}
 		}
 	)
