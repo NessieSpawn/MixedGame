@@ -35,6 +35,13 @@ WeaponData
 	"proficiency_good_spreadscale"					"1.4"
 	"proficiency_very_good_spreadscale"   			"1.4"
 
+	// or maybe that's because we're not init base spread for them? will that affect npc usage??
+	// Spread
+	"spread_stand_hip"  							"0"
+	"spread_stand_ads"   							"0"
+	"spread_decay_rate"   							"10"
+	"spread_decay_delay"  							".35"
+
 	// vanilla missing
 	"npc_explosion_damage"							"30" // player value is 50
 	"npc_explosion_damage_heavy_armor"				"90" // player value is 180
