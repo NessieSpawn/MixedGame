@@ -13,7 +13,7 @@ WeaponData
 
 	"impact_effect_table" 							"exp_rocket_shoulder" // exp_small
 
-	"projectile_launch_speed"						"2200" // first version uses 1500, vanilla uses 800, plasma turret uses 2000, smr uses 3300, salvo rocket uses 2200
+	"projectile_launch_speed"						"2200" // first version uses 1500, vanilla uses 800, plasma turret uses 2000, smr uses 3300, salvo rocket uses 2200, tf|1 smr uses 2800
 
 	"npc_min_burst"									"5" // first version uses 4, vanilla uses 3, plasma turret uses 6
 	"npc_max_burst"									"5" // first version uses 6, vanilla uses 3, plasma turret uses 6
