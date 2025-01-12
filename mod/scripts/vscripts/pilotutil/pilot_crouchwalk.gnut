@@ -41,7 +41,26 @@ void function PilotCrouchWalkThink( entity player )
     if ( !hasCrouchBoost )
         return
 
-    int crouchBoostHandle = -1
+    int loopCount = 0 // debug only
+    array<int> crouchBoostHandles // why we have to handle like this...
+    bool crouchBoostAdded = false // the only way to fix this... idk why handle not accurate in some case
+    
+    // to fix issues with gruntmode wallclimb, always clear boost handle on class change
+    OnThreadEnd
+    (
+        function(): ( player, crouchBoostHandles )
+        {
+            if ( IsValid( player ) )
+            {
+                foreach ( int handle in crouchBoostHandles )
+                {
+                    //print( "removing handle: " + string( handle ) )
+                    StatusEffect_Stop( player, handle )
+                }
+            }
+        }
+    )
+    
     while ( true )
     {
         WaitFrame( true ) // always wait first, this ignores fps limit
@@ -67,26 +86,50 @@ void function PilotCrouchWalkThink( entity player )
         // skip check and stop existing speedboost if we've off ground
         if ( !player.IsOnGround() || player.IsWallRunning() || player.IsTraversing() || player.Anim_IsActive() || IsValid( player.GetParent() ) )
         {
-            if ( crouchBoostHandle != -1 )
+            foreach ( _index, int handle in crouchBoostHandles )
             {
-                StatusEffect_Stop( player, crouchBoostHandle )
-                crouchBoostHandle = -1
+                //print( "removing handle: " + string( handle ) )
+                StatusEffect_Stop( player, handle )
+                crouchBoostHandles.remove( _index )
             }
+            crouchBoostAdded = false
             continue
         }
 
         if ( player.IsCrouched() ) // completely crouched, don't have to check sliding since slide in ttf2 not affected by speed_boost
         {
-            if ( crouchBoostHandle == -1 )
-                crouchBoostHandle = StatusEffect_AddEndless( player, eStatusEffect.speed_boost, boostSeverity )
+            if ( !crouchBoostAdded )
+            {
+                // try to stop last crouch boost...?
+                foreach ( _index, int handle in crouchBoostHandles )
+                {
+                    //print( "removing handle: " + string( handle ) )
+                    StatusEffect_Stop( player, handle )
+                    crouchBoostHandles.remove( _index )
+                }
+                if ( crouchBoostHandles.len() == 0 )
+                {
+                    int newHandle = StatusEffect_AddEndless( player, eStatusEffect.speed_boost, boostSeverity )
+                   // print( "created handle: " + string( newHandle ) )
+                    //print( "loopCount: " + string( loopCount ) )
+                    crouchBoostHandles.append( newHandle )
+                }
+                crouchBoostAdded = true
+            }
         }
         else // not crouched
         {
-            if ( crouchBoostHandle != -1 )
+            if ( crouchBoostAdded )
             {
-                StatusEffect_Stop( player, crouchBoostHandle )
-                crouchBoostHandle = -1
+                foreach ( _index, int handle in crouchBoostHandles )
+                {
+                    //print( "removing handle: " + string( handle ) )
+                    StatusEffect_Stop( player, handle )
+                    crouchBoostHandles.remove( _index )
+                }
+                crouchBoostAdded = false
             }
         }
+        loopCount++
     }
 }
