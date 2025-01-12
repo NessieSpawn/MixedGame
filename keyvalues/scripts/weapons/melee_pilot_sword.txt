@@ -72,8 +72,9 @@ WeaponData
 		gm_beastking
 		{
 			// sword has sprint-to-attack animation, should leave this
-			"primary_fire_does_not_block_sprint"			"1"
-			"crosshair_force_sprint_fade_disabled"          "1"
+			// ignore that, this will make client-side desync, also can't sprint while using melee
+			//"primary_fire_does_not_block_sprint"			"1"
+			//"crosshair_force_sprint_fade_disabled"          "1"
 
 			// make players able to target titans
 			"melee_can_hit_titans"					"1"

@@ -65,7 +65,7 @@ function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, isN
 			EmitSoundOnEntityExceptToPlayer( owner, owner, tpFiringSound )
 
 			thread DelayedStartParticleSystem( nade )
-			// change every grenade sound to be sync with client!
+			// change every projectile sound to be sync with client!
 			//EmitSoundOnEntity( nade, "Weapon_GibberPistol_Grenade_Emitter" )
 			nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_weapon_gibber_pistol )
 			Grenade_Init( nade, weapon )

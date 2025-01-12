@@ -13,10 +13,10 @@ WeaponData
 
 	"impact_effect_table" 							"exp_rocket_shoulder" // exp_small
 
-	"projectile_launch_speed"						"1500" // vanilla uses 800, plasma turret uses 2000, smr uses 3300
+	"projectile_launch_speed"						"2200" // first version uses 1500, vanilla uses 800, plasma turret uses 2000, smr uses 3300, salvo rocket uses 2200, tf|1 smr uses 2800
 
-	"npc_min_burst"									"4" // vanilla uses 3, plasma turret uses 6
-	"npc_max_burst"									"6" // vanilla uses 3, plasma turret uses 6
+	"npc_min_burst"									"5" // first version uses 4, vanilla uses 3, plasma turret uses 6
+	"npc_max_burst"									"5" // first version uses 6, vanilla uses 3, plasma turret uses 6
 	"npc_rest_time_between_bursts_min"				"1" // vanilla uses 3.5, plasma turret uses 1
 	"npc_rest_time_between_bursts_max"				"1" // vanilla uses 4.5, plasma turret uses 1
 
@@ -28,6 +28,8 @@ WeaponData
 	"explosionradius" 								"60" // plasma turret uses 50
 
 	// taken from smr
+	// they still have very weird aiming position idk why
+	// alright, that might because they don't have big enough hitsize because they're firing missiles...
 	"proficiency_poor_spreadscale"					"3.0"
 	"proficiency_average_spreadscale" 				"2"
 	"proficiency_good_spreadscale"					"1.4"
