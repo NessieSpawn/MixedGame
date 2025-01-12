@@ -2122,7 +2122,7 @@ void function GravityMasterWeaponThink( entity player )
 		player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
 	
 	// give weapons
-	player.GiveWeapon( "mp_weapon_peacekraber" )
+	player.GiveWeapon( "mp_weapon_peacekraber", ["disable_run_and_gun_server"] )
 	player.GiveWeapon( "mp_weapon_arc_launcher" )
 }
 
