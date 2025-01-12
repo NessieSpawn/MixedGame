@@ -6639,7 +6639,7 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			npc.SetTitle( "砲塔工程師" )
 
 			// setup turret placement
-			const int totalTurretSettings = 2 // set to 3 if we want to enable hitscan turret
+			const int totalTurretSettings = 3 // set to 3 if we want to enable hitscan turret
 			switch ( RandomInt( totalTurretSettings ) )
 			{
 				// plasma turret
