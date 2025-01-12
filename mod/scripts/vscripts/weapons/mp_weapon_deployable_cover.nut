@@ -22,6 +22,8 @@ const DEPLOYABLE_SHIELD_HEALTH = 850
 
 // for bleedout_balance
 const DEPLOYABLE_SHIELD_HEALTH_NERFED = 380
+// for gm_fortress
+const DEPLOYABLE_SHIELD_HEALTH_GRUNT = 410 // shield captain shield value is 100. since this shield cannot be moved and owner weapon is limited, it can be higher?
 
 const DEPLOYABLE_SHIELD_RADIUS = 84
 const DEPLOYABLE_SHIELD_HEIGHT = 89
@@ -169,7 +171,7 @@ void function OnDeployableCoverPlanted( entity projectile )
 }
 
 #if SERVER
-// modified to add: "bleedout_balance"
+// modified to add: "bleedout_balance" and "gm_fortress"
 void function DeployCover( entity projectile, vector origin, vector angles, float duration = DEPLOYABLE_SHIELD_DURATION, int health = DEPLOYABLE_SHIELD_HEALTH )
 {
 	Assert( IsValid( projectile ) )
@@ -180,6 +182,8 @@ void function DeployCover( entity projectile, vector origin, vector angles, floa
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
 	if( mods.contains( "bleedout_balance" ) )
 		health = DEPLOYABLE_SHIELD_HEALTH_NERFED
+	if ( mods.contains( "gm_fortress" ) )
+		health = DEPLOYABLE_SHIELD_HEALTH_GRUNT
 
 	EmitSoundOnEntity( projectile, "Hardcover_Shield_Start_3P" )
 

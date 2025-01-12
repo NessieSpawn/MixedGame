@@ -30,7 +30,17 @@ WeaponData
 		hard_cover_always // always function as hard cover
 		{
 		}
-		bleedout_balance // done in scripts -- nerfed health
+		bleedout_balance // done in scripts -- nerfed health, use together with hard_cover_always
+		{
+		}
+
+		// gruntmode specific
+		grunt_mode // no regen mod
+		{
+			"regen_ammo_refill_rate"						"*0.0"	
+		}
+
+		gm_fortress // heavily nerfed health, use together with hard_cover_always
 		{
 		}
 	}
