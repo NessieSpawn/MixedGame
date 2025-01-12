@@ -41,6 +41,7 @@ const string GM_FLYER_CLASSNAME					= "Flyer"				// mozambique and chargerifle, 
 const string GM_ASSASSIN_CLASSNAME				= "Assassin"			// silenced wingman elite, chargerifle and arc grenade
 const string GM_STALKER_CLASSNAME				= "Stalker"				// double-barrel shotgun and chargerifle, two holopilot decoy usage
 const string GM_GRAVITYMASTER_CLASSNAME			= "Gravity_Master"		// peacekraber and thunderbolt, one gravity lift usage
+const string GM_FORTRESS_CLASSNAME				= "Fortress"			// SMR(less human damage, more titan damage and cannot headshot), one hard cover usage
 
 void function RegisterAllDefaultClass()
 {
@@ -227,6 +228,13 @@ void function RegisterAllDefaultClass()
 		GM_GRAVITYMASTER_CLASSNAME,		// classname
 		BecomeGravityMaster,			// loadout function
 		false							// specialist, should this class give more score
+	)
+
+	// fortress
+	GruntMode_RegisterPlayerClass(
+		GM_FORTRESS_CLASSNAME,			// classname
+		BecomeFortress,					// loadout function
+		true							// specialist, should this class give more score
 	)
 }
 
@@ -2124,6 +2132,30 @@ void function GravityMasterWeaponThink( entity player )
 	// give weapons
 	player.GiveWeapon( "mp_weapon_peacekraber", ["disable_run_and_gun_server"] )
 	player.GiveWeapon( "mp_weapon_arc_launcher" )
+}
+
+void function BecomeFortress( entity player )
+{
+	player.SetPlayerSettings( "pilot_geist_male" ) // have a better pov model
+
+	SimpleClassLoadout(  
+		player,
+		"mp_weapon_smr",													// primary weapon
+		"",																	// secondary weapon
+		"",																	// grenade
+		$"models/humans/grunts/imc_grunt_shield_captain.mdl",				// imc player model
+		$"models/humans/grunts/imc_grunt_shield_captain.mdl",				// mlt player model
+		["disable_doublejump", "only_wallclimb"],							// class mods
+		"堡壘",																// title
+		"以堡壘重生：強力的反泰坦武器，可使用一次強化掩體"						// respawn notification
+	)
+
+	player.GetMainWeapons()[0].AddMod( "gm_fortress" ) // less damage against human, less dmage on headshot, more damage against titans
+	player.GiveOffhandWeapon( "mp_weapon_hard_cover", OFFHAND_SPECIAL, ["grunt_mode", "hard_cover_always", "gm_fortress"] ) // hard cover with bit nerfed health
+	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
+
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
 }
 
 ///////////////////////////////////////////////

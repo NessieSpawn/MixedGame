@@ -48,17 +48,20 @@ var function OnWeaponNpcPrimaryAttack_gunship_missile( entity weapon, WeaponPrim
 
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
 
-	#if SERVER
+	// this function is already pure server-side...
+	//#if SERVER
 		entity missile = FireWeaponMissile_RecordData( weapon, attackParams.pos, attackParams.dir, 1, damageTypes.largeCaliberExp, damageTypes.largeCaliberExp, false, PROJECTILE_NOT_PREDICTED )
 		if ( missile )
 		{
+			// change every projectile sound to be sync with client!
+			// this function is pure server-side though...
 			EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
 			missile.InitMissileForRandomDriftFromWeaponSettings( attackParams.pos, attackParams.dir )
 		
 			// modified damageSourceId in mp_weapon_gunship_missile_fixed.nut, fixes display name
 			missile.ProjectileSetDamageSourceID( eDamageSourceId.mp_weapon_gunship_missile_fixed )
 		}
-	#endif
+	//#endif
 }
 #endif // #if SERVER
 

@@ -6655,9 +6655,10 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 
 				// sentry turret
 				// kinda annoying, not enabled
-				//case 2:
-				//	AiTurretGrunt_NPCPlacementSettings( npc, NPC_PLACED_TURRET_AISETTINGS, HITSCAN_TURRET_MODEL, "mp_weapon_yh803_bullet", "#WPN_SENTRY_TURRET" )
-				//	break
+				// 1/13/2025 edit: tried to balance them, should be safe to enable again?
+				case 2:
+					AiTurretGrunt_NPCPlacementSettings( npc, NPC_PLACED_TURRET_AISETTINGS, HITSCAN_TURRET_MODEL, "mp_weapon_yh803_bullet", "#WPN_SENTRY_TURRET" )
+					break
 			}
 
 			thread TurretGruntThink( npc ) // start turret placement think
