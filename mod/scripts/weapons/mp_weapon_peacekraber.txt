@@ -73,11 +73,11 @@ WeaponData
 
 	// Damage - When Used by Players
 	"damage_type" 									"bullet"
-	"damage_near_distance"							"500" // mastiff uses 350
-	"damage_far_distance" 							"750" // mastiff uses 750
+	"damage_near_distance"							"500" // mastiff uses 350, original value is 500
+	"damage_far_distance" 							"750" // mastiff uses 750, original value is 1000
 	// since rechamber has been nerfed, maybe no need to nerf damage
 	"damage_near_value"   							"15"
-	"damage_far_value"								"11" //"15" // bolt life time also been nerfed in script
+	"damage_far_value"								"10" // once tried 11 at 1.1x headshot damage. original value is 15
 	"damage_near_value_titanarmor"					"40"
 	"damage_far_value_titanarmor" 					"30"
 
@@ -180,7 +180,7 @@ WeaponData
 
 	// try to allow headshots, with bit less headshot damage scale
 	"allow_headshots" 								"1"
-	"damage_headshot_scale"							"1.1" // new adding, 16.5 damage at close range( equals to 17 damage and falls off at range )
+	"damage_headshot_scale"							"1.25" // new adding, 18.75 ~= 19 damage at close range. was 1.1( 16.5 damage at close range, equals to 17 damage and falls off at range )
 	"headshot_distance" 							"800" // same as mastiff
 
 	"primary_fire_does_not_block_sprint"			"1" // ????????????
