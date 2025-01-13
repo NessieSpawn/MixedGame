@@ -32,8 +32,9 @@ WeaponData
 
 	// taken from turretplasma
 	"explosion_damages_owner"						"0"
-	"explosion_inner_radius"  						"30"
+	"explosion_inner_radius"  						"35" // plasma turret uses 30
 	"explosionradius" 								"60" // plasma turret uses 50
+	"npc_aim_at_feet"								"1" // try to main explosions to deal damage because we're bad at direct hits...?
 
 	// taken from smr
 	// they still have very weird aiming position idk why
@@ -68,7 +69,7 @@ WeaponData
 		{
 			"npc_damage_near_value"   						"*0.3" // 15
 			"npc_damage_far_value"							"*0.3" // 15
-			"npc_explosion_damage"							"*0.4" // 12, was * 0.3( 9 ), but this turret can't land shots well...
+			"npc_explosion_damage"							"*0.333333" // ~10, was * 0.4( 12 ) when turret not aiming at feets
 
 			//"npc_damage_near_value_titanarmor"				"*0.6" // 118.2
 			//"npc_damage_far_value_titanarmor" 				"*0.6" // 118.2

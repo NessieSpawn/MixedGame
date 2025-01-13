@@ -353,8 +353,8 @@ WeaponData
 		// gruntmode specific
 		gm_heavysniper // high titan damage kraber, bypass titan armor
 		{
-			"damage_near_value_titanarmor"					"++400" // 830, 3 shots = 2490
-			"damage_far_value_titanarmor" 					"++400" // 830, 3 shots = 2490
+			"damage_near_value_titanarmor"					"++375" // 805 was ++400(830)
+			"damage_far_value_titanarmor" 					"++375" // 805 was ++400(830)
 
 			"titanarmor_critical_hit_required"          	"0"
 
