@@ -258,17 +258,19 @@ void function BecomeAssaultGrunt( entity player )
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
 		// all normal grunts now uses random model
-		$"",																// imc player model
-		$"",																// mlt player model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
 		//$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
 		//$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Assault Grunt",													// title
 		"Respawn as Assault Grunt"											// respawn notification
 	)
 
 	// gives random grunt model based on team
-	RandomGruntModel( player )
+	//RandomGruntModel( player )
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -286,17 +288,19 @@ void function BecomeHeavyGrunt( entity player )
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"",																	// grenade
 		// all normal grunts now uses random model
-		$"",																// imc player model
-		$"",																// mlt player model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
 		//$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
 		//$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Heavy Grunt",														// title
 		"Respawn as Heavy Weapons Grunt"								    // respawn notification
 	)
 
 	// gives random grunt model based on team
-	RandomGruntModel( player )
+	//RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_heavy" ) // damage nerfed spitfire
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
@@ -315,17 +319,19 @@ void function BecomeRiflemanGrunt( entity player )
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
 		// all normal grunts now uses random model
-		$"",																// imc player model
-		$"",																// mlt player model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
 		//$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
 		//$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Rifleman Grunt",													// title
 		"Respawn as Rifleman Grunt"											// respawn notification
 	)
 
 	// gives random grunt model based on team
-	RandomGruntModel( player )
+	//RandomGruntModel( player )
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -343,17 +349,19 @@ void function BecomeShotgunGrunt( entity player )
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
 		// all normal grunts now uses random model
-		$"",																// imc player model
-		$"",																// mlt player model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
 		//$"models/humans/grunts/imc_grunt_shotgun.mdl",						// imc player model
 		//$"models/humans/grunts/mlt_grunt_shotgun.mdl",						// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Shotgunner Grunt",													// title
 		"Respawn as Shotgunner Grunt"										// respawn notification
 	)
 
 	// gives random grunt model based on team
-	RandomGruntModel( player )
+	//RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_shotgun" ) // fire-rate nerfed eva-8
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
@@ -372,17 +380,19 @@ void function BecomeSniperGrunt( entity player )
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_grenade_electric_smoke",									// grenade
 		// all normal grunts now uses random model
-		$"",																// imc player model
-		$"",																// mlt player model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
 		//$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
 		//$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"Sniper Grunt",														// title
 		"Respawn as Sniper Grunt"										    // respawn notification
 	)
 
 	// gives random grunt model based on team
-	RandomGruntModel( player )
+	//RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_sniper" ) // nerfed dmr
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
