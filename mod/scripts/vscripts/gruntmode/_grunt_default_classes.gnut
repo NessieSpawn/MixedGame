@@ -1162,7 +1162,9 @@ void function BecomeNinja( entity player )
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_kunai is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_kunai", "execution_backshot", "execution_combo", "execution_knockout"]
+		// this class rely on melee attack and more execution ref could be fun?
+		// removed "execution_backshot"
+		["execution_neck_snap", "execution_face_stab_kunai", "execution_combo", "execution_knockout"]
 	)
 }
 
@@ -1277,7 +1279,9 @@ void function BecomeBeastKing( entity player )
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_sword is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_sword", "execution_backshot", "execution_combo", "execution_knockout"]
+		// this class rely on melee attack and more execution ref could be fun?
+		// removed "execution_backshot"
+		["execution_neck_snap", "execution_face_stab_sword", "execution_combo", "execution_knockout"]
 	)
 }
 
@@ -2253,10 +2257,10 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 		bodyType = eBodyTypes.NPC_SPECTRE
 	// modified function in _pain_death_sounds.gnut, overwrite death sound!
 	PainDeathSounds_SetBodyTypeOverride( player, bodyType )
-	if ( !player.IsMechanical() ) // player is not mechanical
-		DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_human" ) // override headshot fx with grunt helmet drop effect
-	else
+	if ( player.IsMechanical() ) // player is mechanical( spectre )
 		DeathPackage_RemoveEntityHeadshotFXOverride( player ) // mechanic, remove headshot fx override since robotic pilot's fx is default to be the same as spectres
+	else
+		DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_human" ) // override headshot fx with grunt helmet drop effect
 	// set ragdoll impact effect to grunt version
 	SetHumanRagdollImpactTable( player )
 	
@@ -2271,11 +2275,30 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 		TakePassive( player, ePassives.PAS_ORDNANCE_PACK )
 
 	// grunt player executions
+	// better base on body type?
+	/*
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_combat is a modified execution ref
 		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_combo", "execution_knockout"]
 	)
+	*/
+	if ( player.IsMechanical() ) // player is mechanical( spectre )
+	{
+		Melee_SetExecutionRefsOverride( 
+			player, 
+			// execution_face_stab_combat is a modified execution ref
+			["execution_combo", "execution_knockout"]
+		)
+	}
+	else
+	{
+		Melee_SetExecutionRefsOverride( 
+			player, 
+			// execution_face_stab_combat is a modified execution ref
+			["execution_neck_snap", "execution_face_stab_combat", "execution_backshot"]
+		)
+	}
 
 	// using custom utility!
 	//player.SetGroundFrictionScale( 4.0 ) // prevent players getting speed from slide, but this still allow players slidehop
@@ -2472,6 +2495,9 @@ void function TrackHeadLifeTime( entity player, entity head )
 
 void function PlayMechanicalHeadRemoveFX( entity player )
 {
+	// effect should be played like TryHeadshotDeathFX() does
+	/*
+
 	// don't drop the head two times, just use a explosiopn fx
 	// due we want to fix executions, always drop head now
 	//asset headBrokeFX = $"xo_damage_exp_1"
@@ -2480,13 +2506,13 @@ void function PlayMechanicalHeadRemoveFX( entity player )
 	vector fxOrg = player.GetAttachmentOrigin( tagID )
 	vector fxAng = player.GetAttachmentAngles( tagID )
 
-	// effect should be played like TryHeadshotDeathFX() does
-	/*
 	entity fx = PlayFX( headBrokeFX, fxOrg, fxAng, null )
 	// no need to fast stop head drop effect
 	//thread FastStopFX( fx, 0.5 )
+
 	*/
 
+	asset headshotFX = $"P_headshot_pilot_robot"
 	int team = player.GetTeam()
 
 	//Create friendly and enemy colored particle systems
@@ -2528,12 +2554,15 @@ void function DestroyAfterTime( entity ent, float time )
 	ent.Destroy()
 }
 
+// effect should be played like TryHeadshotDeathFX() does
+/*
 void function FastStopFX( entity fx, float delay )
 {
 	wait delay
 	if ( IsValid( fx ) )
 		EffectStop( fx )
 }
+*/
 
 void function ApplyMLTGruntCamo( entity player )
 {
