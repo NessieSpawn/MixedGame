@@ -274,8 +274,14 @@ function HumanMeleeAttack( entity player )
 	}
 	else
 	{
-		if ( player.IsInputCommandHeld( IN_MELEE ) && AttemptHumanMeleeExecution( player, hitEnt, meleeWeapon, traceResult ) )
-			return
+		// make primary melee weapons more reliable
+		//if ( player.IsInputCommandHeld( IN_MELEE ) && AttemptHumanMeleeExecution( player, hitEnt, meleeWeapon, traceResult ) )
+		bool meleeHold = player.IsInputCommandHeld( IN_MELEE )
+		if ( meleeWeapon.GetWeaponSettingBool( eWeaponVar.attack_button_presses_melee ) )
+			meleeHold = player.IsInputCommandHeld( IN_MELEE ) || player.IsInputCommandHeld( IN_ATTACK )
+		
+		if ( meleeHold && AttemptHumanMeleeExecution( player, hitEnt, meleeWeapon, traceResult ) )
+			return 
 
 #if CLIENT
 		//MeleeImpactFX( player, meleeWeapon, hitEnt )
