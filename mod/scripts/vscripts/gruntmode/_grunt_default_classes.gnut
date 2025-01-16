@@ -1154,8 +1154,16 @@ void function BecomeNinja( entity player )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
 	player.GiveOffhandWeapon( "melee_pilot_kunai", OFFHAND_MELEE, ["grunt_mode", "fake_human_melee"] )
 	ninjaOffhands.append( "melee_pilot_kunai" )
+	
 	//thread NinjaForcedWeapon( player, ninjaWeapons, ninjaOffhands ) // force ninja use given weapons
 	thread NinjaForcedWeapon( player, ninjaWeaponSlots, ninjaOffhands )
+
+	// ninja player executions
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_kunai is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_kunai", "execution_backshot", "execution_combo", "execution_knockout"]
+	)
 }
 
 // player will be re-give weapon upon landing... which means they'll have weapon entity changed, needs to handle that
@@ -1264,6 +1272,13 @@ void function BecomeBeastKing( entity player )
 	beastKingOffhands.append( "melee_pilot_sword" )
 
 	thread BeastKingThink( player, beastKingWeaponSlots, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
+
+	// beastking player executions
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_sword is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_sword", "execution_backshot", "execution_combo", "execution_knockout"]
+	)
 }
 
 void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
