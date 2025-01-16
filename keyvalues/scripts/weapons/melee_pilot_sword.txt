@@ -77,15 +77,21 @@ WeaponData
 			// ignore that, this will make client-side desync, also can't sprint while using melee
 			// still needs to add this back!!!! cancelling sprint makes melee feels really bad
 			// whatever desync does to it! as long as you don't hold mouse button it'll be all good
-			"primary_fire_does_not_block_sprint"			"1"
-			"crosshair_force_sprint_fade_disabled"          "1"
+			// welp it desyncs really bad... change to be primary weapon handle
+			//"primary_fire_does_not_block_sprint"			"1"
+			//"crosshair_force_sprint_fade_disabled"          "1"
 
 			// make players able to target titans
 			"melee_can_hit_titans"					"1"
 			"melee_damage_heavyarmor"				"1000"
+
+			// allow holding melee to attack...?
+			// animation could feel bad though
+			//"melee_raise_recovery_animtime_normal"			"0.01"
+			//"melee_raise_recovery_animtime_quick"			"0.01"
 		}
 
-		// this one needs a primary weapon: mp_weapon_gunship_missile, with their 
+		// this one needs a primary weapon: mp_weapon_gunship_missile, with their pilot_sword_primary mod
 		pilot_sword_primary
 		{
 			// allow holding attack button to execution, requires modified script!
