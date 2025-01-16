@@ -171,6 +171,8 @@ void function Death_Package_Init()
 		// modified signals to cancel out DelayedBodyGroupBreak()
 		RegisterSignal( "TitanGibbed" )
 		RegisterSignal( "TitanDoomedInstant" )
+		// modified signals to cancel out other scripts
+		RegisterSignal( "TryHeadshotDeathFX" )
 
 		// modified callback
 		// remove modified mark on player respawn
@@ -363,6 +365,8 @@ bool function TryHeadshotDeathFX( entity victim )
 	{
 		PlayFX( headshotFX, fxOrg, fxAng, null )
 	}
+	// signal when we played FX, for better handling other scripted events
+	victim.Signal( "TryHeadshotDeathFX" )
 
 	return true
 }
