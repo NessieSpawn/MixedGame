@@ -600,11 +600,11 @@ void function AnimEvent_attach_knife( entity ent )
 }
 */
 
-void function AnimEvent_attach_knife_common( entity ent, asset knifeModel )
+void function AnimEvent_attach_knife_common( entity ent, asset knifeModel, string attachment = "KNIFE" )
 {
 	entity knife = CreatePropDynamic( knifeModel )
 	knife.kv.targetname = KNIFE_TARGETNAME
-	knife.SetParent( ent, "KNIFE", false, 0.0 )
+	knife.SetParent( ent, attachment, false, 0.0 )
 
 	OnThreadEnd(
 	function() : ( knife )
@@ -613,7 +613,6 @@ void function AnimEvent_attach_knife_common( entity ent, asset knifeModel )
 			{
 				knife.Destroy()
 			}
-
 		}
 	)
 
