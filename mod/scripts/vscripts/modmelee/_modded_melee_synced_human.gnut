@@ -138,14 +138,42 @@ void function AnimEvent_attach_combat_knife( entity ent )
 void function AnimEvent_attach_kunai( entity ent )
 {
 	// modified utility in sh_melee_synced_human.gnut
-	AnimEvent_attach_knife_common( ent, $"models/weapons/kunai/w_kunai.mdl" )
+	// kunai model don't have proper rotation, changing attachment
+	// still not working well, trying to copy function and rotate manually
+	//AnimEvent_attach_knife_common( ent, $"models/weapons/kunai/w_kunai.mdl", "R_HAND" )
+	AnimEvent_attach_knife_rotate( ent, $"models/weapons/kunai/w_kunai.mdl", < 180, 0, 0 > )
 }
 
 // same as AnimEvent_attach_knife, but the model uses sword
 void function AnimEvent_attach_sword( entity ent )
 {
 	// modified utility in sh_melee_synced_human.gnut
-	AnimEvent_attach_knife_common( ent, $"models/weapons/bolo_sword/w_bolo_sword.mdl" )
+	// sword model don't have proper rotation, changing attachment
+	// still not working well, trying to copy function and rotate manually
+	//AnimEvent_attach_knife_common( ent, $"models/weapons/bolo_sword/w_bolo_sword.mdl", "R_HAND" )
+	AnimEvent_attach_knife_rotate( ent, $"models/weapons/bolo_sword/w_bolo_sword.mdl", < 180, 0, 0 > )
+}
+
+const string KNIFE_TARGETNAME = "AnimEvent_attach_knife" // NEEDS TO BE SAME AS sh_melee_synced_human.gnut DOES! otherwise knife cannot be removed by AnimEvent_detach_knife()
+
+void function AnimEvent_attach_knife_rotate( entity ent, asset knifeModel, vector angles = < 0, 0, 0 > )
+{
+	entity knife = CreatePropDynamic( knifeModel )
+	knife.kv.targetname = KNIFE_TARGETNAME
+	knife.SetParent( ent, "KNIFE", false, 0.0 )
+	knife.SetAngles( angles )
+
+	OnThreadEnd(
+	function() : ( knife )
+		{
+			if ( IsValid( knife ) )
+			{
+				knife.Destroy()
+			}
+		}
+	)
+
+	WaittillAnimDone( ent )
 }
 
 // nessie executions, not finished yet
