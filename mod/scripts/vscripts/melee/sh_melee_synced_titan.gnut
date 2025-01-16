@@ -767,21 +767,38 @@ string function MeleeSyncedTitan_GetRandomExecutionRefForTitanVsTitan( entity at
 	if ( validExecutions.len() == 0 ) // can't find any valid execution!
 		return "" // let's just use classic execution... at least it never crashes
 
-	// default case
-	string randomExecution = validExecutions[ RandomInt( validExecutions.len() ) ]
-	
-	// never repeatly use same executions
+	// never repeatly use a same execution
+	array<string> extraCheckExecutions
 	string attackerLastUsedExecution = MeleeSyncedTitan_GetTitanLastUsedExecution( attacker )
 	string targetLastExecutedBy = MeleeSyncedTitan_GetTitanLastExecutedByRef( target )
-	foreach ( string ref in randomExecution )
+	foreach ( string ref in validExecutions )
 	{
+		// skips random execution
+		if ( MeleeSyncedTitan_RefHasLinkedExecutions( ref ) )
+			continue
+
 		// if we have more than 1 execution to choose, don't repeatly using a same execution
-		if ( randomExecution.len() > 1 && ref == attackerLastUsedExecution )
+		if ( validExecutions.len() > 1 && ref == attackerLastUsedExecution )
 			continue
 
 		// also don't make target receive same execution multiple times if we have more than 2 executions to choose
-		if ( randomExecution.len() > 2 && ref == targetLastExecutedBy )
+		if ( validExecutions.len() > 2 && ref == targetLastExecutedBy )
 			continue
+
+		extraCheckExecutions.append( ref )
+	}
+
+	// default case
+	string randomExecution = validExecutions[ RandomInt( validExecutions.len() ) ]
+	// extra checks!
+	if ( extraCheckExecutions.len() > 0 )
+		randomExecution = extraCheckExecutions[ RandomInt( extraCheckExecutions.len() ) ]
+
+	// insure we're not returning a random execution ref( their data should be empty, needs to get from linked execution )
+	if ( MeleeSyncedTitan_RefHasLinkedExecutions( randomExecution ) ) // shared function from _melee_synced_titan.gnut
+	{
+		array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( randomExecution )  // shared function from _melee_synced_titan.gnut
+		return linkedRefs[ RandomInt( linkedRefs.len() ) ]
 	}
 
 	return randomExecution
@@ -803,11 +820,13 @@ array<string> function GetValidExecutionsForAttackerVsTarget( entity attacker, e
 
 	array<string> executionsFromRandomRef
 	// insure we're not returning a random execution ref( their data should be empty, needs to get from linked execution )
+	// welp we do NEED returning those executions for whatever, otherwise MeleeSyncedTitan_GetBestExecutionRefForTitanVsTitan() will be messed up
 	foreach ( string ref in attackerValidExecutions )
 	{
 		if ( MeleeSyncedTitan_RefHasLinkedExecutions( ref ) ) // shared function from _melee_synced_titan.gnut
 		{
-			array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( randomExecution )  // shared function from _melee_synced_titan.gnut
+			//attackerValidExecutions.removebyvalue( ref ) // never include random ref!!
+			array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( ref )  // shared function from _melee_synced_titan.gnut
 			foreach ( linkRef in linkedRefs )
 			{
 				if ( !executionsFromRandomRef.contains( linkRef ) )
