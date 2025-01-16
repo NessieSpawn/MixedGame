@@ -1133,7 +1133,7 @@ SyncedMelee ornull function FindBestSyncedMelee( entity attacker, entity target,
 
 			// "PickRandomExecution()" has been reworked, it can handle npc usage now
 			// we can still pick actions that been set as "canBePickedByRandomExecution" if we have ref override
-			returnVal = PickRandomExecution( bestActions, attacker, target, hasExecutionRefOverride )
+			returnVal = PickRandomExecution( bestActions, attacker, target, hasExecutionRefOverride, hasExecutionRefOverride || file.alwaysRandomSyncedMelee )
 		#endif
 #if MP
 	}
