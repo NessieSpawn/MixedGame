@@ -55,6 +55,76 @@ void function InitModdedHumanSyncedMelee()
 		AddSyncedMelee( meleeChooser, syncedMelee )
 		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
 	}
+
+	{
+		// Face Stab, but uses kunai
+		AnimEventData giveKnifeEvent
+		giveKnifeEvent.eventName = "attach_knife"
+		giveKnifeEvent.callback = AnimEvent_attach_kunai // same as AnimEvent_attach_knife, but the model uses kunai
+
+		AnimEventData takeKnifeEvent
+		takeKnifeEvent.eventName = "detach_knife"
+		takeKnifeEvent.callback = AnimEvent_detach_knife
+
+		AnimEventData headstabEvent
+		headstabEvent.eventName = "headstab_death"
+		//headstabEvent.callback = AnimEvent_headshot_death // Use head shot instead of vanilla headstab for this execution
+		headstabEvent.callback = AnimEvent_headstab_death // removed headshot. headstab looks better
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_face_stab_kunai"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_stab"
+		syncedMelee.attacker3pAnimEvents = [giveKnifeEvent, takeKnifeEvent]
+		syncedMelee.target3pAnimEvents = [headstabEvent]
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_stab"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+		syncedMelee.minDot = 0.2
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
+
+	{
+		// Face Stab, but uses sword
+		AnimEventData giveKnifeEvent
+		giveKnifeEvent.eventName = "attach_knife"
+		giveKnifeEvent.callback = AnimEvent_attach_sword // same as AnimEvent_attach_knife, but the model uses sword
+
+		AnimEventData takeKnifeEvent
+		takeKnifeEvent.eventName = "detach_knife"
+		takeKnifeEvent.callback = AnimEvent_detach_knife
+
+		AnimEventData headstabEvent
+		headstabEvent.eventName = "headstab_death"
+		//headstabEvent.callback = AnimEvent_headshot_death // Use head shot instead of vanilla headstab for this execution
+		headstabEvent.callback = AnimEvent_headstab_death // removed headshot. headstab looks better
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_face_stab_sword"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_stab"
+		syncedMelee.attacker3pAnimEvents = [giveKnifeEvent, takeKnifeEvent]
+		syncedMelee.target3pAnimEvents = [headstabEvent]
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_stab"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+		syncedMelee.minDot = 0.2
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
 }
 
 // same as AnimEvent_attach_knife, but the model uses combat knife
@@ -62,6 +132,20 @@ void function AnimEvent_attach_combat_knife( entity ent )
 {
 	// modified utility in sh_melee_synced_human.gnut
 	AnimEvent_attach_knife_common( ent, KNIFE_MODEL )
+}
+
+// same as AnimEvent_attach_knife, but the model uses kunai
+void function AnimEvent_attach_kunai( entity ent )
+{
+	// modified utility in sh_melee_synced_human.gnut
+	AnimEvent_attach_knife_common( ent, $"models/weapons/kunai/w_kunai.mdl" )
+}
+
+// same as AnimEvent_attach_knife, but the model uses sword
+void function AnimEvent_attach_sword( entity ent )
+{
+	// modified utility in sh_melee_synced_human.gnut
+	AnimEvent_attach_knife_common( ent, $"models/weapons/bolo_sword/w_bolo_sword.mdl" )
 }
 
 // nessie executions, not finished yet

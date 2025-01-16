@@ -134,7 +134,9 @@ void function CreateModelForFakeMeleePrimary( entity weapon )
 	// can't get eWeaponVar.playermodel... currently hardcode
 	asset model = FAKE_PILOT_PRIMARY_MODS[ fakeModelMod ]
 	// shared utility from _fake_world_weapon_model.gnut
-	FakeWorldModel_CreateForWeapon( weapon, model, "L_HAND", true, true ) // PROPGUN will change position when player melee, L_HAND is just good for melee animation!
+	// this will create 2 swords in hand, guess no need to handle
+	//FakeWorldModel_CreateForWeapon( weapon, model, "L_HAND", true, true ) // PROPGUN will change position when player melee, L_HAND is just good for melee animation!
+	FakeWorldModel_CreateForWeapon( weapon, model )
 }
 
 void function FakeMeleeWeaponSound( entity weapon )
