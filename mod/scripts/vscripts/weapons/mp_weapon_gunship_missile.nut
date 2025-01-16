@@ -24,15 +24,19 @@ var function OnWeaponPrimaryAttack_gunship_missile( entity weapon, WeaponPrimary
 		// clinet can't sync melee_sound_attack_1p when this is triggered
 		if ( weapon.GetWeaponSettingBool( eWeaponVar.attack_button_presses_melee ) )
 		{
-			//CodeCallback_OnMeleePressed( owner )
+			// hopefully fix everything related with melee...
+			CodeCallback_OnMeleePressed( owner )
 			return 0 // never consume any ammo
 		}
 
 		// fake primary melee weapon
+		// melee sound now handled by melee weapon themselves!
+		/*
 		#if SERVER
 			if ( GetWeaponFakePilotPrimaryMod( weapon ) != "" )
 				FakeMeleeWeaponSound( weapon )
 		#endif // SERVER
+		*/
 	}
 }
 
@@ -101,7 +105,7 @@ void function CreateModelForFakeMeleePrimary( entity weapon )
 	// can't get eWeaponVar.playermodel... currently hardcode
 	asset model = FAKE_PILOT_PRIMARY_MODS[ fakeModelMod ]
 	// shared utility from _fake_world_weapon_model.gnut
-	FakeWorldModel_CreateForWeapon( weapon, model )
+	FakeWorldModel_CreateForWeapon( weapon, model, "R_HAND", true, true ) // PROPGUN will change position when player melee, R_HAND is just good for melee weapons!
 }
 
 void function FakeMeleeWeaponSound( entity weapon )
