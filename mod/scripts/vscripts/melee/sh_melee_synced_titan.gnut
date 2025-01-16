@@ -719,24 +719,16 @@ string function MeleeSyncedTitan_GetBestExecutionRefForTitanVsTitan( entity atta
 				continue
 
 			// we should at least find one from following case, otherwise we failsafe
-			if ( TitanExecutionRefIsPrime( otherRef ) )
+			if ( TitanExecutionRefIsPrime( otherRef ) && TitanExecutionRefIsPrime( executionRef ) ) // if finding ref is prime, our ref needs also be prime
 			{
-				// if finding ref is prime, our ref needs also be prime
-				if ( TitanExecutionRefIsPrime( executionRef ) )
-				{
-					//print( "both our ref and finding ref is PRIME! returning a valid prime execution" )
-					return otherRef
-				}
+				//print( "both our ref and finding ref is PRIME! returning a valid prime execution" )
+				return otherRef
 			}
-			else if ( MeleeSyncedTitan_RefHasLinkedExecutions( otherRef ) ) // shared function from _melee_synced_titan.gnut
+			else if ( MeleeSyncedTitan_RefHasLinkedExecutions( otherRef ) && MeleeSyncedTitan_RefHasLinkedExecutions( executionRef ) ) // if finding ref is random, our ref needs also be random. function shared from _melee_synced_titan.gnut
 			{
-				// if finding ref is random, our ref needs also be random
-				if ( MeleeSyncedTitan_RefHasLinkedExecutions( executionRef ) )
-				{
-					//print( "both our ref and finding ref is RANDOM! returning a valid random execution" )
-					array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( otherRef )  // shared function from _melee_synced_titan.gnut
-					return linkedRefs[ RandomInt( linkedRefs.len() ) ]
-				}
+				//print( "both our ref and finding ref is RANDOM! returning a valid random execution" )
+				array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( otherRef )  // shared function from _melee_synced_titan.gnut
+				return linkedRefs[ RandomInt( linkedRefs.len() ) ]
 			}
 			else
 				lastRefFound = otherRef // if we still can't find one, use this ref as a failsafe
@@ -775,12 +767,21 @@ string function MeleeSyncedTitan_GetRandomExecutionRefForTitanVsTitan( entity at
 	if ( validExecutions.len() == 0 ) // can't find any valid execution!
 		return "" // let's just use classic execution... at least it never crashes
 
+	// default case
 	string randomExecution = validExecutions[ RandomInt( validExecutions.len() ) ]
-	// insure we're not returning a random execution ref( their data should be empty, needs to get from linked execution )
-	if ( MeleeSyncedTitan_RefHasLinkedExecutions( randomExecution ) ) // shared function from _melee_synced_titan.gnut
+	
+	// never repeatly use same executions
+	string attackerLastUsedExecution = MeleeSyncedTitan_GetTitanLastUsedExecution( attacker )
+	string targetLastExecutedBy = MeleeSyncedTitan_GetTitanLastExecutedByRef( target )
+	foreach ( string ref in randomExecution )
 	{
-		array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( randomExecution )  // shared function from _melee_synced_titan.gnut
-		randomExecution = linkedRefs[ RandomInt( linkedRefs.len() ) ]
+		// if we have more than 1 execution to choose, don't repeatly using a same execution
+		if ( randomExecution.len() > 1 && ref == attackerLastUsedExecution )
+			continue
+
+		// also don't make target receive same execution multiple times if we have more than 2 executions to choose
+		if ( randomExecution.len() > 2 && ref == targetLastExecutedBy )
+			continue
 	}
 
 	return randomExecution
@@ -797,13 +798,36 @@ array<string> function GetValidExecutionsForAttackerVsTarget( entity attacker, e
 
 	string attackerChassis = GetSoulTitanSubClass( attackerSoul )
 	string targetChassis = GetSoulTitanSubClass( targetSoul )
-	array<string> validExecutions
 	array<string> attackerValidExecutions = GetAttackerChassisValidExecutions( attackerChassis )
 	array<string> victimValidExecutions = GetVictimChassisValidExecutions( targetChassis )
-	// find from all valid executions
+
+	array<string> executionsFromRandomRef
+	// insure we're not returning a random execution ref( their data should be empty, needs to get from linked execution )
 	foreach ( string ref in attackerValidExecutions )
 	{
-		if ( victimValidExecutions.contains( ref ) )
+		if ( MeleeSyncedTitan_RefHasLinkedExecutions( ref ) ) // shared function from _melee_synced_titan.gnut
+		{
+			array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( randomExecution )  // shared function from _melee_synced_titan.gnut
+			foreach ( linkRef in linkedRefs )
+			{
+				if ( !executionsFromRandomRef.contains( linkRef ) )
+					executionsFromRandomRef.append( linkRef )
+			}
+		}
+	}
+
+	// append ref from random executions to our pool
+	foreach ( string ref in executionsFromRandomRef )
+	{
+		if ( !attackerValidExecutions.contains( ref ) )
+			attackerValidExecutions.append( ref )
+	}
+
+	// find from all valid executions
+	array<string> validExecutions
+	foreach ( string ref in attackerValidExecutions )
+	{
+		if ( !validExecutions.contains( ref ) && victimValidExecutions.contains( ref ) )
 		{
 			// debug
 			//print( "Found valid execution: " + ref )
