@@ -188,7 +188,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_PATH_BUILDER_CLASSNAME,		// classname
 		BecomePathBuilder,				// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score. after making zipline no longer destroy on death, they should become specialist
 	)
 
 	// scout
