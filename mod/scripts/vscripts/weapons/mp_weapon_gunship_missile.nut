@@ -1,5 +1,6 @@
 
 // modified callbacks
+global function OnWeaponOwnerChanged_gunship_missile
 global function OnWeaponActivate_gunship_missile
 global function OnWeaponPrimaryAttack_gunship_missile
 
@@ -7,7 +8,23 @@ global function OnWeaponPrimaryAttack_gunship_missile
 global function OnWeaponNpcPrimaryAttack_gunship_missile
 #endif // SERVER
 
+// include all mods that converts primary attack into melee!
+const array<string> MELEE_CONVERTOR_MODS = 
+[
+	"melee_convertor",
+	"pilot_sword_primary",
+	"titan_electric_fist_primary",
+]
+
 // modified callbacks
+void function OnWeaponOwnerChanged_gunship_missile( entity weapon, WeaponOwnerChangedParams changeParams )
+{
+	// disable run_and_gun on server-side
+	#if SERVER
+	Disable_RunAndGun_ServerSide( weapon, changeParams )
+	#endif
+}
+
 void function OnWeaponActivate_gunship_missile( entity weapon )
 {
 #if SERVER
@@ -22,12 +39,24 @@ var function OnWeaponPrimaryAttack_gunship_missile( entity weapon, WeaponPrimary
 	if ( IsValid( owner ) && owner.IsPlayer() )
 	{
 		// clinet can't sync melee_sound_attack_1p when this is triggered
-		if ( weapon.GetWeaponSettingBool( eWeaponVar.attack_button_presses_melee ) )
-		{
-			// hopefully fix everything related with melee...
-			CodeCallback_OnMeleePressed( owner )
-			return 0 // never consume any ammo
-		}
+		#if SERVER // server-side only, for better ads blend
+			//if ( weapon.GetWeaponSettingBool( eWeaponVar.attack_button_presses_melee ) )
+			bool shouldPressMelee = false
+			foreach ( mod in MELEE_CONVERTOR_MODS )
+			{
+				if ( weapon.HasMod( mod ) )
+				{
+					shouldPressMelee = true
+					break
+				}
+			}
+			if ( shouldPressMelee )
+			{
+				// hopefully fix everything related with melee...
+				CodeCallback_OnMeleePressed( owner )
+				return 0 // never consume any ammo
+			}
+		#endif
 
 		// fake primary melee weapon
 		// melee sound now handled by melee weapon themselves!
@@ -105,7 +134,7 @@ void function CreateModelForFakeMeleePrimary( entity weapon )
 	// can't get eWeaponVar.playermodel... currently hardcode
 	asset model = FAKE_PILOT_PRIMARY_MODS[ fakeModelMod ]
 	// shared utility from _fake_world_weapon_model.gnut
-	FakeWorldModel_CreateForWeapon( weapon, model, "R_HAND", true, true ) // PROPGUN will change position when player melee, R_HAND is just good for melee weapons!
+	FakeWorldModel_CreateForWeapon( weapon, model, "L_HAND", true, true ) // PROPGUN will change position when player melee, L_HAND is just good for melee animation!
 }
 
 void function FakeMeleeWeaponSound( entity weapon )
