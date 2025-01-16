@@ -1,5 +1,7 @@
 WeaponData
 {
+	"OnWeaponActivate"								"OnWeaponActivate_weapon_sword"
+
 	Mods
 	{
 		pm0
@@ -83,6 +85,20 @@ WeaponData
 			// make players able to target titans
 			"melee_can_hit_titans"					"1"
 			"melee_damage_heavyarmor"				"1000"
+		}
+
+		// this one needs a primary weapon: mp_weapon_gunship_missile, with their 
+		pilot_sword_primary
+		{
+			// allow holding attack button to execution, requires modified script!
+			"attack_button_presses_melee"					"1"
+
+			// better control because we already have a primary weapon
+			"holster_time"									"0.01"
+			"deploy_time" 									"0.01"
+			// no need to change lower or raise, they're used for offhand switch
+			//"lower_time"  									"0.01"
+			//"raise_time"  									"0.01"
 		}
 	}
 }

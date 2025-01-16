@@ -123,7 +123,7 @@ void function TrackWeaponAutoHidden( entity owner, entity weapon )
 	owner.WaitSignal( "OnDeath" )
 }
 
-entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", bool hideOrgWeapon = true )
+entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", bool hideOrgWeapon = true, bool ignoreKeepPrimaryInHand = false )
 {
     //print( "RUNNING FakeWorldModel_CreateForWeapon()" )
 	entity owner = weapon.GetWeaponOwner()
@@ -138,12 +138,12 @@ entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, stri
 	prop.Highlight_SetInheritHighlight( true ) // setup highlight
 	//print( "Creating fake model!" )
 
-	thread TrackFakeModelLifeTime( weapon, owner, prop, hideOrgWeapon )
+	thread TrackFakeModelLifeTime( weapon, owner, prop, hideOrgWeapon, ignoreKeepPrimaryInHand )
 
     return prop
 }
 
-void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, bool hideOrgWeapon )
+void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, bool hideOrgWeapon, bool ignoreKeepPrimaryInHand )
 {
 	// this hides original weapon
 	if ( hideOrgWeapon )
@@ -197,8 +197,11 @@ void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, 
 			{
 				// check main weapon visiblility
 				var keepMainWeaponModel = activeWeapon.GetWeaponInfoFileKeyField( "offhand_keep_primary_in_hand" )
-				if ( keepMainWeaponModel == null || !keepMainWeaponModel )
-					return
+				if ( !ignoreKeepPrimaryInHand ) // we could always allow keeping main weapon!
+				{
+					if ( keepMainWeaponModel == null || !keepMainWeaponModel )
+						return
+				}
 			}
 			else if ( activeWeapon != weapon )  // weapon changed!
 				return
