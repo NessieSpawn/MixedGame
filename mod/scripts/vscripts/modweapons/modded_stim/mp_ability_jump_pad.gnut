@@ -120,8 +120,12 @@ var function OnWeaponTossReleaseAnimEvent_ability_jump_pad( entity weapon, Weapo
 			weapon.w.lastProjectileFired = deployable
 
 			// owner lifestate management
+			// destroys grunt zipline on death
+			// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+			/*
 			if ( weapon.HasMod( "gm_jumper" ) )
 				thread TrackProjectileOwnerLifeTime( deployable, ownerPlayer )
+			*/
         #endif
     }
 
