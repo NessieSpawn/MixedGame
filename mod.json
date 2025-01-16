@@ -878,7 +878,7 @@
             }
 		},
 		{
-			"Path": "/modweapons/northstar_miss/mp_weapon_kunai.nut",
+			"Path": "/modweapons/northstar_miss/mp_weapon_kunai.gnut",
 			"RunOn": "CLIENT || SERVER",
 			"ClientCallback": {
                 "After": "MpWeaponKunai_Init"

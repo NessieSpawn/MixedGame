@@ -1234,7 +1234,7 @@ void function BecomeBeastKing( entity player )
 
 	// no longer uses allow_as_primary melee weapon, we use a placeholder main weapon for handling melee!
 	array<int> beastKingWeaponSlots
-	player.GiveWeapon( "mp_weapon_gunship_missile", ["pilot_emptyhanded", "pilot_sword_primary"] )
+	player.GiveWeapon( "mp_weapon_gunship_missile", ["pilot_emptyhanded", "pilot_sword_primary", "gm_beastking", "disable_run_and_gun_server"] )
 	beastKingWeaponSlots.append( 0 )
 	
 	array<string> beastKingOffhands
@@ -1262,7 +1262,7 @@ void function BecomeBeastKing( entity player )
 	//player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to it
 	beastKingOffhands.append( "melee_pilot_sword" )
 
-	thread BeastKingThink( player, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
+	thread BeastKingThink( player, beastKingWeaponSlots, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
 }
 
 void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
@@ -1601,7 +1601,7 @@ void function BeastKingForcedWeapon( entity player, array<int> allowedWeaponSlot
 
 	while( true )
 	{
-		CheckBeastKingWeapon( player, allowedOffhands )
+		CheckBeastKingWeapon( player, allowedWeaponSlots, allowedOffhands )
 		WaitFrame()
 	}
 }
@@ -1626,9 +1626,13 @@ void function CheckBeastKingWeapon( entity player, array<int> allowedWeaponSlots
 		player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to melee
 		player.DeployWeapon()
 		*/
+
+		if ( player.GetMainWeapons().len() > 0 ) // has another weapon
+			player.SetActiveWeaponBySlot( 0 ) // swap to it
 		return
 	}
 
+	string className = activeWeapon.GetWeaponClassName()
 	int activeWeaponSlot
 	foreach ( int slot, entity weapon in player.GetMainWeapons() )
 	{
