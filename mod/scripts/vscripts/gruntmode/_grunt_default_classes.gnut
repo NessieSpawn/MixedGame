@@ -5,6 +5,8 @@ global function Default_GruntMode_Classes_Init
 void function Default_GruntMode_Classes_Init()
 {
 	PrecacheModel( $"models/humans/grunts/imc_grunt_lmg_helmet.mdl" )
+	PrecacheModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" ) // this is only precached in fd by default
+	RegisterSignal( "MarkedForExecutionDeath" ) // for we drop player's helmet when execution should kill them, which is often the case player's head getting hit
     RegisterAllDefaultClass()
 }
 
@@ -95,7 +97,6 @@ void function RegisterAllDefaultClass()
 	)
 
 	// shield captain
-	PrecacheModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" ) // this is only precached in fd by default
 	GruntMode_RegisterPlayerClass(
 		GM_SHIELD_CAPTAIN_CLASSNAME,	// classname
 		BecomeShieldCaptain,			// loadout function
@@ -2368,10 +2369,28 @@ void function TrackHelmetLifeTime( entity player, entity helmet )
 {
 	helmet.EndSignal( "OnDestroy" )
 	//table result = WaitSignal( player, "OnDeath", "OnDestroy", "PlayerEmbarkedTitan" )
-	table result = WaitSignal( player, "OnDeath", "OnDestroy" )
-	if ( result.signal == "OnDeath" )
+	thread SignalWhenMarkedForExecutionDeath( player, helmet )
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "MarkedForExecutionDeath" )
+	if ( result.signal == "OnDeath" || result.signal == "MarkedForExecutionDeath" )
 		PlayHelmetDropFX( player )
 	helmet.Destroy()
+}
+
+void function SignalWhenMarkedForExecutionDeath( entity player, entity prop )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+	prop.EndSignal( "OnDestroy" )
+
+	while ( true )
+	{
+		if ( player.e.markedForExecutionDeath )
+		{
+			player.Signal( "MarkedForExecutionDeath" )
+			break
+		}
+		WaitFrame( true ) // ignores script FPS limit, more accurate
+	}
 }
 
 void function PlayHelmetDropFX( entity player )
@@ -2413,8 +2432,9 @@ void function TrackHeadLifeTime( entity player, entity head )
 {
 	head.EndSignal( "OnDestroy" )
 	//table result = WaitSignal( player, "OnDeath", "OnDestroy", "PlayerEmbarkedTitan" )
-	table result = WaitSignal( player, "OnDeath", "OnDestroy" )
-	if ( result.signal == "OnDeath" )
+	thread SignalWhenMarkedForExecutionDeath( player, head )
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "MarkedForExecutionDeath" )
+	if ( result.signal == "OnDeath" || result.signal == "MarkedForExecutionDeath" )
 		PlayMechanicalHeadRemoveFX( player )
 	head.Destroy()
 }
