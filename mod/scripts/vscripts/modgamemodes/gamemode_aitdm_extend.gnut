@@ -109,6 +109,13 @@ struct
 	// scoring
 	float teamPilotScoreMultiplier
 	float teamTitanScoreMultiplier
+
+	// in-file variables
+	// for cleaning up idle npcs
+	table<entity, bool> npcWaitingToBeCleanUp
+	table<entity, float> npcCleanUpStartTime
+	table<entity, float> npcIdleStartTime
+	table<entity, vector> npcLastTickOrigin
 } file
 
 
@@ -2033,6 +2040,10 @@ void function TryCleanupBoredNPCGameLong()
 	thread TryCleanupBoredNPCGameLong_Threaded()
 }
 
+// npc cleanup
+const float NPC_CLEANUP_INITIAL_WAIT_TIME = 10.0
+const float NPC_CLEANUP_REQUIRED_IDLE_TIME = 20.0
+
 void function TryCleanupBoredNPCGameLong_Threaded()
 {
 	// keep searching new npcs and run CleanupBoredNPCThread() for them
@@ -2040,160 +2051,168 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 	{
 		foreach ( entity npc in GetNPCArray() )
 		{
-			if ( !( "waitingToBeCleanUp" in npc.s ) )
-				npc.s.waitingToBeCleanUp <- false
-			if ( !npc.s.waitingToBeCleanUp )
-			{
-				thread CleanupBoredNPCThread( npc )
-				npc.s.waitingToBeCleanUp = true
-			}
-		}
-		WaitFrame()
-	}
-}
-
-// npc cleanup
-const float NPC_CLEANUP_INITIAL_WAIT_TIME = 10.0
-const float NPC_CLEANUP_REQUIRED_IDLE_TIME = 20.0
-
-void function CleanupBoredNPCThread( entity guy )
-{
-	// track all ai that we spawn, ensure that they're never "bored" (i.e. stuck by themselves doing fuckall with nobody to see them) for too long
-	// if they are, kill them so we can free up slots for more ai to spawn
-	// we shouldn't ever kill ai if players would notice them die
-
-	// NOTE: this partially covers up for the fact that we script ai alot less than vanilla probably does
-	// vanilla probably messes more with making ai assaultpoint to fights when inactive and stuff like that, we don't do this so much
-
-	if ( guy.GetClassName() == "npc_marvin" ) // never clean up marvins
-		return
-	guy.EndSignal( "OnDeath" ) // dead guy ends thread
-	guy.EndSignal( "OnDestroy" )
-
-	// cover spawning time from dropship/pod + before we start cleaning up
-	WaitFrame()
-	while ( IsValid( guy.GetParent() ) || guy.e.isHotDropping )
-		WaitFrame()
-
-	wait NPC_CLEANUP_INITIAL_WAIT_TIME // initial wait
-	int team = guy.GetTeam()
-	vector lastCheckOrigin = guy.GetOrigin() // if they get stucked we also clean up
-	float idleDuration = 0.0
-	while ( idleDuration < NPC_CLEANUP_REQUIRED_IDLE_TIME )
-	{
-		WaitFrame()
-
-		if ( guy.Anim_IsActive() ) // anim active, such as marvin doing a job or npc being executed
-			continue
-		
-		if ( guy.IsFrozen() ) // frozen guy, no need to clean them up
-			continue
-
-		// if the npc is owned by anyone, or has a bossplayer, we skip checks
-		entity owner = guy.GetOwner()
-		entity bossPlayer = guy.GetBossPlayer()
-		if ( IsValid( owner ) )
-			continue
-		if ( IsValid( bossPlayer ) )
-			continue
-
-		// if npc is a titan with bubbleshield, we skip checks
-		if ( guy.IsTitan() )
-		{
-			entity soul = guy.GetTitanSoul()
-			if( IsValid( soul ) )
-			{
-				entity bubbleShield = soul.soul.bubbleShield
-				if ( IsValid( bubbleShield ) )
-					continue
-			}
-		}
-
-		array<entity> otherGuys = GetPlayerArray()
-		otherGuys.extend( GetNPCArrayOfEnemies( team ) )
-
-		bool failedChecks = false
-
-		foreach ( entity otherGuy in otherGuys )
-		{
-			// skip dead people
-			if ( !IsAlive( otherGuy ) )
+			if ( npc.GetClassName() == "npc_marvin" ) // never clean up marvins
 				continue
 
-			failedChecks = false
+			if ( !IsAlive( npc ) )
+				continue
 
-			// don't kill if too close to anything
-			if ( Distance( otherGuy.GetOrigin(), guy.GetOrigin() ) < 2000.0 )
-				break
+			// first time init
+			if ( !( npc in file.npcCleanUpStartTime ) )
+				file.npcCleanUpStartTime[ npc ] <- Time()
+			if ( !( npc in file.npcIdleStartTime ) )
+				file.npcIdleStartTime[ npc ] <- -1
+			if ( !( npc in file.npcLastTickOrigin ) )
+				file.npcLastTickOrigin[ npc ] <- npc.GetOrigin()
 
-			// don't kill if ai or players can see them
-			if ( otherGuy.IsPlayer() )
+			if ( !( npc in file.npcWaitingToBeCleanUp ) )
 			{
-				if ( PlayerCanSee( otherGuy, guy, true, 135 ) )
-					break
+				file.npcWaitingToBeCleanUp[ npc ] <- false
+				continue // first time init -- always skip because npc needs to be set into dropship/pod
 			}
-			else
+
+			if ( file.npcWaitingToBeCleanUp[ npc ] ) // this means our think for this npc is already done
+				continue
+
+			// cover spawning time from dropship/pod + before we start cleaning up
+			if ( IsValid( npc.GetParent() ) || npc.e.isHotDropping )
+				continue
+
+			// init time
+			float timeSinceCleanUpStart = Time() - file.npcCleanUpStartTime[ npc ]
+			if ( timeSinceCleanUpStart < NPC_CLEANUP_INITIAL_WAIT_TIME )
+				continue
+
+			// start thinking
+			if ( npc.Anim_IsActive() ) // anim active, such as marvin doing a job or npc being executed
+				continue
+			
+			if ( npc.IsFrozen() ) // frozen guy, no need to clean them up
+				continue
+
+			// if the npc is owned by anyone, or has a bossplayer, we skip checks
+			entity owner = npc.GetOwner()
+			entity bossPlayer = npc.GetBossPlayer()
+			if ( IsValid( owner ) )
+				continue
+			if ( IsValid( bossPlayer ) )
+				continue
+
+			// if npc is a titan with bubbleshield, we skip checks
+			if ( npc.IsTitan() )
 			{
-				if ( otherGuy.CanSee( guy ) )
-					break
+				entity soul = npc.GetTitanSoul()
+				if( IsValid( soul ) )
+				{
+					entity bubbleShield = soul.soul.bubbleShield
+					if ( IsValid( bubbleShield ) )
+						continue
+				}
 			}
 
-			// don't kill if they can see any ai
-			if ( guy.CanSee( otherGuy ) )
-				break
+			array<entity> otherGuys = GetPlayerArray()
+			otherGuys.extend( GetNPCArrayOfEnemies( npc.GetTeam() ) )
 
-			failedChecks = true
+			bool failedChecks = false
+			foreach ( entity otherGuy in otherGuys )
+			{
+				// skip dead people
+				if ( !IsAlive( otherGuy ) )
+					continue
+
+				// don't kill if too close to anything
+				if ( Distance( otherGuy.GetOrigin(), npc.GetOrigin() ) < 2000.0 )
+					break
+
+				// don't kill if ai or players can see them
+				if ( otherGuy.IsPlayer() )
+				{
+					if ( PlayerCanSee( otherGuy, npc, true, 135 ) )
+						break
+				}
+				else
+				{
+					if ( otherGuy.CanSee( npc ) )
+						break
+				}
+
+				// don't kill if they can see any ai
+				if ( npc.CanSee( otherGuy ) )
+					break
+
+				failedChecks = true
+			}
+
+			if ( !IsAlive( npc.GetEnemy() ) 
+				&& Distance( npc.GetOrigin(), file.npcLastTickOrigin[ npc ] ) <= 64 
+				) // assume they're not moving nor combating
+				failedChecks = true // mark as checks failed
+
+			// record last tick origin
+			file.npcLastTickOrigin[ npc ] = npc.GetOrigin()
+
+			if ( failedChecks )
+			{
+				if ( file.npcIdleStartTime[ npc ] == -1 )
+				{
+					file.npcIdleStartTime[ npc ] = Time()
+					continue
+				}
+			}
+			else // idle invalid!
+			{
+				file.npcIdleStartTime[ npc ] = -1
+				continue
+			}
+
+			// idle time not enough!
+			float timeSinceIdleStart = Time() - file.npcIdleStartTime[ npc ]
+			if ( timeSinceIdleStart < NPC_CLEANUP_REQUIRED_IDLE_TIME )
+				continue
+
+			// all checks done!
+			file.npcWaitingToBeCleanUp[ npc ] = true // no longer run thinks on this npc
+			print( "cleaning up bored npc: " + npc + " from team " + npc.GetTeam() )
+
+			HideName( npc ) // prevent their title or health bar from showing
+			TakeAllWeapons( npc ) // so they won't have a weapon floating
+			npc.SetNoTarget( true ) // disable npc targeting
+			npc.SetNoTargetSmartAmmo( true ) // disable smart ammo targeting
+			npc.EnableNPCFlag( NPC_IGNORE_ALL ) // disable any sensing
+			if ( IsValid( npc.GetEnemy() ) ) // clear out current enemy( basically for prowlers because they aren't affected by NPC_IGNORE_ALL )
+				npc.ClearEnemy()
+			npc.NotSolid() // disable collision
+			npc.SetInvulnerable()
+			// clean up highlights
+			npc.e.hasDefaultEnemyHighlight = false // no longer runs default highlight function!
+			Highlight_ClearEnemyHighlight( npc )
+			Highlight_ClearFriendlyHighlight( npc )
+
+			// titan being dissolved
+			if ( npc.IsTitan() )
+			{
+				TitanBoredToCleanUp( npc )
+			}
+			// reaper being dissolved
+			if ( npc.GetClassName() == "npc_super_spectre" )
+			{
+				ReaperBoredToCleanUp( npc )
+			}
+
+			npc.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 ) // dissolve them to have better visual
+
+			// prowler being dissolved
+			// prowler being fully dissolved can crash the game?????
+			// like changing hullType for them... too bad!
+			// we try to destroy them while they not getting fully dissolved
+			// tested something, without this check things still go right...
+			// don't know why it was crashing so often
+			if ( npc.GetClassName() == "npc_prowler" )
+			{
+				thread DelayedDestroyProwler( npc )
+			}
 		}
-
-		if ( !IsAlive( guy.GetEnemy() ) 
-			 && Distance( guy.GetOrigin(), lastCheckOrigin ) <= 64 
-			 ) // assume they're not moving nor combating
-			failedChecks = true // mark as checks failed
-
-		if ( failedChecks )
-			idleDuration += 0.1
-		else
-			idleDuration = 0.0
-
-		lastCheckOrigin = guy.GetOrigin()
-	}
-
-	print( "cleaning up bored npc: " + guy + " from team " + guy.GetTeam() )
-	
-	HideName( guy ) // prevent their title or health bar from showing
-	TakeAllWeapons( guy ) // so they won't have a weapon floating
-	guy.SetNoTarget( true ) // disable npc targeting
-	guy.SetNoTargetSmartAmmo( true ) // disable smart ammo targeting
-	guy.EnableNPCFlag( NPC_IGNORE_ALL ) // disable any sensing
-	if ( IsValid( guy.GetEnemy() ) ) // clear out current enemy( basically for prowlers because they aren't affected by NPC_IGNORE_ALL )
-		guy.ClearEnemy()
-	guy.NotSolid() // disable collision
-	// clean up highlights
-	Highlight_ClearEnemyHighlight( guy )
-	Highlight_ClearFriendlyHighlight( guy )
-
-	// titan being dissolved
-	if ( guy.IsTitan() )
-	{
-		TitanBoredToCleanUp( guy )
-	}
-	// reaper being dissolved
-	if ( guy.GetClassName() == "npc_super_spectre" )
-	{
-		ReaperBoredToCleanUp( guy )
-	}
-
-	guy.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 ) // dissolve them to have better visual
-
-	// prowler being dissolved
-	// prowler being fully dissolved can crash the game?????
-	// like changing hullType for them... too bad!
-	// we try to destroy them while they not getting fully dissolved
-	// tested something, without this check things still go right...
-	// don't know why it was crashing so often
-	if ( guy.GetClassName() == "npc_prowler" )
-	{
-		thread DelayedDestroyProwler( guy )
+		WaitFrame()
 	}
 }
 
@@ -2221,10 +2240,21 @@ void function ReaperBoredToCleanUp( entity reaper )
 		{
 			if ( IsValid( ent ) ) 
 			{
-				if ( ent.IsNPC() && ent.ai.fragDroneArmed ) // minion may doing a deploy animation, which handled by WaitForFragDroneDeployThenDetonate()
+				if ( ent.IsNPC() && ent.ai.fragDroneArmed )
 					ent.Signal( "SuicideSpectreForceExplode" ) // signal "SuicideSpectreExploding" will cause ticks already ignited to explode instantly, which makes player unable to react...
-				else if ( ent.GetClassName() == "grenade" ) // minion still a grenade
-					ent.Destroy()
+				else // minion still a grenade, or not armed ready yet... just destroy
+				{
+					if ( ent.IsProjectile() )
+						ent.Destroy()
+					else if ( ent.IsNPC() && !ent.ai.fragDroneArmed )
+					{
+						ent.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+						ent.SetNoTarget( true )
+						ent.EnableNPCFlag( NPC_IGNORE_ALL )
+						ent.NotSolid()
+						ent.SetInvulnerable() // can still take radius damage after nonsolid!
+					}
+				}
 			}
 		}
 	}

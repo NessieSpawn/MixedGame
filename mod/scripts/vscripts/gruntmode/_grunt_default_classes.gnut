@@ -2003,7 +2003,7 @@ void function BecomeStalker( entity player )
 }
 
 const float STALKER_DECOY_DURATION = 30 // doubled DECOY_DURATION
-const float STALKER_DECOY_HEALTH = 80 // can tank most npc attack. note that they still gets oneshot by players and npc pilots
+const float STALKER_DECOY_HEALTH = 70 // was 80. can tank most npc attack. note that they still gets oneshot by players and npc pilots
 const float STALKER_DECOY_REFUND_GRACE_PERIOD = 10 // if decoy isn't shot at and gets destroyed within this time, consider it has collide with something. we'd refund player's decoy charge
 const float STALKER_DECOY_MAX_COUNT = 2 // limited to 2 charges per player
 
@@ -2416,8 +2416,8 @@ void function TrackHelmetLifeTime( entity player, entity helmet )
 	table result = WaitSignal( player, "OnDeath", "OnDestroy", "MarkedForExecutionDeath" )
 	if ( result.signal == "OnDeath" || result.signal == "MarkedForExecutionDeath" )
 	*/
-	table result = WaitSignal( player, "OnDeath", "OnDestroy", "TryHeadshotDeathFX" ) // "TryHeadshotDeathFX" is a modified signal in sh_death_package.gnut, signaled when player triggers headshot death effect!
-	if ( result.signal == "OnDeath" || result.signal == "TryHeadshotDeathFX" )
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "AnimEvent_headshot_death", "AnimEvent_headstab_death" ) // "AnimEvent_headshot_death" and "AnimEvent_headstab_death" is a modified signal in sh_death_package.gnut, signaled when player triggers headshot death effect!
+	if ( result.signal == "OnDeath" || result.signal == "AnimEvent_headshot_death" || result.signal == "AnimEvent_headstab_death" )
 		PlayHelmetDropFX( player )
 	helmet.Destroy()
 }
@@ -2487,8 +2487,8 @@ void function TrackHeadLifeTime( entity player, entity head )
 	table result = WaitSignal( player, "OnDeath", "OnDestroy", "MarkedForExecutionDeath" )
 	if ( result.signal == "OnDeath" || result.signal == "MarkedForExecutionDeath" )
 	*/
-	table result = WaitSignal( player, "OnDeath", "OnDestroy", "TryHeadshotDeathFX" ) // "TryHeadshotDeathFX" is a modified signal in sh_death_package.gnut, signaled when player triggers headshot death effect!
-	if ( result.signal == "OnDeath" || result.signal == "TryHeadshotDeathFX" )
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "AnimEvent_headshot_death", "AnimEvent_headstab_death" ) // "AnimEvent_headshot_death" and "AnimEvent_headstab_death" is a modified signal in sh_death_package.gnut, signaled when player triggers headshot death effect!
+	if ( result.signal == "OnDeath" || result.signal == "AnimEvent_headshot_death" || result.signal == "AnimEvent_headstab_death" )
 		PlayMechanicalHeadRemoveFX( player )
 	head.Destroy()
 }

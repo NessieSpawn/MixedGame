@@ -41,6 +41,10 @@ function MeleeSyncedHumanShared_Init()
 
 	RegisterSignal( "DeleteAWall" ) //ForAWallExecution
 	RegisterSignal( "PlayNextSound" ) //ForAwallExecution, generally could be used when we have long chains of sounds that need to be played that are different for robopilots versus non-robopilots
+
+	// modified signals to cancel out other scripts
+	RegisterSignal( "AnimEvent_headshot_death" )
+	RegisterSignal( "AnimEvent_headstab_death" )
 #endif
 /*
 #if SERVER
@@ -716,8 +720,10 @@ void function AnimEvent_headshot_death( entity ent )
 	// defensive fix for executing a prop
 	if ( ent.IsPlayer() || ent.IsNPC() )
 	{
-		if ( TryHeadshotDeathFX( ent ) )
-			return
+		// do we really want to skip headshot effects?
+		//if ( TryHeadshotDeathFX( ent ) )
+		//	return
+		TryHeadshotDeathFX( ent )
 	}
 	// defensive fix for executing certain prop models
 	if ( tagIdx > 0 )
@@ -727,6 +733,9 @@ void function AnimEvent_headshot_death( entity ent )
 		else
 			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_BLOOD_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
 	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headshot_death" )
 	#endif
 }
 
@@ -786,6 +795,9 @@ void function AnimEvent_headstab_death( entity ent )
 		else
 			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
 	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headstab_death" )
 	#endif
 }
 
