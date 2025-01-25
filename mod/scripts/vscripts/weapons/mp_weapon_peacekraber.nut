@@ -65,9 +65,12 @@ void function OnWeaponOwnerChanged_weapon_peacekraber (entity weapon, WeaponOwne
 	#endif
 
 	// disable run_and_gun on server-side
+	// remove for this branch to enter lobby
+	/*
 	#if SERVER
 	Disable_RunAndGun_ServerSide( weapon, changeParams )
 	#endif
+	*/
 }
 #if CLIENT
 void function CrosshairCycle() {

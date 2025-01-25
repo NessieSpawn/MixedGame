@@ -718,7 +718,8 @@ function TransferDamageHistoryToTarget( entity target )
 {
 	entity titanSoul = target.GetTitanSoul()
 	// we can have damage history disabled now, needs to check
-	if ( !DamageHistory_IsDisabledOnEntity( target ) )
+	// remove checks for this branch to enter lobby
+	//if ( !DamageHistory_IsDisabledOnEntity( target ) )
 		target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
 }
 
