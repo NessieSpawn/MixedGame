@@ -107,13 +107,19 @@ var function OnWeaponTossReleaseAnimEvent_weapon_arc_trap( entity weapon, Weapon
 		#if SERVER
 		deployable.e.fd_roundDeployed = weapon.e.fd_roundDeployed
 
+		// change every projectile sound to be sync with client!
+		/*
 		string projectileSound = GetGrenadeProjectileSound( weapon )
 		if ( projectileSound != "" )
 			EmitSoundOnEntity( deployable, projectileSound )
+		*/
 
 		weapon.w.lastProjectileFired = deployable
 		deployable.e.burnReward = weapon.e.burnReward
 		#endif
+		string projectileSound = GetGrenadeProjectileSound( weapon )
+		if ( projectileSound != "" )
+			EmitSoundOnEntity( deployable, projectileSound )
 
 		#if BATTLECHATTER_ENABLED && SERVER
 			TryPlayWeaponBattleChatterLine( player, weapon )
