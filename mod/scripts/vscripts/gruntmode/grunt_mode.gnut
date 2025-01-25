@@ -1486,10 +1486,6 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 
 			if ( !IsAlive( npc ) )
 				continue
-			
-			// npc already damaged, never clean up them
-			if ( npc.GetHealth() != npc.GetMaxHealth() )
-				continue
 
 			// first time init
 			if ( !( npc in file.npcCleanUpStartTime ) )
@@ -1516,6 +1512,16 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 			float timeSinceCleanUpStart = Time() - file.npcCleanUpStartTime[ npc ]
 			if ( timeSinceCleanUpStart < NPC_CLEANUP_INITIAL_WAIT_TIME )
 				continue
+			
+			// npc already damaged, never clean up them( I guess? )
+			// they can still get stuck after taking damage, I think...
+			/*
+			if ( npc.GetHealth() != npc.GetMaxHealth() )
+			{
+				file.npcWaitingToBeCleanUp[ npc ] = true // this npc will skip all checks
+				continue
+			}
+			*/
 
 			// start thinking
 			if ( npc.Anim_IsActive() ) // anim active, such as marvin doing a job or npc being executed
@@ -1533,11 +1539,21 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 				continue
 
 			// if npc is a titan with bubbleshield, we skip checks
+			// also skip if titan already doomed
 			if ( npc.IsTitan() )
 			{
 				entity soul = npc.GetTitanSoul()
 				if( IsValid( soul ) )
 				{
+					// they can still get stuck after doomed, I think...
+					/*
+					if ( GetDoomedState( npc ) )
+					{
+						file.npcWaitingToBeCleanUp[ npc ] = true // this npc will skip all checks
+						continue
+					}
+					*/
+
 					entity bubbleShield = soul.soul.bubbleShield
 					if ( IsValid( bubbleShield ) )
 						continue

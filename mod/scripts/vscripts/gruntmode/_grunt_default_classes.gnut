@@ -1106,6 +1106,13 @@ void function BecomeSonarPulser( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
+	// sonar pulser player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_kunai is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_kunai", "execution_backshot", "execution_pulseblade"]
+	)
 }
 
 void function BecomeNinja( entity player )
@@ -1734,6 +1741,13 @@ void function BecomeShifter( entity player )
 
 	player.SetSkin( 1 )
 	player.SetCamo( 30 ) // dark
+
+	// shifter player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_telefrag"]
+	)
 }
 
 void function BecomeRavenant( entity player )
@@ -1855,6 +1869,13 @@ void function BecomeRunner( entity player )
 	// now we could use phase shift pilot model, I think
 	//player.SetSkin( 1 )
 	//player.SetCamo( 135 ) // haze white
+
+	// runner player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_stim"]
+	)
 }
 
 void function BecomePathBuilder( entity player )
@@ -1908,6 +1929,13 @@ void function BecomeScout( entity player )
 	player.SetCamo( 18 ) // sea
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
+	// scout player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_grapple"]
+	)
 }
 
 void function TrackScoutGrappleUsage( entity player )
@@ -2000,6 +2028,13 @@ void function BecomeStalker( entity player )
 	player.GiveOffhandWeapon( "mp_ability_holopilot", OFFHAND_SPECIAL, ["grunt_mode", "gm_stalker"] )
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet. also one way to tell them from decoys is through the helmet
+
+	// stalker player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat is a modified execution ref
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_holopilot"]
+	)
 }
 
 const float STALKER_DECOY_DURATION = 30 // doubled DECOY_DURATION
@@ -2212,7 +2247,17 @@ void function BecomeFortress( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	// specialist grunts uses pilot headshot effect
-	DeathPackage_RemoveEntityHeadshotFXOverride( player )
+	// welp, this one isn't considered as specialist, guess we leave original model
+	//DeathPackage_RemoveEntityHeadshotFXOverride( player )
+
+	// stalker player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat and execution_hardcover are modified execution refs
+		// execution_hardcover not behaving well because the awall effect is played inside animation and we can't replace it with hard cover one
+		//["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_hardcover"]
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot"]
+	)
 }
 
 ///////////////////////////////////////////////
