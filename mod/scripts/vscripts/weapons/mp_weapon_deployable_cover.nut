@@ -205,6 +205,21 @@ void function DeployCover( entity projectile, vector origin, vector angles, floa
 
 	UpdateShieldWallColorForFrac( vortexSphere.e.shieldWallFX, GetHealthFrac( vortexSphere ) )
 
+	// add duration bar for modded weapon
+	entity owner = projectile.GetThrower()
+	if ( IsValid( owner ) && owner.IsPlayer() )
+	{
+		array<entity> offhandWeapons = owner.GetOffhandWeapons()
+		foreach ( weapon in offhandWeapons )
+		{
+			if ( !weapon.HasMod( "burn_card_weapon_mod" ) )
+			{
+				StatusEffect_AddTimed( weapon, eStatusEffect.simple_timer, 1.0, duration, duration )
+				break
+			}
+		}
+	}
+
 	OnThreadEnd(
 		function() : ( vortexSphere, projectile, mods )
 		{
@@ -267,9 +282,9 @@ void function DeployAmpedWall( entity grenade, vector origin, vector angles )
 		foreach ( weapon in offhandWeapons )
 		{
 			//if ( weapon.GetWeaponClassName() == grenade.GetWeaponClassName() ) // function doesn't exist for grenade entities
+			// checks modified for us handling non-burn-mod weapons better! we also wants hard cover to have use bar, they don't seem to have "ammo_timed" cooldown_type though...
 			//if ( weapon.GetWeaponClassName() == "mp_weapon_deployable_cover" )
-			// modified for skill nerfed cover
-			if ( weapon.GetWeaponClassName() == "mp_weapon_deployable_cover" || weapon.HasMod( "hard_cover_always" ) )
+			if ( !weapon.HasMod( "burn_card_weapon_mod" ) )
 			{
 				StatusEffect_AddTimed( weapon, eStatusEffect.simple_timer, 1.0, DEPLOYABLE_SHIELD_DURATION, DEPLOYABLE_SHIELD_DURATION )
 				break
