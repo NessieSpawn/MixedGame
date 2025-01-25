@@ -125,6 +125,83 @@ void function InitModdedHumanSyncedMelee()
 		AddSyncedMelee( meleeChooser, syncedMelee )
 		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
 	}
+
+	//Amped Wall Execution
+	// damn this won't behave well... the execution awall effect is played inside animation and we can't replace it with hard cover one
+	/*
+	{
+		AnimEventData givePistolEvent
+		givePistolEvent.eventName = "attach_pistol"
+		givePistolEvent.callback = AnimEvent_attach_wingman_awall_execution
+
+		AnimEventData takePistolEvent
+		takePistolEvent.eventName = "detach_pistol"
+		takePistolEvent.callback = AnimEvent_detach_pistol
+
+		AnimEventData spawnAWallEvent
+		spawnAWallEvent.eventName = "spawn_awall"
+		spawnAWallEvent.callback = AnimEvent_spawn_hard_cover
+
+		AnimEventData frontShotHighEvent
+		frontShotHighEvent.eventName = "front_shot_high"
+		frontShotHighEvent.callback = AnimEvent_front_shot_high
+
+		AnimEventData headshotEvent
+		headshotEvent.eventName = "headshot_death"
+		headshotEvent.callback = AnimEvent_headshot_death
+
+		AnimEventData turnoffExecutionDOFEvent //Turn off DOF at FX's request
+		turnoffExecutionDOFEvent.eventName = "turnoff_execution_dof"
+		turnoffExecutionDOFEvent.callback = AnimEvent_turnoff_executionDOF
+
+		AnimEventData aWallVictimStartSoundEvent
+		aWallVictimStartSoundEvent.eventName = "awall_victim_sound_event"
+		aWallVictimStartSoundEvent.callback = AnimEvent_awall_victim_start_sfx
+
+		AnimEventData aWallVictimShieldSoundEvent
+		aWallVictimShieldSoundEvent.eventName = "shield_sound_event"
+		aWallVictimShieldSoundEvent.callback = AnimEvent_awall_victim_shield_sfx
+
+		AnimEventData aWallVictimImpact01SoundEvent
+		aWallVictimImpact01SoundEvent.eventName = "impact_01_sound_event"
+		aWallVictimImpact01SoundEvent.callback = AnimEvent_awall_victim_impact01_sfx
+
+		AnimEventData aWallVictimImpact02SoundEvent
+		aWallVictimImpact02SoundEvent.eventName = "impact_02_sound_event"
+		aWallVictimImpact02SoundEvent.callback = AnimEvent_awall_victim_impact02_sfx
+
+		AnimEventData aWallVictimImpact03SoundEvent
+		aWallVictimImpact03SoundEvent.eventName = "impact_03_sound_event"
+		aWallVictimImpact03SoundEvent.callback = AnimEvent_awall_victim_impact03_sfx
+
+		AnimEventData aWallVictimBodyfallSoundEvent
+		aWallVictimBodyfallSoundEvent.eventName = "bodyfall_sound_event"
+		aWallVictimBodyfallSoundEvent.callback = AnimEvent_awall_victim_bodyfall_sfx
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_hardcover"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_awall"
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_awall"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+
+		syncedMelee.attacker3pAnimEvents = [ turnoffExecutionDOFEvent, givePistolEvent,takePistolEvent, spawnAWallEvent ]
+		syncedMelee.target3pAnimEvents = [ turnoffExecutionDOFEvent, aWallVictimStartSoundEvent, aWallVictimShieldSoundEvent, aWallVictimImpact01SoundEvent, aWallVictimImpact02SoundEvent, aWallVictimImpact03SoundEvent, aWallVictimBodyfallSoundEvent, headshotEvent, frontShotHighEvent ]
+
+		syncedMelee.minDot = 0.2
+		syncedMelee.isAttackerRef = false
+
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
+	*/
 }
 
 // same as AnimEvent_attach_knife, but the model uses combat knife
@@ -176,8 +253,69 @@ void function AnimEvent_attach_knife_rotate( entity ent, asset knifeModel, vecto
 	WaittillAnimDone( ent )
 }
 
+void function AnimEvent_spawn_hard_cover( entity attacker )
+{
+	entity awall = CreatePropDynamic( AWALL_MODEL )
+	attacker.EndSignal( "OnDeath" )
+
+
+	OnThreadEnd(
+	function() : ( awall )
+		{
+			awall.Destroy()
+		}
+	)
+
+	AddAnimEvent( awall, "create_awall", AnimEvent_CreateHardCover )
+
+	awall.SetParent( attacker, "ref", false, 0.0 )
+	thread PlayAnim( awall, "awall_execution", attacker, "ref", 0.0 )
+	WaittillAnimDone( attacker )
+}
+
+const DEPLOYABLE_SHIELD_DURATION = 15.0
+const DEPLOYABLE_SHIELD_FX = $"P_pilot_cover_shield"
+const DEPLOYABLE_SHIELD_HEALTH = 580 // vanilla value is 850, 580 is gruntmode value
+
+const DEPLOYABLE_SHIELD_RADIUS = 84
+const DEPLOYABLE_SHIELD_HEIGHT = 89
+const DEPLOYABLE_SHIELD_FOV = 150
+
+void function AnimEvent_CreateHardCover( entity awall_base )
+{
+	//print( "RUNNING AnimEvent_CreateHardCover()" )
+	// damn this won't behave well... the execution awall effect is played inside animation, which is the case we can't control
+
+	float timeoutFailSafe = 5.0
+	vector origin = awall_base.GetOrigin()
+	//vector angles = AnglesCompose( awall_base.GetAngles(), <0,180,0> )
+	vector angles = awall_base.GetAngles()
+
+	vector fwd = AnglesToForward( angles )
+	vector up = AnglesToUp( angles )
+	origin = origin - (fwd * (DEPLOYABLE_SHIELD_RADIUS - 1.0))
+	origin = origin - (up * 1.0)
+
+	entity vortexSphere = CreateShieldWithSettings( origin, angles, DEPLOYABLE_SHIELD_RADIUS, DEPLOYABLE_SHIELD_HEIGHT, DEPLOYABLE_SHIELD_FOV, DEPLOYABLE_SHIELD_DURATION, DEPLOYABLE_SHIELD_HEALTH, DEPLOYABLE_SHIELD_FX )
+	awall_base.EndSignal( "OnDestroy" )
+	awall_base.EndSignal( "DeleteAWall" ) //Signaled from the animation
+	vortexSphere.SetBlocksRadiusDamage( true )
+	vortexSphere.DisableVortexBlockLOS()
+
+	UpdateShieldWallColorForFrac( vortexSphere.e.shieldWallFX, GetHealthFrac( vortexSphere ) )
+
+	OnThreadEnd(
+	function() : ( vortexSphere )
+		{
+			if ( IsValid( vortexSphere ) )
+				vortexSphere.Destroy()
+		}
+	)
+
+	wait timeoutFailSafe
+}
+
 // nessie executions, not finished yet
-#if SERVER
 void function ModdedSyncedMelee_EnableNessieExecutions( bool enable )
 {
 	file.nessieExecutions = enable
@@ -199,4 +337,3 @@ void function TrackNessieParentedEntLifeTime( entity ent, entity nessie )
 	ent.WaitSignal( "OnDestroy" )
 	nessie.Destroy()
 }
-#endif
