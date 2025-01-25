@@ -19,6 +19,9 @@ WeaponData
 	"viewmodel"   									"models/weapons/kunai/ptpov_kunai.mdl"
 	"playermodel" 									"models/weapons/kunai/w_kunai.mdl"
 
+	// MODIFIED: weapon callbacks
+	"OnWeaponActivate"								"OnWeaponActivate_weapon_kunai"
+
 	// Melee
 	"melee_can_hit_humansized"						"1"
 	"melee_can_hit_titans"							"0"
@@ -173,6 +176,10 @@ WeaponData
 		grunt_mode
 		{
 			"melee_damage" "--210" // 90, 3 shots killing another ninja, one shot killing grunts
+		}
+
+		fake_human_melee
+		{
 		}
 	}
 }

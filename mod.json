@@ -384,6 +384,16 @@
                 "After": "MpWeaponHemlok_Init"
             }
 		},
+		{
+			"Path": "/modweapons/vanilla_miss/mp_weapon_sword.nut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponSword_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponSword_Init"
+            }
+		},
 		// vanilla missing weapon scripts end
 		// northstar missing weapon scripts
 		{
@@ -394,6 +404,16 @@
             },
 			"ServerCallback": {
                 "After": "MpWeaponShotgunDoubleBarrelTFO_Init"
+            }
+		},
+		{
+			"Path": "/modweapons/northstar_miss/mp_weapon_kunai.gnut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponKunai_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponKunai_Init"
             }
 		},
 		// northstar missing weapon scripts end

@@ -18,11 +18,16 @@ WeaponData
 	//"projectile_trail_effect_0"						"wpn_grenade_frag"
 
 	// vortex
-	"vortex_refire_behavior"  						"absorb"
-	//"vortex_absorb_effect"							"wpn_vortex_projectile_satchel_FP"
-	//"vortex_absorb_effect_third_person"				"wpn_vortex_projectile_satchel"
-	//"vortex_absorb_sound"							"Vortex_Shield_AbsorbBulletLarge"
-	//"vortex_absorb_sound_1p_vs_3p"					"Vortex_Shield_AbsorbBulletLarge_1P_VS_3P"
+	// obvious a better way to fix is adding fall_vortex
+	//"vortex_refire_behavior"  						"absorb"
+
+	// taken from mp_weapon_deployable_cover
+	"vortex_absorb_effect"							"wpn_vortex_projectile_satchel_FP"
+	"vortex_absorb_effect_third_person"				"wpn_vortex_projectile_satchel"
+	"vortex_absorb_sound"							"Vortex_Shield_AbsorbBulletLarge"
+	"vortex_absorb_sound_1p_vs_3p"					"Vortex_Shield_AbsorbBulletLarge_1P_VS_3P"
+	"vortex_refire_behavior"  						"grenade" // taken from mp_titanability_laser_trip
+	"projectile_ignores_vortex"						"fall_vortex"
 
 	"projectile_adjust_to_gun_barrel"				"0"
 	"projectile_adjust_to_hand"						"1"
