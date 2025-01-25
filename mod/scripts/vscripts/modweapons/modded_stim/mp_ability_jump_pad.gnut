@@ -77,9 +77,12 @@ void function MpAbilityJumpPad_Init()
     // triple jump
     RegisterSignal( "JumpPadGainTripleJump" )
     RegisterSignal( "JumpPadTripleJumpThinkStart" )
-	
+
 	// cooldown
 	RegisterSignal( "JumpPadCooldown" )
+
+	// freefall
+	RegisterSignal( "StartFreeFallSound" )
 
     AddCallback_OnClientConnected( JumpPadInitilaize )
 #endif
@@ -366,6 +369,7 @@ void function GiveJumpPadEffect( entity player )
 		//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
 		thread JumpPadTrailThink( player )
 		thread JumpPadTripleJumpThink( player )
+		thread JumpPadFreefallSoundThink( player )
 	}
 }
 
@@ -376,23 +380,32 @@ void function JumpPadFlying( entity player )
 	player.Signal( "JumpPadFlyStart" )
 	player.EndSignal( "JumpPadFlyStart" )
 
+	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, SignalOnPlayerTouchGround )
+
 	OnThreadEnd(
 		function(): ( player )
 		{
 			if( IsValid( player ) )
-				player.Signal( "JumpPadPlayerTouchGround" )
+				RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, SignalOnPlayerTouchGround )
 		}
 	)
 
-	wait 1 // wait for player leave ground
+	waitthread WaitForPlayerTouchGround( player )
+}
 
-	while( true )
-	{
-		if( player.IsOnGround() )
-			break
+void function SignalOnPlayerTouchGround( entity player )
+{
+	player.Signal( "JumpPadPlayerTouchGround" )
+}
 
+void function WaitForPlayerTouchGround( entity player )
+{
+	// "OnDeath" and "OnDestroy" inherits from JumpPadFlying()
+	player.EndSignal( "JumpPadPlayerTouchGround" ) // main functional signal
+
+	// failsafe looping case
+	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() )
 		WaitFrame()
-	}
 }
 
 void function JumpPadForcedVelocity( entity player, vector targetVelocity )
@@ -415,6 +428,9 @@ void function JumpPadForcedVelocity( entity player, vector targetVelocity )
 
 	if ( player.IsPlayer() ) // add compatibliity for npc usage
 		player.TouchGround() // restore one doublejump usage
+
+	// apex legends behavior: vertical speed won't go down 0 for some moment, to prevent using jumppad inside rooms to have weird interaction
+	// maybe no need to implement though... our gravity lift also not using apex behavior( has no cooldown between multiple lifts )
 }
 
 void function JumpPadTripleJumpThink( entity player )
@@ -519,6 +535,73 @@ void function JumpPadCooldownThink( entity player )
 	SetPlayerInJumpPadCooldown( player, 1.0 ) // hardcoded now
 }
 */
+
+void function JumpPadFreefallSoundThink( entity player )
+{
+	// clean up jumpjet sound
+    StopSoundOnEntity( player, "jumpjet_jet_body_1p" )
+    StopSoundOnEntity( player, "jumpjet_jet_body_3p" )
+    StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+    StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+
+	player.EndSignal( "OnDestroy" )
+	player.Signal( "StartFreeFallSound" )
+	player.EndSignal( "StartFreeFallSound" )
+	// end thread when player enter another jump pad or touch ground
+	player.EndSignal( "JumpPadFlyStart" )
+	player.EndSignal( "JumpPadPlayerTouchGround" )
+
+	// wait for player's vertical speed lowered
+	while ( player.GetVelocity().z >= 0 )
+		WaitFrame()
+
+	// player already on ground?
+	if ( player.IsOnGround() )
+		return
+	// player is pretty close to ground?
+	if ( IsPlayerNearGround( player ) )
+		return
+
+	// start sound 
+	StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+	StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+	EmitSoundOnEntityOnlyToPlayer( player, player, "jumpjet_freefall_body_1p" )
+	EmitSoundOnEntityExceptToPlayer( player, player, "jumpjet_freefall_body_3p" )
+
+	OnThreadEnd
+	(
+		function(): ( player )
+		{
+			if ( IsValid( player ) )
+			{
+				StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+				StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+			}
+		}
+	)
+
+	// wait for player drop to ground or start traversing
+	while ( !player.IsOnGround() && !player.IsTraversing() )
+		WaitFrame( true ) // ignore 10fps limitation to have better effect
+}
+
+bool function IsPlayerNearGround( entity player, float checkHeight = 200 ) // default convar "pilot_freefall_sound_height" value is 200
+{
+	array<entity> ignoreEnts
+	// always ignore all npcs and players, try to hit onto ground
+	ignoreEnts.extend( GetPlayerArray() )
+	ignoreEnts.extend( GetNPCArray() )
+
+	vector traceStart = player.GetOrigin()
+	vector traceEnd = traceStart - < 0, 0, checkHeight >
+
+	TraceResults downTrace = TraceLine( traceStart, traceEnd, ignoreEnts, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+	entity hitEnt = downTrace.hitEnt
+	if ( !IsValid( hitEnt ) ) // we cannot trace any entity
+		return false
+
+	return true
+}
 
 void function TrackProjectileOwnerLifeTime( entity projectile, entity owner )
 {

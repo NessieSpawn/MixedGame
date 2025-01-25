@@ -8658,6 +8658,8 @@ const int NPC_PILOT_DECOY_HEALTH = 50 // EDIT: was nerfed to 30, but we've made 
 const float NPC_PILOT_DECOY_TIMEOUT = DECOY_DURATION
 const float NPC_PILOT_DECOY_DESTINATION_HOLD_TIME = 5 // how long our decoy will hold their desired position before start following owner
 
+const float NPC_PILOT_DECOY_MAX_RANGE = 1500 // how long pilot decoy can move
+
 void function NPCPilotHoloPilotThink( entity pilot, entity abilityWeapon )
 {
 	// EndSignals() should been set by ScriptedNPCPilotTacticalAbility_Threaded()
@@ -8731,11 +8733,46 @@ void function NPCPilotHoloPilotThink( entity pilot, entity abilityWeapon )
 			//vector velocity = GetNPCVelocity( pilot )
 			vector ornull velocity = null // guess we'd better use default velocity...
 			vector ornull destOrigin = null
+
+			// first version: assault to target, then follows owner
+			/*
 			entity enemy = pilot.GetEnemy()
 			if ( IsAlive( enemy ) )
 				destOrigin = enemy.GetOrigin()
 			//print( "npc speed: " + string( Length( velocity ) ) )
 			CreateNPCDecoyEnt( pilot, NPC_PILOT_DECOY_HEALTH, NPC_PILOT_DECOY_TIMEOUT, velocity, destOrigin, NPC_PILOT_DECOY_DESTINATION_HOLD_TIME, true )
+			*/
+
+			// second version: assault based on line-of-sight, then hold position
+			/*
+			entity enemy = pilot.GetEnemy()
+			if ( IsAlive( enemy ) )
+			{
+				vector faceToEnemy = VectorToAngles( Normalize( enemy.GetOrigin() - pilot.GetOrigin() ) )
+				faceToEnemy.x = 0
+				faceToEnemy.z = 0
+				vector vectorToEnemy = AnglesToForward( vectorToEnemy )
+
+				array<entity> ignoreEnts
+				// always ignore all npcs and players, try to hit enemy
+				ignoreEnts.extend( GetPlayerArray() )
+				ignoreEnts.extend( GetNPCArray() )
+
+				vector traceStart = pilot.EyePosition()
+				vector traceEnd = traceStart + ( vectorToEnemy * NPC_PILOT_DECOY_MAX_RANGE )
+
+				TraceResults eyeTrace = TraceLine( traceStart, traceEnd, ignoreEnts, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+				destOrigin = eyeTrace.endPos
+			}
+			CreateNPCDecoyEnt( pilot, NPC_PILOT_DECOY_HEALTH, NPC_PILOT_DECOY_TIMEOUT, velocity, destOrigin )
+			*/
+
+			// current version: assault to target, but no longer follows owner
+			entity enemy = pilot.GetEnemy()
+			if ( IsAlive( enemy ) )
+				destOrigin = enemy.GetOrigin()
+			//print( "npc speed: " + string( Length( velocity ) ) )
+			CreateNPCDecoyEnt( pilot, NPC_PILOT_DECOY_HEALTH, NPC_PILOT_DECOY_TIMEOUT, velocity, destOrigin )
 		}
 
 		// cooldown between next use
