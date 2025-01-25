@@ -1486,6 +1486,10 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 
 			if ( !IsAlive( npc ) )
 				continue
+			
+			// npc already damaged, never clean up them
+			if ( npc.GetHealth() != npc.GetMaxHealth() )
+				continue
 
 			// first time init
 			if ( !( npc in file.npcCleanUpStartTime ) )
@@ -1602,7 +1606,7 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 
 			// all checks done!
 			file.npcWaitingToBeCleanUp[ npc ] = true // no longer run thinks on this npc
-			print( "cleaning up bored npc: " + npc + " from team " + npc.GetTeam() )
+			//print( "cleaning up bored npc: " + npc + " from team " + npc.GetTeam() )
 
 			HideName( npc ) // prevent their title or health bar from showing
 			TakeAllWeapons( npc ) // so they won't have a weapon floating
