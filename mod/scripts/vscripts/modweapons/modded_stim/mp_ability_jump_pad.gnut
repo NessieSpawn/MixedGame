@@ -363,9 +363,9 @@ void function GiveJumpPadEffect( entity player )
 	if ( player.IsPlayer() ) // add compatibliity for npc usage
 		player.TouchGround() // regen doublejump
 
-	thread JumpPadFlying( player ) // signal sender
 	if ( player.IsPlayer() ) // add compatibliity for npc usage
 	{
+		thread JumpPadFlying( player ) // signal sender
 		//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
 		thread JumpPadTrailThink( player )
 		thread JumpPadTripleJumpThink( player )
