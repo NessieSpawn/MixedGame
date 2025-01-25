@@ -114,7 +114,7 @@ WeaponData
 		}
 		gm_sonarpulser // longer sonar
 		{
-			"grenade_ignition_time"							"*2"
+			"grenade_ignition_time"							"*1.333333" // 6s. was *2( 9s )
 		}
 
 		// gamemode kraber specifics

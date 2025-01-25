@@ -92,7 +92,7 @@ void function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams
 	{
 		entity weaponOwner = weapon.GetWeaponOwner()
 		#if SERVER
-			// change every grenade sound to be sync with client!
+			// change every projectile sound to be sync with client!
 			//EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
 			// will set proj.onlyAllowSmartPistolDamage = true, which makes us cannot destroy it by normal weapons
 			Grenade_Init( nade, weapon )

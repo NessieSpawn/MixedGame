@@ -1,5 +1,7 @@
 WeaponData
 {
+	"OnWeaponActivate"								"OnWeaponActivate_weapon_sword"
+
 	Mods
 	{
 		pm0
@@ -74,12 +76,35 @@ WeaponData
 		gm_beastking
 		{
 			// sword has sprint-to-attack animation, should leave this
-			"primary_fire_does_not_block_sprint"			"1"
-			"crosshair_force_sprint_fade_disabled"          "1"
+			// ignore that, this will make client-side desync, also can't sprint while using melee
+			// still needs to add this back!!!! cancelling sprint makes melee feels really bad
+			// whatever desync does to it! as long as you don't hold mouse button it'll be all good
+			// welp it desyncs really bad... change to be primary weapon handle
+			//"primary_fire_does_not_block_sprint"			"1"
+			//"crosshair_force_sprint_fade_disabled"          "1"
 
 			// make players able to target titans
 			"melee_can_hit_titans"					"1"
 			"melee_damage_heavyarmor"				"1000"
+
+			// allow holding melee to attack...?
+			// animation could feel bad though
+			//"melee_raise_recovery_animtime_normal"			"0.01"
+			//"melee_raise_recovery_animtime_quick"			"0.01"
+		}
+
+		// this one needs a primary weapon: mp_weapon_gunship_missile, with their pilot_sword_primary mod
+		pilot_sword_primary
+		{
+			// allow holding attack button to execution, requires modified script!
+			"attack_button_presses_melee"					"1"
+
+			// better control because we already have a primary weapon
+			"holster_time"									"0.01"
+			"deploy_time" 									"0.01"
+			// no need to change lower or raise, they're used for offhand switch
+			//"lower_time"  									"0.01"
+			//"raise_time"  									"0.01"
 		}
 	}
 }

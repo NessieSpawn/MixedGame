@@ -37,11 +37,13 @@ var function OnWeaponPrimaryAttack_weapon_flak_rifle( entity weapon, WeaponPrima
 					thread DelayedStartParticleSystem( missile, trailEffect )
 					if ( weapon.HasMod( "flak_cannon" ) )
 						missile.SetModel( $"models/weapons/bullets/mgl_grenade.mdl" )
-					EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
+					// change every projectile sound to be sync with client!
+					//EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
 					missile.ProjectileSetDamageSourceID( eDamageSourceId.mp_weapon_flak_rifle )
 					//thread PROTO_FlakCannonMissiles( missile, PROJECTILE_SPEED_FLAK )
 					thread PROTO_FlakCannonMissiles( missile, projectileSpeed )
 				#endif
+				EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
 			}
 		}
 	}
