@@ -1745,8 +1745,7 @@ void function BecomeShifter( entity player )
 	// shifter player executions, includes their ability
 	Melee_SetExecutionRefsOverride( 
 		player, 
-		// execution_face_stab_combat is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_telefrag"]
+		["execution_combo", "execution_knockout", "execution_telefrag"]
 	)
 }
 
@@ -1873,8 +1872,7 @@ void function BecomeRunner( entity player )
 	// runner player executions, includes their ability
 	Melee_SetExecutionRefsOverride( 
 		player, 
-		// execution_face_stab_combat is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_stim"]
+		["execution_combo", "execution_knockout", "execution_stim"]
 	)
 }
 
@@ -2251,13 +2249,14 @@ void function BecomeFortress( entity player )
 	//DeathPackage_RemoveEntityHeadshotFXOverride( player )
 
 	// stalker player executions, includes their ability
+	// execution_hardcover not behaving well because the awall effect is played inside animation and we can't replace it with hard cover one
+	/*
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_combat and execution_hardcover are modified execution refs
-		// execution_hardcover not behaving well because the awall effect is played inside animation and we can't replace it with hard cover one
-		//["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_hardcover"]
-		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot"]
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_hardcover"]
 	)
+	*/
 }
 
 ///////////////////////////////////////////////
