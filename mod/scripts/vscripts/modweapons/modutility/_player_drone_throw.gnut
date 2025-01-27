@@ -86,7 +86,10 @@ entity function SpawnDroneFromPlayer( entity player, string aiSettings )
 	vector angles = player.GetAngles()
 	int team = player.GetTeam()
 	entity owner = player
-	vector deployOrigin = PositionOffsetFromEnt( player, 64, 0, 0 )
+	// PositionOffsetFromEnt() is fucked on players because player actual angle is their eyeangles
+	// let's just use their origin
+	//vector deployOrigin = PositionOffsetFromEnt( player, 64, 0, 0 )
+	vector deployOrigin = origin
 	float verticalClearance = GetVerticalClearance( deployOrigin )
 	string spawnAnimDrone
 	string spawnAnimSoldier
@@ -202,13 +205,22 @@ void function HolsterWeaponForDroneSpawning( entity owner )
 		function(): ( owner )
 		{
 			if( IsValid( owner ) )
-				DeployAndEnableWeapons( owner )
+			{
+				//DeployAndEnableWeapons( owner )
+				DeployViewModelAndEnableWeapons( owner )
+				// maybe still adding weapon deploy penalty
+				owner.HolsterWeapon()
+				owner.DeployWeapon()
+			}
 		}
 	)
 	WaitFrame()
 	if( !IsAlive( owner ) )
 		return
-	HolsterAndDisableWeapons( owner )
+	// holstering weapon hides weapon model during animation
+	// also makes player pull out weapon much slower... weapon deploy is included in animation I think
+	//HolsterAndDisableWeapons( owner )
+	HolsterViewModelAndDisableWeapons( owner )
 	WaittillAnimDone( owner )
 }
 
