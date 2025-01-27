@@ -1,7 +1,7 @@
 {
 	"Name" : "Grunt Mode Overhaul",
 	"Description" : "Based on original Grunt Mode and update it to be compatible with Northstar V1.30.0",
-	"Version": "1.2.4",
+	"Version": "1.2.5",
 	"LoadPriority": 3,
 
 	"Scripts": [
