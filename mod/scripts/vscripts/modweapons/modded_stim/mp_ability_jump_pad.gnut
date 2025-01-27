@@ -385,6 +385,7 @@ void function JumpPadFlying( entity player )
 	OnThreadEnd(
 		function(): ( player )
 		{
+			//print( "JumpPadFlying() function has ended!" )
 			if( IsValid( player ) )
 				RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, SignalOnPlayerTouchGround )
 		}
@@ -402,6 +403,8 @@ void function WaitForPlayerTouchGround( entity player )
 {
 	// "OnDeath" and "OnDestroy" inherits from JumpPadFlying()
 	player.EndSignal( "JumpPadPlayerTouchGround" ) // main functional signal
+
+	wait 0.2 // wait for player actrually leaving ground
 
 	// failsafe looping case
 	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() && !player.IsZiplining() )
