@@ -1626,13 +1626,17 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 
 			HideName( npc ) // prevent their title or health bar from showing
 			TakeAllWeapons( npc ) // so they won't have a weapon floating
-			npc.SetNoTarget( true ) // disable npc targeting
-			npc.SetNoTargetSmartAmmo( true ) // disable smart ammo targeting
+			
 			npc.EnableNPCFlag( NPC_IGNORE_ALL ) // disable any sensing
 			if ( IsValid( npc.GetEnemy() ) ) // clear out current enemy( basically for prowlers because they aren't affected by NPC_IGNORE_ALL )
 				npc.ClearEnemy()
+			
+			// add invulnerability
+			npc.SetNoTarget( true ) // disable npc targeting
+			npc.SetNoTargetSmartAmmo( true ) // disable smart ammo targeting
 			npc.NotSolid() // disable collision
 			npc.SetInvulnerable()
+
 			// clean up highlights
 			npc.e.hasDefaultEnemyHighlight = false // no longer runs default highlight function!
 			Highlight_ClearEnemyHighlight( npc )
@@ -1648,6 +1652,15 @@ void function TryCleanupBoredNPCGameLong_Threaded()
 			{
 				ReaperBoredToCleanUp( npc )
 			}
+
+			// remove any attack behavior
+			npc.SetCapabilityFlag( bits_CAP_MOVE_SHOOT, false )
+			npc.SetCapabilityFlag( bits_CAP_AIM_GUN, false )
+			npc.SetCapabilityFlag( bits_CAP_WEAPON_RANGE_ATTACK1, false )
+			npc.SetCapabilityFlag( bits_CAP_INNATE_MELEE_ATTACK1, false )
+			npc.SetCapabilityFlag( bits_CAP_INNATE_MELEE_ATTACK2, false )
+			npc.SetCapabilityFlag( bits_CAP_SYNCED_MELEE_ATTACK, false )
+			npc.SetCapabilityFlag( bits_CAP_MOVE_TRAVERSE, false )
 
 			npc.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 ) // dissolve them to have better visual
 
