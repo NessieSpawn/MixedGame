@@ -399,7 +399,10 @@ void function Execution_Tone_Fix( entity attacker, entity target )
 	// HACKY fix here: if we're holding 40mm and we don't have any ammo left
 	// add 1 clip so we don't receive reloading during animation
 	// don't know why respawn fixed ammo for prime execution but not this...
-	entity mainWeapon = attacker.GetMainWeapons()[0]
+	entity mainWeapon
+	array<entity> weapons = attacker.GetMainWeapons()
+	if ( weapons.len() > 0 )
+		mainWeapon = weapons[0]
 	//print( "mainWeapon: " + string( mainWeapon ) )
 	if ( IsValid( mainWeapon ) )
 	{
@@ -441,7 +444,10 @@ void function Execution_TonePrime_Fix( entity attacker, entity target )
 	// if we're holding 40mm and we don't have enough ammo for performing execution( 3 rounds required )
 	// set clip to 3 so we don't receive reloading during animation
 	// note: this breaks vanilla behavior, which sets weapon ammo to FULL and fire 3 shots, resulting 9 rounds in clip after execution
-	entity mainWeapon = attacker.GetMainWeapons()[0]
+	entity mainWeapon
+	array<entity> weapons = attacker.GetMainWeapons()
+	if ( weapons.len() > 0 )
+		mainWeapon = weapons[0]
 	//print( "mainWeapon: " + string( mainWeapon ) )
 	if ( IsValid( mainWeapon ) )
 	{
