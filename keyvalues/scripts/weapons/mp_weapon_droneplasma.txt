@@ -1,9 +1,26 @@
 WeaponData
 {
+	// vanilla has just nowhere uses this drone, guess it's safe to change default value
+	"damage_near_value_titanarmor"					"150"
+	"damage_far_value_titanarmor" 					"90"
+
+	"npc_damage_far_value"							"7" // vanilla value is 5
+	"npc_explosion_damage"							"7" // vanilla value is 10
+
+	"npc_damage_near_value_titanarmor"				"90" // fd_damage value is 150, vanilla value is 50
+	"npc_damage_far_value_titanarmor" 				"60" // fd_damage value is 130, vanilla value is 30
+
 	Mods
 	{
 		fd_damage
 		{
+			// keep vanilla vortex refire damage... shall we?
+			"damage_near_value_titanarmor"					"2"
+			"damage_far_value_titanarmor" 					"2"
+
+			// or we could just fix them all
+			//"damage_near_value_titanarmor"					"150"
+			//"damage_far_value_titanarmor" 					"130"
 		}
 		npc_elite_weapon
 		{
