@@ -247,8 +247,8 @@ void function PortalStart( entity player, entity weapon )
 				bool holdingPortal = IsValid( activeWeapon ) && activeWeapon.HasMod( "wraith_portal" )
 				if ( !holdingPortal ) // only allowed to do placement and holster weapon when switched off portal
 				{
-					player.DisableWeaponViewModel() // still shows weapon in hand
-					//player.HolsterWeapon()
+					//player.DisableWeaponViewModel() // still shows weapon in hand
+					player.HolsterWeapon()
 					// adding animation checks: player needs able to use weapon before placing portal!
 					if ( !player.Anim_IsActive() && !IsValid( player.GetParent() ) )
 					{
@@ -320,9 +320,9 @@ void function PortalStart( entity player, entity weapon )
 		PortalEnd( player, weapon, startPos, startAng, progressPoses, progressAngs, wasCrouchedArray, travelTime, portalLeft, isInfiniteDistance, isInfiniteDuration )
 		if ( forceHolster )
 		{
-			player.EnableWeaponViewModel()
+			//player.EnableWeaponViewModel()
 			// do weapon deploy animation as penalty
-			player.HolsterWeapon()
+			//player.HolsterWeapon()
 			player.DeployWeapon() // recover weapon usage
 		}
 	}
