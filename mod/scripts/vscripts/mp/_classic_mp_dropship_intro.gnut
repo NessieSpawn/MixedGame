@@ -509,6 +509,6 @@ void function WaitForPlayerTouchGround( entity player )
 	player.EndSignal( "DropshipIntroTouchGround" ) // main functional signal
 
 	// failsafe looping case
-	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() )
+	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() && !player.IsZiplining() )
 		WaitFrame()
 }
