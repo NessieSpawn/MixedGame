@@ -1471,7 +1471,7 @@ void function TryCleanupBoredNPCGameLong()
 }
 
 // npc cleanup
-const float NPC_CLEANUP_INITIAL_WAIT_TIME = 10.0
+const float NPC_CLEANUP_INITIAL_WAIT_TIME = 20.0 // some npcs will stand still for proximity 10s... due to my bad squadhandler logic, I think
 const float NPC_CLEANUP_REQUIRED_IDLE_TIME = 20.0
 
 void function TryCleanupBoredNPCGameLong_Threaded()
