@@ -512,8 +512,13 @@ void function ReaperConfig( entity soldier )
 	GruntModeFriendlyHighlight( soldier )
 
 	// even stronger
-	soldier.SetMaxHealth( 4600 ) // was 5000
-	soldier.SetHealth( 4600 )
+	//soldier.SetMaxHealth( 4600 ) // was 5000
+	//soldier.SetHealth( 4600 )
+
+	soldier.SetMaxHealth( 5300 )
+	soldier.SetHealth( 5300 )
+
+	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.25 ) // less likely can be in pain animation( at least 1250 damage/3000 repeat damage required, makes only player/titan can trigger their pain )
 }
 
 void function TitanConfig( entity soldier )
