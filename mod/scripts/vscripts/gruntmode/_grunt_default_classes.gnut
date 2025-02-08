@@ -1111,7 +1111,8 @@ void function BecomeSonarPulser( entity player )
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_kunai is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_kunai", "execution_backshot", "execution_pulseblade"]
+		// maybe we remove it because it has no pulse blade effect..? also allowing us to use special executions more often
+		["execution_neck_snap", "execution_backshot", "execution_pulseblade"]
 	)
 }
 
@@ -1171,8 +1172,8 @@ void function BecomeNinja( entity player )
 		player, 
 		// execution_face_stab_kunai and execution_pulseblade_ninja are modified execution ref
 		// this class rely on melee attack and more execution ref could be fun?
-		// removed "execution_backshot"
-		["execution_neck_snap", "execution_face_stab_kunai", "execution_combo", "execution_knockout", "execution_pulseblade_ninja"]
+		// removed "execution_backshot" due to weapon usage, also removed "execution_neck_snap" and "execution_combo" to use special executions more often
+		["execution_face_stab_kunai", "execution_knockout", "execution_pulseblade_ninja"]
 	)
 }
 
@@ -1288,8 +1289,8 @@ void function BecomeBeastKing( entity player )
 		player, 
 		// execution_face_stab_sword is a modified execution ref
 		// this class rely on melee attack and more execution ref could be fun?
-		// removed "execution_backshot"
-		["execution_neck_snap", "execution_face_stab_sword", "execution_combo", "execution_knockout"]
+		// removed "execution_backshot" due to weapon usage, also removed "execution_knockout" to use special executions more often
+		["execution_neck_snap", "execution_face_stab_sword", "execution_combo"]
 	)
 }
 
@@ -1746,7 +1747,8 @@ void function BecomeShifter( entity player )
 	// shifter player executions, includes their ability
 	Melee_SetExecutionRefsOverride( 
 		player, 
-		["execution_combo", "execution_knockout", "execution_telefrag"]
+		// removed "execution_knockout" to use special executions more often
+		["execution_combo", "execution_telefrag"]
 	)
 }
 
@@ -1873,7 +1875,8 @@ void function BecomeRunner( entity player )
 	// runner player executions, includes their ability
 	Melee_SetExecutionRefsOverride( 
 		player, 
-		["execution_combo", "execution_knockout", "execution_stim"]
+		// removed "execution_combo" to use special executions more often
+		["execution_knockout", "execution_stim"]
 	)
 }
 
@@ -1933,7 +1936,8 @@ void function BecomeScout( entity player )
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_combat is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_grapple"]
+		// removed "execution_backshot" to use special executions more often
+		["execution_neck_snap", "execution_face_stab_combat", "execution_grapple"]
 	)
 }
 
@@ -2032,7 +2036,8 @@ void function BecomeStalker( entity player )
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_combat is a modified execution ref
-		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_holopilot"]
+		// removed "execution_neck_snap" to use special executions more often
+		["execution_backshot", "execution_face_stab_combat", "execution_holopilot"]
 	)
 }
 
@@ -2249,7 +2254,7 @@ void function BecomeFortress( entity player )
 	// welp, this one isn't considered as specialist, guess we leave original model
 	//DeathPackage_RemoveEntityHeadshotFXOverride( player )
 
-	// stalker player executions, includes their ability
+	// fortress player executions, includes their ability
 	// execution_hardcover not behaving well because the awall effect is played inside animation and we can't replace it with hard cover one
 	/*
 	Melee_SetExecutionRefsOverride( 
