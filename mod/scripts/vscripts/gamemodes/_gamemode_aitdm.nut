@@ -439,7 +439,7 @@ void function SpawnIntroBatch_Threaded( int team )
 		// modified here: delay is applied after half spawn
 		//if ( first )
 		if ( i == ( file.squadsPerTeam / 2 ) - 1 )
-			wait 2
+			wait 4 // ~droppod landing delay
 		
 		first = false
 	}
