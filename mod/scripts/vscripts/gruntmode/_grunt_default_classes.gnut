@@ -1152,6 +1152,7 @@ void function BecomeNinja( entity player )
 	// offhand weapons won't return themselves and is exclusive, saving classname is enough
 	array<string> ninjaOffhands
 	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "dissolve_instant", "impact_bounce"] ) // 2s cooldown instant kill projectile
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "impact_bounce", "no_impact_effect"] )
 	ninjaOffhands.append( "mp_weapon_grenade_sonar" )
 	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_ORDNANCE ) // gravity star, was ["ninja_projectile"]: 2s cooldown instant kill projectile, bit slower than kunai. now also removed "pas_ordnance_pack"
 	ninjaOffhands.append( "mp_weapon_grenade_gravity" )
@@ -1168,10 +1169,10 @@ void function BecomeNinja( entity player )
 	// ninja player executions
 	Melee_SetExecutionRefsOverride( 
 		player, 
-		// execution_face_stab_kunai is a modified execution ref
+		// execution_face_stab_kunai and execution_pulseblade_ninja are modified execution ref
 		// this class rely on melee attack and more execution ref could be fun?
 		// removed "execution_backshot"
-		["execution_neck_snap", "execution_face_stab_kunai", "execution_combo", "execution_knockout"]
+		["execution_neck_snap", "execution_face_stab_kunai", "execution_combo", "execution_knockout", "execution_pulseblade_ninja"]
 	)
 }
 

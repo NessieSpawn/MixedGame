@@ -202,6 +202,196 @@ void function InitModdedHumanSyncedMelee()
 		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
 	}
 	*/
+
+	{
+		// Face Stab, but uses kunai, and plays ninja projectile effect
+		AnimEventData giveKnifeEvent
+		giveKnifeEvent.eventName = "attach_knife"
+		giveKnifeEvent.callback = AnimEvent_attach_kunai // same as AnimEvent_attach_knife, but the model uses kunai
+
+		AnimEventData takeKnifeEvent
+		takeKnifeEvent.eventName = "detach_knife"
+		takeKnifeEvent.callback = AnimEvent_detach_knife
+
+		AnimEventData headstabEvent
+		headstabEvent.eventName = "headstab_death"
+		//headstabEvent.callback = AnimEvent_headshot_death // Use head shot instead of vanilla headstab for this execution
+		//headstabEvent.callback = AnimEvent_headstab_death_ninja_sound // removed headshot, headstab looks better. also plays ninja projectile effect and sound on stab hit
+		headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_face_stab_ninja"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_stab"
+		syncedMelee.attacker3pAnimEvents = [giveKnifeEvent, takeKnifeEvent]
+		syncedMelee.target3pAnimEvents = [headstabEvent]
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_stab"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+		syncedMelee.minDot = 0.2
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
+
+	{
+		// PulseBlade Execution, but uses ninja projectile effect
+		AnimEventData givePulseBladeEvent
+		givePulseBladeEvent.eventName = "attach_pulseBlade"
+		givePulseBladeEvent.callback = AnimEvent_attach_pulseBlade
+
+		AnimEventData headstabEvent
+		headstabEvent.eventName = "headstab_death"
+		//headstabEvent.callback = AnimEvent_headstab_death_ninja // plays ninja projectile effect on stab hit
+		headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
+
+		AnimEventData takePulseBladeEvent
+		takePulseBladeEvent.eventName = "detach_pulseBlade"
+		// knife executions has been reworked, use AnimEvent_detach_knife() can handle all of the situations
+		//takePulseBladeEvent.callback = AnimEvent_detach_pulseBlade
+		takePulseBladeEvent.callback = AnimEvent_detach_knife
+
+		// use ninja projectile impact effect
+		// maybe works better with "headstab_death" event
+		/*
+		AnimEventData playSonarExecutionSounds
+		playSonarExecutionSounds.eventName = "play_sonar_execution_sounds"
+		playSonarExecutionSounds.callback = AnimEvent_play_sonar_execution_sounds
+
+		AnimEventData mriPulseEvent
+		mriPulseEvent.eventName = "mri_effect"
+		mriPulseEvent.callback = AnimEvent_NinjaProjectileImpact
+		*/
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_pulseblade_ninja"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_pulseblade"
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_pulseblade"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+		syncedMelee.attacker3pAnimEvents = [ givePulseBladeEvent, takePulseBladeEvent ]
+		// removed mriPulseEvent and playSonarExecutionSounds
+		//syncedMelee.target3pAnimEvents = [ headstabEvent, mriPulseEvent, playSonarExecutionSounds ]
+		syncedMelee.target3pAnimEvents = [ headstabEvent ]
+		syncedMelee.minDot = 0.2
+		syncedMelee.isAttackerRef = false
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
+
+	{
+		// PulseBlade Execution, but no pulse blade effects
+		AnimEventData givePulseBladeEvent
+		givePulseBladeEvent.eventName = "attach_pulseBlade"
+		givePulseBladeEvent.callback = AnimEvent_attach_pulseBlade
+
+		AnimEventData headstabEvent
+		headstabEvent.eventName = "headstab_death"
+		headstabEvent.callback = AnimEvent_headstab_death
+
+		AnimEventData takePulseBladeEvent
+		takePulseBladeEvent.eventName = "detach_pulseBlade"
+		// knife executions has been reworked, use AnimEvent_detach_knife() can handle all of the situations
+		//takePulseBladeEvent.callback = AnimEvent_detach_pulseBlade
+		takePulseBladeEvent.callback = AnimEvent_detach_knife
+
+		// remove pulse blade specific effects
+		// cannot remove sound though, everything handled by that single sound
+		AnimEventData playSonarExecutionSounds
+		playSonarExecutionSounds.eventName = "play_sonar_execution_sounds"
+		playSonarExecutionSounds.callback = AnimEvent_play_sonar_execution_sounds
+
+		/*
+		AnimEventData mriPulseEvent
+		mriPulseEvent.eventName = "mri_effect"
+		mriPulseEvent.callback = AnimEvent_NinjaProjectileImpact
+		*/
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_pulseblade_kunai"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_pulseblade"
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_pulseblade"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+		syncedMelee.attacker3pAnimEvents = [ givePulseBladeEvent, takePulseBladeEvent ]
+		// removed mriPulseEvent
+		//syncedMelee.target3pAnimEvents = [ headstabEvent, mriPulseEvent, playSonarExecutionSounds ]
+		syncedMelee.target3pAnimEvents = [ headstabEvent, playSonarExecutionSounds ]
+		syncedMelee.minDot = 0.2
+		syncedMelee.isAttackerRef = false
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
+
+	{
+		// PulseBlade Execution, but no pulse blade effects and uses sword
+		AnimEventData givePulseBladeEvent
+		givePulseBladeEvent.eventName = "attach_pulseBlade"
+		givePulseBladeEvent.callback = AnimEvent_attach_sword_nonrotate
+
+		AnimEventData headstabEvent
+		headstabEvent.eventName = "headstab_death"
+		headstabEvent.callback = AnimEvent_headstab_death
+
+		AnimEventData takePulseBladeEvent
+		takePulseBladeEvent.eventName = "detach_pulseBlade"
+		// knife executions has been reworked, use AnimEvent_detach_knife() can handle all of the situations
+		//takePulseBladeEvent.callback = AnimEvent_detach_pulseBlade
+		takePulseBladeEvent.callback = AnimEvent_detach_knife
+
+		// remove pulse blade specific effects
+		// cannot remove sound though, everything handled by that single sound
+		AnimEventData playSonarExecutionSounds
+		playSonarExecutionSounds.eventName = "play_sonar_execution_sounds"
+		playSonarExecutionSounds.callback = AnimEvent_play_sonar_execution_sounds
+
+		/*
+		AnimEventData mriPulseEvent
+		mriPulseEvent.eventName = "mri_effect"
+		mriPulseEvent.callback = AnimEvent_NinjaProjectileImpact
+		*/
+
+		SyncedMelee syncedMelee
+		syncedMelee.ref = "execution_pulseblade_sword"
+		syncedMelee.direction = < -1, 0, 0 >
+		syncedMelee.distance = HUMAN_EXECUTION_RANGE
+		syncedMelee.attackerAnimation3p = "pt_mp_execution_attacker_pulseblade"
+		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_pulseblade"
+		syncedMelee.thirdPersonCameraAttachment = "VDU"
+		syncedMelee.attacker3pAnimEvents = [ givePulseBladeEvent, takePulseBladeEvent ]
+		// removed mriPulseEvent
+		//syncedMelee.target3pAnimEvents = [ headstabEvent, mriPulseEvent, playSonarExecutionSounds ]
+		syncedMelee.target3pAnimEvents = [ headstabEvent, playSonarExecutionSounds ]
+		syncedMelee.minDot = 0.2
+		syncedMelee.isAttackerRef = false
+		// modified element in struct SyncedMelee
+		// make them ignore IsItemLocked() checks, since they're not a registered item
+		syncedMelee.ignoreUnlockProgressChecks = true
+		// we don't want it to be picked by default random executions( can still be picked by executionRef overrides )
+		syncedMelee.canBePickedByRandomExecution = false
+
+		AddSyncedMelee( meleeChooser, syncedMelee )
+		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
+	}
 }
 
 // same as AnimEvent_attach_knife, but the model uses combat knife
@@ -211,7 +401,7 @@ void function AnimEvent_attach_combat_knife( entity ent )
 	AnimEvent_attach_knife_common( ent, KNIFE_MODEL )
 }
 
-// same as AnimEvent_attach_knife, but the model uses kunai
+// same as AnimEvent_attach_knife, but the model uses kunai and rotates itself
 void function AnimEvent_attach_kunai( entity ent )
 {
 	// modified utility in sh_melee_synced_human.gnut
@@ -221,7 +411,7 @@ void function AnimEvent_attach_kunai( entity ent )
 	AnimEvent_attach_knife_rotate( ent, $"models/weapons/kunai/w_kunai.mdl", < 180, 0, 0 > )
 }
 
-// same as AnimEvent_attach_knife, but the model uses sword
+// same as AnimEvent_attach_knife, but the model uses sword and rotates itself
 void function AnimEvent_attach_sword( entity ent )
 {
 	// modified utility in sh_melee_synced_human.gnut
@@ -313,6 +503,73 @@ void function AnimEvent_CreateHardCover( entity awall_base )
 	)
 
 	wait timeoutFailSafe
+}
+
+void function AnimEvent_NinjaProjectileImpact( entity ent )
+{
+	int headShotAttachmentIndex = ent.LookupAttachment( "HEADSHOT" )
+	if ( headShotAttachmentIndex > 0 )
+	{
+		vector fxPos = ent.GetAttachmentOrigin( headShotAttachmentIndex )
+		vector fxAngs = ent.GetAttachmentAngles( headShotAttachmentIndex )
+		PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, fxAngs )
+	}
+}
+
+// MODIFIED: do stab effect while doing ninja projectile impact effect
+void function AnimEvent_headstab_death_ninja( entity ent )
+{
+	#if SERVER
+	int tagIdx = ent.LookupAttachment( "HEADSHOT" )
+
+	// defensive fix for executing modded prop models
+	if ( tagIdx > 0 )
+	{
+		if ( ent.IsMechanical() )
+			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( MECHANICAL_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
+		else
+			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
+	
+		vector fxPos = ent.GetAttachmentOrigin( tagIdx )
+		vector fxAngs = ent.GetAttachmentAngles( tagIdx )
+		PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, fxAngs )
+		// cannot play sound!
+		//EmitSoundAtPosition( TEAM_UNASSIGNED, fxPos, "Pilot_PulseBlade_Activated_3P" )
+	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headstab_death" )
+	#endif
+}
+
+void function AnimEvent_headstab_death_ninja_sound( entity ent )
+{
+	#if SERVER
+	int tagIdx = ent.LookupAttachment( "HEADSHOT" )
+
+	// defensive fix for executing modded prop models
+	if ( tagIdx > 0 )
+	{
+		if ( ent.IsMechanical() )
+			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( MECHANICAL_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
+		else
+			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
+	
+		vector fxPos = ent.GetAttachmentOrigin( tagIdx )
+		vector fxAngs = ent.GetAttachmentAngles( tagIdx )
+		PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, fxAngs )
+		EmitSoundAtPosition( TEAM_UNASSIGNED, fxPos, "Pilot_PulseBlade_Activated_3P" )
+	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headstab_death" )
+	#endif
+}
+
+// same as AnimEvent_attach_knife, but model uses sword
+void function AnimEvent_attach_sword_nonrotate( entity ent )
+{
+	AnimEvent_attach_knife_common( ent, $"models/weapons/bolo_sword/w_bolo_sword.mdl" )
 }
 
 // nessie executions, not finished yet

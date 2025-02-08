@@ -956,6 +956,16 @@ void function AnimEvent_mriPulseEvent( entity ent )
 
 	int meleeAttackerTeam = syncedMeleeAttacker.GetTeam()
 
+	// defensive fix for executing modded prop models
+	int headShotAttachmentIndex = ent.LookupAttachment( "HEADSHOT" )
+	if ( headShotAttachmentIndex < 0 )
+		return
+	
+	float startTime = Time()
+	Highlight_ClearEnemyHighlight( ent )
+	Highlight_SetEnemyHighlightWithParams( ent, "enemy_sonar_execution", <startTime, Time(), 0>, ent.GetAttachmentOrigin( headShotAttachmentIndex ) )
+
+	/*
 	int headShotAttachmentIndex
 	float startTime = Time()
 
@@ -963,6 +973,7 @@ void function AnimEvent_mriPulseEvent( entity ent )
 	headShotAttachmentIndex = ent.LookupAttachment( "HEADSHOT" )
 	//Highlight_SetEnemyHighlightWithParam1( ent, "enemy_sonar_execution", ent.GetAttachmentOrigin( headShotAttachmentIndex ) )
 	Highlight_SetEnemyHighlightWithParams( ent, "enemy_sonar_execution", <startTime, Time(), 0>, ent.GetAttachmentOrigin( headShotAttachmentIndex ) )
+	*/
 
 	ent.EndSignal( "OnDestroy" )
 
