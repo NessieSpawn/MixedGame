@@ -215,7 +215,7 @@ void function InitModdedHumanSyncedMelee()
 
 		AnimEventData headstabEvent
 		headstabEvent.eventName = "headstab_death"
-		headstabEvent.callback = AnimEvent_headshot_death_ninja // Use head shot instead of vanilla headstab for this execution
+		headstabEvent.callback = AnimEvent_headstab_death_ninja
 		//headstabEvent.callback = AnimEvent_headstab_death_ninja_sound // removed headshot, headstab looks better. also plays ninja projectile effect and sound on stab hit
 		//headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
 
