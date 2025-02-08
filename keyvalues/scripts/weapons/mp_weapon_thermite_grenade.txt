@@ -121,6 +121,9 @@ WeaponData
 		dissolve_instant // use together with ninja_projectile. blink out upon impact
 		{
 		}
+		no_impact_effect // remove impact effect
+		{
+		}
 
 		// gamemode kraber specifics
 		kunai_mode // use together with ninja_projectile
