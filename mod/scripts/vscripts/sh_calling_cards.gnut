@@ -103,8 +103,11 @@ void function ShCallingCards_Init()
 
 	#if SERVER
 	AddCallback_OnClientConnecting( OnClientConnecting )
-	AddCallback_OnTitanBecomesPilot( OnClassChangeBecomePilot )
+	AddCallback_OnTitanBecomesPilot( OnClassChangeBecomePilot ) // this isn't acutally class change, only triggers when player manually leaves titan
 	AddCallback_OnPilotBecomesTitan( OnClassChangeBecomeTitan )
+	// vanilla has one case not handled: dying as titan won't trigger any of these callback!
+	// needs to handle on respawn, I think
+	AddCallback_OnPlayerRespawned( OnPlayerRespawned )
 	#endif
 }
 
@@ -420,4 +423,11 @@ void function OnClassChangeBecomeTitan( entity player, entity titan )
 	player.SetTargetInfoIcon( GetTitanCoreIcon( titanRef ) )
 }
 
+// vanilla has one case not handled: dying as titan won't trigger any of these callback!
+// needs to handle on respawn, I think
+void function OnPlayerRespawned( entity player )
+{
+	CallsignIcon callsignIcon = PlayerCallsignIcon_GetActive( player )
+	player.SetTargetInfoIcon( callsignIcon.smallImage )
+}
 #endif
