@@ -28,6 +28,7 @@ global function PhaseShiftExplodeSound
 global function PlaySoundsForBodyType
 global function GrappleStabSound
 global function GrappleBodyfallSound
+global function AnimEvent_attach_pulseBlade
 global function AnimEvent_play_sonar_execution_sounds
 global function AnimEvent_mriPulseEvent
 global function AnimEvent_Cloak_On
