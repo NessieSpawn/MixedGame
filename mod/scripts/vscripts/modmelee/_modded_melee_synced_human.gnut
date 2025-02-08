@@ -215,9 +215,9 @@ void function InitModdedHumanSyncedMelee()
 
 		AnimEventData headstabEvent
 		headstabEvent.eventName = "headstab_death"
-		//headstabEvent.callback = AnimEvent_headshot_death // Use head shot instead of vanilla headstab for this execution
+		headstabEvent.callback = AnimEvent_headshot_death_ninja // Use head shot instead of vanilla headstab for this execution
 		//headstabEvent.callback = AnimEvent_headstab_death_ninja_sound // removed headshot, headstab looks better. also plays ninja projectile effect and sound on stab hit
-		headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
+		//headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
 
 		SyncedMelee syncedMelee
 		syncedMelee.ref = "execution_face_stab_ninja"
@@ -247,8 +247,8 @@ void function InitModdedHumanSyncedMelee()
 
 		AnimEventData headstabEvent
 		headstabEvent.eventName = "headstab_death"
-		//headstabEvent.callback = AnimEvent_headstab_death_ninja // plays ninja projectile effect on stab hit
-		headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
+		headstabEvent.callback = AnimEvent_headstab_death_ninja // plays ninja projectile effect on stab hit
+		//headstabEvent.callback = AnimEvent_headstab_death // ninja's melee weapon don't have special impact... guess no need
 
 		AnimEventData takePulseBladeEvent
 		takePulseBladeEvent.eventName = "detach_pulseBlade"
@@ -257,12 +257,13 @@ void function InitModdedHumanSyncedMelee()
 		takePulseBladeEvent.callback = AnimEvent_detach_knife
 
 		// use ninja projectile impact effect
-		// maybe works better with "headstab_death" event
-		/*
+		// cannot remove sound though, everything handled by that single sound
 		AnimEventData playSonarExecutionSounds
 		playSonarExecutionSounds.eventName = "play_sonar_execution_sounds"
 		playSonarExecutionSounds.callback = AnimEvent_play_sonar_execution_sounds
 
+		// maybe works better with "headstab_death" event
+		/*
 		AnimEventData mriPulseEvent
 		mriPulseEvent.eventName = "mri_effect"
 		mriPulseEvent.callback = AnimEvent_NinjaProjectileImpact
@@ -276,9 +277,9 @@ void function InitModdedHumanSyncedMelee()
 		syncedMelee.targetAnimation3p = "pt_mp_execution_victim_pulseblade"
 		syncedMelee.thirdPersonCameraAttachment = "VDU"
 		syncedMelee.attacker3pAnimEvents = [ givePulseBladeEvent, takePulseBladeEvent ]
-		// removed mriPulseEvent and playSonarExecutionSounds
+		// removed mriPulseEvent
 		//syncedMelee.target3pAnimEvents = [ headstabEvent, mriPulseEvent, playSonarExecutionSounds ]
-		syncedMelee.target3pAnimEvents = [ headstabEvent ]
+		syncedMelee.target3pAnimEvents = [ headstabEvent, playSonarExecutionSounds ]
 		syncedMelee.minDot = 0.2
 		syncedMelee.isAttackerRef = false
 		// modified element in struct SyncedMelee
@@ -292,7 +293,7 @@ void function InitModdedHumanSyncedMelee()
 	}
 
 	{
-		// PulseBlade Execution, but no pulse blade effects
+		// PulseBlade Execution, but no pulse blade effects( actually we still have, this only removes mri highlight )
 		AnimEventData givePulseBladeEvent
 		givePulseBladeEvent.eventName = "attach_pulseBlade"
 		givePulseBladeEvent.callback = AnimEvent_attach_pulseBlade
@@ -343,7 +344,7 @@ void function InitModdedHumanSyncedMelee()
 	}
 
 	{
-		// PulseBlade Execution, but no pulse blade effects and uses sword
+		// PulseBlade Execution, but no pulse blade effects and uses sword( actually we still have, this only removes mri highlight )
 		AnimEventData givePulseBladeEvent
 		givePulseBladeEvent.eventName = "attach_pulseBlade"
 		givePulseBladeEvent.callback = AnimEvent_attach_sword_nonrotate
