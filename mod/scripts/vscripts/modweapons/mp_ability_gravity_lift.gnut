@@ -718,7 +718,8 @@ void function GravityLiftFreeFallSound( entity player )
     )
 
     // wait for player drop to ground or start traversing
-    while ( !player.IsOnGround() && !player.IsTraversing() )
+	// zipline also cancels fall sound
+    while ( !player.IsOnGround() && !player.IsTraversing() && !player.IsZiplining() )
         WaitFrame( true ) // ignore 10fps limitation to have better effect
 }
 

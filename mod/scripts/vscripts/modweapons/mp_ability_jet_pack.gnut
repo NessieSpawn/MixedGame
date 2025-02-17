@@ -66,7 +66,7 @@ void function MpAbilityJetPack_Init()
     RegisterSignal( "JetPackThinkEnd" )
     RegisterSignal( "JetPackBurst" )
     RegisterSignal( "JetPackLift" )
-    RegisterSignal( "StartGlideThink" )
+    RegisterSignal( "JetPackGlideThink" )
     RegisterSignal( "StartFreeFallSound" )
     RegisterSignal( "ConsumeJetPackAmmo" ) // this should signal a table, but it requires file to be untyped
     RegisterSignal( "ManageWeaponDeployment" )
@@ -473,8 +473,8 @@ vector function GainVelocityVertical( vector vel, float speedGain, float minSpee
 void function JetPackGlideThink( entity player, entity weapon )
 {
     player.EndSignal( "OnDestroy" )
-    player.Signal( "StartGlideThink" )
-    player.EndSignal( "StartGlideThink" )
+    player.Signal( "JetPackGlideThink" )
+    player.EndSignal( "JetPackGlideThink" )
     // end thread when weapon start new burst or lift
     weapon.EndSignal( "JetPackBurst" )
     weapon.EndSignal( "JetPackLift" )
@@ -503,7 +503,7 @@ void function JetPackGlideThink( entity player, entity weapon )
         WaitFrame()
     }
 
-    if( IsValid( player ) ) // don't reset gravity if triggered another "StartGlideThink"
+    if( IsValid( player ) ) // don't reset gravity if triggered another "JetPackGlideThink"
         RestorePlayerPermanentGravity( player )
 }
 
@@ -596,7 +596,8 @@ void function JumpJetFreeFallSound( entity player, entity weapon )
     )
 
     // wait for player drop to ground or start traversing
-    while ( !player.IsOnGround() && !player.IsTraversing() )
+    // zipline also cancels fall sound
+    while ( !player.IsOnGround() && !player.IsTraversing() && !player.IsZiplining() )
         WaitFrame( true ) // ignore 10fps limitation to have better effect
 }
 

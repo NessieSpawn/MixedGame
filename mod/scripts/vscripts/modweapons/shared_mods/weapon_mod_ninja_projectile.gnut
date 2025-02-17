@@ -69,35 +69,37 @@ void function OnProjectileCollision_ninja_projectile( entity projectile, vector 
 
     // fx goes every collision
     #if SERVER
-        projectile.proj.projectileBounceCount++
-        if ( projectile.proj.projectileBounceCount == 1 ) // firstBounce
+        if ( !mods.contains( "no_impact_effect" ) )
         {
-            // play a sound
-            entity owner = projectile.GetOwner()
-            if( IsValid( owner ) && owner.IsPlayer() )
+            projectile.proj.projectileBounceCount++
+            if ( projectile.proj.projectileBounceCount == 1 ) // firstBounce
             {
-                EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_3P" )
-                EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_1P" )
+                // play a sound
+                entity owner = projectile.GetOwner()
+                if( IsValid( owner ) && owner.IsPlayer() )
+                {
+                    EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_3P" )
+                    EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_1P" )
+                }
+                else
+                    EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
             }
-            else
-                EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
+            // removing normal for FX
+            vector fxPos = pos //pos + normal
+            PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, VectorToAngles( normal ) )
+            //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "PulseBlade_SurfaceImpact_BubbleShield_3P" )
+            //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
         }
-        // removing normal for FX
-        vector fxPos = pos //pos + normal
-        PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, VectorToAngles( normal ) )
-        //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "PulseBlade_SurfaceImpact_BubbleShield_3P" )
-        //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
-        
     #endif
 
     bool didStick = false
-    if ( mods.contains( "impact_bounce" ) ) // bounce on impact
+    if ( mods.contains( "impact_bounce" ) ) // bounce on impact, keep same behavior as pulse blade to avoid desync
     {
         if ( IsHumanSized( hitEnt ) )//Don't stick on Pilots/Grunts/Spectres. Causes pulse blade to fall into ground
 		    return
         didStick = PlantStickyGrenade( projectile, pos, normal, hitEnt, hitbox, 4.0, false )
     }
-    else // always try to stick
+    else // always try to stick, keep same behavior as firestar/gravity star to avoid desync
         didStick = PlantSuperStickyGrenade( projectile, pos, normal, hitEnt, hitbox )
 
     #if SERVER

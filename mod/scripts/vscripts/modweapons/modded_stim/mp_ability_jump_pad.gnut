@@ -363,9 +363,9 @@ void function GiveJumpPadEffect( entity player )
 	if ( player.IsPlayer() ) // add compatibliity for npc usage
 		player.TouchGround() // regen doublejump
 
-	thread JumpPadFlying( player ) // signal sender
 	if ( player.IsPlayer() ) // add compatibliity for npc usage
 	{
+		thread JumpPadFlying( player ) // signal sender
 		//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
 		thread JumpPadTrailThink( player )
 		thread JumpPadTripleJumpThink( player )
@@ -385,6 +385,7 @@ void function JumpPadFlying( entity player )
 	OnThreadEnd(
 		function(): ( player )
 		{
+			//print( "JumpPadFlying() function has ended!" )
 			if( IsValid( player ) )
 				RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, SignalOnPlayerTouchGround )
 		}
@@ -403,9 +404,15 @@ void function WaitForPlayerTouchGround( entity player )
 	// "OnDeath" and "OnDestroy" inherits from JumpPadFlying()
 	player.EndSignal( "JumpPadPlayerTouchGround" ) // main functional signal
 
+	wait 0.2 // wait for player actrually leaving ground
+
 	// failsafe looping case
-	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() )
+	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() && !player.IsZiplining() )
 		WaitFrame()
+
+	// if our code hits here, it must means player triggered failsafe case...
+	// manually do signal to end other threads
+	player.Signal( "JumpPadPlayerTouchGround" )
 }
 
 void function JumpPadForcedVelocity( entity player, vector targetVelocity )
@@ -545,10 +552,10 @@ void function JumpPadFreefallSoundThink( entity player )
     StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
 
 	player.EndSignal( "OnDestroy" )
+	// end thread when player enter another jump pad or touch ground
 	player.Signal( "StartFreeFallSound" )
 	player.EndSignal( "StartFreeFallSound" )
-	// end thread when player enter another jump pad or touch ground
-	player.EndSignal( "JumpPadFlyStart" )
+	//player.EndSignal( "JumpPadFlyStart" )
 	player.EndSignal( "JumpPadPlayerTouchGround" )
 
 	// wait for player's vertical speed lowered
@@ -581,7 +588,8 @@ void function JumpPadFreefallSoundThink( entity player )
 	)
 
 	// wait for player drop to ground or start traversing
-	while ( !player.IsOnGround() && !player.IsTraversing() )
+	// zipline also cancels fall sound
+	while ( !player.IsOnGround() && !player.IsTraversing() && !player.IsZiplining() )
 		WaitFrame( true ) // ignore 10fps limitation to have better effect
 }
 
