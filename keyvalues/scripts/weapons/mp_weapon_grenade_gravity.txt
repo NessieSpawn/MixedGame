@@ -82,6 +82,9 @@ WeaponData
 		dissolve_instant // use together with ninja_projectile. blink out upon impact
 		{
 		}
+		no_impact_effect // remove impact effect
+		{
+		}
 
 		// modded
 		ar_trajectory // client required
