@@ -683,8 +683,13 @@ function TransferDamageHistoryToTarget( entity target )
 {
 	entity titanSoul = target.GetTitanSoul()
 	// we can have damage history disabled now, needs to check
+	// this branch allows client to use the mod, needs checks
+#if SERVER
 	if ( !DamageHistory_IsDisabledOnEntity( target ) )
 		target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
+#elseif CLIENT
+	target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
+#endif // SERVER
 }
 
 bool function DoSyncedMelee( entity player, entity target )

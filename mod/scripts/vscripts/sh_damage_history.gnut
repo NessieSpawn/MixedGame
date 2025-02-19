@@ -80,8 +80,11 @@ void function DamageHistoryInit()
 void function ClearRecentDamageHistory( entity player )
 {
 	// damage history can be disabled for self-destucting units
+	// this branch allows client to use the mod, needs checks
+#if SERVER
 	if ( DamageHistory_IsDisabledOnEntity( player ) )
 		return
+#endif
 
 	player.e.recentDamageHistory.clear()
 }
@@ -91,8 +94,11 @@ DamageHistoryStruct function StoreDamageHistoryAndUpdate( entity storeEnt, float
 	DamageHistoryStruct damageHistory
 
 	// damage history can be disabled for self-destucting units
+	// this branch allows client to use the mod, needs checks
+#if SERVER
 	if ( DamageHistory_IsDisabledOnEntity( storeEnt ) )
 		return damageHistory
+#endif
 
 	float time = Time()
 
@@ -181,8 +187,11 @@ array<DamageHistoryStruct> function GetDamageEventsForTime( entity player, float
 void function UpdateDamageHistory( entity player, float maxTime, float time )
 {
 	// damage history can be disabled for self-destucting units
+	// this branch allows client to use the mod, needs checks
+#if SERVER
 	if ( DamageHistory_IsDisabledOnEntity( player ) )
 		return
+#endif
 
 	// remove old damage history entries
 	int i
@@ -444,9 +453,15 @@ AssistingPlayerStruct function GetLatestAssistingPlayerInfo( entity ent )
 			continue
 
 		// I feel like this shouldn't be a const, better leave a setting for everybody
-		//if ( currentTime - history.time >= MAX_NPC_KILL_STEAL_PREVENTION_TIME )
+		// this branch allows client to use the mod, needs checks
+		// actually I was thinking... really do all these damage stuffs needs client-side checks???
+#if SERVER
 		if ( currentTime - history.time >= file.npcKillStealPreventionTime )
+#elseif CLIENT
+		if ( currentTime - history.time >= MAX_NPC_KILL_STEAL_PREVENTION_TIME ) // keep vanilla checks
+#endif // SERVER
 			continue
+			
 
 		// I do think more stuffs should be checked...
 		// trying to use similar check as _score.nut does

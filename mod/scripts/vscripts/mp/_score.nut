@@ -930,10 +930,8 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 			}
 		}
 
-		// assist is now allowed if it's a friendly player and we disabled score
-		bool friendlyPlayerAssist = attackerInfo.attacker.GetTeam() == victim.GetTeam()
-		bool shouldAddScoreForFriendlyAssist = FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill()
-		if ( friendlyPlayerAssist && !shouldAddScoreForFriendlyAssist )
+		// assist is now allowed if it's a friendly player( does that happens on player changing team or electric smoke stuffs? )
+		if ( attackerInfo.attacker.GetTeam() == victim.GetTeam() )
 			continue
 
 		bool exists = attackerInfo.attacker.GetEncodedEHandle() in alreadyAssisted ? true : false
