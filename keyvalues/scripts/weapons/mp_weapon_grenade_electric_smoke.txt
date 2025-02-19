@@ -12,26 +12,4 @@ WeaponData
 	// being both DOT damage, using values from firestar
 	"npc_min_range"   								"500"
 	"npc_max_range"   								"1200"
-
-	Mods
-	{
-		burn_mod_grenade_electric_smoke
-		{
-		}
-		pas_ordnance_pack
-		{
-		}
-		spree_lvl1_grenade_smoke
-		{
-		}
-		spree_lvl2_grenade_smoke
-		{
-		}
-		spree_lvl3_grenade_smoke
-		{
-		}
-		sp_disable_arc_indicator
-		{
-		}
-	}
 }

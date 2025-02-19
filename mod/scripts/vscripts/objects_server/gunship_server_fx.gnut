@@ -9,7 +9,7 @@ const bool ENABLE_GUNSHIP_MODEL_EFFECTS = true
 
 void function Gunship_ServerSide_ModelFX_Init()
 {
-    #if ENABLE_GUNSHIP_MODEL_EFFECTS
+#if ENABLE_GUNSHIP_MODEL_EFFECTS
     PrecacheParticleSystem( $"acl_light_blue" )
     PrecacheParticleSystem( $"acl_light_red" )
     PrecacheParticleSystem( $"veh_hornet_jet_full" )
@@ -29,7 +29,7 @@ void function Gunship_ServerSide_ModelFX_Init()
 
     // default used for npc_gunship
     AddSpawnCallback( "npc_gunship", OnGunshipSpawned )
-    #endif // ENABLE_GUNSHIP_MODEL_EFFECTS
+#endif // ENABLE_GUNSHIP_MODEL_EFFECTS
 }
 
 #if ENABLE_GUNSHIP_MODEL_EFFECTS
@@ -151,6 +151,9 @@ void function RegisterGunshipServerModelSpawnFX( asset modelName )
 
 void function RegisterGunshipServerModelHealthFX( asset modelName )
 {
+    // allow server turning off
+    bool enableServerLoopingEffects = GetCurrentPlaylistVarInt( "gunship_server_effects", 0 ) == 1
+
     // gunship effects
     /*
     ServerModelHealthFX_Register(
@@ -262,94 +265,97 @@ void function RegisterGunshipServerModelHealthFX( asset modelName )
     */
 
 	// hornet effects
-    ServerModelHealthFX_Register(
-        modelName,
-        0.80,                       // healthFrac
-        "L_exhaust_rear_1",         // attachment
-        $"xo_health_smoke_white",   // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-    ServerModelHealthFX_Register(
-        modelName,
-        0.75,                       // healthFrac
-        "R_exhaust_rear_1",         // attachment
-        $"xo_health_smoke_white",   // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-	// these effects isn't very noticeable...
-	/*
-    ServerModelHealthFX_Register(
-        modelName,
-        0.50,                       // healthFrac
-        "L_exhaust_rear_1",         // attachment
-        $"veh_chunk_trail",         // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-    ServerModelHealthFX_Register(
-        modelName,
-        0.45,                       // healthFrac
-        "R_exhaust_rear_1",         // attachment
-        $"veh_chunk_trail",         // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-	*/
+    if ( enableServerLoopingEffects )
+    {
+        ServerModelHealthFX_Register(
+            modelName,
+            0.80,                       // healthFrac
+            "L_exhaust_rear_1",         // attachment
+            $"xo_health_smoke_white",   // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        ServerModelHealthFX_Register(
+            modelName,
+            0.75,                       // healthFrac
+            "R_exhaust_rear_1",         // attachment
+            $"xo_health_smoke_white",   // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        // these effects isn't very noticeable...
+        /*
+        ServerModelHealthFX_Register(
+            modelName,
+            0.50,                       // healthFrac
+            "L_exhaust_rear_1",         // attachment
+            $"veh_chunk_trail",         // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        ServerModelHealthFX_Register(
+            modelName,
+            0.45,                       // healthFrac
+            "R_exhaust_rear_1",         // attachment
+            $"veh_chunk_trail",         // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        */
 
-	// adding back reaper effects
-    ServerModelHealthFX_Register(
-        modelName,
-        0.66,                       // healthFrac
-        "L_exhaust_rear_1",         // attachment
-        $"P_sup_spectre_dam_1",     // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-    ServerModelHealthFX_Register(
-        modelName,
-        0.66,                       // healthFrac
-        "R_exhaust_rear_1",         // attachment
-        $"P_sup_spectre_dam_1",     // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
+        // adding back reaper effects
+        ServerModelHealthFX_Register(
+            modelName,
+            0.66,                       // healthFrac
+            "L_exhaust_rear_1",         // attachment
+            $"P_sup_spectre_dam_1",     // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        ServerModelHealthFX_Register(
+            modelName,
+            0.66,                       // healthFrac
+            "R_exhaust_rear_1",         // attachment
+            $"P_sup_spectre_dam_1",     // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
 
-    ServerModelHealthFX_Register(
-        modelName,
-        0.33,                       // healthFrac
-        "L_exhaust_front_1",        // attachment
-        $"P_sup_spectre_dam_2",     // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-    ServerModelHealthFX_Register(
-        modelName,
-        0.33,                       // healthFrac
-        "R_exhaust_front_1",        // attachment
-        $"P_sup_spectre_dam_2",     // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
+        ServerModelHealthFX_Register(
+            modelName,
+            0.33,                       // healthFrac
+            "L_exhaust_front_1",        // attachment
+            $"P_sup_spectre_dam_2",     // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        ServerModelHealthFX_Register(
+            modelName,
+            0.33,                       // healthFrac
+            "R_exhaust_front_1",        // attachment
+            $"P_sup_spectre_dam_2",     // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
 
-	// modified effects
-    ServerModelHealthFX_Register(
-        modelName,
-        0.40,                       // healthFrac
-        "L_exhaust_rear_1",         // attachment
-        $"xo_health_smoke_black",   // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
-    ServerModelHealthFX_Register(
-        modelName,
-        0.35,                       // healthFrac
-        "R_exhaust_rear_1",         // attachment
-        $"xo_health_smoke_black",   // effectName
-        true,                       // attachToEnt
-        true                        // loopEffect
-    )
+        // modified effects
+        ServerModelHealthFX_Register(
+            modelName,
+            0.40,                       // healthFrac
+            "L_exhaust_rear_1",         // attachment
+            $"xo_health_smoke_black",   // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+        ServerModelHealthFX_Register(
+            modelName,
+            0.35,                       // healthFrac
+            "R_exhaust_rear_1",         // attachment
+            $"xo_health_smoke_black",   // effectName
+            true,                       // attachToEnt
+            true                        // loopEffect
+        )
+    }
 }
 
 void function OnGunshipSpawned( entity gunship )

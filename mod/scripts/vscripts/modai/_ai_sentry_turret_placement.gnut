@@ -16,6 +16,7 @@ global function AddCallback_OnNPCPlaceTurret // gets called by DeployTurretFromN
 const string NPC_TURRET_PLACEMENT_DEFAULT_AISET = "npc_turret_sentry"
 const asset NPC_TURRET_PLACEMENT_DEFAULT_MODEL = $"models/robots/turret_plasma/turret_plasma.mdl"
 const string NPC_TURRET_PLACEMENT_DEFAULT_WEAPON = "mp_weapon_yh803_bullet"
+const float NPC_TURRET_DEFAULT_RANGE = 2500 // should be engage range for hitscan turret! projectile turrets always lower
 
 // consts copied from mp_ability_turretweapon.nut
 const float DEPLOYABLE_TURRET_PLACEMENT_RANGE_MAX = 80
@@ -227,6 +228,8 @@ void function TurretGruntThink( entity npc )
 		string turretWeapon = GetNPCTurretPlaceWeapon( npc )
 		float turretRange = GetWeaponInfoFileKeyField_GlobalFloat( turretWeapon, "npc_max_engage_range" )
 		//print( "turretRange for weapon " + turretWeapon + ": " + string( turretRange ) )
+		if ( turretRange == 0 ) // range invalid!
+			turretRange = NPC_TURRET_DEFAULT_RANGE // use default range value, should be good for hitscan turrets
 
 		if ( !npc.CanSee( enemy ) || ( Distance( npc.GetOrigin(), enemy.GetOrigin() ) > turretRange * 0.7 ) )
 		{

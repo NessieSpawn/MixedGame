@@ -70,8 +70,4 @@ WeaponData
 	"proficiency_good_spreadscale"					"4.0"
 	"proficiency_very_good_spreadscale"   			"3.0"
 	"proficiency_perfect_spreadscale"   			"2.0"
-
-	Mods
-	{
-	}
 }

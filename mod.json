@@ -113,6 +113,8 @@
             "Path": "/modgamemodes/gamemode_aitdm_extend.gnut",
 			"RunOn": "SERVER && MP"
 		},
+		// gamemode scripts end
+		// shared utility scripts
 		{
             "Path": "/sharedutil/riff_aitdm_extend.gnut",
 			"RunOn": "( CLIENT || SERVER ) && MP",
@@ -143,7 +145,17 @@
                 "After": "Riff_Modded_Titan_Animation_Init"
             }
 		},
-		// gamemode scripts end
+		{
+			"Path": "/sharedutil/sh_serverside_objects.gnut",
+			"RunOn": "( CLIENT || SERVER ) && MP",
+            "ServerCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            },
+			"ClientCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            }
+		},
+		// shared utility scripts end
 		// modified utility scripts
 		{
             "Path": "/modmelee/_melee_synced_npc.gnut",
