@@ -397,6 +397,12 @@ void function PlayPainOrDeathSounds( array<PainOrDeathSound> soundEvents, entity
 	}
 	//
 
+	// heavily modified content here
+	// new adding damageflag DF_NO_PAIN: no pain/death sound on damage
+	if ( damageTypes & DF_NO_PAIN )
+		return
+	//
+
 	int lastPriority = 0
 	bool blockingPriority
 

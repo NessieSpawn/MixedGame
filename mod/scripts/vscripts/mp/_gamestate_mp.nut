@@ -508,6 +508,7 @@ void function GameStateEnter_WinnerDetermined_Threaded()
 
 		// update match MVP stat
 		Stats_UpdateMatchMVP() // shared from _stats.nut
+		RegisterMatchStats_OnMatchComplete() // calculate all stats for current match
 	}
 	else
 		ScoreEvent_RoundComplete( winningTeam )

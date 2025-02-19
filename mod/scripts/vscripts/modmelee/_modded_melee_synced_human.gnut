@@ -1,9 +1,6 @@
 untyped
 global function Modded_Melee_Synced_Human_Init
 
-// nessie modded function, not finished yet
-global function ModdedSyncedMelee_EnableNessieExecutions
-
 struct
 {
 	bool nessieExecutions = false
@@ -56,35 +53,3 @@ void function InitModdedHumanSyncedMelee()
 		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
 	}
 }
-
-// same as AnimEvent_attach_knife, but the model uses combat knife
-void function AnimEvent_attach_combat_knife( entity ent )
-{
-	// modified utility in sh_melee_synced_human.gnut
-	AnimEvent_attach_knife_common( ent, KNIFE_MODEL )
-}
-
-// nessie executions, not finished yet
-#if SERVER
-void function ModdedSyncedMelee_EnableNessieExecutions( bool enable )
-{
-	file.nessieExecutions = enable
-}
-
-entity function CreateNessyDollToCoverEntity( entity ent, string attachment )
-{
-	entity nessie = CreatePropDynamic( $"models/domestic/nessy_doll.mdl" )
-	//ent.Hide() // hide previous entity
-	nessie.SetParent( ent, attachment )
-	SetForceDrawWhileParented( nessie, true ) // show nessie
-	thread TrackNessieParentedEntLifeTime( ent, nessie )
-	return nessie
-}
-
-void function TrackNessieParentedEntLifeTime( entity ent, entity nessie )
-{
-	nessie.EndSignal( "OnDestroy" )
-	ent.WaitSignal( "OnDestroy" )
-	nessie.Destroy()
-}
-#endif
