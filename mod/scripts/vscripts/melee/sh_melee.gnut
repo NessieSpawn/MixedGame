@@ -989,7 +989,7 @@ SyncedMelee ornull function FindBestSyncedMelee( entity attacker, entity target,
 				// PickRandomExecution has been reworked
 				// pass an array<SyncedMelee> is enough
 				//returnVal = PickRandomExecution( actions, attacker )
-				returnVal = PickRandomExecution( actions.syncedMelees, attacker, target, false )
+				returnVal = PickRandomExecution( actions.syncedMelees, attacker, target )
 				break
 			}
 #endif

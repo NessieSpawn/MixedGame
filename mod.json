@@ -201,6 +201,12 @@
             }
 		}
 		// vanilla missing weapon scripts end
+		// damage flag modifiers
+		{
+			"Path": "/damageflags_mod/modded_damageflag_const.gnut",
+			"RunOn": "SERVER"
+		}
+		// damage flag modifiers end
     ],
 
 	"Localisation": [
