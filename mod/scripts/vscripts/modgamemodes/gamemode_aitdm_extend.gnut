@@ -586,14 +586,14 @@ void function ReaperConfig( entity soldier )
 	AITdmExtend_FriendlyHighlight( soldier )
 
 	// even stronger
-	soldier.SetMaxHealth( 5500 ) // was 5000
-	soldier.SetHealth( 5500 )
+	soldier.SetMaxHealth( 6500 ) // was 5500
+	soldier.SetHealth( 6500 )
 
 	// debugging
 	//ExtraSpawner_EnableNPCNoPainOnDamage( true ) // npc won't pain on taking damage
 	//ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 1.0 )
 
-	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.4 ) // less likely can be in pain animation( at least 1400 damage / 3120 repeat damage required )
+	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.5 ) // less likely can be in pain animation( at least 1500 damage / 3600 repeat damage required )
 }
 
 void function TitanConfig( entity soldier )
