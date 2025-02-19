@@ -864,10 +864,8 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 		// only override attacker if assisting one is valid!
 		if ( IsValid( attackerInfo.player ) )
 		{
-			// also don't override if we don't allow friendly fire to add score
-			bool friendlyPlayerAssist = attackerInfo.player.GetTeam() == ent.GetTeam()
-			bool shouldOverrideAttackerForFriendlyAssist = FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill()
-			if ( !friendlyPlayerAssist || shouldOverrideAttackerForFriendlyAssist )
+			// also don't override if we did some friendly fire damage( does that happens on player changing team or electric smoke stuffs? )
+			if ( attackerInfo.player.GetTeam() != ent.GetTeam() )
 			{
 				attacker = attackerInfo.player
 				// Hack - attacker history isn't on client to calculate if a player should get credit for a kill when AI steals the final killing shot while a player is damaging them.
