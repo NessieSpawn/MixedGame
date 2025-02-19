@@ -53,3 +53,10 @@ void function InitModdedHumanSyncedMelee()
 		AddSyncedMeleeServerThink( meleeChooser, MeleeThread_PilotVsEnemy )
 	}
 }
+
+// same as AnimEvent_attach_knife, but the model uses combat knife
+void function AnimEvent_attach_combat_knife( entity ent )
+{
+	// modified utility in sh_melee_synced_human.gnut
+	AnimEvent_attach_knife_common( ent, KNIFE_MODEL )
+}
