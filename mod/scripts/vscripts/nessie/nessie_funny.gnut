@@ -38,6 +38,12 @@ global function PlayerBecomesMarvin
 global function NessyFunny_EnablePlayerTickDamageByDefault // THIS IS DEFAULT SETTING. remember that PlayerBecomesTick() parameters can bypass this
 global function PlayerBecomesTick
 
+// barker -- reimplement after getting funcion
+/*
+global function BecomeFakeBarker
+global function BecomeFakeSpectre
+*/
+
 enum eMarvinMovement
 {
 	IDLE,
@@ -114,6 +120,8 @@ struct
 	table<entity, int> fakeTickMovementState
 	table<entity, TickOverloadBehavior> tickOverloadBehavior
 	table<entity, bool> playerTickDoingSuicideChase
+
+	table<entity, entity> playerOrDecoyFakeModelProxy
 } file
 
 void function Nessie_Funny_Functions_Init()
@@ -174,6 +182,14 @@ void function Nessie_Funny_Functions_Init()
 	RegisterSignal( "TickPlayerTouchGround" )
 	AddClientCommandCallback( "becometick", CC_PlayerBecomeFakeTick )
 
+	// fake model proxy
+	// BAD bone merge, funny though
+	AddClientCommandCallback( "fakebarker", CC_BecomeFakeBarker )
+	AddClientCommandCallback( "fakemarder", CC_BecomeFakeMarder )
+	// works really fine, just need a better model for handling hitboxes
+	AddClientCommandCallback( "fakespectre", CC_BecomeFakeSpectre )
+	AddClientCommandCallback( "fakestalker", CC_BecomeFakeStalker )
+
 	// callbacks
 	AddCallback_OnClientConnected( OnClientConnected )
 	AddCallback_OnPlayerRespawned( OnPlayerRespawned )
@@ -184,7 +200,10 @@ void function Nessie_Funny_Functions_Init()
 	// modified callback defined in mp_ability_holopilot.nut, gets called whenever a player projects hologram
 	AddCallback_OnDecoyCreated( OnDecoyCreated )
 	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
-	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )s
+	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )
+	AddCallback_PlayerDecoyDie( OnDecoyDie )
+	AddCallback_PlayerDecoyDissolve( OnDecoyDissolve )
+
 	// modified callback defined in _utility_shared.nut, for us disabling replay
 	AddCallback_ShouldDoReplay( ShouldDoFunnyReplayStuffs )
 }
@@ -204,6 +223,8 @@ void function OnClientConnected( entity player )
 
 	file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] <- 0.0
 	file.playerTickDoingSuicideChase[ player ] <- false
+
+	file.playerOrDecoyFakeModelProxy[ player ] <- null
 }
 
 void function OnPlayerRespawned( entity player )
@@ -211,6 +232,11 @@ void function OnPlayerRespawned( entity player )
 	// clean up variables we setup with usage of fake npcs
 	if ( !IsAlive( file.playerFakeNPC[ player ] ) ) // to prevent other files calling fake npc func before this callback
 		file.playerUsingFakeNPCThisLife[ player ] = false
+
+	// clean up fake model proxy on respawn, so that they can cover death animation stuffs( may also transfer to ragdolls? idk )
+	// currently I'll set ent to proxy's model on death to play death animation, this clean up won't really work
+	if ( IsValid( file.playerOrDecoyFakeModelProxy[ player ] ) )
+		file.playerOrDecoyFakeModelProxy[ player ].Destroy()
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
@@ -240,6 +266,45 @@ void function OnDecoyCreated( entity player, entity decoy )
 				childEnt = childEnt.NextMovePeer()
 			}
 		}
+
+		if ( IsValid( file.playerOrDecoyFakeModelProxy[ player ] ) )
+		{
+			asset modelName = file.playerOrDecoyFakeModelProxy[ player ].GetModelName()
+			// init for decoy
+			file.playerOrDecoyFakeModelProxy[ decoy ] <- CreateModelProxyForEntity( decoy, modelName )
+		}
+	}
+}
+
+void function OnDecoyDie( entity decoy, int currentState )
+{
+	CleanUpDecoyModelProxy( decoy )
+}
+
+void function OnDecoyDissolve( entity decoy, int currentState )
+{
+	CleanUpDecoyModelProxy( decoy )
+}
+
+void function CleanUpDecoyModelProxy( entity decoy )
+{
+	if ( decoy in file.playerOrDecoyFakeModelProxy && IsValid( file.playerOrDecoyFakeModelProxy[ decoy ] ) )
+	{
+		entity proxy = file.playerOrDecoyFakeModelProxy[ decoy ]
+		// hide decoy, we dissolve proxy instead
+		// resetting decoy's rendermode also works, and proxy will be dissolved as well because decoy seems to dissolve all parented entity in native code
+		decoy.Hide()
+		//decoy.kv.rendermode = 4
+		//decoy.kv.renderamt = 0
+
+		// manually do effect for dissolving
+		// no need because hiding a decoy won't hide it's effect
+		/*
+		int attachIndex = proxy.LookupAttachment( "CHESTFOCUS" )
+		if ( attachIndex > 0 )
+			StartParticleEffectOnEntity( proxy, GetParticleSystemIndex( GHOST_FLASH_EFFECT ), FX_PATTACH_POINT_FOLLOW, attachIndex )
+		*/
+		proxy.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 0 ) // props can't get Decoy_Dissolve() particle effects}
 	}
 }
 
@@ -2436,4 +2501,121 @@ void function TickPlayerTrackView( entity player )
 		player.SetTrackEntityOffset( < -130.0, 0, 30.0 > ) // sp tick is a bit larger
 	else
 		player.SetTrackEntityOffset( < -120.0, 0, 25.0 > )
+}
+
+entity function CreateModelProxyForEntity( entity ent, asset modelName )
+{
+	// better hide -- only adds invisibility, won't impact effects
+	ent.kv.rendermode = 4
+	ent.kv.renderamt = 0
+
+	// cannot use camo or skin for non-titan model... be awared
+	entity proxy = CreatePropDynamic( modelName, ent.GetOrigin(), ent.GetAngles() )
+	proxy.SetParent( ent, "REF" )
+	proxy.SetBoneMerge( ent )
+	proxy.MarkAsNonMovingAttachment()
+	proxy.RemoveFromSpatialPartition()
+	proxy.Highlight_SetInheritHighlight( true )
+	
+	thread ModelProxyLifetime( ent, proxy )
+	//thread TransferChildrenToProxy( ent, proxy )
+
+	return proxy
+}
+
+void function ModelProxyLifetime( entity ent, entity proxy )
+{
+	ent.EndSignal( "OnDestroy" )
+	proxy.EndSignal( "OnDestroy" )
+
+	OnThreadEnd
+	(
+		function() : ( proxy )
+		{
+			if ( IsValid( proxy ) )
+				proxy.Destroy()
+		}
+	)
+
+	// why is decoy sending "OnDeath" signal on getting shot???
+	// should only handle for player/npc
+	// nah player and npc also not working fine with these...
+	if ( ent.IsPlayer() || ent.IsNPC() )
+	{
+		ent.WaitSignal( "OnDeath" )
+
+		// maybe we could just destroy proxy here and let ent themselves play death animation? idk maybe they don't have one
+		ent.SetModel( proxy.GetModelName() )
+		ent.kv.rendermode = 0
+		ent.kv.renderamt = 255
+	}
+	else
+		WaitForever()
+}
+
+void function GivesPlayerFakeModelProxy( entity player, asset modelName )
+{
+	if ( IsValid( file.playerOrDecoyFakeModelProxy[ player ] ) )
+		file.playerOrDecoyFakeModelProxy[ player ].Destroy()
+	file.playerOrDecoyFakeModelProxy[ player ] = CreateModelProxyForEntity( player, modelName )
+}
+
+// just for fun
+bool function CC_BecomeFakeBarker( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeBarker( player )
+	return true
+}
+
+void function BecomeFakeBarker( entity player )
+{
+	GivesPlayerFakeModelProxy( player, $"models/humans/heroes/mlt_hero_barker.mdl" )
+}
+
+bool function CC_BecomeFakeMarder( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeMarder( player )
+	return true
+}
+
+void function BecomeFakeMarder( entity player )
+{
+	GivesPlayerFakeModelProxy( player, $"models/humans/heroes/imc_hero_marder.mdl" )
+}
+
+bool function CC_BecomeFakeSpectre( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeSpectre( player )
+	return true
+}
+
+void function BecomeFakeSpectre( entity player )
+{
+	GivesPlayerFakeModelProxy( player, $"models/robots/spectre/imc_spectre.mdl" )
+}
+
+bool function CC_BecomeFakeStalker( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeStalker( player )
+	return true
+}
+
+void function BecomeFakeStalker( entity player )
+{
+	asset model = $"models/robots/stalker/robot_stalker.mdl" // default to use imc-style stalker: white one
+	if ( player.GetTeam() == TEAM_MILITIA )
+		model = $"models/robots/stalker/robot_stalker_red.mdl"
+	GivesPlayerFakeModelProxy( player, model )
 }
