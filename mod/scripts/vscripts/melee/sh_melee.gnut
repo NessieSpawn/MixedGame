@@ -712,7 +712,9 @@ function TransferDamageHistoryToTarget( entity target )
 {
 	entity titanSoul = target.GetTitanSoul()
 	// we can have damage history disabled now, needs to check
+#if SERVER
 	if ( !DamageHistory_IsDisabledOnEntity( target ) )
+#endif
 		target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
 }
 
