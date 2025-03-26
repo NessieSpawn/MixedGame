@@ -8805,6 +8805,10 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	entity decoy = CreateNPC( decoyClass, friendlyTeam, spawnPos, spawnAngle )
 	SetSpawnOption_AISettings( decoy, decoyAISet )
 	SetSpawnOption_SquadName( decoy, npc.kv.squadname )
+
+	// this should totally avoid any collision?
+	SetSpawnflags( decoy, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
+	
 	if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( npc ) )
 		ExtraSpawner_SetUpSpawnedNPC( decoy )
 	
@@ -11990,6 +11994,9 @@ entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClas
 {
 	entity mapIconNPC = CreateEntity( fakeIconNPCClass )
 
+	// this should totally avoid any collision?
+	SetSpawnflags( mapIconNPC, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
+
 	DispatchSpawn( mapIconNPC )
 	TakeAllWeapons( mapIconNPC )
 
@@ -12003,7 +12010,12 @@ entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClas
 
 	mapIconNPC.SetOwner( npc ) // disable collision against owner, but not good enough
 	mapIconNPC.SetAngles( angles ) // face to ground
+
+	// could use a constant offset after changing spawn flags?
+	// we can't do so. SF_NPC_NO_PLAYER_PUSHAWAY only affects player somehow, do we have better flags?
 	mapIconNPC.SetOrigin( offset ) // so nobody can see them, also try to prevent collision!
+	//mapIconNPC.SetOrigin( < 0, 0, -5 > )
+
 	mapIconNPC.NotSolid()
 	//mapIconNPC.kv.solid = SOLID_HITBOXES // seems this can make them stop collide with other entity? no this can't
 	mapIconNPC.kv.CollisionGroup = 0
