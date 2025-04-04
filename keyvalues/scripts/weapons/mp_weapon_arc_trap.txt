@@ -40,5 +40,14 @@ WeaponData
         {
             "fire_duration"                                 "--14.9" // at least 0.1s fire_duration required for it can consume ammo properly
         }
+
+        // nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }

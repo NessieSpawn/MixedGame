@@ -150,5 +150,14 @@ WeaponData
 			"regen_ammo_refill_start_delay"					"++1"
 			"regen_ammo_refill_rate"						"--44.5" // 2s cooldown
 		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }

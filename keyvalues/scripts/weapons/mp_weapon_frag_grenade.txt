@@ -93,5 +93,14 @@ WeaponData
 			"ammo_clip_size"   				"*0.5"
 			"ammo_default_total"			"*0.5"
 		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }
