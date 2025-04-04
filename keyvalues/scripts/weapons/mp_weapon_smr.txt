@@ -178,18 +178,18 @@ WeaponData
 		friendlyfire_weapon
 		{
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"damage_near_value"			"*0.5"
 			//"damage_far_value"			"*0.5"
 			//"explosion_damage"			"*0.5"
 			//"zoom_fov"					"60"
-		}
+		// 
 
 		// gruntmode
 		gruntmode_stalker_weapon // stalkers in gruntmode will try to equip this mod
@@ -225,6 +225,16 @@ WeaponData
 			"reloadempty_time_late1"						"*1.133333"
 			"reloadempty_time_late2"						"*1.133333"
 			"reloadempty_time_late3"						"*1.133333"
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
 		}
 	}
 }

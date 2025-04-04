@@ -43,5 +43,14 @@ WeaponData
 		gm_fortress // heavily nerfed health, use together with hard_cover_always
 		{
 		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }
