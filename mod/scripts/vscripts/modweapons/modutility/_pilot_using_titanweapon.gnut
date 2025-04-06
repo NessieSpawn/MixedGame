@@ -60,10 +60,10 @@ void function WeaponDropped( entity weapon )
 	// hidden weapon has dropped!
     // won't matter at normal cases because whenever you put a titan weapon on ground, they can't be picked up
     // this is just for handling
-    print( string( weapon ) + " has been dropped!" )
+    //print( string( weapon ) + " has been dropped!" )
 	if ( weapon in file.weaponsHiddenByThisScript )
 	{
-        print( "it is hidden by _pilot_using_titanweapon.gnut, restoring visibility" )
+        //print( "it is hidden by _pilot_using_titanweapon.gnut, restoring visibility" )
 		// restore visibility
 		weapon.kv.rendermode = 0
         weapon.kv.renderamt = 255

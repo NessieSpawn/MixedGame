@@ -1,6 +1,17 @@
+// BE SURE TO DISABLE REPLAY because DMR, Kraber and LStar would crash the client without mod installed
+// also REMEMBER TO REMOVE MOD on dropped DMR, Kraber and LStar weapons so clients that picked them up won't get crashed
+// actually best method is adding their variant like explosive sniper and lagging bolt stuffs, rather than model changed mod
+
+untyped // for using projectile.s
 global function Nessy_April_Fools_Weapons_Init
 
+const string NESSY_WEAPON_MOD = "fake_nessy_weapon"
+
+const asset MOZAMBIQUE_MODEL = $"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+const asset NESSY_MODEL = $"models/domestic/nessy_doll.mdl"
+
 // list of all weapons that has mod "fake_nessy_weapon". be sure to update!
+// changes model to mozambique
 const array<string> AVAILABLE_WEAPONS_NESSY =
 [
     // weapons
@@ -39,7 +50,11 @@ const array<string> AVAILABLE_WEAPONS_NESSY =
     // modded weapons
     "mp_weapon_peacekraber",
     "mp_weapon_shotgun_doublebarrel_tfo",
+]
 
+// changes model to nessy doll
+const array<string> AVAILABLE_ABILITIES_NESSY =
+[
     // abilities
     "mp_weapon_arc_trap",
     "mp_weapon_deployable_cover",
@@ -51,19 +66,21 @@ const array<string> AVAILABLE_WEAPONS_NESSY =
     "mp_weapon_grenade_sonar",
     "mp_weapon_satchel", // satchel should've working fine because we're changing model after it's throw, thus PROTO_PlayTrapLightEffect() should already running
     "mp_weapon_thermite_grenade",
-
 ]
 
 void function Nessy_April_Fools_Weapons_Init()
 {
+    // NESSY
+    RegisterWeaponDamageSource( "nessy_doll", "尼斯水怪" )
+
     // ALL weapons INIT
     foreach ( string weaponName in AVAILABLE_WEAPONS_NESSY )
     {
         // attach fake model to them
         FakeWorldModel_AddModToAutoReplaceModel(
             weaponName,	// weaponName
-            "fake_nessy_weapon",	// modName
-            $"models/weapons/pstl_sa3/w_pstl_sa3.mdl",	// model
+            NESSY_WEAPON_MOD,	// modName
+            MOZAMBIQUE_MODEL,	// model
             "PROPGUN",	// attachment
             1.0,	// humanScale
             1.0,	// titanScale
@@ -71,12 +88,34 @@ void function Nessy_April_Fools_Weapons_Init()
         )
 
         // change damageSourceId for weapon
+        // this won't work fine for some weapons, especially arc grenades which relys on original damageSourceId to apply debuff
+        /*
         AddCallback_WeaponMod_DamageSourceIdOverride( 
             weaponName,					// weapon name
             "fake_nessy_weapon",		// weapon mod
             eDamageSourceId.mp_weapon_shotgun_pistol		// damageSourceId override
         )
+        */
     }
+    foreach ( string weaponName in AVAILABLE_ABILITIES_NESSY )
+    {
+        // attach fake model to them
+        FakeWorldModel_AddModToAutoReplaceModel(
+            weaponName,	// weaponName
+            NESSY_WEAPON_MOD,	// modName
+            NESSY_MODEL,	// model
+            "R_HAND",	// attachment
+            1.0,	// humanScale
+            1.0,	// titanScale
+            true	// hideOrgWeapon
+        )
+    }
+
+    // damageSourceId modifier
+    // shared function from levels_util.gnut
+    foreach ( string className in Levels_GetAllVulnerableEntityClasses() )
+        AddDamageFinalCallback( className, OnEntityDamagedByAprilFoolsWeapon ) // have to use final damage otherwise we'll overwrite arc grenade behavior
+
 
     AddCallback_EntitiesDidLoad( EntitiesDidLoad )
 }
@@ -95,7 +134,47 @@ void function NessyDollProjectiles()
         foreach ( entity projectile in GetProjectileArray() )
         {
             if ( Vortex_GetRefiredProjectileMods( projectile ).contains( "fake_nessy_weapon" ) )
-                projectile.SetModel( $"models/domestic/nessy_doll.mdl" )
+            {
+                if ( !( "modelChangedByNessyScript" in projectile.s ) )
+                {
+                    projectile.SetModel( NESSY_MODEL )
+                    projectile.s.modelChangedByNessyScript <- true
+                }
+            }
+        }
+    }
+}
+
+void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
+{
+	// damaged by projectile! try to get their mod
+	entity inflictor = DamageInfo_GetInflictor( damageInfo )
+	if ( IsValid( inflictor ) )
+	{
+		if ( inflictor.IsProjectile() )
+		{
+			if ( inflictor.ProjectileGetMods().contains( "fake_nessy_weapon" ) ) // not overwriting vortex shield behavior
+            {
+                // change damageSourceId to nessy
+                DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.nessy_doll )
+				return
+            }
+		}
+	}
+
+	// other case must be hitscan weapon damage, check active weapon should be enough
+	entity attacker = DamageInfo_GetAttacker( damageInfo )
+	if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) ) // needs to be player/npc otherwise it's gonna crash
+    {
+		entity attackerWeapon = attacker.GetActiveWeapon()
+        if ( IsValid( attackerWeapon ) )
+        {
+            if ( attackerWeapon.HasMod( "fake_nessy_weapon" ) )
+            {
+                // change damageSourceId to mozambique
+                DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.mp_weapon_shotgun_pistol )
+                return
+            }
         }
     }
 }

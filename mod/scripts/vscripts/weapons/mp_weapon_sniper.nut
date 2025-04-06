@@ -67,10 +67,14 @@ void function OnClientAnimEvent_weapon_sniper( entity weapon, string name )
 
 		// handle stuffs like changing model, requires installing on client!
 		entity owner = weapon.GetWeaponOwner()
-		if ( owner.GetViewModelEntity().GetModelName() == $"models/weapons/at_rifle/ptpov_at_rifle.mdl" )
+		if ( IsValid( owner ) && owner.IsPlayer() )
 		{
-			weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_L" )
-			weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_R" )
+			entity viewmodel = owner.GetViewModelEntity()
+			if ( IsValid( viewmodel ) && viewmodel.GetModelName() == $"models/weapons/at_rifle/ptpov_at_rifle.mdl" )
+			{
+				weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_L" )
+				weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_R" )
+			}
 		}
 	}
 }

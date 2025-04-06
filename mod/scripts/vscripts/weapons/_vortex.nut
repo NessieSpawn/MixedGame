@@ -894,7 +894,9 @@ void function VortexRefiredProjectileDamageOverride( entity ent, var damageInfo 
 	{
 		// grenades deal impact damage earlier than their OnProjectileCollision() callbacks
 		if ( inflictor instanceof CBaseGrenade )
-
+		{
+		
+		}
 		
 		// this means projectile dealing explosion damage to target
 		if ( !( inflictor in file.refiredProjectileHitTargets ) )
