@@ -71,7 +71,7 @@ const array<string> AVAILABLE_ABILITIES_NESSY =
 void function Nessy_April_Fools_Weapons_Init()
 {
     // NESSY
-    RegisterWeaponDamageSource( "nessy_doll", "尼斯水怪" )
+    RegisterWeaponDamageSource( "nessy_doll", "Nessy Doll" )
 
     // ALL weapons INIT
     foreach ( string weaponName in AVAILABLE_WEAPONS_NESSY )
