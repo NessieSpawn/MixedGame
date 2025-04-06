@@ -49,7 +49,8 @@ WeaponData
 		fake_nessy_weapon
 		{
 			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// could've remove this...? so that client with the mod installed can still see their original appearance on weapon dropped
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 			// projectile model change in script
 		}
 	}

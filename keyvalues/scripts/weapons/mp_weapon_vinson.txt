@@ -133,6 +133,18 @@ WeaponData
 			"reloadempty_time"								"*1.3"
 			"reloadempty_time_late1"						"*1.3"
 			"reloadempty_time_late2"						"*1.3"
+
+			// change to script handle, stop sound at specific point for better effect
+			"burst_or_looping_fire_sound_start_1p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_middle_1p"			"Null_Remove_SoundHook"
+
+			// better low ammo for non-looping sound
+			"low_ammo_sound_name_1"							"lmg_LowAmmo_Shot1"
+			"low_ammo_sound_name_2"							"P2011_LowAmmo_Shot1"
+			"low_ammo_sound_name_3"							"P2011_LowAmmo_Shot2"
+			"low_ammo_sound_name_4"							"P2011_LowAmmo_Shot3"
+			"low_ammo_sound_name_5"							"P2011_LowAmmo_Shot4"
+			"low_ammo_sound_name_6"							"P2011_LowAmmo_Shot5"
 		}
 
 		// tediore
@@ -212,7 +224,8 @@ WeaponData
 		{
 			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
 			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// could've remove this...? so that client with the mod installed can still see their original appearance on weapon dropped
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 

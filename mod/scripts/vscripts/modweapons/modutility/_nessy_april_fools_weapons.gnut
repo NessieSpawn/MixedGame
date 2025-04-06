@@ -1,0 +1,101 @@
+global function Nessy_April_Fools_Weapons_Init
+
+// list of all weapons that has mod "fake_nessy_weapon". be sure to update!
+const array<string> AVAILABLE_WEAPONS_NESSY =
+[
+    // weapons
+    "mp_weapon_alternator_smg",
+    "mp_weapon_arc_launcher",
+    "mp_weapon_autopistol",
+    "mp_weapon_car",
+    "mp_weapon_defender",
+    "mp_weapon_dmr",
+    "mp_weapon_doubletake",
+    "mp_weapon_epg",
+    "mp_weapon_esaw",
+    "mp_weapon_g2",
+    "mp_weapon_hemlok",
+    "mp_weapon_hemlok_smg",
+    "mp_weapon_lmg",
+    "mp_weapon_lstar",
+    "mp_weapon_mastiff",
+    "mp_weapon_mgl",
+    "mp_weapon_pulse_lmg",
+    "mp_weapon_r97",
+    "mp_weapon_rocket_launcher",
+    "mp_weapon_rspn101",
+    "mp_weapon_rspn101_og",
+    "mp_weapon_semipistol",
+    "mp_weapon_shotgun",
+    "mp_weapon_shotgun_pistol",
+    "mp_weapon_smart_pistol",
+    "mp_weapon_smr",
+    "mp_weapon_sniper",
+    "mp_weapon_softball",
+    "mp_weapon_vinson",
+    "mp_weapon_wingman",
+    "mp_weapon_wingman_n",
+
+    // modded weapons
+    "mp_weapon_peacekraber",
+    "mp_weapon_shotgun_doublebarrel_tfo",
+
+    // abilities
+    "mp_weapon_arc_trap",
+    "mp_weapon_deployable_cover",
+    "mp_weapon_frag_drone",
+    "mp_weapon_frag_grenade",
+    "mp_weapon_grenade_electric_smoke",
+    "mp_weapon_grenade_emp",
+    "mp_weapon_grenade_gravity",
+    "mp_weapon_grenade_sonar",
+    "mp_weapon_satchel", // satchel should've working fine because we're changing model after it's throw, thus PROTO_PlayTrapLightEffect() should already running
+    "mp_weapon_thermite_grenade",
+
+]
+
+void function Nessy_April_Fools_Weapons_Init()
+{
+    // ALL weapons INIT
+    foreach ( string weaponName in AVAILABLE_WEAPONS_NESSY )
+    {
+        // attach fake model to them
+        FakeWorldModel_AddModToAutoReplaceModel(
+            weaponName,	// weaponName
+            "fake_nessy_weapon",	// modName
+            $"models/weapons/pstl_sa3/w_pstl_sa3.mdl",	// model
+            "PROPGUN",	// attachment
+            1.0,	// humanScale
+            1.0,	// titanScale
+            true	// hideOrgWeapon
+        )
+
+        // change damageSourceId for weapon
+        AddCallback_WeaponMod_DamageSourceIdOverride( 
+            weaponName,					// weapon name
+            "fake_nessy_weapon",		// weapon mod
+            eDamageSourceId.mp_weapon_shotgun_pistol		// damageSourceId override
+        )
+    }
+
+    AddCallback_EntitiesDidLoad( EntitiesDidLoad )
+}
+
+void function EntitiesDidLoad()
+{
+    thread NessyDollProjectiles()
+}
+
+void function NessyDollProjectiles()
+{
+    while ( true )
+    {
+        WaitFrame( true ) // bypass script fps limit for better visual
+
+        foreach ( entity projectile in GetProjectileArray() )
+        {
+            if ( Vortex_GetRefiredProjectileMods( projectile ).contains( "fake_nessy_weapon" ) )
+                projectile.SetModel( $"models/domestic/nessy_doll.mdl" )
+        }
+    }
+}
