@@ -38,7 +38,7 @@ const array<string> AVAILABLE_WEAPONS_NESSY =
 
     // modded weapons
     "mp_weapon_peacekraber",
-    "mp_weapon_shotgun_doublebarrel_tfo",
+    "mp_weapon_shotgun_doublebarrel",
 
     // abilities
     "mp_weapon_arc_trap",
