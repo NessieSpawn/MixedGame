@@ -39,13 +39,13 @@ function MpWeaponSmartPistol_Init()
 
 	// modified settings
 	FakeWorldModel_AddModToAutoReplaceModel(
-		"mp_weapon_smart_pistol",
-		"fake_smart_xo16",
-		$"models/weapons/titan_xo16_shorty/w_xo16shorty.mdl",
-		"PROPGUN",
-		PILOT_TITAN_WEAPON_MODEL_SCALE,
-		1.0,
-		true
+		"mp_weapon_smart_pistol",	// weaponName
+		"fake_smart_xo16",	// modName
+		$"models/weapons/titan_xo16_shorty/w_xo16shorty.mdl",	// model
+		"PROPGUN",	// attachment
+		PILOT_TITAN_WEAPON_MODEL_SCALE,	// humanScale, variable shared from _pilot_using_titanweapon.gnut
+		1.0,	// titanScale
+		true	// hideOrgWeapon
 	)
 #endif
 }
@@ -74,9 +74,12 @@ void function OnWeaponActivate_weapon_smart_pistol( entity weapon )
 	// modified content: adding fake model for fake weapons
 	// no need to do like this anymore, now we add settings in _fake_world_waepon_model.gnut
 	// EDIT: still needs to do because this weapon can be used by npcs
+	// EDIT 2: now we allow _fake_world_waepon_model.gnut to handle npcs as well, removing current behavior
+	/*
 	entity owner = weapon.GetWeaponOwner()
 	if ( IsValid( owner ) && !owner.IsPlayer() )
 		CreateFakeModelForSmartPistol( weapon )
+	*/
 #endif
 }
 
@@ -160,6 +163,8 @@ void function OnWeaponStartZoomOut_weapon_smart_pistol( entity weapon )
 // can't get eWeaponVar.playermodel... currently hardcode
 // no need to do like this anymore, now we add settings in _fake_world_waepon_model.gnut
 // EDIT: still needs to do because this weapon can be used by npcs
+// EDIT 2: now we allow _fake_world_waepon_model.gnut to handle npcs as well, removing current behavior
+/*
 const table< string, asset > FAKE_MODEL_MODS =
 {
 	["fake_smart_xo16"] = $"models/weapons/titan_xo16_shorty/w_xo16shorty.mdl",
@@ -194,6 +199,7 @@ void function CreateFakeModelForSmartPistol( entity weapon )
 	if ( IsValid( owner ) && IsPilot( owner ) )
 		fakeModel.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE // shared const from _pilot_using_titanweapon.gnut
 }
+*/
 #endif
 
 // modified callbacks

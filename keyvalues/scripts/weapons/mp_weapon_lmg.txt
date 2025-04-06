@@ -167,7 +167,8 @@ WeaponData
 		{
 			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
 			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// could've remove this...? so that client with the mod installed can still see their original appearance on weapon dropped
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }

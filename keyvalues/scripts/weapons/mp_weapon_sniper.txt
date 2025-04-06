@@ -384,7 +384,8 @@ WeaponData
 		{
 			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
 			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// could've remove this...? so that client with the mod installed can still see their original appearance on weapon dropped
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 			// projectile model change in script
 
 			// mozambique cannot rechamber
@@ -399,6 +400,9 @@ WeaponData
 			"reload_time_late1" 							"1.1125" // 2.225 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
 			"reloadempty_time"								"2.225"
 			"reloadempty_time_late1"						"1.1125" // 2.225 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
+		
+			// due that we're already modifying client-side, let's just remove scope
+			"bodygroup_ads_scope_set"						"0"
 		}
 
 		// reached 30 mods( with 8 mods removed above, 30 is max )

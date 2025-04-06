@@ -1073,6 +1073,13 @@
                 "After": "Fake_Titanfall1_Sprint_Animation_Init"
 			}
 		},
+		{
+			"Path": "/modweapons/modutility/_nessy_april_fools_weapons.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Nessy_April_Fools_Weapons_Init"
+			}
+		},
 		// modded weapon utility end
 		// modded softball
 		{
