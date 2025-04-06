@@ -55,12 +55,16 @@ void function OnClientAnimEvent_weapon_dmr( entity weapon, string name )
 			return
 		// handle stuffs like changing model, requires installing on client!
 		entity owner = weapon.GetWeaponOwner()
-		if ( owner.GetViewModelEntity().GetModelName() == $"models/weapons/rspn101_dmr/ptpov_rspn101_dmr.mdl" )
+		if ( IsValid( owner ) && owner.IsPlayer() )
 		{
-			if( !weapon.HasMod("silencer") )
+			entity viewmodel = owner.GetViewModelEntity()
+			if ( IsValid( viewmodel ) && viewmodel.GetModelName() == $"models/weapons/rspn101_dmr/ptpov_rspn101_dmr.mdl" )
 			{
-				weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_L" )
-				weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_R" )
+				if( !weapon.HasMod("silencer") )
+				{
+					weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_L" )
+					weapon.PlayWeaponEffect( $"wpn_mflash_snp_hmn_smoke_side_FP", $"wpn_mflash_snp_hmn_smoke_side", "muzzle_flash_R" )
+				}
 			}
 		}
 	}

@@ -168,8 +168,12 @@ void function OnWeaponCooldown_weapon_lstar( entity weapon )
 {
 	// handle stuffs like changing model, requires installing on client!
 	entity owner = weapon.GetWeaponOwner()
-	if ( owner.GetViewModelEntity().GetModelName() == $"models/weapons/lstar/ptpov_lstar.mdl" )
-		weapon.PlayWeaponEffect( LSTAR_COOLDOWN_EFFECT_1P, LSTAR_COOLDOWN_EFFECT_3P, "SWAY_ROTATE" )
+	if ( IsValid( owner ) && owner.IsPlayer() )
+	{
+		entity viewmodel = owner.GetViewModelEntity()
+		if ( IsValid( viewmodel ) && viewmodel.GetModelName() == $"models/weapons/lstar/ptpov_lstar.mdl" )
+			weapon.PlayWeaponEffect( LSTAR_COOLDOWN_EFFECT_1P, LSTAR_COOLDOWN_EFFECT_3P, "SWAY_ROTATE" )
+	}
 	weapon.EmitWeaponSound_1p3p( "LSTAR_VentCooldown", "LSTAR_VentCooldown_3p" )
 }
 
@@ -180,12 +184,16 @@ void function OnWeaponReload_weapon_lstar( entity weapon, int milestoneIndex )
 
 	// handle stuffs like changing model, requires installing on client!
 	entity owner = weapon.GetWeaponOwner()
-	if ( owner.GetViewModelEntity().GetModelName() == $"models/weapons/lstar/ptpov_lstar.mdl" )
+	if ( IsValid( owner ) && owner.IsPlayer() )
 	{
-		weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "shell" )
-		weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "spinner" )
-		weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_L" )
-		weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_R" )
+		entity viewmodel = owner.GetViewModelEntity()
+		if ( IsValid( viewmodel ) && viewmodel.GetModelName() == $"models/weapons/lstar/ptpov_lstar.mdl" )
+		{
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "shell" )
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "spinner" )
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_L" )
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_R" )
+		}
 	}
 	weapon.EmitWeaponSound_1p3p( LSTAR_BURNOUT_SOUND_1P, LSTAR_BURNOUT_SOUND_3P )
 
