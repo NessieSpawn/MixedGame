@@ -77,17 +77,15 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 		shouldCreateProjectile = true
 
 	// fix fire sound for ttf2
-	/* // now using northstarCN changes
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
-			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_Softball_Fire_1P" ) //Weapon_MGL_Fire_1P
-			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "Weapon_Softball_Fire_3P" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" ) //Weapon_MGL_Fire_1P
+			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
 		}
 		else
-			EmitSoundOnEntity( weaponOwner, "Weapon_Softball_Fire_3P" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
 	#endif
-	*/
 	//
 	// fix sound for ttf2!!!
 	// change to be in new updated mp_titanweapon_triplethreat.txt
