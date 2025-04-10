@@ -43,6 +43,7 @@ WeaponData
 
         // nessy
         // toss prep weapons
+        // do need anti-crash for trap weapons
 		fake_nessy_weapon
 		{
 			// we'll also have a script for adding fake model to the weapon
