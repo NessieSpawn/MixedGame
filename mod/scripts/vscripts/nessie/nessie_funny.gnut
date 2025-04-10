@@ -44,6 +44,8 @@ global function BecomeFakeBarker
 global function BecomeFakeSpectre
 */
 
+global function BrainDead
+
 enum eMarvinMovement
 {
 	IDLE,
@@ -189,6 +191,10 @@ void function Nessie_Funny_Functions_Init()
 	// works really fine, just need a better model for handling hitboxes
 	AddClientCommandCallback( "fakespectre", CC_BecomeFakeSpectre )
 	AddClientCommandCallback( "fakestalker", CC_BecomeFakeStalker )
+
+	// funny enough
+	RegisterSignal( "BrainDead" )
+	AddClientCommandCallback( "braindead", CC_BrainDead )
 
 	// callbacks
 	AddCallback_OnClientConnected( OnClientConnected )
@@ -2601,6 +2607,16 @@ bool function CC_BecomeFakeSpectre( entity player, array<string> args )
 void function BecomeFakeSpectre( entity player )
 {
 	GivesPlayerFakeModelProxy( player, $"models/robots/spectre/imc_spectre.mdl" )
+	// have to add effect
+	entity spectreProxy = file.playerOrDecoyFakeModelProxy[ player ]
+	entity eyeFXFriendly = StartParticleEffectOnEntity_ReturnEntity( spectreProxy, GetParticleSystemIndex( $"P_spectre_eye_friend" ), FX_PATTACH_POINT, stalkerProxy.LookupAttachment( "EYEGLOW" ) )
+	eyeFXFriendly.SetOwner( player )
+	SetTeam( eyeFXFriendly, player.GetTeam() )
+	eyeFXFriendly.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
+	entity eyeFXEnemy = StartParticleEffectOnEntity_ReturnEntity( spectreProxy, GetParticleSystemIndex( $"P_spectre_eye_foe" ), FX_PATTACH_POINT, stalkerProxy.LookupAttachment( "EYEGLOW" ) )
+	eyeFXFriendly.SetOwner( player )
+	SetTeam( eyeFXFriendly, player.GetTeam() )
+	eyeFXFriendly.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
 }
 
 bool function CC_BecomeFakeStalker( entity player, array<string> args )
@@ -2618,4 +2634,164 @@ void function BecomeFakeStalker( entity player )
 	if ( player.GetTeam() == TEAM_MILITIA )
 		model = $"models/robots/stalker/robot_stalker_red.mdl"
 	GivesPlayerFakeModelProxy( player, model )
+	// have to add effect
+	entity stalkerProxy = file.playerOrDecoyFakeModelProxy[ player ]
+	entity eyeFXFriendly = StartParticleEffectOnEntity_ReturnEntity( stalkerProxy, GetParticleSystemIndex( $"P_stalker_eye_friend" ), FX_PATTACH_POINT, stalkerProxy.LookupAttachment( "FX_C_EYE" ) )
+	eyeFXFriendly.SetOwner( player )
+	SetTeam( eyeFXFriendly, player.GetTeam() )
+	eyeFXFriendly.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
+	entity eyeFXEnemy = StartParticleEffectOnEntity_ReturnEntity( stalkerProxy, GetParticleSystemIndex( $"P_stalker_eye_foe" ), FX_PATTACH_POINT, stalkerProxy.LookupAttachment( "FX_C_EYE" ) )
+	eyeFXFriendly.SetOwner( player )
+	SetTeam( eyeFXFriendly, player.GetTeam() )
+	eyeFXFriendly.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
+}
+
+bool function CC_BrainDead( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BrainDead( player )
+	return true
+}
+
+// still no enough attachments to cover body
+const array<string> BRAIN_DEAD_ATTACHMENTS = 
+[
+	//"OFFSET",
+	//"REF",
+	"HEADFOCUS",
+	"HEADSHOT",
+	//"CHESTFOCUS",
+	//"PROPGUN",
+	//"VDU",
+	"L_HAND",
+	"R_HAND",
+	//"KNIFE",
+	//"ORIGIN",
+	//"SHIELD",
+	"foot_L_sole",
+	"foot_R_sole",
+	//"FLAG",
+	//"vent_right_back",
+	//"vent_left_back",
+	//"RIFLE_HOLSTER",
+	//"ANTI_TITAN_HOLSTER",
+	//"SIDEARM_HOLSTER",
+	"vent_right",
+	"vent_left",
+	//"vent_right_out",
+	//"vent_left_out",
+	"vent_center",
+	//"vent_center_out",
+	//"BATTERY_ATTACH",
+]
+
+void function BrainDead( entity player )
+{
+	// drop existing brains
+	player.Signal( "BrainDead" )
+
+	// leave only a head first
+	PlayerPulseBladeModel_HideBodyAndLegs( player )
+	// change to wounded head
+	player.SetBodygroup( player.FindBodyGroup( "head" ), 1 )
+
+	// start attaching brains
+	array<entity> brains
+	foreach ( string attachment in BRAIN_DEAD_ATTACHMENTS )
+	{
+		entity brain = CreateHumanBrain( player.GetOrigin(), player.GetAngles() )
+		brain.SetParent( player, attachment )
+		brain.Highlight_SetInheritHighlight( true )
+		brain.NotSolid() // to avoid blocking bullets
+		brains.append( brain )
+	}
+	// one giant brain using "CHESTFOCUS"
+	entity bodyBrain = CreateHumanBrain( player.GetOrigin(), player.GetAngles(), 4 )
+	bodyBrain.SetParent( player, "CHESTFOCUS" )
+	bodyBrain.Highlight_SetInheritHighlight( true )
+
+	thread ManageBrainsLifeTime( player, brains )
+	thread ManageBodyBrainLifeTime( player, bodyBrain )
+}
+
+void function ManageBrainsLifeTime( entity player, array<entity> brains )
+{
+	OnThreadEnd
+	(
+		function() : ( player, brains )
+		{
+			// make brains drop to ground
+			vector velocity = Vector( 0, 0, 0 )
+			if ( IsValid( player ) )
+				velocity = player.GetVelocity()
+			ArrayRemoveInvalid( brains )
+			foreach ( entity brain in brains )
+			{
+				brain.ClearParent()
+				brain.SetVelocity( velocity )
+				thread DelayedPinkmistBrain( brain )
+				brain.Solid() // start colliding with bullets
+			}
+			// ragdoll player immediately on death
+			if ( IsValid( player ) && !IsAlive( player ) )
+			{
+				player.BecomeRagdoll( velocity, false )
+				player.Gib( velocity )
+			}
+		}
+	)
+
+	WaitSignal( player, "OnDeath", "OnDestroy", "BrainDead" )
+}
+
+void function ManageBodyBrainLifeTime( entity player, entity brain )
+{
+	brain.EndSignal( "OnDestroy" )
+
+	WaitSignal( player, "OnDeath", "OnDestroy", "BrainDead" )
+	brain.Dissolve( ENTITY_DISSOLVE_PINKMIST, < 0, 0, 0 >, 0 )
+}
+
+// similar function exists in nessie_debug.gnut, this one allowing us always spawn a brain
+entity function CreateHumanBrain( vector origin, vector angles, float scale = 2.0 )
+{
+	entity prop_physics = CreateEntity( "prop_physics" )
+	prop_physics.SetValueForModelKey( $"models/gibs/human_gibs.mdl" )
+	prop_physics.SetModel( $"models/gibs/human_gibs.mdl" ) // required to make finding bodygroup work
+	prop_physics.kv.spawnflags = 4 // 4 = SF_PHYSPROP_DEBRIS
+	prop_physics.kv.fadedist = 2000
+	prop_physics.kv.renderamt = 255
+	prop_physics.kv.rendercolor = "255 255 255"
+	prop_physics.kv.CollisionGroup = TRACE_COLLISION_GROUP_DEBRIS
+
+	// funny things
+	int bodyGroupIndex = prop_physics.FindBodyGroup( "gibs" )
+	/* 
+		index
+		studio "gib_lump_LOD0.smd"
+		studio "gib_small_02_LOD0.smd"
+		studio "gib_brain_LOD0.smd"
+		studio "gib_muscle_LOD0.smd"
+		studio "gib_small_01_LOD0.smd"
+	*/
+	prop_physics.SetBodygroup( bodyGroupIndex, 2 )
+
+	prop_physics.kv.modelscale = scale // should be good enough?
+
+	prop_physics.SetOrigin( origin )
+	prop_physics.SetAngles( angles )
+	DispatchSpawn( prop_physics )
+	prop_physics.SetModel( $"models/gibs/human_gibs.mdl" )
+
+	return prop_physics
+}
+
+void function DelayedPinkmistBrain( entity gib, float dissolveDelay = 8.0 ) // 8s is default force respawn delay
+{
+	gib.EndSignal( "OnDestroy" )
+
+	wait dissolveDelay
+	gib.Dissolve( ENTITY_DISSOLVE_PINKMIST, < 0, 0, 0 >, 0 )
 }
