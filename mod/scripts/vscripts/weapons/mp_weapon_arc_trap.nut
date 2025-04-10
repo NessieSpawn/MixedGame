@@ -270,8 +270,12 @@ void function DeployArcTrap( entity projectile )
 		eyeButton.UnsetUsable()
 
 	// some ceremony
-	StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
-	idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+	// anti-crash for modified trap model
+	if ( startAttachID > 0 )
+	{
+		StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+		idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+	}
 	thread BeepSound( projectile )
 
 	entity trig = CreateEntity( "trigger_cylinder" )
@@ -351,11 +355,16 @@ void function DeployArcTrap( entity projectile )
 			continue
 		}
 
-		StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
-		fx = StartParticleEffectOnEntity_ReturnEntity( mover, fxId, FX_PATTACH_ABSORIGIN_FOLLOW, -1 )
+		// anti-crash for modified trap model
+		if ( startAttachID > 0 )
+		{
+			StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+			fx = StartParticleEffectOnEntity_ReturnEntity( mover, fxId, FX_PATTACH_ABSORIGIN_FOLLOW, -1 )
+		}
 
 		waitthread ActivateArcTrap( owner, mover, projectile, eyeButton, ARC_TRAP_DURATION )
-		EffectStop( fx )
+		if ( IsValid( fx ) )
+			EffectStop( fx )
 
 		if ( BoostStoreEnabled() )
 			eyeButton.UnsetUsable()
@@ -375,7 +384,9 @@ void function DeployArcTrap( entity projectile )
 
 		if ( restartFx )
 		{
-			idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+			// anti-crash for modified trap model
+			if ( startAttachID > 0 )
+				idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
 			thread BeepSound( projectile )
 		}
 	}

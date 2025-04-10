@@ -2453,7 +2453,7 @@ void function PROTO_TrackedProjectile_OnPlayerRespawned_Internal( entity player 
 
 function PROTO_PlayTrapLightEffect( entity ent, string tag, int team )
 {
-	// anti-crash
+	// anti-crash for modified trap model
 	if ( ent.LookupAttachment( tag ) <= 0 )
 		return
 
