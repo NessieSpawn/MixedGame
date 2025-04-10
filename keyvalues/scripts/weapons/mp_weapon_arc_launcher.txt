@@ -6,7 +6,8 @@ WeaponData
 	"OnProjectileCollision"							"OnProjectileCollision_weapon_arc_launcher"
 	"OnProjectileIgnite"                            "OnProjectileIgnite_weapon_arc_launcher"
 
-	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	MP_BASE
 	{

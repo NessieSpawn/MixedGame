@@ -4,7 +4,8 @@ WeaponData
 	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_weapon_grenade_sonar"
 	"OnWeaponTossReleaseAnimEvent"					"OnWeaponTossReleaseAnimEvent_weapon_grenade_sonar"
 	
-	//"projectilemodel"								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	//"damage_flags"									"DF_INSTANT | DF_ELECTRICAL | DF_GIB"
 

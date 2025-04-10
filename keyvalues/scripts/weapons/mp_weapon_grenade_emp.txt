@@ -1,6 +1,7 @@
 WeaponData
 {
-	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 	
 	//"damage_flags"									"DF_RAGDOLL | DF_EXPLOSION | DF_ELECTRICAL | DF_GIB"
 

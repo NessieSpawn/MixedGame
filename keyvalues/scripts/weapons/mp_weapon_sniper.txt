@@ -1,7 +1,9 @@
 WeaponData
 {
 	"OnWeaponReload"									"OnWeaponReload_Tediore"
-	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	//"damage_flags"									"DF_BULLET | DF_KNOCK_BACK | DF_DISMEMBERMENT | DF_GIB"
 

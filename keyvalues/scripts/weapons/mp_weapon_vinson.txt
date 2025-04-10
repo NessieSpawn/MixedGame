@@ -9,7 +9,9 @@ WeaponData
 	"OnProjectileCollision"							"OnProjectileCollision_Tediore"
 
 	//Projectile Stuff
-	"projectilemodel" 								"models/weapons/bullets/projectile_arl.mdl" // stub projectile model(for flak rifle)
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
 	//"projectile_trail_attachment" 				"exhaust"
 	"impact_effect_table" 							"default" // inc_bullet
 

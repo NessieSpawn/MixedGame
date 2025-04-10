@@ -122,7 +122,8 @@ void function Nessy_April_Fools_Weapons_Init()
 
 void function EntitiesDidLoad()
 {
-    thread NessyDollProjectiles()
+    // no need for this branch
+    //thread NessyDollProjectiles()
 }
 
 void function NessyDollProjectiles()

@@ -1,5 +1,8 @@
 WeaponData
 {
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	// modified callbacks
 	"OnProjectileCollision"								"OnProjectileCollision_weapon_rocket_launcher"
 	"OnWeaponStartZoomIn"								"OnWeaponStartZoomIn_weapon_rocket_launcher"

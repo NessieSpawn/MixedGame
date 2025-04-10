@@ -5,7 +5,8 @@ WeaponData
 	"OnWeaponStartZoomIn"								"OnWeaponStartZoomIn_weapon_mgl"
 	"OnWeaponStartZoomOut"								"OnWeaponStartZoomOut_weapon_mgl"
 
-	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	MP_BASE
 	{

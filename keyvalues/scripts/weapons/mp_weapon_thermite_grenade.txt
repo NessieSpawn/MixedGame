@@ -1,6 +1,7 @@
 WeaponData
 {
-	//"projectilemodel"								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	// fix npc damage
 	MP_BASE

@@ -1,6 +1,7 @@
 WeaponData
 {
-	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	// vanilla missing
 	"impulse_force_explosions"						"7000" // default is same as impulse_force does

@@ -5,7 +5,9 @@ WeaponData
 	"OnProjectileCollision"							"OnProjectileCollision_weapon_gibber_pistol"
 	
 	//Projectile Stuff
-	"projectilemodel" 								"models/weapons/bullets/mgl_grenade.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
 	// move into weapon mods for better vortexing
 	//"projectile_trail_effect_0" 					"wpn_grenade_frag_mag"
 	"impact_effect_table" 							"default" // inc_bullet

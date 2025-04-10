@@ -46,7 +46,7 @@ var function OnWeaponPrimaryAttack_weapon_flak_rifle( entity weapon, WeaponPrima
 					asset trailEffect = weapon.GetWeaponSettingAsset( eWeaponVar.projectile_trail_effect_0 )
 					thread DelayedStartParticleSystem( missile, trailEffect )
 					if ( weapon.HasMod( "flak_cannon" ) )
-						missile.SetModel( $"models/weapons/bullets/mgl_grenade.mdl" )
+						missile.SetModel( $"models/domestic/nessy_doll.mdl" ) // :D
 					// change every projectile sound to be sync with client!
 					//EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
 					missile.ProjectileSetDamageSourceID( eDamageSourceId.mp_weapon_flak_rifle )

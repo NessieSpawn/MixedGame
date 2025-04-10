@@ -6,7 +6,8 @@ WeaponData
 	// vanilla missing
 	"impulse_force_explosions"						"17500" // default is same as impulse_force does
 
-	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 	
 	// Tediore Reload Stuff
 	"sound_throw_1p"								"weapon_proximitymine_throw"
