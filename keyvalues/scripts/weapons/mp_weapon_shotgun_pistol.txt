@@ -119,18 +119,19 @@ WeaponData
 			"is_burn_mod"		"1"
 		}
 		// nessie pistol types, use together with apex_nessie
-		nessie_drone_spawn
-		{
-		}
-		nessie_grunt_spawn
-		{
-		}
-		nessie_prowler_spawn
-		{
-		}
-		nessie_random_spawn
-		{
-		}
+		// not implementing good enough
+		// nessie_drone_spawn
+		// {
+		// }
+		// nessie_grunt_spawn
+		// {
+		// }
+		// nessie_prowler_spawn
+		// {
+		// }
+		// nessie_random_spawn
+		// {
+		// }
 
 		// tediore
 		tediore_reload
@@ -232,6 +233,19 @@ WeaponData
 		fake_nessy_weapon
 		{
 
+		}
+		nessie_doll_launcher // use together with apex_nessie
+		{
+			"ammo_no_remove_from_clip"				"1"
+
+			"fire_sound_1_player_1p"				"Null_Remove_SoundHook" 
+			"fire_sound_1_player_3p"				"Null_Remove_SoundHook" 
+		}
+		infinite_duration_nessie // never dissolves itself, only disappear after max count
+		{
+		}
+		rgb_nessie // you know what this is
+		{
 		}
 	}
 
