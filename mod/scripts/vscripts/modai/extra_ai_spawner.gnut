@@ -666,6 +666,8 @@ void function ExtraAISpawner_Init()
 		AddClientCommandCallback( "gruntdroppod", CC_SpawnGruntDroppod )
 		//AddClientCommandCallback( "npcweapon_bodygrouptest", CC_DoNPCWeaponBodyGroupTestSpawn )
 		AddClientCommandCallback( "overloadedstalkers", CC_SpawnOverloadedStalkers )
+		AddClientCommandCallback( "heavypilot", CC_SpawnFakeHeavyPilot )
+		AddClientCommandCallback( "lightpilot", CC_SpawnFakeLightPilot )
 	#endif // EXTRA_SPAWNER_DEBUG
 }
 
@@ -4520,6 +4522,59 @@ bool function CC_SpawnOverloadedStalkers( entity player, array<string> args )
 	vector rot = < 0, ClampAngle( playerAngs.y - 180 ), 0 >
 
 	thread ExtraSpawner_SpawnOverloadedStalkerDropPod( pos, rot, GetPlayerAISpawnTeam( player, args ) )
+	return true
+}
+
+// their body gets floating. pretty bad
+const array<asset> HEAVY_PILOT_MODELS =
+[
+	$"models/humans/pilots/pilot_heavy_drex_m.mdl",
+	$"models/humans/pilots/pilot_heavy_drex_f.mdl",
+	$"models/humans/pilots/pilot_heavy_roog_m.mdl",
+	$"models/humans/pilots/pilot_heavy_roog_f.mdl",
+]
+bool function CC_SpawnFakeHeavyPilot( entity player, array<string> args )
+{
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	vector pos = GetPlayerCrosshairOrigin( player )
+	vector playerAngs = player.EyeAngles()
+	vector rot = < 0, ClampAngle( playerAngs.y - 180 ), 0 >
+   
+	entity pilot = ExtraSpawner_SpawnPilotElite( pos, rot, GetPlayerAISpawnTeam( player, args ) )
+	pilot.SetModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" )
+	CreateModelProxyForEntity( pilot, HEAVY_PILOT_MODELS[ RandomInt( HEAVY_PILOT_MODELS.len() ) ], "npc_pilot_elite", false )
+	return true
+}
+
+// their body gets floating. pretty bad
+const array<asset> LIGHT_PILOT_MODELS =
+[
+	$"models/humans/pilots/pilot_light_ged_m.mdl",
+	$"models/humans/pilots/pilot_light_ged_f.mdl",
+	$"models/humans/pilots/pilot_light_jester_m.mdl",
+	$"models/humans/pilots/pilot_light_jester_f.mdl",
+]
+bool function CC_SpawnFakeLightPilot( entity player, array<string> args )
+{
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	vector pos = GetPlayerCrosshairOrigin( player )
+	vector playerAngs = player.EyeAngles()
+	vector rot = < 0, ClampAngle( playerAngs.y - 180 ), 0 >
+   
+	// do need a AISettings that sets mechanical stuffs for this
+	entity pilot = ExtraSpawner_SpawnPilotElite( pos, rot, GetPlayerAISpawnTeam( player, args ) )
+	pilot.SetModel( $"models/robots/spectre/imc_spectre.mdl" )
+	CreateModelProxyForEntity( pilot, LIGHT_PILOT_MODELS[ RandomInt( LIGHT_PILOT_MODELS.len() ) ], "npc_spectre", false )
 	return true
 }
 
