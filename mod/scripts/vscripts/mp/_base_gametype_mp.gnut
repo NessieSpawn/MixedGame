@@ -1117,6 +1117,10 @@ void function DecideRespawnPlayer( entity player, entity spawnpoint = null )
 	// this should be enough. also made a defensive fix in sh_death_package.gnut, EnsureDissolveEffectIsClearedForPlayer()
 	player.DissolveStop()
 
+	// MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise we can't change it anymore during this game
+	player.kv.rendermode = 0
+	player.kv.renderamt = 255
+
 	// modified callback: allowing change something before player actually respawns
 	// Added via AddCallback_OnPlayerDecideRespawn
 	foreach ( callbackFunc in file.playerDecideRespawnCallbacks )
