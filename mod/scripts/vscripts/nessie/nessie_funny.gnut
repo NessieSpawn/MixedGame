@@ -2618,6 +2618,7 @@ entity function CreateModelProxyForEntity( entity ent, asset modelName, string d
 
 	// cannot use camo or skin for non-titan model... be awared
 	entity proxy = CreatePropDynamic( modelName, ent.GetOrigin(), ent.GetAngles() )
+	SetTeam( proxy, ent.GetTeam() ) // hopefully we'll have proper team lights
 	proxy.SetParent( ent, "REF" )
 	proxy.SetBoneMerge( ent )
 	proxy.MarkAsNonMovingAttachment()
@@ -2696,7 +2697,7 @@ void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass
 	{
 		table results = WaitSignal( ent, "FakeModelProxyOwnerDeath" )
 
-		// handle being executed
+		// handling being executed over here
 		if ( ent.Anim_IsActive() )
 		{
 			// at this point we need to restore death package for ent
@@ -2724,6 +2725,7 @@ void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass
 			entity deathNPC = CreateEntity( deathNPCClass )
 			deathNPC.SetValueForModelKey( proxy.GetModelName() )
 			// this should totally avoid any collision?
+			// they still gets snatched to their place for whatever
 			SetSpawnflags( deathNPC, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
 			DispatchSpawn( deathNPC )
 			TakeAllWeapons( deathNPC )
