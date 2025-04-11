@@ -40,11 +40,15 @@ global function NessyFunny_EnablePlayerTickDamageByDefault // THIS IS DEFAULT SE
 global function PlayerBecomesTick
 
 // barker -- reimplement after getting funcion
+// still not working fine, but spectres and stalkers looks good
 /*
 global function BecomeFakeBarker
 global function BecomeFakeSpectre
 */
+// to be shared for debugging
+global function CreateModelProxyForEntity
 
+// brains
 global function BrainDead
 
 enum eMarvinMovement
@@ -315,9 +319,13 @@ void function CleanUpDecoyModelProxy( entity decoy )
 		entity proxy = file.entFakeModelProxy[ decoy ]
 		// hide decoy, we dissolve proxy instead
 		// resetting decoy's rendermode also works, and proxy will be dissolved as well because decoy seems to dissolve all parented entity in native code
+		/*
+		decoy.kv.rendermode = 4
+		decoy.kv.renderamt = 0
+		*/
+		// we're now changing visibilityFlags, maybe no need to handle like this
+		// EDIT: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
 		decoy.Hide()
-		//decoy.kv.rendermode = 4
-		//decoy.kv.renderamt = 0
 
 		// manually do effect for dissolving
 		// no need because hiding a decoy won't hide it's effect
@@ -420,8 +428,11 @@ void function OnPlayerChangedClass( entity player )
 	// if we DO have a fake model active, update visibility because it's gonna be reset after player changing class
 	if ( ( player in file.entFakeModelProxy ) && IsValid( file.entFakeModelProxy[ player ] ) )
 	{
+		// EDIT: still broken after changing class. can't handle that case
+		/*
 		player.kv.rendermode = 4
 		player.kv.renderamt = 0
+		*/
 	}
 }
 
@@ -2607,14 +2618,23 @@ void function TickPlayerTrackView( entity player )
 }
 
 // ENOUGH, could've use gib death
-entity function CreateModelProxyForEntity( entity ent, asset modelName, string deathNPCClass = "npc_soldier", bool alwaysGibDeath = false )
+// EDIT: 04/11/2025 change back to use gib death again. I've suffered enough, these proxy cannot be used on players
+entity function CreateModelProxyForEntity( entity ent, asset modelName, string deathNPCClass = "npc_soldier", bool alwaysGibDeath = true )
 {
 	// better hide -- only adds invisibility, won't impact effects
 	// THIS STOPS WORKING ONCE PLAYER RESPAWNED. FUCK IT
 	// EDIT: MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise it just stops working in following games
 	// I've now added an extra fix in _base_gametype_mp.gnut
+	// ALSO, MUST RESET RENDERMODE BEFORE CLASS CHANGE!
+	// it's highly related with SetPlayerSettingsWithMods() method... guess we'll have to wrap it. way too complecated have leave it till we also wrap other model proxy stuffs...
+	// EDIT2: cannot handle settings change AT ALL! guess we'll have to use player.Hide(), removing their jumpjet effects... this will also make health bar tracking become weird
+	// EDIT3: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
 	ent.kv.rendermode = 4
 	ent.kv.renderamt = 0
+	// DAMMIT! HIDING ENTITY WILL REMOVE ALL OF THEIR SOUND!
+	// that gives one way to make a REAL LOW PROFILE for us, but not good for usual use...
+	//ent.Hide()
+	//ent.kv.VisibilityFlags = 0
 
 	// cannot use camo or skin for non-titan model... be awared
 	entity proxy = CreatePropDynamic( modelName, ent.GetOrigin(), ent.GetAngles() )
@@ -2624,6 +2644,11 @@ entity function CreateModelProxyForEntity( entity ent, asset modelName, string d
 	proxy.MarkAsNonMovingAttachment()
 	proxy.RemoveFromSpatialPartition()
 	proxy.Highlight_SetInheritHighlight( true )
+	/*
+	SetForceDrawWhileParented( proxy, true ) // have to do this after ent.kv.VisibilityFlags = 0
+	proxy.SetOwner( ent )
+	ent.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY | ENTITY_VISIBLE_TO_ENEMY // not owner only
+	*/
 	// NPC variant
 	/*
 	entity proxy = CreateEntity( "npc_pilot_elite" ) // pilot elite never speak
@@ -2662,11 +2687,15 @@ void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass
 	// THIS STOPS WORKING ONCE PLAYER RESPAWNED. FUCK IT
 	// EDIT: MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise it just stops working in following games
 	// I've now added an extra fix in _base_gametype_mp.gnut
+	// EDIT: still broken after changing class. can't handle that case
+	// EDIT2: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
 	//ent.kv.rendermode = 4
 	//ent.kv.renderamt = 0
 
 	// disable death package for player/npc, all handled below
-	if ( ent.IsPlayer() || ent.IsNPC() )
+	// I'm not counting using this thing on players now. let's handle npcs good enough
+	//if ( ent.IsPlayer() || ent.IsNPC() )
+	if ( ent.IsPlayer() )
 		DeathPackage_SetDisabledForEntity( ent, true )
 
 	OnThreadEnd
@@ -2676,13 +2705,19 @@ void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass
 			if ( IsValid( ent ) )
 			{
 				// restore stuffs
-				if ( ent.IsPlayer() || ent.IsNPC() )
+				// I'm not counting using this thing on players now. let's handle npcs good enough
+				//if ( ent.IsPlayer() || ent.IsNPC() )
+				if ( ent.IsPlayer() )
 					DeathPackage_SetDisabledForEntity( ent, false )
 				// will this make player's next life able to use the think again?
 				// YES IT DOES!
 				// I've now added an extra fix in _base_gametype_mp.gnut
+				// EDIT: still broken after changing class. can't handle that case
+				// EDIT2: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
 				ent.kv.rendermode = 0
 				ent.kv.renderamt = 255
+				//ent.Show()
+				//ent.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
 			}
 			if ( IsValid( proxy ) )
 				proxy.Destroy()
@@ -2693,7 +2728,9 @@ void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass
 	// should only handle for player/npc
 	// nah player and npc also not working fine with these... they'll slide when model changed after death
 	// also stalkers don't have proper animation for player death
-	if ( ent.IsPlayer() || ent.IsNPC() )
+	// I'm not counting using this thing on players now. let's handle npcs good enough
+	//if ( ent.IsPlayer() || ent.IsNPC() )
+	if ( ent.IsPlayer() )
 	{
 		table results = WaitSignal( ent, "FakeModelProxyOwnerDeath" )
 
@@ -2798,6 +2835,17 @@ void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass
 			thread RagdollAsHiddenBuddyTitan( ent )
 		}
 	}
+	else if ( ent.IsNPC() )
+	{
+		ent.WaitSignal( "OnDeath" )
+		// changing model for dead npcs should work fine
+		// or maybe we could just gib them
+		// EDIT: this will take ~1 frame hold of T-Posing. idk how to tell it's weird but okay...?
+		ent.SetModel( proxy.GetModelName() )
+		ent.SetValueForModelKey( proxy.GetModelName() )
+		ent.kv.rendermode = 0
+		ent.kv.renderamt = 255
+	}
 	else
 		WaitForever()
 }
@@ -2861,10 +2909,23 @@ void function GibOwnerOnDeath( entity ent, entity proxy )
 	ent.EndSignal( "OnDestroy" )
 	proxy.EndSignal( "OnDestroy" )
 
+	// disable death package for player/npc, so we don't gib them twice
+	// this also removes headshot effects but whatever
+	if ( ent.IsPlayer() || ent.IsNPC() )
+		DeathPackage_SetDisabledForEntity( ent, true )
+
 	OnThreadEnd
 	(
 		function() : ( ent, proxy )
 		{
+			if ( IsValid( ent ) )
+			{
+				// restore stuffs
+				if ( ent.IsPlayer() || ent.IsNPC() )
+					DeathPackage_SetDisabledForEntity( ent, false )
+				ent.kv.rendermode = 0
+				ent.kv.renderamt = 255
+			}
 			if ( IsValid( proxy ) )
 				proxy.Destroy()
 		}
@@ -2876,8 +2937,13 @@ void function GibOwnerOnDeath( entity ent, entity proxy )
 	// also stalkers don't have proper animation for player death
 	if ( ent.IsPlayer() || ent.IsNPC() )
 	{
-		ent.WaitSignal( "OnDeath" )
-		ent.kv.rendermode = 0
+		// welp... we could also handle headshots manually
+		//ent.WaitSignal( "OnDeath" )
+		table results = WaitSignal( ent, "FakeModelProxyOwnerDeath" )
+		// copied from sh_death_package.gnut
+		int dpFlags = expect int( results.scriptType )
+		if ( ( dpFlags & DF_HEADSHOT ) && IsHumanSized( ent ) && !ent.IsHologram() )
+			TryHeadshotDeathFX( ent )
 		HumanSizedGibDeath( ent )
 	}
 	else

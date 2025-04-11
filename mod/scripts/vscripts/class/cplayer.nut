@@ -289,8 +289,12 @@ function CodeCallback_RegisterClass_CPlayer()
 		local oldPlayerClass = CPlayer.GetPlayerClass()
 
 		// MUST RESET RENDERMODE BEFORE CLASS CHANGE! otherwise we can't change it anymore during current life
+		// this method can't handle all the cases. needs to wrap SetPlayerSettingsWithMods()
+		/*
+		print( "RUNNING CPlayer::SetPlayerSettings(), resetting player rendermode" )
 		this.kv.rendermode = 0
 		this.kv.renderamt = 255
+		*/
 
 		CPlayer.SetPlayerSettingsWithMods( settings, [] )
 
@@ -306,8 +310,12 @@ function CodeCallback_RegisterClass_CPlayer()
 		local mods = pilotDataTable.playerSetFileMods
 
 		// MUST RESET RENDERMODE BEFORE CLASS CHANGE! otherwise we can't change it anymore during current life
+		// this method can't handle all the cases. needs to wrap SetPlayerSettingsWithMods()
+		/*
+		print( "RUNNING CPlayer::SetPlayerSettingsFromDataTable(), resetting player rendermode" )
 		this.kv.rendermode = 0
 		this.kv.renderamt = 255
+		*/
 
 		this.SetPlayerSettingsWithMods( settings, mods )
 
