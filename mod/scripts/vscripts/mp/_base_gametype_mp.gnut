@@ -1118,6 +1118,7 @@ void function DecideRespawnPlayer( entity player, entity spawnpoint = null )
 	player.DissolveStop()
 
 	// MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise we can't change it anymore during this game
+	// EDIT: still broken after changing class. can't handle that case
 	player.kv.rendermode = 0
 	player.kv.renderamt = 255
 
