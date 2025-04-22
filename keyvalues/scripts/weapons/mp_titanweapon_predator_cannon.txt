@@ -56,5 +56,11 @@ WeaponData
 			"damage_near_value_titanarmor"				"*0.8"
 			"damage_far_value_titanarmor" 				"*0.8"
 		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 	}
 }

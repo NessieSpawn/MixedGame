@@ -5,6 +5,8 @@
 untyped // for using projectile.s
 global function Nessy_April_Fools_Weapons_Init
 
+global function NessyAprilFools_ChangeNPCHumanGrenadesToNessy // this handles NPC gamemodes
+
 const string NESSY_WEAPON_MOD = "fake_nessy_weapon"
 
 const asset MOZAMBIQUE_MODEL = $"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
@@ -67,6 +69,12 @@ const array<string> AVAILABLE_ABILITIES_NESSY =
     "mp_weapon_satchel", // satchel should've working fine because we're changing model after it's throw, thus PROTO_PlayTrapLightEffect() should already running
     "mp_weapon_thermite_grenade",
 ]
+
+// settings table
+struct
+{
+    bool changeNPCHumanGrenades
+} file
 
 void function Nessy_April_Fools_Weapons_Init()
 {
@@ -134,7 +142,20 @@ void function NessyDollProjectiles()
 
         foreach ( entity projectile in GetProjectileArray() )
         {
-            if ( Vortex_GetRefiredProjectileMods( projectile ).contains( "fake_nessy_weapon" ) )
+            bool changeModelToNessy = Vortex_GetRefiredProjectileMods( projectile ).contains( "fake_nessy_weapon" )
+            
+            // checks that requires projectile's owner
+            entity owner = projectile.GetOwner()
+            if ( IsValid( owner ) )
+            {
+                if ( file.changeNPCHumanGrenades )
+                {
+                    if ( owner.IsNPC() && !owner.IsTitan() && projectile.ProjectileGetWeaponClassName() == owner.kv.grenadeWeaponName )
+                        changeModelToNessy = true
+                }
+            }
+
+            if ( changeModelToNessy )
             {
                 if ( !( "modelChangedByNessyScript" in projectile.s ) )
                 {
@@ -178,4 +199,10 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
             }
         }
     }
+}
+
+// settings func
+void function NessyAprilFools_ChangeNPCHumanGrenadesToNessy( bool change )
+{
+    file.changeNPCHumanGrenades = change
 }

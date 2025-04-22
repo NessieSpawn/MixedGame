@@ -37,5 +37,11 @@ WeaponData
 		particle_accelerator_fix
 		{
 		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 	}
 }

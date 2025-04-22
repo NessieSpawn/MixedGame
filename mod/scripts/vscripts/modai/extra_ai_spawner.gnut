@@ -11902,6 +11902,16 @@ void function ExtraSpawner_SetUpNukeDeathReaper( entity reaper )
 
 	// visual misc
 	SuperSpectre_SetDoBodyGroupUpdateOnDamage( reaper, true ) // vanilla removed feature turns to settings: update bodygroup to doomed state( like MP titans ) if taking enough damage
+
+	// weapon: no pre fire delay, shorter range for more aggressive play, nerfed damage
+	// maybe leave only for april fools gamemode. normal reapers already deadly enough
+	/*
+	foreach ( entity weapon in reaper.GetMainWeapons() )
+	{
+		weapon.AddMod( "aggressive_ai" )
+		weapon.AddMod( "npc_nuke_reaper" )
+	}
+	*/
 }
 
 void function ExtraSpawner_ReaperTickLaunchThink( entity reaper, string tickType )

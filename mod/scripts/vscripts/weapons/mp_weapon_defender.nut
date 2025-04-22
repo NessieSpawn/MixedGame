@@ -38,8 +38,11 @@ void function MpWeaponDefender_Init()
 
 // temp for us get client-side that have charge rifle mod installed
 #if SERVER
-void function OnModdedPlayerConnected( entity player )
+void function OnModdedPlayerConnected( entity player, string modType )
 {
+	if ( modType != "FULL" ) // not installing FULL mod. we may split this mod to some other package in future?
+		return
+
 	if ( !file.chargeRifleSafePlayers.contains( player ) )
 		file.chargeRifleSafePlayers.append( player )
 }

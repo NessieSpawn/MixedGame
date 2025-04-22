@@ -139,5 +139,12 @@ WeaponData
 		//vortex_shield_fix
 		//{
 		//}
+
+		// nessy
+        // titan weapons: model change done in script
+		// vortex shield can be complicated, no need to change model
+		// fake_nessy_weapon
+		// {
+		// }
 	}
 }
