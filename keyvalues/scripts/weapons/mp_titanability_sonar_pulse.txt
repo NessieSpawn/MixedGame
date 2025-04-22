@@ -21,6 +21,11 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 
 		// modded weapon: less damage amp sonar pulse
 		ogre_sonar
@@ -63,12 +68,6 @@ WeaponData
 			// same as emp grenade
 			"explosion_damage"								"40"
 			"explosion_damage_heavy_armor"					"330"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }
