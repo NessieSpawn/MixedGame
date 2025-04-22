@@ -10,20 +10,20 @@ const int SQUADS_PER_TEAM = 5
 const int SQUADS_PER_TEAM_HIGH_LEVEL = 3 // maybe do reduced squad if we have reached higher level
 
 const int MARVINS_PER_TEAM = 0
-const int PROWLERS_PER_TEAM = 3
+const int PROWLERS_PER_TEAM = 3 // was 4
 const int PROWLER_SQUADS_PER_TEAM = 0 // prowler squad: 2 cqb prowler with 3 small prowlers
 
 const int REAPERS_PER_TEAM = 3 // was 3, reduced reaper spawn since we're using tick spawner reapers
-const int GUNSHIPS_PER_TEAM = 0
+const int GUNSHIPS_PER_TEAM = 0 // was 2, removed and left for settings to enable manually
 
 const int PILOTS_PER_TEAM = 4
 const int TITANS_PER_TEAM = 0
 
 // escalator default value
 // can be modified by playlistvar
-const int LEVEL_SPECTRES = 120
-const int LEVEL_STALKERS = 380
-const int LEVEL_REAPERS = 600
+const int LEVEL_SPECTRES = 150
+const int LEVEL_STALKERS = 380 // 230 for scorelimit 650
+const int LEVEL_REAPERS = 600 // 350 for scorelimit 650
 //const int LEVEL_GUNSHIPS = 280 // has been merged to reaper spawns
 const int LEVEL_TITANS = 0
 
@@ -46,6 +46,9 @@ const int SMALL_PROWLER_SCORE_AMOUNT = 1
 const int REAPER_SCORE_AMOUNT = 5
 const int DRONE_SCORE_AMOUNT = 0
 const int TITAN_SCORE_AMOUNT = 10
+
+// APRIL FOOLS SPECIAL scores
+const int HUMAN_TITAN_WEAPON_SCORE_MULTIPLYER = 2 // humansized unit with titan weapons awarding more score
 
 // fake coop
 // npc spawn
@@ -116,6 +119,12 @@ struct
 	table<entity, float> npcCleanUpStartTime
 	table<entity, float> npcIdleStartTime
 	table<entity, vector> npcLastTickOrigin
+
+	// APRIL FOOLS SPECIAL variables
+	array<entity> weaponSafePlayers // players with mod installed should be safe to use our modded weapons, but we need to disable replay if not all of players have mod installed
+	table<entity, bool> playerUsingDangerousWeapon // if player using a weapon that may crash other clients, we disable replay for them
+	array<string> squadsAssignedTitanWeapon // for chaos mode. each squad's first npc has chance to get a titan weapon
+	array<entity> npcsUsingTitanWeapon
 } file
 
 
@@ -168,9 +177,135 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 	SetShouldPlayDefaultMusic( true ) // play music when score or time reaches some point
 	EarnMeterMP_SetPassiveGainProgessEnable( true ) // enable earnmeter gain progressing like vanilla
 
-
 	// init npc spawn settings
 	InitModdedSpawnSettings()
+
+	// APRIL FOOLS SPECIAL loadout: no optics, fake nessy weapon
+	// basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes...
+	// maybe we could release client-side version of this mod and disable killreplay to make players able to use them
+	AddCallback_OnPlayerGetsNewPilotLoadout( OnPlayerChangeLoadout )
+
+	// APRIL FOOLS SPECIAL settings
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// random player model
+		AltPilot_SetPlayerModelAllRandom( true )
+		AltPilot_SetShouldReplacePlayerSettings( true )
+		SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
+
+		// model stuffs
+		Nessie_AutoSpawnCostumeForPlayers( true ) // allow player costume
+		NessyAprilFools_ChangeNPCHumanGrenadesToNessy( true ) // npc grenades model update
+
+		SetWeaponDropsEnabled( false ) // don't let players pick up kraber stuffs
+	
+		// temp for us get client-side that have kraber mod installed
+		AddCallback_OnClientSideWithMixedGameInstalledConnected( OnModdedPlayerConnected )
+		AddCallback_OnClientDisconnected( OnPlayerDisconnected )
+
+		// ANTI-CRASH for client-side: don't do replay for player without mod installed if we have at least one other player installed the mod
+		AddCallback_ShouldDoReplay
+	}
+}
+
+void function OnModdedPlayerConnected( entity player, string modType )
+{
+	if ( modType != "FULL" && modType != "AITDM_NESSY" ) // checking FULL mod or AITDM_NESSY
+		return
+	
+	if ( !file.weaponSafePlayers.contains( player ) )
+		file.weaponSafePlayers.append( player )
+}
+
+void function OnPlayerDisconnected( entity player )
+{
+	ArrayRemoveInvalid( file.weaponSafePlayers )
+	file.weaponSafePlayers.removebyvalue( player )
+}
+
+// APRIL FOOLS SPECIAL loadout: no optics, fake nessy weapon
+const array<string> WEAPON_MODS_TO_REMOVE = 
+[
+	"hcog",
+	"holosight",
+	"redline_sight",
+	"threat_scope",
+	"scope_4x",
+	"proscreen",
+]
+// basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes...
+// DMR is replaced with G2 while Kraber is replaced with Doubletake
+// maybe we could release client-side version of this mod and disable killreplay to make players able to use them
+const table<string, string> WEAPON_REPLACEMENTS =
+[
+	["mp_weapon_sniper"] 			= "mp_weapon_doubletake",
+	["mp_weapon_dmr"]				= "mp_weapon_g2",
+	["mp_weapon_rspn101_og"]		= "mp_weapon_rspn101",
+]
+// list of all valid replacement weapon mods
+const array<string> ALL_VALID_MODS =
+[
+	"extended_ammo", // kraber and segmented reload weapons won't work fine with this... idk how to handle, shall we hardcode them?
+	"pas_fast_reload",
+	"pas_fast_swap",
+	"pas_fast_ads",
+	"tactical_cdr_on_kill",
+	"pas_run_and_gun", // sniper rifles can't use this, so never replace other weapons with sniper
+]
+void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
+{
+	// APRIL FOOLS SPECIAL loadout: no optics, fake nessy weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// remove pilot skin
+		player.SetSkin( 0 )
+		player.SetCamo( 0 )
+
+		player.GiveExtraWeaponMod( "fake_nessy_weapon" )
+
+		foreach ( entity weapon in player.GetMainWeapons() )
+		{
+			// BAD WEAPON handle
+			if ( !file.weaponSafePlayers.contains( player ) )
+			{
+				string weaponName = weapon.GetWeaponClassName()
+				if ( weaponName in WEAPON_REPLACEMENTS )
+				{
+					array<string> validMods
+					array<string> mods = weapon.GetWeaponMods()
+					foreach ( string mod in mods )
+					{
+						if ( ALL_VALID_MODS.contains( mod ) )
+							validMods.append( mod )
+					}
+					weapon.Destroy() // to take away weapon at specific slot
+					weapon = player.GiveWeapon( WEAPON_REPLACEMENTS[weaponName], validMods )
+				}
+			}
+
+			array<string> weaponMods = weapon.GetWeaponMods()
+			foreach ( string mod in weaponMods )
+			{
+				if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
+					weapon.RemoveMod( mod )
+			}
+
+			// HARDCODED for kraber
+			if ( weapon.GetWeaponClassName() == "mp_weapon_sniper" )
+				weapon.RemoveMod( "extended_ammo" ) // kraber with "fake_nessy_weapon" only have 1 ammo clip
+
+			// wants to update fp bodygroup, so optics won't show
+			HolsterWeapons( player )
+			DeployWeapons( player )
+			// update weapon clip size after mod change... though GiveExtraWeaponMod() should already handled it
+			try { weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() ) } // anti-crash for charge weapons
+			catch(ex1) {}
+			
+			// remove weapon skin
+			weapon.SetSkin( 0 )
+			weapon.SetCamo( 0 )
+		}
+	}
 }
 
 void function InitModdedSpawnSettings()
@@ -406,6 +541,95 @@ void function UpdateCOOPPlayerTeam_Threaded()
 ///// NPC CONFIG FUNCTIONS /////
 ////////////////////////////////
 
+// APRIL FOOLS SPECIAL: random titan weapon assignment
+// not featuring modded weapons rn
+const array<string> VALID_TITANWEAPONS =
+[
+	"mp_titanweapon_particle_accelerator",
+	"mp_titanweapon_xo16_vanguard",
+	"mp_titanweapon_sniper",
+	"mp_titanweapon_sticky_40mm",
+	"mp_titanweapon_meteor",
+	"mp_titanweapon_leadwall",
+	"mp_titanweapon_predator_cannon",
+]
+void function GiveHumanTitanWeapon( entity soldier )
+{
+	thread GiveHumanTitanWeapon_Threaded( soldier )
+}
+
+void function GiveHumanTitanWeapon_Threaded( entity soldier )
+{
+	soldier.EndSignal( "OnDestroy" )
+	soldier.EndSignal( "OnDeath" )
+	WaitEndFrame() // droppod npcs' squad name gets assigned later after spawn, needs to handle it
+
+	string squadName = soldier.kv.squadname
+	if ( file.squadsAssignedTitanWeapon.contains( squadName ) ) // each squad can only have 1 npc holding titan weapon
+		return
+
+	TakeAllWeapons( soldier )
+	string newWeapon = VALID_TITANWEAPONS[ RandomInt( VALID_TITANWEAPONS.len() ) ]
+	soldier.GiveWeapon( newWeapon )
+	soldier.SetActiveWeaponByName( newWeapon )
+	file.squadsAssignedTitanWeapon.append( squadName )
+
+	// doubled health + half shield( health taking damage will mostly making them vulnerable, while  )
+	// may look weird on stalkers & reapers if we're not using nscn fixes but whatever
+	soldier.SetMaxHealth( soldier.GetMaxHealth() * 2 )
+	soldier.SetHealth( soldier.GetMaxHealth() )
+	SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() * 0.5 )
+	SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
+
+	// explode on getting stepped by titan. stalkers also do so( which means they deal even more damage )
+	AddEntityCallback_OnKilled( soldier, ExplodeOnTitanStep )
+	file.npcsUsingTitanWeapon.append( soldier )
+}
+
+void function ExplodeOnTitanStep( entity soldier, var damageInfo )
+{
+	int sourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+	if ( sourceId == eDamageSourceId.damagedef_titan_step )
+	{
+		// 300 dmg
+		Explosion_DamageDefSimple(
+			damagedef_stalker_powersupply_explosion_large,
+			soldier.GetOrigin(),
+			soldier,
+			soldier,
+			soldier.GetOrigin()
+		)
+		// 150 dmg. not applied to stalkers
+		if ( soldier.GetClassName() != "npc_stalker" )
+		{
+			Explosion_DamageDefSimple(
+				damagedef_stalker_powersupply_explosion_small,
+				soldier.GetOrigin(),
+				soldier,
+				soldier,
+				soldier.GetOrigin()
+			)
+		}
+	}
+}
+
+void function GiveNessyProjectileMod( entity soldier )
+{
+	thread GiveNessyProjectileMod_Threaded( soldier )
+}
+
+void function GiveNessyProjectileMod_Threaded( entity soldier )
+{
+	soldier.EndSignal( "OnDestroy" )
+	soldier.EndSignal( "OnDeath" )
+	WaitEndFrame() // extra spawner npcs' may get weapon a bit later than ususal...
+
+	foreach ( entity weapon in soldier.GetMainWeapons() )
+		weapon.AddMod( "fake_nessy_weapon" )
+	foreach ( entity weapon in soldier.GetOffhandWeapons() )
+		weapon.AddMod( "fake_nessy_weapon" )
+}
+
 // hardcoded here
 const array<string> SPECIALIST_GRUNTS =
 [
@@ -427,6 +651,18 @@ const array<string> EARNMETER_BUFF_GRUNTS = // buff earnmeter earn from these gr
 	"npc_soldier_shield_captain",
 ]
 
+// APRIL FOOLS SPECIAL: random model from teams
+const array<asset> VALID_GRUNT_MODELS =
+[
+	$"models/humans/grunts/mlt_grunt_lmg.mdl",
+	$"models/humans/grunts/imc_grunt_lmg.mdl",
+	$"models/humans/grunts/mlt_grunt_smg.mdl",
+	$"models/humans/grunts/imc_grunt_smg.mdl",
+	$"models/humans/grunts/mlt_grunt_shotgun.mdl",
+	$"models/humans/grunts/imc_grunt_shotgun.mdl",
+	$"models/humans/grunts/mlt_grunt_rifle.mdl",
+	$"models/humans/grunts/imc_grunt_rifle.mdl",
+]
 void function GruntConfig( entity soldier )
 {
 	// friendly highlight
@@ -457,6 +693,18 @@ void function GruntConfig( entity soldier )
 	bool higherEarnValue = EARNMETER_BUFF_GRUNTS.contains( aiSetName )
 	if ( higherEarnValue )
 		ScoreEvent_SetEntityEarnValueOverride( soldier, "KillGrunt", 0.04, 0.03, 0.67 )
+
+	// APRIL FOOLS SPECIAL
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// random model from teams
+		if ( VALID_GRUNT_MODELS.contains( soldier.GetModelName() ) )
+			soldier.SetModel( VALID_GRUNT_MODELS[ RandomInt( VALID_GRUNT_MODELS.len() ) ] )
+		
+		// random titan weapon assignment
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+			GiveHumanTitanWeapon( soldier )
+	}
 }
 
 void function GruntTitleThink( entity soldier )
@@ -542,8 +790,22 @@ void function SpectreConfig( entity soldier )
 	// don't easily die from specific damage
 	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
 	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
+
+	// APRIL FOOLS SPECIAL
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// random titan weapon assignment
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+			GiveHumanTitanWeapon( soldier )
+	}
 }
 
+// APRIL FOOLS SPECIAL: random model from teams
+const array<asset> VALID_STALKER_MODELS =
+[
+	$"models/robots/stalker/robot_stalker.mdl",
+	$"models/robots/stalker/robot_stalker_red.mdl",
+]
 void function StalkerConfig( entity soldier )
 {
 	// friendly highlight
@@ -563,6 +825,18 @@ void function StalkerConfig( entity soldier )
 
 	// we want headshot killing them award more score
 	SetUpNPCHeadshotReward( soldier )
+
+	// APRIL FOOLS SPECIAL
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// random model from teams
+		if ( VALID_STALKER_MODELS.contains( soldier.GetModelName() ) )
+			soldier.SetModel( VALID_STALKER_MODELS[ RandomInt( VALID_STALKER_MODELS.len() ) ] )
+
+		// random titan weapon assignment
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+			GiveHumanTitanWeapon( soldier )
+	}
 }
 
 void function SetUpNPCHeadshotReward( entity soldier )
@@ -578,16 +852,49 @@ void function ReaperConfig( entity soldier )
 	AITdmExtend_FriendlyHighlight( soldier )
 
 	// even stronger
-	soldier.SetMaxHealth( 5500 ) // was 5000
-	soldier.SetHealth( 5500 )
+	soldier.SetMaxHealth( 6500 ) // was 5500
+	soldier.SetHealth( 6500 )
 
 	// debugging
 	//ExtraSpawner_EnableNPCNoPainOnDamage( true ) // npc won't pain on taking damage
 	//ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 1.0 )
 
-	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.4 ) // less likely can be in pain animation( at least 1400 damage / 3120 repeat damage required )
+	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.5 ) // less likely can be in pain animation( at least 1500 damage / 3600 repeat damage required )
+
+	// APRIL FOOLS SPECIAL: add aggressive_ai, grants shield
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	{
+		if ( reaper.GetMainWeapons().len() > 0 )
+			reaper.GetMainWeapons()[0].AddMod( "aggressive_ai" )
+
+		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
+		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
+	}
 }
 
+// APRIL FOOLS SPECIAL: random model as same chassis
+const array<asset> VALID_STRYDER_TITAN_MODELS =
+[
+	$"models/titans/light/titan_light_raptor.mdl",
+	$"models/titans/light/titan_light_locust.mdl",
+	$"models/titans/light/titan_light_northstar_prime.mdl",
+	$"models/titans/light/titan_light_ronin_prime.mdl",
+]
+const array<asset> VALID_ATLAS_TITAN_MODELS =
+[
+	$"models/titans/medium/titan_medium_ajax.mdl",
+	$"models/titans/medium/titan_medium_wraith.mdl",
+	$"models/titans/medium/titan_medium_vanguard.mdl",
+	$"models/titans/medium/titan_medium_ion_prime.mdl",
+	$"models/titans/medium/titan_medium_tone_prime.mdl",
+]
+const array<asset> VALID_OGRE_TITAN_MODELS =
+[
+	$"models/titans/heavy/titan_heavy_ogre.mdl",
+	$"models/titans/heavy/titan_heavy_deadbolt.mdl",
+	$"models/titans/heavy/titan_heavy_scorch_prime.mdl",
+	$"models/titans/heavy/titan_heavy_legion_prime.mdl",
+]
 void function TitanConfig( entity soldier )
 {
 	// friendly highlight
@@ -599,6 +906,44 @@ void function TitanConfig( entity soldier )
 	// here goes some hack: if turret isn't owned by player, we scale down their score value
 	// needs to delay 1 frame for them to set up ownership
 	thread DelayedSetUpNPCTitan( soldier )
+
+	// APRIL FOOLS SPECIAL
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// remove titan skin
+		soldier.SetSkin( 0 )
+		soldier.SetCamo( 0 )
+		// random model as same chassis
+		array<asset> validModelGroups
+		switch ( GetSoulTitanSubClass( soldier ) )
+		{
+			case "stryder":
+				validModelGroups = VALID_STRYDER_TITAN_MODELS
+				break
+
+			case "atlas":
+				validModelGroups = VALID_ATLAS_TITAN_MODELS
+				break
+
+			case "ogre":
+				validModelGroups = VALID_OGRE_TITAN_MODELS
+				break
+		}
+		if ( validModelGroups.len() > 0 )
+			soldier.SetModel( validModelGroups[ RandomInt( validModelGroups.len() ) ] )
+
+		// change projectile model
+		foreach ( entity weapon in soldier.GetMainWeapons() )
+		{
+			weapon.AddMod( "fake_nessy_weapon" )
+			// remove weapon skin
+			weapon.SetSkin( 0 )
+			weapon.SetCamo( 0 )
+		}
+
+		foreach ( entity weapon in soldier.GetOffhandWeapons() )
+			weapon.AddMod( "fake_nessy_weapon" )
+	}
 }
 
 void function DelayedSetUpNPCTitan( entity soldier )
@@ -620,6 +965,14 @@ void function DelayedSetUpNPCTitan( entity soldier )
 	ScoreEvent_SetEntityEarnValueOverride( soldier, "TitanKillTitan", 0.0, 0.0 )
 	ScoreEvent_SetEntityEarnValueOverride( soul, "TitanAssist", 0.05, 0.05 ) // titan's assist score store in souls
 	ScoreEvent_SetEntityEarnValueOverride( soldier, "TitanAssist", 0.05, 0.05 )
+
+	// APRIL FOOLS SPECIAL: grants shield for non-player titans
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	{
+		entity soul = titan.GetTitanSoul()
+		if ( IsValid( soul ) )
+			SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
+	}
 }
 
 void function DroneConfig( entity soldier )
@@ -738,7 +1091,11 @@ void function InitExtraSpawnerSettings()
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_soldier", ["mp_weapon_rocket_launcher", "mp_weapon_mgl"] )
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_soldier", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_electric_smoke", "mp_weapon_grenade_emp"] )
 	// nerf dmr, mastiff and wingman elite damage cause we enabled npc headshots, disable archers fire at human players and increase their damage against titans
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
+	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "fake_nessy_weapon"] )
+	else
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
 
 	ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2"] )
 	// removed arc launcher cuz they're bit too powerful
@@ -746,7 +1103,11 @@ void function InitExtraSpawnerSettings()
 	// spectres don't throw grenades, just keep here
 	//ExtraSpawner_SetNPCGrenadeWeapons( "npc_spectre", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_emp"] )
 	// buff double take damage and fire rate
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest"] )
+	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest", "fake_nessy_weapon"] )
+	else
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest"] )
 
 	ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] )
 	// only re-45 and p2016 don't have "hcog" mod included... using them is good enough
@@ -759,14 +1120,22 @@ void function InitExtraSpawnerSettings()
 	// nerf dmr, mastiff and wingman elite damage cause we enabled npc headshots, buff double take damage and fire rate, disable archers fire at human players and increase their damage against titans
 	// for pilots, add optics, extended_ammo and pro_screen for their weapons. we've added npc weapon bodygroup update!(proscreen can't show xp count for a npc though)
 	// aog goes first because spitfire and lstar both have holosight(lstar one is unfinished), wants to overwrite
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_lower_damage", "npc_higher_damage_headshot", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "hcog", "aog", "holosight", "scope_4x", "extended_ammo", "pro_screen"] )
+	// APRIL FOOLS SPECIAL: no optics, use fake_nessy_weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_lower_damage", "npc_higher_damage_headshot", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "fake_nessy_weapon"] )
+	else
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_lower_damage", "npc_higher_damage_headshot", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "hcog", "aog", "holosight", "scope_4x", "extended_ammo", "pro_screen"] )
 
 	// npcs can't shoot "mp_weapon_pulse_lmg"
 	ExtraSpawner_SetNPCWeapons( "npc_stalker", ["mp_weapon_softball", "mp_weapon_smr", "mp_weapon_epg"] )
 	// should I just remove AT weapons for stalkers cuz they're using grenadier?
 	//ExtraSpawner_SetNPCAntiTitanWeapons( "npc_stalker", ["mp_weapon_mgl", "mp_weapon_arc_launcher", "mp_weapon_defender"] )
 	// balanced epg for multiplayer
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["multiplayer_npc_grenadier"] )
+	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["multiplayer_npc_grenadier", "fake_nessy_weapon"] )
+	else
+		ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["multiplayer_npc_grenadier"] )
 
 
 	// modified functions in _ai_drone.nut
@@ -992,6 +1361,12 @@ int function AITdmExtend_GetScoreValue( entity ent, bool isDoomedShot = false )
 			removeTitanScore = TitanHealth_GetSoulInfiniteDoomedState( ent.GetTitanSoul() )
 		if ( removeTitanScore )
 			scoreToAdd -= titanScore // remove titan score on kill for doomed health loss titans
+	}
+	else // humans
+	{
+		// APRIL FOOLS SPECIAL: titan weapon grunts award extra score
+		if ( file.npcsUsingTitanWeapon.contains( ent ) )
+			scoreToAdd *= HUMAN_TITAN_WEAPON_SCORE_MULTIPLYER
 	}
 
 	return scoreToAdd
@@ -1919,12 +2294,11 @@ entity function FindBestSpawnForNPCDrop( array<entity> spawnPoints, int team, fl
 	return validSpawnPoints[ RandomInt( validSpawnPoints.len() ) ]
 }
 
-// return true if "inUse" not in point.s
+// return true if "lastUsedTime" not in point.s
 bool function InitNPCSpawnpoint( entity point )
 {
-	if ( !( "inUse" in point.s ) )
+	if ( !( "lastUsedTime" in point.s ) )
 	{
-		point.s.inUse <- false
 		point.s.lastUsedTime <- -999
 		return true
 	}

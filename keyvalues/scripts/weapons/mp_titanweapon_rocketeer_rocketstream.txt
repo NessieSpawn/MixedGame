@@ -449,6 +449,12 @@ WeaponData
 		}
 
 		// should've reached max mod lines of 200
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 	}
 
 	RUI_CrosshairData

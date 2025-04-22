@@ -148,8 +148,11 @@ void function TitanReplace_Init()
 	RegisterDefaultTitanPickCharacters()
 }
 
-void function TitanReplaceOnModdedPlayerConnected( entity player )
+void function TitanReplaceOnModdedPlayerConnected( entity player, string modType )
 {
+	if ( modType != "FULL" ) // not installing FULL mod. we may split this mod to some other package in future?
+		return
+	
 	if ( !file.moddedPlayers.contains( player ) )
 		file.moddedPlayers.append( player )
 }

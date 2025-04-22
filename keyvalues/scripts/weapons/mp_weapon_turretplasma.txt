@@ -23,5 +23,11 @@ WeaponData
 			"npc_damage_far_value_titanarmor" 				"*0.6" // 150
 			"npc_explosion_damage_heavy_armor"				"*0.6" // 30
 		}
+
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
+		}
 	}
 }
