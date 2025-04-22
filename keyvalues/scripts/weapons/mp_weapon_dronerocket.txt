@@ -1,5 +1,8 @@
 WeaponData
 {
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	// Damage - When Used by Players
 	// only happens when refired by vortex
 	"damage_near_distance"							"1200"
@@ -27,4 +30,13 @@ WeaponData
 	"npc_rest_time_between_bursts_min"				"3.5" // vanilla value is 0.7, plasma drone is 4, vanilla yh803 value is 3.5
 	"npc_rest_time_between_bursts_max"				"5" // vanilla value is 1.4, plasma drone is 6, vanilla yh803 value is 4.5
 	"npc_rest_time_between_bursts_expedite"			"2.0" // vanilla value is 2.0, plasma drone is 1.5
+
+	Mods
+	{
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
+		}
+	}
 }
