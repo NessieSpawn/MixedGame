@@ -818,7 +818,9 @@ void function PilotConfig( entity soldier )
 		soldier.SetMaxHealth( 1500 )
 		soldier.SetHealth( 1500 )
 		ExtraSpawner_SetNPCPilotBulletDamageScale( soldier, 2.0 )
-		ExtraSpawner_SetNPCPilotMaxDPSTaken( soldier, 400 ) // increase max DPS taken just in case. they still only survive 4 fatal damages
+		// maybe no need to decrease max survival time...?
+		// most pilot weapons can't reach this high DPS and their damage will be blocked by shield, this mechanic is for them surviving titan attacks!
+		//ExtraSpawner_SetNPCPilotMaxDPSTaken( soldier, 400 ) // increase max DPS taken just in case. they still only survive 4 fatal damages
 
 		// grants shield. have to update health first, otherwise we can't get their health value from other scripts
 		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() * 0.66 ) // 999 shield. no damage protection though
