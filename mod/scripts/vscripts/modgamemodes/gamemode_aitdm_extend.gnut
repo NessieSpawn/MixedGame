@@ -913,7 +913,7 @@ void function ReaperConfig( entity soldier )
 	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.5 ) // less likely can be in pain animation( at least 1500 damage / 3600 repeat damage required )
 
 	// APRIL FOOLS SPECIAL: add aggressive_ai, grants shield
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		if ( soldier.GetMainWeapons().len() > 0 )
 		{
@@ -1029,7 +1029,7 @@ void function DroneConfig( entity soldier )
 	AITdmExtend_FriendlyHighlight( soldier )
 
 	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		if ( soldier.GetMainWeapons().len() > 0 )
 			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
@@ -1116,7 +1116,7 @@ void function TurretConfig( entity soldier )
 	thread DelayedSetUpNPCSpawnedTurret( soldier )
 
 	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		if ( soldier.GetMainWeapons().len() > 0 )
 			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
