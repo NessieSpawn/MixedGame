@@ -4,6 +4,9 @@ WeaponData
 	"bounce_effect_table"							"bounce_frag_drone"
 	"grenade_disc_throw"							"1"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	Mods
 	{
 		// nessy

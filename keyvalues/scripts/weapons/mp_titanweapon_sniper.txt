@@ -11,6 +11,9 @@ WeaponData
 	"tracer_effect"   							"P_wpn_arcball_beam"
 	"tracer_effect_first_person"  				"P_wpn_arcball_beam"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	// unused bodygroup: scope
 	// Bodygroups:
 	"bodygroup1_name"	"attachment1"

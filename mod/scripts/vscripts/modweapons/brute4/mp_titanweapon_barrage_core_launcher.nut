@@ -109,7 +109,8 @@ var function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams,
 
 	if ( nade )
 	{
-		nade.SetModel( $"models/weapons/grenades/m20_f_grenade_projectile.mdl" )
+		// in this branch we have their model changed to nessy
+		//nade.SetModel( $"models/weapons/grenades/m20_f_grenade_projectile.mdl" )
 		#if SERVER
 			nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_barrage_core_launcher ) // change damageSourceID
 			// change every grenade sound to be sync with client!

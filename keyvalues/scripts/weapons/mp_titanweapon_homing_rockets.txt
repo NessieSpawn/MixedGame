@@ -5,6 +5,9 @@ WeaponData
 	"damage_near_value_titanarmor"					"125"
 	"damage_far_value_titanarmor" 					"125"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	Mods
 	{
 		mod_ordnance_core

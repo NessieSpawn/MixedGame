@@ -843,8 +843,11 @@ void function OnLaunchedFragDroneSpawned( entity reaper, entity nade, entity fra
 		if ( IsValid( ownerReaper ) && ExtraSpawner_IsNPCSpawnedFromExtraSpawner( ownerReaper ) )
 		{
 			// modified for better models, hardcoded for now
+			// in this branch we have their model changed to nessy
+			/*
 			if ( droneSettings != "npc_frag_drone" ) // not sp ticks?
 				nade.SetModel( $"models/weapons/sentry_frag/sentry_frag_proj.mdl" ) // should use sentry frag drone model
+			*/
 			file.fragDroneProjectileUpdatedModel[ nade ] <- true // add mark so we don't update model again on next call
 		}
 	}

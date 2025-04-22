@@ -2,6 +2,9 @@ WeaponData
 {
 	"OnProjectileCollision"  						"OnProjectileCollision_titanweapon_salvo_rockets"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	//grenade behavior, for brute4
 	"grenade_bounce_vel_frac_shallow"				"0.4"
 	"grenade_bounce_vel_frac_sharp"					"0.25"

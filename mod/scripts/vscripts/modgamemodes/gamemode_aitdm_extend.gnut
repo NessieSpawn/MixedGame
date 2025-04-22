@@ -195,6 +195,7 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 
 		// model stuffs
 		Nessie_AutoSpawnCostumeForPlayers( true ) // allow player costume
+		// this branch already have projectile models updated
 		NessyAprilFools_ChangeNPCHumanGrenadesToNessy( true ) // npc grenades model update
 
 		SetWeaponDropsEnabled( false ) // don't let players pick up kraber stuffs

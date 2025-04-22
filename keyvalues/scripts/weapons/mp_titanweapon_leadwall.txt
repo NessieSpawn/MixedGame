@@ -5,6 +5,9 @@ WeaponData
 	// no, it is not. leadwall activitymodifier do have different gesture compare to this one
 	//"activitymodifier"								"mp_titanweapon_triple_threat"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	Mods
 	{
 		instaload

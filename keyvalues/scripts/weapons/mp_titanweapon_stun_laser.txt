@@ -5,7 +5,8 @@ WeaponData
 
 	//projectile for modded archon, trail done in script for better client syncing
 	//"projectilemodel" 								"models/fx/core_energy.mdl"
-	"projectilemodel" 								"models/dev/empty_model.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
 	//bolt
 	"bolt_gravity_enabled"							"0"

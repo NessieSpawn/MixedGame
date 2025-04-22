@@ -6,7 +6,7 @@ WeaponData
 
     // :D
     // breaks the weapon
-	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
     
 	Mods
 	{

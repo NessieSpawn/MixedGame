@@ -2,6 +2,9 @@ WeaponData
 {
 	"OnProjectileCollision"  						"OnProjectileCollision_titanweapon_flightcore_rockets"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	Mods
 	{
 		// brute4

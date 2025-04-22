@@ -8,6 +8,9 @@ WeaponData
 	//"npc_explosion_damage"						"35" // nerf to 35, was 50
 	//"npc_explosion_damage_heavy_armor"			"200"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	// vanilla quad rocket has weird segment reload time
 	// due quad rocket don't exist in MP
 	// I'd fix it's reload behavior by default

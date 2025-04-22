@@ -8,6 +8,9 @@ WeaponData
 	"grenade_bounce_extra_vertical_randomness"		"0.2"
 	"grenade_roll_vel_frac_per_second"				"0.1"
 
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	// changed from vanilla: ammo_instant does not make sense, only breaks hud elements
 	// can't be changed in mod... guess I'd break vanilla behavior
 	// "ammo" isn't a good enough value! what's the default value for cooldown_type????
