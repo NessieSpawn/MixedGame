@@ -241,9 +241,9 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 
 	// other case must be hitscan weapon damage, check active weapon should be enough
     entity attackerWeapon = DamageInfo_GetWeapon( damageInfo )
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
     if ( !IsValid( attackerWeapon ) )
     {
-        entity attacker = DamageInfo_GetAttacker( damageInfo )
         if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) )
             attackerWeapon = attacker.GetActiveWeapon()
     }
@@ -252,9 +252,9 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
         bool bulletFiredByMozambique = attackerWeapon.HasMod( "fake_nessy_weapon" )
         // keep synced with projectile settings
         bool projectileHasModelSettings
-        if ( file.changeAllNPCProjectiles && attacker.IsNPC() )
+        if ( file.changeAllNPCProjectiles && IsValid( attacker ) && attacker.IsNPC() )
             projectileHasModelSettings = true
-        if ( file.changeAllPlayerProjectiles && attacker.IsPlayer() )
+        if ( file.changeAllPlayerProjectiles && IsValid( attacker ) && attacker.IsPlayer() )
             projectileHasModelSettings = true
         // if we have settings enabled, check weapon's model( though most of time weapon model is changed by mod, checking mods is enough )
         if ( projectileHasModelSettings )
