@@ -55,6 +55,7 @@ global struct NPCPilotStruct
 	int proficiency
 	//float health // why respawn adding this as float?
 	int health
+	int shield // should also allowing shields
 	float physDamageScale
 	
 	array<NPCPilotWeaponStruct> weapons // modified to use a struct
@@ -680,6 +681,7 @@ void function NpcPilotBecomesTitan( entity pilot, entity titan )
 	//titanSoul.soul.seatedNpcPilot.isInvulnerable		= pilot.IsInvulnerable()
 
 	titanSoul.soul.seatedNpcPilot.health				= pilot.GetMaxHealth()
+	titanSoul.soul.seatedNpcPilot.shield				= GetShieldHealthMaxWithFix( pilot )
 
 	// respawn missing settings saving
 	titanSoul.soul.seatedNpcPilot.spawnflags			= int( pilot.kv.spawnflags )
@@ -785,6 +787,9 @@ entity function NpcTitanBecomesPilot( entity titan )
 
 	pilot.kv.max_health 			= titanSoul.soul.seatedNpcPilot.health
 	pilot.kv.health 				= titanSoul.soul.seatedNpcPilot.health
+
+	SetShieldHealthMaxWithFix( pilot, titanSoul.soul.seatedNpcPilot.shield )
+	SetShieldHealthWithFix( pilot, titanSoul.soul.seatedNpcPilot.shield )
 
 	// respawn missing settings saving
 	pilot.kv.spawnflags 			= titanSoul.soul.seatedNpcPilot.spawnflags
