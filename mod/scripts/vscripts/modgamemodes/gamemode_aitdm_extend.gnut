@@ -214,8 +214,11 @@ bool function AprilFoolsShouldDoReplay( entity player, entity attacker, float re
 {
 	// don't do replay for player without mod installed if we have at least one other player installed the mod
 	ArrayRemoveInvalid( file.weaponSafePlayers )
-	if ( file.weaponSafePlayers.len() > 0 && IsValid( attacker ) && attacker.IsPlayer() )
-		return false
+	if ( file.weaponSafePlayers.len() != GetPlayerArray().len() ) // replay should be safe if all players installed the mod
+	{
+		if ( file.weaponSafePlayers.len() > 0 && IsValid( attacker ) && attacker.IsPlayer() )
+			return false
+	}
 
 	// default returning true to let other callbacks go through
 	return true
