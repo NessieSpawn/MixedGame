@@ -99,8 +99,11 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	entity bossPlayer = weaponOwner
 	bool hasRollingRoundsMod = weapon.HasMod( "rolling_rounds" )
 
+	// ??????
+	/*
 	if ( weaponOwner.IsNPC() )
 		bossPlayer = weaponOwner.GetTitanSoul().GetBossPlayer()
+	*/
 
 	bool inADS = weapon.IsWeaponInAds()
 	vector attackAngles = VectorToAngles( attackParams.dir )
