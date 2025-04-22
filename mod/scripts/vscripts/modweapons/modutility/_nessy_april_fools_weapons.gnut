@@ -202,6 +202,8 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
     if ( file.alwaysChangeDamageSourceId )
     {
         int newDamageSourceId = eDamageSourceId.nessy_doll // default case: nessy doll
+        // why don't we always nessy doll
+        /*
         entity inflictor = DamageInfo_GetInflictor( damageInfo )
         if ( !IsValid( inflictor ) || !inflictor.IsProjectile() ) // not damaged by projectile or DOT damage stuffs
         {
@@ -216,6 +218,7 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
             if ( IsValid( attackerWeapon ) )
                 newDamageSourceId = eDamageSourceId.mp_weapon_shotgun_pistol
         }
+        */
 
         DamageInfo_SetDamageSourceIdentifier( damageInfo, newDamageSourceId )
         return
