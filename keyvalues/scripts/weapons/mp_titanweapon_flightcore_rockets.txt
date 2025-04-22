@@ -7,6 +7,12 @@ WeaponData
 
 	Mods
 	{
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+	
 		// brute4
 		brute4_barrage_core_launcher
 		{
@@ -92,12 +98,6 @@ WeaponData
 			"damage_far_value"								"*0.2"
 			"explosion_damage"								"*0.5" //"400"
 			"explosion_damage_heavy_armor"					"*0.5"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }

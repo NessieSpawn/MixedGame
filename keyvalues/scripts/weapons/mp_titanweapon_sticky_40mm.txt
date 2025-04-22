@@ -53,6 +53,12 @@ WeaponData
 			"ammo_clip_size"   							"*2" // 24 shots
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 		// vanilla messed up. for client, extended_ammo and fd_tone_weapon_2 can't be use together with mortar_shots, have to make them desync
 		extended_ammo_fixed
 		{
@@ -99,12 +105,6 @@ WeaponData
 			"damage_far_value"							"*0.35"
 			"damage_near_value_titanarmor"				"*0.35"
 			"damage_far_value_titanarmor" 				"*0.35"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }

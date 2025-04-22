@@ -21,6 +21,12 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 		// pilot usage
 		pilot_usage
 		{
@@ -79,12 +85,6 @@ WeaponData
 			"reloadempty_time_late1"						"*0.67"
 			"reloadsegment_time_loop"						"*0.67"
 			"reloadsegment_time_end"						"*0.67"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }

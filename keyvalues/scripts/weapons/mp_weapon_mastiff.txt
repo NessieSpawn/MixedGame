@@ -61,6 +61,24 @@ WeaponData
 		{
 		}
 
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
+
+			// alright then
+			// reload time isn't compatible with extended_ammo
+			"reload_is_segmented"							"0"
+			"reload_time" 									"2.62" // 1.03(mastiff's reload_time) + 0.53(mastiff's reloadsegment_time_loop) * 3(mastiff's ammo_clip_size - 1)
+			"reload_time_late1" 							"1.31" // 2.62 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
+			"reloadempty_time"								"3.79" // 2.2(mastiff's reload_time_empty) + 0.53(mastiff's reloadsegment_time_loop) * 3(mastiff's ammo_clip_size - 1)
+			"reloadempty_time_late1"						"1.895" // 3.79 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
+		}
+
 		// tediore reload
 		tediore_reload
 		{
@@ -130,24 +148,6 @@ WeaponData
 		npc_lower_damage
 		{
 			"npc_damage_near_value"   						"--1" // 6
-		}
-
-		// nessy
-		// ADS mostly fucked for whatever
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-			// projectile model change in script
-
-			// alright then
-			// reload time isn't compatible with extended_ammo
-			"reload_is_segmented"							"0"
-			"reload_time" 									"2.62" // 1.03(mastiff's reload_time) + 0.53(mastiff's reloadsegment_time_loop) * 3(mastiff's ammo_clip_size - 1)
-			"reload_time_late1" 							"1.31" // 2.62 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
-			"reloadempty_time"								"3.79" // 2.2(mastiff's reload_time_empty) + 0.53(mastiff's reloadsegment_time_loop) * 3(mastiff's ammo_clip_size - 1)
-			"reloadempty_time_late1"						"1.895" // 3.79 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
 		}
 	}
 }

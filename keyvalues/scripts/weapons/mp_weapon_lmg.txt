@@ -49,6 +49,15 @@ WeaponData
 		{
 		}
 
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		}
+
 		// modded
 		apex_rampage
 		{
@@ -159,15 +168,6 @@ WeaponData
 			"reloadempty_time"								"*1.261261"
 			"reloadempty_time_late1"						"*1.287554"
 			"reloadempty_time_late2"						"*1.487805"
-		}
-
-		// nessy
-		// ADS mostly fucked for whatever
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }

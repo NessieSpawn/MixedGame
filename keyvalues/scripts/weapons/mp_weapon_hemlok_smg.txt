@@ -70,6 +70,16 @@ WeaponData
 		sp_s2s_settings_npc
 		{
 		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		}
+
 		tediore_reload
 		{
 		}
@@ -151,15 +161,6 @@ WeaponData
 			//"dof_zoom_nearDepthStart"						"1.0"
 			//"dof_zoom_nearDepthEnd"							"5.0"
 		// }
-
-		// nessy
-		// ADS mostly fucked for whatever
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-		}
 	}
 
 	RUI_CrosshairData

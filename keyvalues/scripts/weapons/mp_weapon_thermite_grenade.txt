@@ -56,6 +56,16 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
+
 		// modded weapon
 		thermite_grenade_dot // dot thermite
 		{
@@ -138,16 +148,6 @@ WeaponData
 		{
 			"regen_ammo_refill_rate"						"*3.2"	// ~7s cooldown( firestar duration is 6s )
 			"explosion_damage_heavy_armor"					"*1.1"	// 66 damage per tick
-		}
-
-		// nessy
-        // toss prep weapons
-		fake_nessy_weapon
-		{
-			// we'll also have a script for adding fake model to the weapon
-			// nessy doll isn't a usable model for dropping to ground, script handle is enough
-            //"playermodel" 									"models/domestic/nessy_doll.mdl"
-			// projectile model change in script
 		}
 	}
 }
