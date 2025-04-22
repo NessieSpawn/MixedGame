@@ -198,6 +198,8 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 		//NessyAprilFools_ChangeNPCHumanGrenadesToNessy( true ) // npc grenades model update
 		NessyAprilFools_ChangeAllNPCProjectilesToNessy( true )
 
+		NessyAprilFools_AlwaysChangeDamageSourceId( true ) // make obit always use Mozambique/Nessy Doll
+
 		SetWeaponDropsEnabled( false ) // don't let players pick up kraber stuffs
 	
 		// temp for us get client-side that have kraber mod installed
@@ -809,10 +811,17 @@ void function PilotConfig( entity soldier )
 	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
 	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 
-	// APRIL FOOLS SPECIAL: grants shield
+	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 	{
-		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
+		// stronger behavior
+		soldier.SetMaxHealth( 1500 )
+		soldier.SetHealth( 1500 )
+		ExtraSpawner_SetNPCPilotBulletDamageScale( soldier, 2.0 )
+		ExtraSpawner_SetNPCPilotMaxDPSTaken( soldier, 400 ) // increase max DPS taken just in case. they still only survive 4 fatal damages
+
+		// grants shield. have to update health first, otherwise we can't get their health value from other scripts
+		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() * 0.66 ) // 999 shield. no damage protection though
 		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
 	}
 }
