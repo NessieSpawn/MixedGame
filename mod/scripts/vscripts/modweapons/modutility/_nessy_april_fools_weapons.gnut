@@ -137,7 +137,9 @@ void function Nessy_April_Fools_Weapons_Init()
 void function EntitiesDidLoad()
 {
     // no need for this branch
-    //thread NessyDollProjectiles()
+    // though in this branch we already changed model in KV files, just handle here
+    // hope it won't take up too much server load
+    thread NessyDollProjectiles()
 }
 
 void function NessyDollProjectiles()
