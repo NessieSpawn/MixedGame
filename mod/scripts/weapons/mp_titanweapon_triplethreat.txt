@@ -529,6 +529,12 @@ WeaponData
 			"is_burn_mod"		"1"
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 
 		// modded weapon mods starts here
 		disable_default_magnetic // recover tf|1 behavior: disable magnetic by default, re-enabled with burn mod. may cause issue with client-side prediction at close range!
@@ -588,12 +594,6 @@ WeaponData
 
 			"npc_explosion_damage"							"*0.5" // 75. was *0.3( 45 )
 			"npc_explosion_damage_heavy_armor"				"*0.74545" // ~410. was *0.6( 330 )
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 	active_crosshair_count				"1"

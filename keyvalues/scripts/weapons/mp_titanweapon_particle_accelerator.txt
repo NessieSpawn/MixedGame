@@ -36,14 +36,14 @@ WeaponData
 		{
 		}
 
-		// misc fix: adjust split shot damage on firing weapon
-		particle_accelerator_fix
-		{
-		}
-
 		// nessy
         // titan weapons: model change done in script
 		fake_nessy_weapon
+		{
+		}
+
+		// misc fix: adjust split shot damage on firing weapon
+		particle_accelerator_fix
 		{
 		}
 	}

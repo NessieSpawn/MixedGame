@@ -21,6 +21,12 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 		// modded titans
 		ogre_rockets
 		{
@@ -39,12 +45,6 @@ WeaponData
 		npc_bison_rockets
 		{
 			"smart_ammo_max_targeted_burst"					"1++"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }

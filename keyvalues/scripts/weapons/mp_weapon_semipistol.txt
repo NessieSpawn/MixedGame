@@ -85,6 +85,15 @@ WeaponData
 		{
 		}
 
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		}
+
 		// modded weapons
 		gibber_pistol // client script required
 		{
@@ -192,15 +201,6 @@ WeaponData
 			"damage_near_value"   			"25" // damage adjusted to tf2 value. tf1 value 60
 			// new adding adjustment, cuz org tf2 p2016 is very powerful on headshot
 			"damage_headshot_scale"			"1.5"
-		}
-
-		// nessy
-		// ADS mostly fucked for whatever
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }

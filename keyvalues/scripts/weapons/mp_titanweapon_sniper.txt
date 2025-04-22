@@ -63,6 +63,12 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 		// pilot usage
 		pilot_usage
 		{
@@ -115,12 +121,6 @@ WeaponData
 		titan_sniper_scope
 		{
 			"bodygroup1_set"	"1"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }

@@ -44,6 +44,20 @@ WeaponData
 		{
 		}
 
+		// nessy
+		// ADS mostly fucked for whatever
+		// maybe use together with stabilizer for no-sniper-scope view...
+		// TOO BAD is that we can't use this without client-side install because respawn hardcoded some muzzle flash on client-side
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		
+			// due that we're already modifying client-side, let's just remove scope
+			"bodygroup_ads_scope_set"						"0"
+		}
+
 		// fake scopes
 		vanilla_stabilizer // vanilla "stabilizer"
 		{
@@ -150,20 +164,6 @@ WeaponData
 			"damage_headshot_scale"		"--0.5" // 1.5, no more one shot kill
 			"fire_rate"					"--0.7" // 2.3
 
-		}
-
-		// nessy
-		// ADS mostly fucked for whatever
-		// maybe use together with stabilizer for no-sniper-scope view...
-		// TOO BAD is that we can't use this without client-side install because respawn hardcoded some muzzle flash on client-side
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-		
-			// due that we're already modifying client-side, let's just remove scope
-			"bodygroup_ads_scope_set"						"0"
 		}
 	}
 

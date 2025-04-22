@@ -432,13 +432,6 @@ WeaponData
 	// modified contents here
 	Mods
 	{
-		// disable primary_fire_does_not_block_sprint on server-side
-		// effect done in script _disable_run_and_gun_on_server.gnut
-		disable_run_and_gun_server
-		{
-
-		}
-
 		// nessy
 		// ADS mostly fucked for whatever
 		fake_nessy_weapon
@@ -460,6 +453,13 @@ WeaponData
 			"reload_time_late1" 							"0.8" // 1.6 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
 			"reloadempty_time"								"1.6"
 			"reloadempty_time_late1"						"0.8" // 1.6 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
+		}
+		
+		// disable primary_fire_does_not_block_sprint on server-side
+		// effect done in script _disable_run_and_gun_on_server.gnut
+		disable_run_and_gun_server
+		{
+
 		}
 	}
 }

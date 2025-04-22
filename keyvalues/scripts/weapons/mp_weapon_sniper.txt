@@ -99,6 +99,34 @@ WeaponData
 			"npc_accuracy_multiplier_pilot"					"++2.0" // 3.0
         }
 
+		// nessy
+		// ADS mostly fucked for whatever
+		// maybe use together with stabilizer for no-sniper-scope view...
+		// TOO BAD is that we can't use this without client-side install because respawn hardcoded some muzzle flash on client-side
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
+
+			// mozambique cannot rechamber
+			// guess we changing it to a fake behavior: merge reload time into base rechamber time
+			// this equals to infinite ammo clip, at a cost of lower fire rate
+			// not compatible with extended ammo
+			"ammo_clip_size"   								"1" // causes desync on manual reload but whatever
+			"rechamber_time"  								"0"
+			// 2.225 = 1.60(kraber's rechamber_time) + 2.5(kraber's reload_time) / 4(kraber's ammo_clip_size)
+			// this fake reload shouldn't be interruptable like rechambering... but whatever, just to compensate
+			"reload_time" 									"2.225"
+			"reload_time_late1" 							"1.1125" // 2.225 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
+			"reloadempty_time"								"2.225"
+			"reloadempty_time_late1"						"1.1125" // 2.225 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
+		
+			// due that we're already modifying client-side, let's just remove scope
+			"bodygroup_ads_scope_set"						"0"
+		}
+
 		// modded weapons
 		//smart_sniper
 		//{
@@ -377,34 +405,6 @@ WeaponData
 
 		//	"npc_accuracy_multiplier_pilot"					"++2.0" // 3.0
 		//}
-
-		// nessy
-		// ADS mostly fucked for whatever
-		// maybe use together with stabilizer for no-sniper-scope view...
-		// TOO BAD is that we can't use this without client-side install because respawn hardcoded some muzzle flash on client-side
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-			// projectile model change in script
-
-			// mozambique cannot rechamber
-			// guess we changing it to a fake behavior: merge reload time into base rechamber time
-			// this equals to infinite ammo clip, at a cost of lower fire rate
-			// not compatible with extended ammo
-			"ammo_clip_size"   								"1" // causes desync on manual reload but whatever
-			"rechamber_time"  								"0"
-			// 2.225 = 1.60(kraber's rechamber_time) + 2.5(kraber's reload_time) / 4(kraber's ammo_clip_size)
-			// this fake reload shouldn't be interruptable like rechambering... but whatever, just to compensate
-			"reload_time" 									"2.225"
-			"reload_time_late1" 							"1.1125" // 2.225 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
-			"reloadempty_time"								"2.225"
-			"reloadempty_time_late1"						"1.1125" // 2.225 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
-		
-			// due that we're already modifying client-side, let's just remove scope
-			"bodygroup_ads_scope_set"						"0"
-		}
 
 		// reached 30 mods( with 8 mods removed above, 30 is max )
 	}

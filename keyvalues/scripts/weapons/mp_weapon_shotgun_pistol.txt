@@ -89,6 +89,26 @@ WeaponData
 		{
 		}
 
+		// nessy
+		// THE ORIGINAL. should've rework with no-player-collision prowlers and drones
+		fake_nessy_weapon
+		{
+
+		}
+		nessie_doll_launcher // use together with apex_nessie
+		{
+			"ammo_no_remove_from_clip"				"1"
+
+			"fire_sound_1_player_1p"				"Null_Remove_SoundHook" 
+			"fire_sound_1_player_3p"				"Null_Remove_SoundHook" 
+		}
+		infinite_duration_nessie // never dissolves itself, only disappear after max count
+		{
+		}
+		rgb_nessie // you know what this is
+		{
+		}
+
 		// modded weapons
 		apex_nessie
 		{
@@ -228,26 +248,6 @@ WeaponData
 		fake_tf1_sprint_anim_active
 		{
 			"activitymodifier"						"satchel"
-		}
-
-		// nessy
-		// THE ORIGINAL. should've rework with no-player-collision prowlers and drones
-		fake_nessy_weapon
-		{
-
-		}
-		nessie_doll_launcher // use together with apex_nessie
-		{
-			"ammo_no_remove_from_clip"				"1"
-
-			"fire_sound_1_player_1p"				"Null_Remove_SoundHook" 
-			"fire_sound_1_player_3p"				"Null_Remove_SoundHook" 
-		}
-		infinite_duration_nessie // never dissolves itself, only disappear after max count
-		{
-		}
-		rgb_nessie // you know what this is
-		{
 		}
 	}
 

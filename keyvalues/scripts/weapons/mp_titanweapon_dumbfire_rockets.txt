@@ -53,6 +53,12 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 		// brute4
 		// was previously a mod for mp_titanweapon_salvo_rockets, but current weapon has NPC animation
 		brute4_grenade_volley
@@ -213,12 +219,6 @@ WeaponData
 			"grenade_bounce_randomness"						"0.2"
 			"grenade_bounce_extra_vertical_randomness"		"0.2"
 			"grenade_roll_vel_frac_per_second"				"0.8"
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }

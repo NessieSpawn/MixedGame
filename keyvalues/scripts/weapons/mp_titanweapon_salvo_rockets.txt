@@ -42,6 +42,12 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+
 		// brute4
 		// note that currently all files uses mod in mp_titanweapon_dumbfire_rockets because that one has NPC animation
 		brute4_grenade_volley
@@ -209,12 +215,6 @@ WeaponData
 
 		// misc fix here: this is only a stub mark, actually gets applied on upgrading to multi-targeting missile
 		shoulder_rockets_fix
-		{
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
 		{
 		}
 	}

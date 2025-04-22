@@ -71,6 +71,15 @@ WeaponData
 		{
 		}
 
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		}
+
 		// tediore reload effect
 		tediore_reload
 		{
@@ -243,15 +252,6 @@ WeaponData
 			"low_ammo_sound_name_7"							"Null_Remove_SoundHook"
 			"low_ammo_sound_name_8"							"Null_Remove_SoundHook"
 			"low_ammo_sound_name_9"							"Null_Remove_SoundHook"
-		}
-
-		// nessy
-		// ADS mostly fucked for whatever
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }
