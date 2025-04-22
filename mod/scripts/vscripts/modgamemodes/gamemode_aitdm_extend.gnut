@@ -308,7 +308,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 				{
 					// become nessy launcher
 					weapon.Destroy()
-					weapon = player.GiveWeapon( "mp_weapon_shotgun_pistol", ["apex_nessie", "nessie_doll_launcher", "rgb_nessie"] )
+					weapon = player.GiveWeapon( "mp_weapon_shotgun_pistol", ["apex_nessie", "nessie_doll_launcher", "rgb_nessie", "pas_run_and_gun"] )
 				}
 			}
 
