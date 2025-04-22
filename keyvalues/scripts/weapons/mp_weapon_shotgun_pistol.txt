@@ -230,10 +230,10 @@ WeaponData
 
 		// nessy
 		// THE ORIGINAL. should've rework with no-player-collision prowlers and drones
-		fake_nessy_weapon
-		{
-
-		}
+		// TEMP remove, our gamemode uses nessie_doll_launcher
+		// fake_nessy_weapon
+		// {
+		// }
 		nessie_doll_launcher // use together with apex_nessie
 		{
 			"ammo_no_remove_from_clip"				"1"
