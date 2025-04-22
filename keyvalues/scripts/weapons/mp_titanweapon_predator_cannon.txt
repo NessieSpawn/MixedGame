@@ -53,9 +53,10 @@ WeaponData
 
 		// nessy
         // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
-		}
+		// only LongRangePowerShot fires a projectile, don't wanna change it's damageSourceId to Mozambique
+		// fake_nessy_weapon
+		// {
+		// }
 
 		// pilot usage
 		pilot_usage
