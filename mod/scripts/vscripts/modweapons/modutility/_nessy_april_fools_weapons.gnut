@@ -215,8 +215,9 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 
 	// other case must be hitscan weapon damage, check active weapon should be enough
     // oh wait this can be execution damage stuffs... maybe checking force kill? or we could just hardcode it for nothing
-	if ( !IsInstantDeath( damageInfo ) && !DamageInfo_GetForceKill( damageInfo ) )
-    {
+	// why do we ever have to think too deep? there're too much things can't be handled. remove.
+    //if ( !IsInstantDeath( damageInfo ) && !DamageInfo_GetForceKill( damageInfo ) )
+    //{
         entity attacker = DamageInfo_GetAttacker( damageInfo )
         if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) ) // needs to be player/npc otherwise it's gonna crash
         {
@@ -245,7 +246,7 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
                 }
             }
         }
-    }
+    //}
 }
 
 // settings func
