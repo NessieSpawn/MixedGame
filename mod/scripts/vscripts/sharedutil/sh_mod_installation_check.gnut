@@ -8,7 +8,7 @@ global function AddCallback_OnClientSideWithMixedGameInstalledConnected
 struct
 {
     array<entity> connectedModdedPlayers
-    array< void functionref( entity player ) > onClientSideWithMixedGameInstalledConnectedCallbacks
+    array< void functionref( entity player, string modType ) > onClientSideWithMixedGameInstalledConnectedCallbacks
 } file
 
 void function Sh_MixedGame_ClientSide_Installation_Check_Init()
