@@ -13,6 +13,7 @@ global function NessyAprilFools_ChangeAllPlayerProjectilesToNessy // changes all
 const string NESSY_WEAPON_MOD = "fake_nessy_weapon"
 
 const asset MOZAMBIQUE_MODEL = $"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+const asset MOZAMBIQUE_MODEL_FP = $"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl" // when used by players, weapon.GetModelName() will return FP model name
 const asset NESSY_MODEL = $"models/domestic/nessy_doll.mdl"
 
 // list of all weapons that has mod "fake_nessy_weapon". be sure to update!
@@ -183,7 +184,7 @@ void function NessyDollProjectiles()
 
             if ( changeModelToNessy )
             {
-                if ( !( "modelChangedByNessyScript" in projectile.s ) )
+                if ( !( "modelChangedByNessyScript" in projectile.s ) && projectile.GetModelName() != NESSY_MODEL )
                 {
                     projectile.SetModel( NESSY_MODEL )
                     projectile.s.modelChangedByNessyScript <- true
@@ -201,7 +202,11 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 	{
 		if ( inflictor.IsProjectile() )
 		{
-			if ( inflictor.ProjectileGetMods().contains( "fake_nessy_weapon" ) ) // not overwriting vortex shield behavior
+            // if some of the projectile model has been changed by our script, it must be nessy launcher!
+            bool projectileFiredByNessyLauncher = inflictor.ProjectileGetMods().contains( "fake_nessy_weapon" ) // not overwriting vortex shield behavior
+			if ( ( "modelChangedByNessyScript" in projectile.s ) && projectile.s.modelChangedByNessyScript )
+                projectileFiredByNessyLauncher = true
+            if ( projectileFiredByNessyLauncher )
             {
                 // change damageSourceId to nessy
                 DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.nessy_doll )
@@ -217,7 +222,21 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 		entity attackerWeapon = attacker.GetActiveWeapon()
         if ( IsValid( attackerWeapon ) )
         {
-            if ( attackerWeapon.HasMod( "fake_nessy_weapon" ) )
+            bool bulletFiredByMozambique = attackerWeapon.HasMod( "fake_nessy_weapon" )
+            // keep synced with projectile settings
+            bool projectileHasModelSettings
+            if ( file.changeAllNPCProjectiles && attacker.IsNPC() )
+                projectileHasModelSettings = true
+            if ( file.changeAllPlayerProjectiles && attacker.IsPlayer() )
+                projectileHasModelSettings = true
+            // if we have settings enabled, check weapon's model( though most of time weapon model is changed by mod, checking mods is enough )
+            if ( projectileHasModelSettings )
+            {
+                asset weaponModel = attackerWeapon.GetModelName()
+                if ( weaponModel == MOZAMBIQUE_MODEL || weaponModel == MOZAMBIQUE_MODEL_FP )
+                    bulletFiredByMozambique = true
+            }
+            if ( bulletFiredByMozambique )
             {
                 // change damageSourceId to mozambique
                 DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.mp_weapon_shotgun_pistol )
