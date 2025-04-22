@@ -325,8 +325,11 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 			// seems we'll have to use SetMod() to change weapon model
 			GiveNessyProjectileMod( player, weapon )
 			// wants to update fp bodygroup, so optics won't show
+			// GiveNessyProjectileMod() now re-gives weapon, already handled that case
+			/*
 			HolsterWeapons( player )
 			DeployWeapons( player )
+			*/
 
 			// update weapon clip size after mod change... though GiveExtraWeaponMod() should already handled it
 			try { weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() ) } // anti-crash for charge weapons
@@ -907,11 +910,14 @@ void function ReaperConfig( entity soldier )
 
 	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.5 ) // less likely can be in pain animation( at least 1500 damage / 3600 repeat damage required )
 
-	// APRIL FOOLS SPECIAL: add aggressive_ai, grants shield
+	// APRIL FOOLS SPECIAL: add aggressive_ai and fake_nessy_weapon, grants shield
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 	{
 		if ( soldier.GetMainWeapons().len() > 0 )
+		{
 			soldier.GetMainWeapons()[0].AddMod( "aggressive_ai" )
+			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
+		}
 
 		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
 		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
@@ -1019,6 +1025,13 @@ void function DroneConfig( entity soldier )
 {
 	// friendly highlight
 	AITdmExtend_FriendlyHighlight( soldier )
+
+	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		if ( soldier.GetMainWeapons().len() > 0 )
+			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
+	}
 }
 
 void function GunshipConfig( entity soldier )
@@ -1099,6 +1112,13 @@ void function TurretConfig( entity soldier )
 	// here goes some hack: if turret isn't owned by player, we scale down their score value
 	// needs to delay 1 frame for them to set up ownership
 	thread DelayedSetUpNPCSpawnedTurret( soldier )
+
+	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		if ( soldier.GetMainWeapons().len() > 0 )
+			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
+	}
 }
 
 void function DelayedSetUpNPCSpawnedTurret( entity soldier )

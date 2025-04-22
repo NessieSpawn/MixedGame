@@ -93,5 +93,11 @@ WeaponData
 			"npc_fire_at_enemy_defense_time"				"1.0"
 
 		}
+
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
+		}
 	}
 }
