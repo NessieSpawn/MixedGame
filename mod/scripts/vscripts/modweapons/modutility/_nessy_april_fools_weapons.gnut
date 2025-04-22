@@ -6,6 +6,8 @@ untyped // for using projectile.s
 global function Nessy_April_Fools_Weapons_Init
 
 global function NessyAprilFools_ChangeNPCHumanGrenadesToNessy // this handles NPC gamemodes
+global function NessyAprilFools_ChangeAllNPCProjectilesToNessy // changes all valid npc projectiles
+global function NessyAprilFools_ChangeAllPlayerProjectilesToNessy // changes all valid player projectiles
 
 const string NESSY_WEAPON_MOD = "fake_nessy_weapon"
 
@@ -74,6 +76,8 @@ const array<string> AVAILABLE_ABILITIES_NESSY =
 struct
 {
     bool changeNPCHumanGrenades
+    bool changeAllNPCProjectiles
+    bool changeAllPlayerProjectiles
 } file
 
 void function Nessy_April_Fools_Weapons_Init()
@@ -147,10 +151,31 @@ void function NessyDollProjectiles()
             entity owner = projectile.GetOwner()
             if ( IsValid( owner ) )
             {
-                if ( file.changeNPCHumanGrenades )
+                // npc projectile stuffs
+                if ( owner.IsNPC() )
                 {
-                    if ( owner.IsNPC() && !owner.IsTitan() && projectile.ProjectileGetWeaponClassName() == owner.kv.grenadeWeaponName )
-                        changeModelToNessy = true
+                    if ( file.changeNPCHumanGrenades )
+                    {
+                        // check thrown grenade
+                        if ( !owner.IsTitan() && projectile.ProjectileGetWeaponClassName() == owner.kv.grenadeWeaponName )
+                            changeModelToNessy = true
+                    }
+                
+                    if ( file.changeAllNPCProjectiles )
+                    {
+                        // check mod validation
+                        if ( GetWeaponMods_Global( projectile.ProjectileGetWeaponClassName() ).contains( "fake_nessy_weapon" ) )
+                            changeModelToNessy = true
+                    }
+                }
+                else // players'
+                {
+                    if ( file.changeAllPlayerProjectiles )
+                    {
+                        // check mod validation
+                        if ( GetWeaponMods_Global( projectile.ProjectileGetWeaponClassName() ).contains( "fake_nessy_weapon" ) )
+                            changeModelToNessy = true
+                    }
                 }
             }
 
@@ -204,4 +229,14 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 void function NessyAprilFools_ChangeNPCHumanGrenadesToNessy( bool change )
 {
     file.changeNPCHumanGrenades = change
+}
+
+void function NessyAprilFools_ChangeAllNPCProjectilesToNessy( bool change )
+{
+    file.changeAllNPCProjectiles = change
+}
+
+void function NessyAprilFools_ChangeAllPlayerProjectilesToNessy( bool change )
+{
+    file.changeAllPlayerProjectiles = change
 }
