@@ -1,26 +1,12 @@
 WeaponData
 {
-	// modified callbacks
-	"OnWeaponTossPrep"									"OnWeaponTossPrep_weapon_frag_drone"
-	"OnWeaponPrimaryAttack"								"OnWeaponPrimaryAttack_weapon_frag_drone"
-	"OnWeaponNpcTossGrenade"							"OnWeaponNPCTossGrenade_weapon_frag_drone"
-
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
-	// debugging
-	//"projectilemodel" 								"models/robots/drone_frag/frag_drone_proj.mdl"
-
-	// vanilla missing sprint animation rate
-	// should we add it?
-	"sprintcycle_time"								".55"
 
 	Mods
 	{
 		pas_ordnance_pack
 		{
-			// I don't understand why respawn uses "regen_ammo_refill_rate" "3++" here
-			// better use a multiplier so we won't have issue using one-time ticks
-			"regen_ammo_refill_rate"					"*1.3" // why isn't this *1.6? odd
 		}
 		burn_card_weapon_mod
 		{
@@ -37,29 +23,6 @@ WeaponData
 			// nessy doll isn't a usable model for dropping to ground, script handle is enough
             //"playermodel" 									"models/domestic/nessy_doll.mdl"
 			// projectile model change in script
-		}
-
-		// modded weapon
-		// spawn overrides
-		prowler_spawner
-		{
-		}
-		sp_tick_model
-		{
-		}
-		drone_spawner
-		{
-		}
-
-		// animated spawn
-		drone_spawner_anim
-		{
-			"fire_mode"				"offhand_instant" // makes the weapon call "OnWeaponPrimaryAttack"
-		}
-
-		// unfinished
-		emp_drone
-		{
 		}
 	}
 }

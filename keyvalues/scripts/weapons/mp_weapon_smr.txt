@@ -1,69 +1,21 @@
 WeaponData
 {
-	"OnWeaponReload"									"OnWeaponReload_Tediore"
-	"OnProjectileCollision"								"OnProjectileCollision_Tediore"
-
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
-	// vanilla missing
-	"impulse_force_explosions"						"1000" // default is same as impulse_force does
-
-	// Tediore Reload Stuff
-	"sound_throw_1p"								"weapon_proximitymine_throw"
-	"sound_throw_3p"								"weapon_proximitymine_throw"
-
-	"grenade_fuse_time"								"3"
-	"grenade_bounce_vel_frac_shallow"				"0.47"
-	"grenade_bounce_vel_frac_sharp"					"0.28"
-	"grenade_bounce_vel_frac_along_normal"			"0.5"
-	"grenade_bounce_randomness"						"0.2"
-	"grenade_bounce_extra_vertical_randomness"		"0.2"
-	"grenade_roll_vel_frac_per_second"				"0.1"
-
-	// Impact Mine
-	"trap_warning_friendly_fx"						"wpn_laser_blink"
-	"trap_warning_enemy_fx"							"wpn_laser_blink"
-
-	// changed from vanilla: npc usage
-	// third version method: increased burst count and decreased light unit damage to make it more effective against heavy armor unit
-	MP_BASE
-	{
-		"npc_damage_near_value"   						"18" // vanilla uses 25, first version uses 20, heavily nerfed version uses 16
-		"npc_damage_far_value"							"18" // vanilla uses 25, first version uses 20, heavily nerfed version uses 16
-		"npc_damage_near_value_titanarmor"				"115" // vanilla uses 150, player value is 115
-		"npc_damage_far_value_titanarmor" 				"115" // vanilla uses 150, player value is 115
-		"npc_min_burst"									"5" // vanilla uses 7, first version uses 5, second version uses 3
-		"npc_max_burst"									"6" // vanilla uses 11, first version uses 7, second version uses 4, third version uses 6
-		"npc_rest_time_between_bursts_min"				"0.8" // vanilla uses 0.4, first version uses 0.6, second version uses 0.9, third version uses 0.8, vanilla epg uses 0.8
-		"npc_rest_time_between_bursts_max"				"1.3" // vanilla uses 0.6, first version uses 0.9, vanilla epg uses 1.1
-	}
-	
 	Mods
 	{
         slammer
         {
-        	// modified
-			"impulse_force"   								"*2"
-			"impulse_force_explosions"   					"*2"
         }
    		jump_kit
         {
-			"impulse_force"									"++0"
-			"impulse_force_explosions"						"++64000" // 65000
         }
         pro_screen
         {
-			"ui8_enable"		"1"
-        	"bodygroup6_set"	"1"
         }
         extended_ammo
 		{
-			"ammo_clip_size"   					"*1.25"
-			// changing here to fit classic_antititan_weapon usage
-			// MP never uses ammo stockpile so it won't break vanilla behavior
-			"ammo_stockpile_max"				"*1.25"
-			"ammo_default_total"				"*1.25"
 		}
 		delayed_shot
         {
@@ -73,10 +25,6 @@ WeaponData
 		}
 		burn_mod_smr
 		{
-			"damage_near_value"   							"++40"
-			"damage_far_value"								"++40"
-			"damage_near_value_titanarmor"					"++135"
-			"damage_far_value_titanarmor" 					"++135"
 		}
 		pas_fast_ads
 		{
@@ -103,139 +51,6 @@ WeaponData
 			// we'll also have a script for adding fake model to the weapon
 			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 			// projectile model change in script
-		}
-
-		// modded
-		grenadier_low_damage // best to use together with jump_kit, damage reduction done in scripts
-		{
-			"damage_near_value"   							"*0.1"
-			"damage_far_value"								"*0.1"
-			"explosion_damage"								"*0.1"
-			"damage_near_value_titanarmor"					"*0.1"
-			"damage_far_value_titanarmor" 					"*0.1"
-			"explosion_damage_heavy_armor"					"*0.1"
-		}
-		rocket_jumper // jumpers directly modify velocity, set "impulse_force_explosions" much lower!
-		{
-			"impulse_force"   								"--1000" // 0
-			"impulse_force_explosions"   					"--500" // 500
-		}
-
-		// tediore
-		tediore_reload
-		{
-		}
-		tediore_effect // required to get it's unique explosion status
-		{
-			"damage_near_value"								"*0"
-			"damage_far_value" 								"*0"
-			"damage_near_value_titanarmor"					"*0"
-			"damage_far_value_titanarmor" 					"*0"
-			"projectile_gravity_scale"						"1"
-			"projectile_inherit_owner_velocity_scale"		"1.0"
-			"projectile_launch_speed"						"750"
-			"projectile_trail_effect_0" 					"" // can this really handle?
-
-			"impact_effect_table"			"exp_satchel"
-			"explosion_damage"				"130" // was 100
-			"explosion_damage_heavy_armor"	"1250"
-			"explosionradius"				"250"
-			"explosion_inner_radius"		"120"
-			"impulse_force"   				"500"
-			"impulse_force_explosions"		"50000"
-		}
-		tediore_impact_mine // use together with tediore_reload
-		{
-			"grenade_fuse_time"				"0.0"
-			"projectile_max_deployed"		"2"
-		}
-
-		// classic anti-titan
-		classic_antititan_weapon // client script required
-		{
-			"projectile_launch_speed"				"--500" //2800
-			// may need scale down fire_rate a bit because tf|2 SMR firing sound isn't good enough
-			//"fire_rate"   							"--1" // 9
-			"damage_near_value_titanarmor"			"++40" // 155. ttf1 uses 197
-			"damage_far_value_titanarmor" 			"++40" // 155. ttf1 uses 197
-			"explosion_damage_heavy_armor"			"++0" // 150 . ttf1 uses 180
-
-			// remove ammo capacity, tf2 has extended_ammo
-			//"ammo_clip_size"   						"++5" // 25
-			// scale down stockpile
-			"ammo_no_remove_from_stockpile"			"0"
-			"ammo_default_total"					"*0.6" // 120, was *0.5( 100 )
-			"ammo_stockpile_max"					"*0.6" // 120, was *0.5( 100 )
-
-			"damage_near_value"   					"*0.5" // 25
-			"damage_far_value"						"*0.5" // 25
-
-			// tf1 smr surly has larger trail and impact, use other weapon's
-			// I'm not sure whether it's a good idea to change trail effect...
-			// respawn reduces trail is to make owner easier can see enemy
-			// but reduced impact effect also reduces player feedback...
-			//"projectile_trail_effect_0" 			"wpn_grenade_frag_softball"
-			//"projectile_trail_effect_0" 			"weapon_40mm_projectile"
-			"impact_effect_table" 					"exp_rocket_shoulder"
-		}
-
-		// maybe good to split here?
-		infinite_clip
-		{
-			"ammo_no_remove_from_clip"					"1"
-		}
-
-		// special
-		friendlyfire_weapon
-		{
-		}
-		// nessie_balance
-		// {
-		// 	"damage_near_value"			"*0.5"
-		// 	"damage_far_value"			"*0.5"
-   	 	// 	"damage_very_far_value"		"*0.5"
-		// 	"explosion_damage"			"*0.5"
-
-			//"damage_near_value"			"*0.5"
-			//"damage_far_value"			"*0.5"
-			//"explosion_damage"			"*0.5"
-			//"zoom_fov"					"60"
-		// 
-
-		// gruntmode
-		gruntmode_stalker_weapon // stalkers in gruntmode will try to equip this mod
-		{
-			// Damage - When Used by NPCs
-			"npc_damage_near_value"   						"--3" // 15, was 18
-			"npc_damage_far_value"							"--3" // 15, was 18
-		}
-
-		// gruntmode specific
-		gm_fortress // less damage against human, never allow headshots, more damage against titans
-		{
-			"damage_near_value_titanarmor"					"++50" // 165
-			"damage_far_value_titanarmor" 					"++50" // 165
-
-			// can't remove headshot in mods... guess we could reduce damage
-			// due we heavily nerfed human damage, should allow headshots to quickly take down npcs
-			//"allow_headshots" 								"0"
-			//"damage_headshot_scale"							"1.1"
-
-			//"damage_near_value"   							"--9" // 41 on bodyshot, 45.1 on headshot
-			//"damage_far_value"								"--9" // 41 on bodyshot, 45.1 on headshot
-		
-			"damage_near_value"   							"--15" // 35 on bodyshot, 43.75(44) on headshot
-			"damage_far_value"								"--15" // 35 on bodyshot, 43.75(44) on headshot
-
-			// bit nerf reload, otherwise MGL will seem embarrasing
-			"reload_time" 									"*1.133333" // ~3.4s, was using *1.116667( ~3.35s ), MGL is 3.75s, kraber empty reload is 3.61s, but kraber is much more powerful against players
-			"reload_time_late1"								"*1.133333"
-			"reload_time_late2"								"*1.133333"
-			"reload_time_late3"								"*1.133333"
-			"reloadempty_time"								"*1.133333"
-			"reloadempty_time_late1"						"*1.133333"
-			"reloadempty_time_late2"						"*1.133333"
-			"reloadempty_time_late3"						"*1.133333"
 		}
 	}
 }

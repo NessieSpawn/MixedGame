@@ -1,21 +1,7 @@
 WeaponData
 {
-	// modified callbacks
-	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_weapon_grenade_sonar"
-	"OnWeaponTossReleaseAnimEvent"					"OnWeaponTossReleaseAnimEvent_weapon_grenade_sonar"
-	
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
-
-	//"damage_flags"									"DF_INSTANT | DF_ELECTRICAL | DF_GIB"
-
-	// vanilla missing sprint animation rate
-	// should we add it?
-	"sprintcycle_time"								".55"
-
-	// bodygroup for fun
-	"bodygroup1_name"	"projectile"
-	"bodygroup1_set"	"1"
 
 	Mods
 	{
@@ -58,87 +44,6 @@ WeaponData
 			// nessy doll isn't a usable model for dropping to ground, script handle is enough
             //"playermodel" 									"models/domestic/nessy_doll.mdl"
 			// projectile model change in script
-		}
-		
-		// ninja projectile
-		ninja_projectile // one-shots many things
-		{
-			// can this prevents grenade indicator from showing up?
-			"explosion_inner_radius"  						"*0.0"
-			"explosionradius" 								"*0.0"
-
-			"projectile_trail_effect_0" 					"wpn_grenade_frag"
-
-			"damage_near_value"								"++500" // 600
-			"damage_far_value"								"++500" // 600
-			"damage_near_value_titanarmor"					"++500"
-			"damage_far_value_titanarmor"					"++500"
-
-			"regen_ammo_refill_rate"						"++192" // 1s cooldown
-		}
-		impact_bounce // use together with ninja_projectile. try to bounce from target, stick onto walls
-		{
-		}
-		dissolve_instant // use together with ninja_projectile. blink out upon impact
-		{
-		}
-		no_impact_effect // remove impact effect
-		{
-		}
-
-		// modded
-		data_knife_projectile
-		{
-			"bodygroup1_set"								"1"
-			// done in script
-			//"projectilemodel"								"models/weapons/data_knife/v_data_knife.mdl"
-		}
-
-		// modded
-		ar_trajectory // client required
-		{
-			//Ordnance Beam
-			"grenade_arc_indicator_bounce_count"			"1"
-			"grenade_arc_indicator_effect"					"P_grenade_arc_proto_orange"
-		}
-
-		//zombie_knife // use together with ninja_projectile
-		//{
-		//	"damage_near_value"								"--60" // 40
-		//	"damage_far_value"								"--60" // 40
-		//	"impulse_force"									"++5000" // 5000
-		//}
-		
-		// ability death_marker
-		death_marker
-		{
-			"fire_duration"		"18" // should match duration in script
-			"fire_mode"			"offhand_instant"
-		}
-
-		// special
-		friendlyfire_weapon
-		{
-		}
-		
-		// grunt mode specifics
-		grunt_mode // base mod for tacticals and ordnances: no regen
-		{
-			"regen_ammo_refill_rate"						"*0"
-		}
-		gm_sonarpulser // longer sonar
-		{
-			"grenade_ignition_time"							"*1.333333" // 6s. was *2( 9s )
-		}
-
-		// gamemode kraber specifics
-		kunai_mode // use together with ninja_projectile
-		{
-			"regen_ammo_refill_start_delay"					"++1.0"
-		}
-		kunai_mode_amped // required if player has amped_tacticals
-		{
-			"regen_ammo_refill_rate"						"--92" // 1s cooldown with amped_tacticals
 		}
 	}
 }

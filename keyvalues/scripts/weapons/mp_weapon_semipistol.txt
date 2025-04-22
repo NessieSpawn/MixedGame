@@ -1,42 +1,8 @@
 WeaponData
 {
-	// gibber pistol
-	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_weapon_gibber_pistol"
-	"OnProjectileCollision"							"OnProjectileCollision_weapon_gibber_pistol"
-	
 	//Projectile Stuff
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
-	
-	// move into weapon mods for better vortexing
-	//"projectile_trail_effect_0" 					"wpn_grenade_frag_mag"
-	"impact_effect_table" 							"default" // inc_bullet
-
-	"projectile_adjust_to_gun_barrel"				"1"
-
-	"grenade_bounce_vel_frac_shallow"				"0.47"
-	"grenade_bounce_vel_frac_sharp"					"0.28"
-	"grenade_bounce_vel_frac_along_normal"			"0.5"
-	"grenade_bounce_randomness"						"0.2"
-	"grenade_bounce_extra_vertical_randomness"		"0.2"
-	"grenade_roll_vel_frac_per_second"				"0.1"
-
-	//"damage_flags"									"DF_BULLET | DF_DISMEMBERMENT | DF_GIB"
-
-	// p2016 don't have a cyl silencer
-
-	// Blance npc damage for MP
-	MP_BASE
-	{
-		// Damage - When Used by NPCs
-		"npc_damage_near_value"   						"10" // 13 in mp, which is too high for a npc weapon
-		"npc_damage_far_value"							"7" // 10 in mp, which is too high for a npc weapon
-	
-		"npc_min_burst"   								"3" // vanilla uses 2
-		"npc_max_burst"   								"5"
-		"npc_rest_time_between_bursts_min"				"0.4" // vanilla ues 0.2, r97 uses 0.5
-		"npc_rest_time_between_bursts_max"				"0.6" // vanilla uses 0.3, r97 uses 0.7
-	}
 
 	Mods
 	{
@@ -45,7 +11,6 @@ WeaponData
 		}
 		extended_ammo
 		{
-			"ammo_clip_size"   					"*1.34"
 		}
 		pas_run_and_gun
 		{
@@ -92,115 +57,6 @@ WeaponData
 			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
 			// we'll also have a script for adding fake model to the weapon
 			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-		}
-
-		// modded weapons
-		gibber_pistol // client script required
-		{
-			"projectile_launch_speed"						"2500"
-			"projectile_first_person_offset_fraction"		"2"
-
-			"projectile_inherit_owner_velocity_scale"		"1"
-
-			"impact_effect_table" 							"exp_mgl"
-			"projectile_trail_effect_0" 					"wpn_grenade_frag_mag"
-
-			"damage_near_value"   							"--20"
-			"damage_far_value"								"--20"
-
-			"explosion_inner_radius"  						"50"
-			"explosionradius" 								"100"
-			"explosion_damage"								"35"
-			"explosion_damage_heavy_armor"					"70"
-		}
-		grenade_pistol // client script required
-		{
-			"projectile_launch_speed"						"2500"
-			"projectile_first_person_offset_fraction"		"2"
-			
-			"grenade_fuse_time"								"1.2"
-
-			"projectile_inherit_owner_velocity_scale"		"1"
-
-			"impact_effect_table" 							"exp_mgl"
-			"projectile_trail_effect_0" 					"wpn_grenade_frag_mag"
-			"bounce_effect_table"							"bounce_mgl" // need a bounce effect because we're not sticky anymore
-
-			"explosion_inner_radius"  						"50"
-			"explosionradius" 								"100"
-			"explosion_damage"								"35"
-			"explosion_damage_heavy_armor"					"70"
-		}
-
-		// special
-		friendlyfire_weapon
-		{
-		}
-		titandamage_weapon
-		{
-			"titanarmor_critical_hit_required"          "0"
-		}
-		no_ironsight_weapon // should do a check in script to avoid using together with other optics
-		{
-			// bodygroup
-			"bodygroup3_set"	"0" // iron sight
-		}
-		// nessie_balance
-		// {
-		// 	"damage_near_value"			"*0.5"
-		// 	"damage_far_value"			"*0.5"
-   	 	// 	"damage_very_far_value"		"*0.5"
-		// 	"explosion_damage"			"*0.5"
-
-			//"fast_swap_to"				"0"
-			//"damage_near_value"			"16"
-			//"ammo_clip_size"			"14"
-			//"zoom_fov"					"60"
-			//"ads_move_speed_scale"							"1.0"
-		// }
-
-		// npc usage
-		//npc_sniper_grunt
-		//{
-		//	"npc_damage_near_value"   						"++7" // 20, same as sp
-		//	"npc_damage_far_value"							"++0" // 10
-		//}
-
-		// npc usage when enabled npc headshots
-		// better not directly modifying "damage_headshot_scale" to prevent impacting player usage
-		npc_lower_damage
-		{
-			//"damage_headshot_scale"			"--0.5" // 1.5, sniper grunts never drop this weapon so we can feel free to modify it
-			// still not a good idea to change headshot damage... what if we use it on other grunts but not sniper?
-			"npc_damage_near_value"   						"--3" // 7
-			"npc_damage_far_value"							"--1" // 6
-		}
-
-		// fake tf1's pistol sprint animation( satchel's ) for fun
-		fake_tf1_sprint_anim
-		{
-		}
-		fake_tf1_sprint_anim_active
-		{
-			"activitymodifier"						"satchel"
-		}
-
-		// just for fun here: tf1's burst mode( burnmod )
-		burst
-		{
-			"fire_rate"   					"12"
-			"burst_fire_count"				"3"
-			"burst_fire_delay"				"0.28"
-
-			"viewkick_pitch_hardScale"		"1.2"
-			"viewkick_pitch_base" 			"-0.4"
-			"viewkick_pitch_random"   		"-0.25"
-			"viewkick_yaw_base"   			"0.15"
-			"viewkick_yaw_random" 			"0.5"
-
-			"damage_near_value"   			"25" // damage adjusted to tf2 value. tf1 value 60
-			// new adding adjustment, cuz org tf2 p2016 is very powerful on headshot
-			"damage_headshot_scale"			"1.5"
 		}
 	}
 }
