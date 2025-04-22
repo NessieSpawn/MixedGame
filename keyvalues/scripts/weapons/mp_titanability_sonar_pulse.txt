@@ -1,5 +1,8 @@
 WeaponData
 {
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+
 	// for archon_stun_impact
 	// grenade behaviors
 	"grenade_bounce_vel_frac_shallow"				"0.53"
