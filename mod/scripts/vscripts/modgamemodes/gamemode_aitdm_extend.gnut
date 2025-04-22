@@ -797,7 +797,7 @@ void function PilotConfig( entity soldier )
 	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 
 	// APRIL FOOLS SPECIAL: grants shield
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
 		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
