@@ -14,6 +14,16 @@
 			"ClientCallback": {
                 "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
             }
+		},
+		{
+			"Path": "/modweapons/mp_weapon_nessie_pistol.gnut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponNessiePistol_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponNessiePistol_Init"
+            }
 		}
 	],
 
