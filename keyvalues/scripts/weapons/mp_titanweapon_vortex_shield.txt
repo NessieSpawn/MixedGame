@@ -142,8 +142,9 @@ WeaponData
 
 		// nessy
         // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
-		}
+		// vortex shield can be complicated, no need to change model
+		// fake_nessy_weapon
+		// {
+		// }
 	}
 }

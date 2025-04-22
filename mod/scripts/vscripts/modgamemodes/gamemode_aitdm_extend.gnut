@@ -204,8 +204,20 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 		AddCallback_OnClientDisconnected( OnPlayerDisconnected )
 
 		// ANTI-CRASH for client-side: don't do replay for player without mod installed if we have at least one other player installed the mod
-		AddCallback_ShouldDoReplay
+		AddCallback_ShouldDoReplay( AprilFoolsShouldDoReplay )
 	}
+}
+
+// ANTI-CRASH
+bool function AprilFoolsShouldDoReplay( entity player, entity attacker, float replayTime, int methodOfDeath )
+{
+	// don't do replay for player without mod installed if we have at least one other player installed the mod
+	ArrayRemoveInvalid( file.weaponSafePlayers )
+	if ( file.weaponSafePlayers.len() > 0 && IsValid( attacker ) && attacker.IsPlayer() )
+		return false
+
+	// default returning true to let other callbacks go through
+	return true
 }
 
 void function OnModdedPlayerConnected( entity player, string modType )
@@ -231,17 +243,17 @@ const array<string> WEAPON_MODS_TO_REMOVE =
 	"redline_sight",
 	"threat_scope",
 	"scope_4x",
-	"proscreen",
+	"pro_screen",
 ]
 // basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes...
 // DMR is replaced with G2 while Kraber is replaced with Doubletake
 // maybe we could release client-side version of this mod and disable killreplay to make players able to use them
 const table<string, string> WEAPON_REPLACEMENTS =
-[
+{
 	["mp_weapon_sniper"] 			= "mp_weapon_doubletake",
 	["mp_weapon_dmr"]				= "mp_weapon_g2",
 	["mp_weapon_rspn101_og"]		= "mp_weapon_rspn101",
-]
+}
 // list of all valid replacement weapon mods
 const array<string> ALL_VALID_MODS =
 [
@@ -261,7 +273,8 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 		player.SetSkin( 0 )
 		player.SetCamo( 0 )
 
-		player.GiveExtraWeaponMod( "fake_nessy_weapon" )
+		// NOT WORKING FINE
+		//player.GiveExtraWeaponMod( "fake_nessy_weapon" )
 
 		foreach ( entity weapon in player.GetMainWeapons() )
 		{
@@ -272,7 +285,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 				if ( weaponName in WEAPON_REPLACEMENTS )
 				{
 					array<string> validMods
-					array<string> mods = weapon.GetWeaponMods()
+					array<string> mods = weapon.GetMods()
 					foreach ( string mod in mods )
 					{
 						if ( ALL_VALID_MODS.contains( mod ) )
@@ -283,7 +296,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 				}
 			}
 
-			array<string> weaponMods = weapon.GetWeaponMods()
+			array<string> weaponMods = weapon.GetMods()
 			foreach ( string mod in weaponMods )
 			{
 				if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
@@ -294,17 +307,19 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 			if ( weapon.GetWeaponClassName() == "mp_weapon_sniper" )
 				weapon.RemoveMod( "extended_ammo" ) // kraber with "fake_nessy_weapon" only have 1 ammo clip
 
+			// seems we'll have to use SetMod() to change weapon model
+			GiveNessyProjectileMod( player, weapon )
 			// wants to update fp bodygroup, so optics won't show
 			HolsterWeapons( player )
 			DeployWeapons( player )
+
 			// update weapon clip size after mod change... though GiveExtraWeaponMod() should already handled it
 			try { weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() ) } // anti-crash for charge weapons
 			catch(ex1) {}
-			
-			// remove weapon skin
-			weapon.SetSkin( 0 )
-			weapon.SetCamo( 0 )
 		}
+
+		foreach ( entity weapon in player.GetOffhandWeapons() )
+			GiveNessyProjectileMod( player, weapon )
 	}
 }
 
@@ -564,7 +579,7 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 	soldier.EndSignal( "OnDeath" )
 	WaitEndFrame() // droppod npcs' squad name gets assigned later after spawn, needs to handle it
 
-	string squadName = soldier.kv.squadname
+	string squadName = expect string( soldier.kv.squadname )
 	if ( file.squadsAssignedTitanWeapon.contains( squadName ) ) // each squad can only have 1 npc holding titan weapon
 		return
 
@@ -613,21 +628,37 @@ void function ExplodeOnTitanStep( entity soldier, var damageInfo )
 	}
 }
 
-void function GiveNessyProjectileMod( entity soldier )
+void function GiveNessyProjectileMod( entity ent, entity weapon )
 {
-	thread GiveNessyProjectileMod_Threaded( soldier )
-}
+	array<string> allMods = GetWeaponMods_Global( weapon.GetWeaponClassName() )
+	// don't have nessy mod
+	if ( !allMods.contains( "fake_nessy_weapon" ) )
+		return
 
-void function GiveNessyProjectileMod_Threaded( entity soldier )
-{
-	soldier.EndSignal( "OnDestroy" )
-	soldier.EndSignal( "OnDeath" )
-	WaitEndFrame() // extra spawner npcs' may get weapon a bit later than ususal...
+	// seems we'll have to use SetMod() to change weapon model
+	// still not working fine...  do we have to replace the weapon manually?
+	array<string> mods = weapon.GetMods()
+	foreach ( string mod in mods )
+	{
+		if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
+			mods.removebyvalue( mod )
+	}
+	mods.append( "fake_nessy_weapon" )
 
-	foreach ( entity weapon in soldier.GetMainWeapons() )
-		weapon.AddMod( "fake_nessy_weapon" )
-	foreach ( entity weapon in soldier.GetOffhandWeapons() )
-		weapon.AddMod( "fake_nessy_weapon" )
+	// main weapons
+	if ( !weapon.IsWeaponOffhand() )
+	{
+		// destroy original weapon and give new one
+		string weaponName = weapon.GetWeaponClassName()
+		weapon.Destroy()
+		ent.GiveWeapon( weaponName, mods )
+
+		// remove weapon skin
+		weapon.SetSkin( 0 )
+		weapon.SetCamo( 0 )
+	}
+	else // offhand weapons
+		weapon.SetMods( mods )
 }
 
 // hardcoded here
@@ -864,8 +895,8 @@ void function ReaperConfig( entity soldier )
 	// APRIL FOOLS SPECIAL: add aggressive_ai, grants shield
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 	{
-		if ( reaper.GetMainWeapons().len() > 0 )
-			reaper.GetMainWeapons()[0].AddMod( "aggressive_ai" )
+		if ( soldier.GetMainWeapons().len() > 0 )
+			soldier.GetMainWeapons()[0].AddMod( "aggressive_ai" )
 
 		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
 		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
@@ -914,35 +945,33 @@ void function TitanConfig( entity soldier )
 		soldier.SetSkin( 0 )
 		soldier.SetCamo( 0 )
 		// random model as same chassis
-		array<asset> validModelGroups
-		switch ( GetSoulTitanSubClass( soldier ) )
+		entity soul = soldier.GetTitanSoul()
+		if ( IsValid( soul ) )
 		{
-			case "stryder":
-				validModelGroups = VALID_STRYDER_TITAN_MODELS
-				break
+			array<asset> validModelGroups
+			switch ( GetSoulTitanSubClass( soul ) )
+			{
+				case "stryder":
+					validModelGroups = VALID_STRYDER_TITAN_MODELS
+					break
 
-			case "atlas":
-				validModelGroups = VALID_ATLAS_TITAN_MODELS
-				break
+				case "atlas":
+					validModelGroups = VALID_ATLAS_TITAN_MODELS
+					break
 
-			case "ogre":
-				validModelGroups = VALID_OGRE_TITAN_MODELS
-				break
+				case "ogre":
+					validModelGroups = VALID_OGRE_TITAN_MODELS
+					break
+			}
+			if ( validModelGroups.len() > 0 )
+				soldier.SetModel( validModelGroups[ RandomInt( validModelGroups.len() ) ] )
 		}
-		if ( validModelGroups.len() > 0 )
-			soldier.SetModel( validModelGroups[ RandomInt( validModelGroups.len() ) ] )
 
 		// change projectile model
 		foreach ( entity weapon in soldier.GetMainWeapons() )
-		{
-			weapon.AddMod( "fake_nessy_weapon" )
-			// remove weapon skin
-			weapon.SetSkin( 0 )
-			weapon.SetCamo( 0 )
-		}
-
+			GiveNessyProjectileMod( soldier, weapon )
 		foreach ( entity weapon in soldier.GetOffhandWeapons() )
-			weapon.AddMod( "fake_nessy_weapon" )
+			GiveNessyProjectileMod( soldier, weapon )
 	}
 }
 
@@ -968,11 +997,7 @@ void function DelayedSetUpNPCTitan( entity soldier )
 
 	// APRIL FOOLS SPECIAL: grants shield for non-player titans
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
-	{
-		entity soul = titan.GetTitanSoul()
-		if ( IsValid( soul ) )
-			SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
-	}
+		SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
 }
 
 void function DroneConfig( entity soldier )

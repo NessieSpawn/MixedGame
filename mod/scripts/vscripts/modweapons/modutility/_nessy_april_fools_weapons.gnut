@@ -199,3 +199,9 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
         }
     }
 }
+
+// settings func
+void function NessyAprilFools_ChangeNPCHumanGrenadesToNessy( bool change )
+{
+    file.changeNPCHumanGrenades = change
+}
