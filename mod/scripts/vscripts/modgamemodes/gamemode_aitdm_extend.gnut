@@ -305,7 +305,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 			else // player with mod installed
 			{
 				// HARDCODED for mozambique
-				if ( weapon.GetWeaponClassName().GetWeaponClassName() == "mp_weapon_shotgun_pistol" )
+				if ( weapon.GetWeaponClassName() == "mp_weapon_shotgun_pistol" )
 				{
 					// become nessy launcher
 					weapon.Destroy()

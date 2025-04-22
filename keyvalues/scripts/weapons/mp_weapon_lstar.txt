@@ -85,7 +85,9 @@ WeaponData
 		{
 			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
 			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// FFS this cannot be changed, otherwise npcs will crash client-side without mod installed
+			// just make sure weapon drops are disabled when using this
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 			// projectile model change in script
 		
 			// cannot cooldown, guess we balance a bit
