@@ -10,6 +10,8 @@ global function NessyAprilFools_ChangeNPCHumanGrenadesToNessy // this handles NP
 global function NessyAprilFools_ChangeAllNPCProjectilesToNessy // changes all valid npc projectiles
 global function NessyAprilFools_ChangeAllPlayerProjectilesToNessy // changes all valid player projectiles
 
+global function NessyAprilFools_AlwaysChangeDamageSourceId
+
 const string NESSY_WEAPON_MOD = "fake_nessy_weapon"
 
 const asset MOZAMBIQUE_MODEL = $"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
@@ -80,6 +82,7 @@ struct
     bool changeNPCHumanGrenades
     bool changeAllNPCProjectiles
     bool changeAllPlayerProjectiles
+    bool alwaysChangeDamageSourceId
 } file
 
 void function Nessy_April_Fools_Weapons_Init()
@@ -186,9 +189,10 @@ void function NessyDollProjectiles()
 
             if ( changeModelToNessy )
             {
-                if ( !( "modelChangedByNessyScript" in projectile.s ) && projectile.GetModelName() != NESSY_MODEL )
+                if ( !( "modelChangedByNessyScript" in projectile.s ) )
                 {
-                    projectile.SetModel( NESSY_MODEL )
+                    if ( projectile.GetModelName() != NESSY_MODEL ) // never update model multiple times just in case
+                        projectile.SetModel( NESSY_MODEL )
                     projectile.s.modelChangedByNessyScript <- true
                 }
             }
@@ -198,6 +202,28 @@ void function NessyDollProjectiles()
 
 void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 {
+    // always change damageSourceId no matter how
+    if ( file.alwaysChangeDamageSourceId )
+    {
+        int newDamageSourceId = eDamageSourceId.nessy_doll // default case: nessy doll
+        if ( !IsValid( DamageInfo_GetInflictor( damageInfo ) ) ) // not damaged by projectile or DOT damage stuffs
+        {
+            // we may using mozambique model weapon
+            entity attackerWeapon = DamageInfo_GetWeapon( damageInfo )
+            if ( !IsValid( attackerWeapon ) )
+            {
+                entity attacker = DamageInfo_GetAttacker( damageInfo )
+                if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) )
+                    attackerWeapon = attacker.GetActiveWeapon()
+            }
+            if ( IsValid( attackerWeapon ) )
+                newDamageSourceId = eDamageSourceId.mp_weapon_shotgun_pistol
+        }
+
+        DamageInfo_SetDamageSourceIdentifier( damageInfo, newDamageSourceId )
+        return
+    }
+
 	// damaged by projectile! try to get their mod
 	entity inflictor = DamageInfo_GetInflictor( damageInfo )
 	if ( IsValid( inflictor ) )
@@ -218,36 +244,34 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 	}
 
 	// other case must be hitscan weapon damage, check active weapon should be enough
-    // oh wait this can be execution damage stuffs... maybe checking force kill? or we could just hardcode it for nothing
-	if ( !IsInstantDeath( damageInfo ) && !DamageInfo_GetForceKill( damageInfo ) )
+    entity attackerWeapon = DamageInfo_GetWeapon( damageInfo )
+    if ( !IsValid( attackerWeapon ) )
     {
         entity attacker = DamageInfo_GetAttacker( damageInfo )
-        if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) ) // needs to be player/npc otherwise it's gonna crash
+        if ( IsValid( attacker ) && ( attacker instanceof CBaseCombatCharacter ) )
+            attackerWeapon = attacker.GetActiveWeapon()
+    }
+    if ( IsValid( attackerWeapon ) )
+    {
+        bool bulletFiredByMozambique = attackerWeapon.HasMod( "fake_nessy_weapon" )
+        // keep synced with projectile settings
+        bool projectileHasModelSettings
+        if ( file.changeAllNPCProjectiles && attacker.IsNPC() )
+            projectileHasModelSettings = true
+        if ( file.changeAllPlayerProjectiles && attacker.IsPlayer() )
+            projectileHasModelSettings = true
+        // if we have settings enabled, check weapon's model( though most of time weapon model is changed by mod, checking mods is enough )
+        if ( projectileHasModelSettings )
         {
-            entity attackerWeapon = attacker.GetActiveWeapon()
-            if ( IsValid( attackerWeapon ) )
-            {
-                bool bulletFiredByMozambique = attackerWeapon.HasMod( "fake_nessy_weapon" )
-                // keep synced with projectile settings
-                bool projectileHasModelSettings
-                if ( file.changeAllNPCProjectiles && attacker.IsNPC() )
-                    projectileHasModelSettings = true
-                if ( file.changeAllPlayerProjectiles && attacker.IsPlayer() )
-                    projectileHasModelSettings = true
-                // if we have settings enabled, check weapon's model( though most of time weapon model is changed by mod, checking mods is enough )
-                if ( projectileHasModelSettings )
-                {
-                    asset weaponModel = attackerWeapon.GetModelName()
-                    if ( weaponModel == MOZAMBIQUE_MODEL || weaponModel == MOZAMBIQUE_MODEL_FP )
-                        bulletFiredByMozambique = true
-                }
-                if ( bulletFiredByMozambique )
-                {
-                    // change damageSourceId to mozambique
-                    DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.mp_weapon_shotgun_pistol )
-                    return
-                }
-            }
+            asset weaponModel = attackerWeapon.GetModelName()
+            if ( weaponModel == MOZAMBIQUE_MODEL || weaponModel == MOZAMBIQUE_MODEL_FP )
+                bulletFiredByMozambique = true
+        }
+        if ( bulletFiredByMozambique )
+        {
+            // change damageSourceId to mozambique
+            DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.mp_weapon_shotgun_pistol )
+            return
         }
     }
 }
@@ -267,4 +291,9 @@ void function NessyAprilFools_ChangeAllNPCProjectilesToNessy( bool change )
 void function NessyAprilFools_ChangeAllPlayerProjectilesToNessy( bool change )
 {
     file.changeAllPlayerProjectiles = change
+}
+
+void function NessyAprilFools_AlwaysChangeDamageSourceId( bool change )
+{
+    file.alwaysChangeDamageSourceId = change
 }
