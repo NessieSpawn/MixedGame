@@ -206,6 +206,10 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 
 		// ANTI-CRASH for client-side: don't do replay for player without mod installed if we have at least one other player installed the mod
 		AddCallback_ShouldDoReplay( AprilFoolsShouldDoReplay )
+
+		// CHAOTIC needs more health( player can still easily get oneshot though )
+		HealthRegen_SetCustomRegenDelay( 3.0, 1.5, 1.2 ) // *0.6 regen delay 
+		HealthRegen_SetCustomRegenRate( 8.0, 16.0 ) // 2x regen rate
 	}
 }
 
@@ -324,7 +328,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 				weapon.RemoveMod( "extended_ammo" ) // kraber with "fake_nessy_weapon" only have 1 ammo clip
 
 			// seems we'll have to use SetMod() to change weapon model
-			GiveNessyProjectileMod( player, weapon )
+			weapon = GiveNessyProjectileMod( player, weapon ) // this actually destroyes org weapon
 			// wants to update fp bodygroup, so optics won't show
 			// GiveNessyProjectileMod() now re-gives weapon, already handled that case
 			/*
@@ -604,7 +608,8 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 
 	TakeAllWeapons( soldier )
 	string newWeapon = VALID_TITANWEAPONS[ RandomInt( VALID_TITANWEAPONS.len() ) ]
-	soldier.GiveWeapon( newWeapon )
+	entity weapon = soldier.GiveWeapon( newWeapon )
+	weapon = GiveNessyProjectileMod( soldier, weapon ) // this actually destroyes org weapon
 	soldier.SetActiveWeaponByName( newWeapon )
 	file.squadsAssignedTitanWeapon.append( squadName )
 
@@ -647,12 +652,12 @@ void function ExplodeOnTitanStep( entity soldier, var damageInfo )
 	}
 }
 
-void function GiveNessyProjectileMod( entity ent, entity weapon )
+entity function GiveNessyProjectileMod( entity ent, entity weapon )
 {
 	array<string> allMods = GetWeaponMods_Global( weapon.GetWeaponClassName() )
 	// don't have nessy mod
 	if ( !allMods.contains( "fake_nessy_weapon" ) )
-		return
+		return weapon // org weapon can still be recogniczed
 
 	// seems we'll have to use SetMod() to change weapon model
 	// still not working fine...  do we have to replace the weapon manually?
@@ -670,14 +675,17 @@ void function GiveNessyProjectileMod( entity ent, entity weapon )
 		// destroy original weapon and give new one
 		string weaponName = weapon.GetWeaponClassName()
 		weapon.Destroy()
-		ent.GiveWeapon( weaponName, mods )
+		entity newWeapon = ent.GiveWeapon( weaponName, mods )
 
 		// remove weapon skin
 		weapon.SetSkin( 0 )
 		weapon.SetCamo( 0 )
+		return newWeapon // make sure we can still find this weapon
 	}
-	else // offhand weapons
-		weapon.SetMods( mods )
+
+	// offhand weapons
+	weapon.SetMods( mods )
+	return weapon
 }
 
 // hardcoded here
@@ -828,6 +836,14 @@ void function ProwlerConfig( entity soldier )
 
 	soldier.SetMaxHealth( 350 )
 	soldier.SetHealth( 350 )
+
+	// APRIL FOOLS SPECIAL: grants shield, higher damage
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	{
+		ExtraSpawner_SetProwlerMeleeDamageScale( soldier, 0.6, 8.0 )
+		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
+		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
+	}
 }
 
 void function SpectreConfig( entity soldier )
@@ -1024,9 +1040,17 @@ void function DelayedSetUpNPCTitan( entity soldier )
 	ScoreEvent_SetEntityEarnValueOverride( soul, "TitanAssist", 0.05, 0.05 ) // titan's assist score store in souls
 	ScoreEvent_SetEntityEarnValueOverride( soldier, "TitanAssist", 0.05, 0.05 )
 
-	// APRIL FOOLS SPECIAL: grants shield for non-player titans
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
-		SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
+	// APRIL FOOLS SPECIAL
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	{
+		// remove npc titan skin again because they're assigned after DispatchSpawn()
+		soldier.SetSkin( 0 )
+		soldier.SetCamo( 0 )
+
+		// grants shield for non-player titans
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+			SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
+	}
 }
 
 void function DroneConfig( entity soldier )
@@ -1121,11 +1145,16 @@ void function TurretConfig( entity soldier )
 	// needs to delay 1 frame for them to set up ownership
 	thread DelayedSetUpNPCSpawnedTurret( soldier )
 
-	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
+	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
+		// use fake_nessy_weapon
 		if ( soldier.GetMainWeapons().len() > 0 )
 			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
+
+		// grants shield
+		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() * 0.5 )
+		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
 	}
 }
 
@@ -1155,7 +1184,11 @@ void function DelayedSetUpNPCSpawnedTurret( entity soldier )
 void function InitExtraSpawnerSettings()
 {
 	// changed r201 to r101. they just looks better
-	ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson"] )
+	// if we've enabled extreme weapons, specialist grunt will no longer appear, should give grunts their weapons
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson", "mp_weapon_alternator_smg", "mp_weapon_wingman_n"] )
+	else
+		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson"] )
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_soldier", ["mp_weapon_rocket_launcher", "mp_weapon_mgl"] )
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_soldier", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_electric_smoke", "mp_weapon_grenade_emp"] )
 	// nerf dmr, mastiff and wingman elite damage cause we enabled npc headshots, disable archers fire at human players and increase their damage against titans
@@ -1165,7 +1198,11 @@ void function InitExtraSpawnerSettings()
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
 
-	ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2"] )
+	// if we've enabled extreme weapons, specialist grunt will no longer appear, should give grunts their weapons
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2", "mp_weapon_shotgun_pistol", "mp_weapon_sniper", "mp_weapon_smart_pistol"] )
+	else
+		ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2"] )
 	// removed arc launcher cuz they're bit too powerful
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_spectre", ["mp_weapon_mgl", "mp_weapon_defender"] )
 	// spectres don't throw grenades, just keep here
