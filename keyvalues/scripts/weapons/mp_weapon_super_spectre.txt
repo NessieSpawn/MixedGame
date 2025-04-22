@@ -25,5 +25,21 @@ WeaponData
 		aggressive_ai_fd
 		{
 		}
+
+		// extra ai spawner nuke reapers
+		npc_nuke_reaper // use together with aggressive_ai
+		{
+			// no titan damage reduction for this mod. aggressive_ai_fd's damage multiplyer is *0.7
+			//"npc_damage_near_value_titanarmor"				"*0.8"
+			//"npc_damage_far_value_titanarmor" 				"*0.7"
+			"npc_damage_near_value"   						"*0.8"
+			"npc_damage_far_value"							"*0.7"
+		}
+
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
+		}
 	}
 }

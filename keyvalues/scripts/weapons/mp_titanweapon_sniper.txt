@@ -113,5 +113,11 @@ WeaponData
 		{
 			"bodygroup1_set"	"1"
 		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 	}
 }

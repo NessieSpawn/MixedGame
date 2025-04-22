@@ -3,4 +3,13 @@ WeaponData
 	// vanilla missing
 	"bounce_effect_table"							"bounce_frag_drone"
 	"grenade_disc_throw"							"1"
+
+	Mods
+	{
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
+		}
+	}
 }

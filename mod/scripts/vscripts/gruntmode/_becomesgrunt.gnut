@@ -195,7 +195,7 @@ void function OnPlayerDealDamage( entity victim, var damageInfo )
 void function OnPlayerPostDamage( entity player, var damageInfo )
 {
 	// playlistvar check
-	if ( GetCurrentPlaylistVarInt( "grunt_player_protection", 1 ) == 0 )
+	if ( GetCurrentPlaylistVarInt( "grunt_player_protection", 0 ) == 0 )
 		return
 
 	// general check
