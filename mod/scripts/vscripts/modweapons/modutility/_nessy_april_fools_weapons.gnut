@@ -202,7 +202,7 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 		{
             // if some of the projectile model has been changed by our script, it must be nessy launcher!
             bool projectileFiredByNessyLauncher = inflictor.ProjectileGetMods().contains( "fake_nessy_weapon" ) // not overwriting vortex shield behavior
-			if ( ( "modelChangedByNessyScript" in projectile.s ) && projectile.GetModelName() == NESSY_MODEL )
+			if ( ( "modelChangedByNessyScript" in inflictor.s ) && inflictor.GetModelName() == NESSY_MODEL )
                 projectileFiredByNessyLauncher = true
             if ( projectileFiredByNessyLauncher )
             {
