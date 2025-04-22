@@ -452,6 +452,7 @@ AssistingPlayerStruct function GetLatestAssistingPlayerInfo( entity ent )
 		// I feel like this shouldn't be a const, better leave a setting for everybody
 	#if SERVER
 		if ( currentTime - history.time >= file.npcKillStealPreventionTime )
+			continue
 	#elseif CLIENT // TF|2 obviously not storing any damage history on client-side, this is just to anti compile error...
 		if ( currentTime - history.time >= MAX_NPC_KILL_STEAL_PREVENTION_TIME )
 			continue
