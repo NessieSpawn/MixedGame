@@ -5,6 +5,7 @@
 untyped // for using projectile.s
 global function Nessy_April_Fools_Weapons_Init
 
+// this branch already have projectile models changed, these settings will take no effect
 global function NessyAprilFools_ChangeNPCHumanGrenadesToNessy // this handles NPC gamemodes
 global function NessyAprilFools_ChangeAllNPCProjectilesToNessy // changes all valid npc projectiles
 global function NessyAprilFools_ChangeAllPlayerProjectilesToNessy // changes all valid player projectiles
@@ -227,7 +228,7 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 }
 
 // settings func
-// this branch already have projectile models updated, this is a STUB
+// this branch already have projectile models changed, these settings will take no effect
 void function NessyAprilFools_ChangeNPCHumanGrenadesToNessy( bool change )
 {
     file.changeNPCHumanGrenades = change

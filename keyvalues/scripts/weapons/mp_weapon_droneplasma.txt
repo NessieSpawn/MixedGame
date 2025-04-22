@@ -1,5 +1,8 @@
 WeaponData
 {
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
 	// vanilla has just nowhere uses this drone, guess it's safe to change default value
 	"damage_far_value"								"7" // vanilla value is 5
 	"damage_near_value_titanarmor"					"150"
