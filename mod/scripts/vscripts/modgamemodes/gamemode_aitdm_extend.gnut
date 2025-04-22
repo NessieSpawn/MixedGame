@@ -186,7 +186,7 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 	AddCallback_OnPlayerGetsNewPilotLoadout( OnPlayerChangeLoadout )
 
 	// APRIL FOOLS SPECIAL settings
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// random player model
 		AltPilot_SetPlayerModelAllRandom( true )
@@ -271,7 +271,7 @@ const array<string> ALL_VALID_MODS =
 void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 {
 	// APRIL FOOLS SPECIAL loadout: no optics, fake nessy weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// remove pilot skin
 		player.SetSkin( 0 )
@@ -730,14 +730,14 @@ void function GruntConfig( entity soldier )
 		ScoreEvent_SetEntityEarnValueOverride( soldier, "KillGrunt", 0.04, 0.03, 0.67 )
 
 	// APRIL FOOLS SPECIAL
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// random model from teams
 		if ( VALID_GRUNT_MODELS.contains( soldier.GetModelName() ) )
 			soldier.SetModel( VALID_GRUNT_MODELS[ RandomInt( VALID_GRUNT_MODELS.len() ) ] )
 		
 		// random titan weapon assignment
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			GiveHumanTitanWeapon( soldier )
 	}
 }
@@ -827,10 +827,10 @@ void function SpectreConfig( entity soldier )
 	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 
 	// APRIL FOOLS SPECIAL
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// random titan weapon assignment
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			GiveHumanTitanWeapon( soldier )
 	}
 }
@@ -862,14 +862,14 @@ void function StalkerConfig( entity soldier )
 	SetUpNPCHeadshotReward( soldier )
 
 	// APRIL FOOLS SPECIAL
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// random model from teams
 		if ( VALID_STALKER_MODELS.contains( soldier.GetModelName() ) )
 			soldier.SetModel( VALID_STALKER_MODELS[ RandomInt( VALID_STALKER_MODELS.len() ) ] )
 
 		// random titan weapon assignment
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			GiveHumanTitanWeapon( soldier )
 	}
 }
@@ -897,7 +897,7 @@ void function ReaperConfig( entity soldier )
 	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.5 ) // less likely can be in pain animation( at least 1500 damage / 3600 repeat damage required )
 
 	// APRIL FOOLS SPECIAL: add aggressive_ai, grants shield
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		if ( soldier.GetMainWeapons().len() > 0 )
 			soldier.GetMainWeapons()[0].AddMod( "aggressive_ai" )
@@ -943,7 +943,7 @@ void function TitanConfig( entity soldier )
 	thread DelayedSetUpNPCTitan( soldier )
 
 	// APRIL FOOLS SPECIAL
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// remove titan skin
 		soldier.SetSkin( 0 )
@@ -1000,7 +1000,7 @@ void function DelayedSetUpNPCTitan( entity soldier )
 	ScoreEvent_SetEntityEarnValueOverride( soldier, "TitanAssist", 0.05, 0.05 )
 
 	// APRIL FOOLS SPECIAL: grants shield for non-player titans
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 		SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
 }
 
@@ -1121,7 +1121,7 @@ void function InitExtraSpawnerSettings()
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_soldier", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_electric_smoke", "mp_weapon_grenade_emp"] )
 	// nerf dmr, mastiff and wingman elite damage cause we enabled npc headshots, disable archers fire at human players and increase their damage against titans
 	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "fake_nessy_weapon"] )
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
@@ -1133,7 +1133,7 @@ void function InitExtraSpawnerSettings()
 	//ExtraSpawner_SetNPCGrenadeWeapons( "npc_spectre", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_emp"] )
 	// buff double take damage and fire rate
 	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest", "fake_nessy_weapon"] )
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest"] )
@@ -1150,7 +1150,7 @@ void function InitExtraSpawnerSettings()
 	// for pilots, add optics, extended_ammo and pro_screen for their weapons. we've added npc weapon bodygroup update!(proscreen can't show xp count for a npc though)
 	// aog goes first because spitfire and lstar both have holosight(lstar one is unfinished), wants to overwrite
 	// APRIL FOOLS SPECIAL: no optics, use fake_nessy_weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_lower_damage", "npc_higher_damage_headshot", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "fake_nessy_weapon"] )
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_pilot_elite", ["npc_lower_damage", "npc_higher_damage_headshot", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher", "hcog", "aog", "holosight", "scope_4x", "extended_ammo", "pro_screen"] )
@@ -1161,7 +1161,7 @@ void function InitExtraSpawnerSettings()
 	//ExtraSpawner_SetNPCAntiTitanWeapons( "npc_stalker", ["mp_weapon_mgl", "mp_weapon_arc_launcher", "mp_weapon_defender"] )
 	// balanced epg for multiplayer
 	// APRIL FOOLS SPECIAL: use fake_nessy_weapon
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["multiplayer_npc_grenadier", "fake_nessy_weapon"] )
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_stalker", ["multiplayer_npc_grenadier"] )
