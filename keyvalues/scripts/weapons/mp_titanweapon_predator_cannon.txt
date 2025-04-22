@@ -1,5 +1,8 @@
 WeaponData
 {
+	// modified fix: titan weapons should've disallow headshots
+	"allow_headshots" 								"0"
+
 	Mods
 	{
 		LongRangeAmmo

@@ -22,6 +22,9 @@ WeaponData
 		"npc_damage_far_value_titanarmor" 			"99"		// 99(was 120) * 100
 	}
 
+	// modified fix: titan weapons should've disallow headshots
+	"allow_headshots" 								"0"
+
 	Mods
 	{
 		damage_core
