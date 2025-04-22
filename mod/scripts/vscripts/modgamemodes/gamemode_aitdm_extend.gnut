@@ -583,13 +583,15 @@ void function UpdateCOOPPlayerTeam_Threaded()
 // not featuring modded weapons rn
 const array<string> VALID_TITANWEAPONS =
 [
-	"mp_titanweapon_particle_accelerator",
+	//"mp_titanweapon_particle_accelerator", // seems cannot use without energy
 	"mp_titanweapon_xo16_vanguard",
 	"mp_titanweapon_sniper",
 	"mp_titanweapon_sticky_40mm",
 	"mp_titanweapon_meteor",
 	"mp_titanweapon_leadwall",
 	"mp_titanweapon_predator_cannon",
+	"mp_titanweapon_triplethreat",
+	"mp_titanweapon_rocketeer_rocketstream",
 ]
 void function GiveHumanTitanWeapon( entity soldier )
 {
@@ -608,7 +610,11 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 
 	TakeAllWeapons( soldier )
 	string newWeapon = VALID_TITANWEAPONS[ RandomInt( VALID_TITANWEAPONS.len() ) ]
-	entity weapon = soldier.GiveWeapon( newWeapon )
+	// I'm done with this shit let's just hardcode weapon mods
+	array<string> mods
+	if ( newWeapon == "mp_titanweapon_triplethreat" )
+		mods.append( "disable_default_magnetic" )
+	entity weapon = soldier.GiveWeapon( newWeapon, mods )
 	weapon = GiveNessyProjectileMod( soldier, weapon ) // this actually destroyes org weapon
 	soldier.SetActiveWeaponByName( newWeapon )
 	file.squadsAssignedTitanWeapon.append( squadName )
