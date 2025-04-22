@@ -4,9 +4,6 @@ WeaponData
 	// no need to change for occasionally 1 power shot
 	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 	
-	// modified fix: titan weapons should've disallow headshots
-	"allow_headshots" 								"0"
-
 	Mods
 	{
 		LongRangeAmmo

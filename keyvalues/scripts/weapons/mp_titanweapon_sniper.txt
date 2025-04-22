@@ -3,9 +3,6 @@ WeaponData
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
-	// modified fix: titan weapons should've disallow headshots
-	"allow_headshots" 								"0"
-
 	Mods
 	{
 		stryder_sniper
