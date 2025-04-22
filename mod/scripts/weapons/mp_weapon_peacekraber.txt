@@ -25,7 +25,10 @@ WeaponData
 	"OnWeaponChargeLevelIncreased"					"OnWeaponChargeLevelIncreased_titanweapon_sniper"
 	"OnWeaponNpcPrimaryAttack"						"OnWeaponNpcPrimaryAttack_peacekraber"
 
-	"projectilemodel" 								"models/dev/empty_model.mdl"
+	//"projectilemodel" 								"models/dev/empty_model.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
 	"tracer_effect"   								"weapon_tracers_shotgun"
 	"impact_effect_table" 							"inc_bullet"
 	"projectile_trail_effect_0" 					"P_plasma_proj_MD"

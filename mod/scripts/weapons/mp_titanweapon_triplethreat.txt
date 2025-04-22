@@ -85,7 +85,10 @@ WeaponData
 	"vortex_absorb_sound"							"Vortex_Shield_AbsorbRocket"
 	"vortex_absorb_sound_1p_vs_3p"					"Vortex_Shield_AbsorbRocket_1P_VS_3P"
 
-	"projectilemodel" 								"models/weapons/bullets/triple_threat_projectile.mdl"
+	//"projectilemodel" 								"models/weapons/bullets/triple_threat_projectile.mdl"
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
 	"projectile_trail_effect_0" 					"wpn_grenade_TT"
 //	"projectile_trail_effect_0" 					"P_leadwall_proj"
 
