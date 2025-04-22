@@ -21,6 +21,11 @@ WeaponData
 		{
 		}
 
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 
 		// modded weapon: less damage amp sonar pulse
 		ogre_sonar
