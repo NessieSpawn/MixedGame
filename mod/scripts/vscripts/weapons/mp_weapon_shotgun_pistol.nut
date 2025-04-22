@@ -3,8 +3,11 @@ untyped
 global function OnWeaponPrimaryAttack_weapon_shotgun_pistol
 
 // modified callbacks!
+// remove for this branch
+/*
 global function OnProjectileCollision_weapon_shotgun_pistol
 global function OnProjectileIgnite_weapon_shotgun_pistol
+*/
 
 #if SERVER
 global function OnWeaponNpcPrimaryAttack_weapon_shotgun_pistol
@@ -37,8 +40,11 @@ struct
 var function OnWeaponPrimaryAttack_weapon_shotgun_pistol( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// leave only for clients to call in this branch
+#if CLIENT
 	if ( weapon.HasMod( "apex_nessie" ) )
 		return OnWeaponPrimaryAttack_weapon_nessie_pistol( weapon, attackParams )
+#endif
 	//
 	
 	return FireWeaponPlayerAndNPC( attackParams, true, weapon )
@@ -48,8 +54,11 @@ var function OnWeaponPrimaryAttack_weapon_shotgun_pistol( entity weapon, WeaponP
 var function OnWeaponNpcPrimaryAttack_weapon_shotgun_pistol( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapons
+	// remove server-side weapon calls for this branch
+	/*
 	if ( weapon.HasMod( "apex_nessie" ) )
 		return OnWeaponNPCPrimaryAttack_weapon_nessie_pistol( weapon, attackParams )
+	*/
 	//
 
 	// vanilla behavior
@@ -162,6 +171,8 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 }
 
 // modified callbacks
+// remove for this branch
+/*
 void function OnProjectileCollision_weapon_shotgun_pistol( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
 	// modded weapons, vanilla don't have specfic behavior
@@ -179,6 +190,7 @@ void function OnProjectileIgnite_weapon_shotgun_pistol( entity projectile )
 	if ( mods.contains( "apex_nessie" ) )
 		return OnProjectileIgnite_weapon_nessie_pistol( projectile )
 }
+*/
 
 // respawn made for arc_net, really sucks
 #if CLIENT

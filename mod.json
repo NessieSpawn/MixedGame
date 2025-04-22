@@ -17,7 +17,7 @@
 		},
 		{
 			"Path": "/modweapons/mp_weapon_nessie_pistol.gnut",
-			"RunOn": "CLIENT || SERVER",
+			"RunOn": "CLIENT",
 			"ClientCallback": {
                 "After": "MpWeaponNessiePistol_Init"
             },
