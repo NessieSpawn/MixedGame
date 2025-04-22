@@ -1,7 +1,5 @@
 WeaponData
 {
-	//"damage_flags"									"DF_BULLET | DF_KNOCK_BACK | DF_GIB"
-
 	Mods
 	{
 
@@ -28,11 +26,9 @@ WeaponData
 		}
 		extended_ammo
 		{
-			"ammo_clip_size"   					"*1.67"
 		}
-		stabilizer // actually "no_ironsight_weapon", using it so client can have "no scope" visual
+		stabilizer
 		{
-			"bodygroup3_set"	"0"
 		}
         slammer
         {
@@ -56,127 +52,6 @@ WeaponData
 		
 			// due that we're already modifying client-side, let's just remove scope
 			"bodygroup_ads_scope_set"						"0"
-		}
-
-		// fake scopes
-		vanilla_stabilizer // vanilla "stabilizer"
-		{
-			"bodygroup1_set"	"0"
-			"bodygroup2_set"	"0"
-			"bodygroup3_set"	"1"
-			"bodygroup4_set"	"0"
-			"bodygroup_ads_scope_set"	"0"
-
-			"anim_alt_idleAttack"	"1"
-
-			"ads_fov_zoomfrac_start"						"0.3"
-			"ads_fov_zoomfrac_end"							"0.8"
-			"viewmodel_offset_ads"							"0 -2.6 0.25"
-			"dof_zoom_nearDepthStart"						"7.0"
-			"dof_zoom_nearDepthEnd"							"7.2"
-			
-			"zoom_fov"		"35"
-			"ui5_enable"		"1"
-			"threat_scope_enabled"		"1"
-			"threat_scope_bounds_tagname1"	"SCR_TR_ORACLE"
-			"threat_scope_bounds_tagname2"	"SCR_BL_ORACLE"
-		}
-		fake_stabilizer // bodygroup only
-		{
-			"bodygroup4_set"	"0"
-			"bodygroup3_set"	"1"
-		}
-		fake_threat_scope // bodygroup only
-		{
-			"bodygroup4_set"	"0"
-			"bodygroup1_set"	"1"
-		}
-
-		// special
-		friendlyfire_weapon
-		{
-		}
-		titandamage_weapon
-		{
-			"titanarmor_critical_hit_required"          "0"
-		}
-		//no_ironsight_weapon // should do a check in script to avoid using together with other optics
-		//{
-			// bodygroup
-		//	"bodygroup4_set"	"0" // stock scope
-		//	"bodygroup_ads_scope_set"	"0" // scope sight
-		//}
-
-		// modded bleedout specific
-		bleedout_balance
-		{
-			// Falloff
-			"damage_near_distance"		"--2700" // 1800
-			"damage_far_distance" 		"--2000" // 2500
-
-			"damage_far_value"			"--15" // 40
-
-			"damage_headshot_scale"		"--0.5" // 1.5, no more one shot kill
-			"fire_rate"					"--0.7" // 2.3
-		}
-		
-		nerfed_weapon // 200hp contition, still no falloff but less fire_rate
-		{
-			"fire_rate"					"--0.7" // 2.3
-			"damage_headshot_scale"		"--0.25" // 1.75
-		}
-		
-		// nessie self balance
-		// nessie_balance
-		// {
-		// 	"damage_near_value"			"*0.5"
-		// 	"damage_far_value"			"*0.5"
-   	 	// 	"damage_very_far_value"		"*0.5"
-		// 	"explosion_damage"			"*0.5"
-
-			//"ammo_clip_size"			"6"
-			//"fire_rate"					"1.3"
-		// }
-
-		// npc usage when enabled npc headshots
-		// better not directly modifying "damage_headshot_scale" to prevent impacting player usage
-		npc_lower_damage
-		{
-			//"damage_headshot_scale"		"--0.5" // 1.5, breaks the damage when picking up by players...
-			"npc_damage_near_value"   		"--14" // 26( was 28 )
-			"npc_damage_far_value"			"--14" // 26( was 28 )
-		}
-		// nerf npc burst so doubletake won't be too embarrasing
-		npc_longer_rest
-		{
-			"npc_rest_time_between_bursts_max"				"++1.0" // 4.0
-		}
-
-		// gruntmode specific
-		gm_sniper // nerfed dmr
-		{
-			// Falloff
-			"damage_near_distance"		"--2700" // 1800
-			"damage_far_distance" 		"--2000" // 2500
-
-			"damage_far_value"			"--15" // 40
-
-			"damage_headshot_scale"		"--0.5" // 1.5, no more one shot kill
-			"fire_rate"					"--0.7" // 2.3
-
-		}
-	}
-
-	//Oracle/stabilizer blue dot
-	"ui5_enable"		"0"
-	"ui5_draw_cloaked"	"1"
-	UiData5
-	{
-		"ui"								"ui/volt_sights"
-		"mesh"							"models/weapons/attachments/oracle_rui_upper"
-		Args
-		{
-			vis							player_zoomfrac
 		}
 	}
 }

@@ -1,10 +1,5 @@
 WeaponData
 {
-	// fix animation when used by atlas titans
-	// stryder has leadwall modifier but it's same with this one, should be safe
-	// no, it is not. leadwall activitymodifier do have different gesture compare to this one
-	//"activitymodifier"								"mp_titanweapon_triple_threat"
-
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 
@@ -36,14 +31,6 @@ WeaponData
         // titan weapons: model change done in script
 		fake_nessy_weapon
 		{
-		}
-
-		// modded weapons
-		// pilot usage
-		pilot_usage
-		{
-			"damage_near_value"   						"*0.35"
-			"damage_far_value"							"*0.35"
 		}
 	}
 }

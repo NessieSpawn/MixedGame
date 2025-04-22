@@ -32,19 +32,5 @@ WeaponData
 		fake_nessy_weapon
 		{
 		}
-
-		// misc fix: ramp up burst amount on unlocked firing at max ammo
-		shoulder_rockets_fix
-		{
-		}
-
-		// modded titan
-		atlas_rockets // use together with upgradeCore_Vanguard
-		{
-			"damage_near_value"   					"--50"
-			"damage_far_value"						"--50"
-			"damage_near_value_titanarmor"			"--50"
-			"damage_far_value_titanarmor" 			"--50"
-		}
 	}
 }

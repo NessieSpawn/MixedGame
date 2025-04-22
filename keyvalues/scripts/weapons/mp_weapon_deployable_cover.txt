@@ -2,11 +2,7 @@ WeaponData
 {
 	// :D
 	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
-
-	// vanilla missing sprint animation rate
-	// should we add it?
-	"sprintcycle_time"								".55"
-
+	
 	Mods
 	{
 		amped_wall
@@ -27,33 +23,6 @@ WeaponData
 			// nessy doll isn't a usable model for dropping to ground, script handle is enough
             //"playermodel" 									"models/domestic/nessy_doll.mdl"
 			// projectile model change in script
-		}
-
-		personal_shield
-		{
-		}
-		deployable_dome_shield
-		{
-		}
-		shield_drone
-		{
-			"fire_duration"				"++5" // should fit SHIELD_DONE_LIFETIME
-		}
-		hard_cover_always // always function as hard cover
-		{
-		}
-		bleedout_balance // done in scripts -- nerfed health, use together with hard_cover_always
-		{
-		}
-
-		// gruntmode specific
-		grunt_mode // no regen mod
-		{
-			"regen_ammo_refill_rate"						"*0.0"	
-		}
-
-		gm_fortress // heavily nerfed health, use together with hard_cover_always
-		{
 		}
 	}
 }

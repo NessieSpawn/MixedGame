@@ -41,10 +41,5 @@ WeaponData
 		fake_nessy_weapon
 		{
 		}
-
-		// misc fix: adjust split shot damage on firing weapon
-		particle_accelerator_fix
-		{
-		}
 	}
 }

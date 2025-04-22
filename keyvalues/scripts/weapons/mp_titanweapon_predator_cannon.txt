@@ -56,14 +56,5 @@ WeaponData
 		fake_nessy_weapon
 		{
 		}
-
-		// pilot usage
-		pilot_usage
-		{
-			"damage_near_value"   						"*0.8"
-			"damage_far_value"							"*0.8"
-			"damage_near_value_titanarmor"				"*0.8"
-			"damage_far_value_titanarmor" 				"*0.8"
-		}
 	}
 }
