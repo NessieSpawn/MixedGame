@@ -73,9 +73,6 @@ WeaponData
 			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
 			// we'll also have a script for adding fake model to the weapon
 			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-		
-			// requires installing on client
-			"viewmodel_offset_ads"							"0 0 0"
 		}
 
 		tediore_reload
