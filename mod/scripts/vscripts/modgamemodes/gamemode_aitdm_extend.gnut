@@ -181,7 +181,7 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 	InitModdedSpawnSettings()
 
 	// APRIL FOOLS SPECIAL loadout: no optics, fake nessy weapon
-	// basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes...
+	// basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes, no Alternator due to desync...
 	// maybe we could release client-side version of this mod and disable killreplay to make players able to use them
 	AddCallback_OnPlayerGetsNewPilotLoadout( OnPlayerChangeLoadout )
 
@@ -249,14 +249,15 @@ const array<string> WEAPON_MODS_TO_REMOVE =
 	"scope_4x",
 	"pro_screen",
 ]
-// basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes...
+// basically no R-101 due to scope issue, no Kraber and DMR due to client-side crashes, no Alternator due to desync...
 // DMR is replaced with G2 while Kraber is replaced with Doubletake
 // maybe we could release client-side version of this mod and disable killreplay to make players able to use them
 const table<string, string> WEAPON_REPLACEMENTS =
 {
+	["mp_weapon_rspn101_og"]		= "mp_weapon_rspn101",
 	["mp_weapon_sniper"] 			= "mp_weapon_doubletake",
 	["mp_weapon_dmr"]				= "mp_weapon_g2",
-	["mp_weapon_rspn101_og"]		= "mp_weapon_rspn101",
+	["mp_weapon_alternator_smg"]	= "mp_weapon_hemlok_smg",
 }
 // list of all valid replacement weapon mods
 const array<string> ALL_VALID_MODS =
