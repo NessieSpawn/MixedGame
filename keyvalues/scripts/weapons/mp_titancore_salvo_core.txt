@@ -1,0 +1,15 @@
+WeaponData
+{
+	Mods
+	{
+		fd_salvo_core
+		{
+		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+	}
+}
