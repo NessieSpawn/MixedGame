@@ -8863,7 +8863,8 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	SetSpawnOption_SquadName( decoy, npc.kv.squadname )
 
 	// this should totally avoid any collision?
-	SetSpawnflags( decoy, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
+	// needs to remove SF_NPC_START_EFFICIENT otherwise they'll never combat
+	SetSpawnflags( decoy, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION ) )
 	
 	if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( npc ) )
 		ExtraSpawner_SetUpSpawnedNPC( decoy )
