@@ -95,7 +95,13 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 		inflictor = DamageInfo_GetInflictor( damageInfo )
 	}
 
-	if ( IsValid( attacker ) && attacker.IsTitan() && (!IsValid( victim ) || !IsSpectre( victim )) )
+	// modified to remove IsSpectre() checks. why DO only spectres take headshot damage from titans???
+	//if ( IsValid( attacker ) && attacker.IsTitan() && (!IsValid( victim ) || !IsSpectre( victim )) )
+	if ( IsValid( attacker ) && attacker.IsTitan() && !IsValid( victim ) )
+		return false
+
+	// titans also never takes headshot damage
+	if ( victim.IsTitan() )
 		return false
 
 	// debug
@@ -113,13 +119,14 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 	// modified to add settings, allowing npc dealing location based damages
 	#if CLIENT // vanilla behavior for client compile
 		if ( !IsValid( attacker ) || !attacker.IsPlayer() )
+			return false
 	#elseif SERVER
 		if ( !IsValid( attacker ) || ( !file.enableNPCLocationBasedDamage && !attacker.IsPlayer() ) )
-	#endif // CLIENT
 		{
 			//print( "attacker is non-player so headshot invalid!" )
 			return false
 		}
+	#endif // CLIENT
 
 //	if ( IsSpectre( victim ) )
 //	{
@@ -142,6 +149,11 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 		if ( attackDist > weapon.s.headshotDistance )
 			return false
 
+		// modified fix: titan weapons NEVER headshot
+		if ( weapon.GetWeaponInfoFileKeyField( "weaponClass" ) == "titan" )
+			return false
+
+		// this is info keyfield... should better add some settings to toggle
 		return weapon.GetAllowHeadShots()
 	}
 	else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
@@ -152,6 +164,11 @@ bool function IsValidHeadShot( var damageInfo = null, entity victim = null, enti
 		if ( inflictor.s.headshotDistance != null && attackDist > inflictor.s.headshotDistance )
 			return false
 
+		// modified fix: titan weapons NEVER headshot
+		if ( inflictor.ProjectileGetWeaponInfoFileKeyField( "weaponClass" ) == "titan" )
+			return false
+
+		// this is info keyfield... should better add some settings to toggle
 		return expect bool( inflictor.GetProjectileAllowHeadShots() )
 	}
 

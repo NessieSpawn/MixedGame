@@ -354,7 +354,8 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	//if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
 	//	AddPlayerScore( attacker, "Headshot", victim )
 	// modified to handle specific damages
-	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
+	// also needs to validate headshot
+	if ( IsValidHeadShot( damageInfo, victim ) && DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
 	{
 		AddPlayerScore( attacker, "Headshot", victim )
 		// headshot dialogue, doesn't exist in vanilla so make it a setting
@@ -624,7 +625,7 @@ void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageIn
 	catch(ex) {}
 
 	// headshot
-	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
+	if ( IsValidHeadShot( damageInfo, victim ) && DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
 		AddPlayerScore( attacker, "Headshot", victim, null, -1, 0.0, victim ) // no extra value earn from npc headshots
 
 	// npc&player mixed killsteaks
