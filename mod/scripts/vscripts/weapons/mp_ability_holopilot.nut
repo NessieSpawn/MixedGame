@@ -248,6 +248,11 @@ entity function CreateHoloPilotDecoys( entity player, int numberOfDecoysToMake =
 		decoy = player.CreatePlayerDecoy( stickPercentToRun )
 		decoy.SetMaxHealth( 50 )
 		decoy.SetHealth( 50 )
+		// debug
+		/*
+		SetShieldHealthMaxWithFix( decoy, 50 )
+		SetShieldHealthWithFix( decoy, 50 )
+		*/
 		decoy.EnableAttackableByAI( 50, 0, AI_AP_FLAG_NONE )
 		SetObjectCanBeMeleed( decoy, true )
 		decoy.SetTimeout( DECOY_DURATION )

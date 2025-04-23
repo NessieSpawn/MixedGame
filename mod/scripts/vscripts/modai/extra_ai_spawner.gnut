@@ -145,6 +145,7 @@ global function ExtraSpawner_EnableNPCNoPainOnDamage
 // shared utility
 global function ExtraSpawner_IsNPCSpawnedFromExtraSpawner
 global function ExtraSpawner_IsSquadFromExtraSpawner
+global function ExtraSpawner_EntIsNPCFakeDecoy
 
 // debug
 const bool EXTRA_SPAWNER_DEBUG = false
@@ -2122,7 +2123,7 @@ const float CORE_EXPIRE_TIME_GRACE_PERIOD = 3.0 // if titan still have anim acti
 bool function ExtraSpawner_IsValidExecutionTarget( entity attacker, entity target )
 {
 	// fake decoy ent
-	if ( EntIsNPCFakeDecoy( target ) )
+	if ( ExtraSpawner_EntIsNPCFakeDecoy( target ) )
 		return false
 
 	// npc vanguard titan
@@ -8869,6 +8870,8 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	
 	// npc model take hold from T-pose and non-alert state
 	thread DelayedShowNPCDecoy( npc, decoy, velocity )
+	// function is now shared. better set before DispatchSpawn() so that other files can get it
+	file.npcFakeDecoyEntArray.append( decoy )
 	
 	DispatchSpawn( decoy )
 
@@ -8976,7 +8979,8 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 
 	thread NPCDecoyLifeTime( decoy, weaponProp, timeOut )
 	thread NPCDecoyDistractNPC( decoy ) // fake player decoy's extremely high npc attack priority
-	file.npcFakeDecoyEntArray.append( decoy )
+	// should set before DispatchSpawn()
+	//file.npcFakeDecoyEntArray.append( decoy )
 
 	// go to desired position
 	thread NPCDecoyAssaultThink( decoy, npc, destOrigin, destHoldTime, followOwner )
@@ -9078,7 +9082,7 @@ void function DelayedShowNPCDecoy( entity npc, entity decoy, vector ornull veloc
 		PutEntityInSafeSpot( decoy, decoy, null, startPos, decoy.GetOrigin() )
 }
 
-bool function EntIsNPCFakeDecoy( entity ent )
+bool function ExtraSpawner_EntIsNPCFakeDecoy( entity ent )
 {
 	return file.npcFakeDecoyEntArray.contains( ent )
 }

@@ -867,6 +867,27 @@ void function NotifyClientsOfTitanDeath( entity victim, var damageInfo )
 	if ( scriptDamageType & DF_VORTEX_REFIRE )
 		damageSourceId = eDamageSourceId.mp_titanweapon_vortex_shield
 
+	// no headshot think for titans, I think...?
+	
+	// modified: use struct so we can modify settings
+	EntityKilledEventStruct eventStruct
+	eventStruct.attackerEHandle = attackerEHandle
+	eventStruct.victimEHandle = victimEHandle
+	eventStruct.scriptDamageType = scriptDamageType
+	eventStruct.damageSourceId = damageSourceId
+
+	// added via AddCallback_OnSendingEntityKilledEvent
+	// shared from modified _codecallbacks_common.gnut
+	RunCallbacks_OnSendingEntityKilledEvent( victim, damageInfo, eventStruct )
+	//
+
+	// get modified contents to pass into remotecall
+	attackerEHandle = eventStruct.attackerEHandle
+	victimEHandle = eventStruct.victimEHandle
+	scriptDamageType = eventStruct.attackerEHandle
+	damageSourceId = eventStruct.damageSourceId
+	//
+
 	foreach ( player in GetPlayerArray() )
 		Remote_CallFunction_NonReplay( player, "ServerCallback_OnTitanKilled", attackerEHandle, victimEHandle, scriptDamageType, damageSourceId )
 }

@@ -16,9 +16,13 @@ global function GetShieldHealthMaxWithFix
 // replacement func to handle native think
 // prevents crits from happening on scripted shield entities
 global function IsCriticalHit_WithScriptedShieldCheck
+global function EntCanHaveShield
 
 // effects from cl_player_common.gnut
 const asset SHIELD_BODY_FX = $"P_xo_armor_body_CP"
+const asset SHIELD_HIT_FX = $"P_xo_armor_impact"
+const asset SHIELD_HIT_FX_VICTIM = $"impact_metal" // not working fine
+const asset SHIELD_HIT_FX_EXTRA = $"P_impact_xo_shield_cp"
 const asset SHIELD_BREAK_FX = $"P_xo_armor_break_CP"
 
 // main functioning array
@@ -32,14 +36,33 @@ struct
 {
     table<entity, int> entMaxShieldValue
     table<entity, int> entShieldValue
+
+    // in-file tables
+	table<entity, float> entNextShieldDamageSoundAllowedTime
+    table<entity, entity> entTargetShieldEffect
+    table<entity, entity> entNeutralShieldEffect
 } file
 
 void function Nessie_Shield_Crash_Fix_Init()
 {
+    PrecacheParticleSystem( SHIELD_BODY_FX )
+    PrecacheParticleSystem( SHIELD_HIT_FX )
+    PrecacheParticleSystem( SHIELD_HIT_FX_VICTIM )
+    PrecacheParticleSystem( SHIELD_HIT_FX_EXTRA )
+    PrecacheParticleSystem( SHIELD_BREAK_FX )
+    PrecacheParticleSystem( $"impact_flesh_victim" ) // just for debugging
+    PrecacheParticleSystem( $"P_impact_flesh_attacker" )
+    PrecacheParticleSystem( $"impact_flesh" )
+
     // change effect to be handled by server
     // play in final damage callback because it's where shield health isn't modified yet
     foreach ( string className in USE_SCRIPTED_SHIELD_CLASSES )
+    {
         AddDamageFinalCallback( className, OnScriptedShieldEntDamage )
+        // modified callback in _codecallbacks_common.gnut, handles damage that failed to pass through
+        // this is for us playing a fake shield impact effect and sound
+        AddDamageFailedCallback( className, OnScriptedShieldEntDamageFailed )
+    }
     // removes client-side effect and crit indicator
     // modified callback in _base_gametype.gnut
     AddCallback_PlayerDamageFeedback( ScriptedShieldPlayerFeedbackFix )
@@ -62,7 +85,23 @@ void function OnScriptedShieldEntDamage( entity ent, var damageInfo )
     // normally this effect is only played when player hits this entity
     // but we don't have impact effect, doing this for all players is good enough
     if ( !EntCanHaveShield( ent ) && GetShieldHealthWithFix( ent ) > 0 )
-        PlayShieldHitEffect_Server( ent )
+    {
+        PlayShieldHitEffect_Server( ent, damageInfo )
+        // shield hit sound is disabled on attacker, to avoid sound delay
+        // actually works pretty fine! we can't handle everything as we want, doing a sound works really fine
+        PlayShieldHitSound_Server( ent, damageInfo )
+        // debugging
+        //EmitSoundOnEntity( ent, "titanshield_light_bulletimpact_1p_vs_3p" )
+    }
+}
+
+void function OnScriptedShieldEntDamageFailed( entity ent, var damageInfo )
+{
+    if ( !EntCanHaveShield( ent ) && GetShieldHealthWithFix( ent ) > 0 )
+    {
+        PlayShieldHitEffect_Server( ent, damageInfo, true )
+        PlayShieldHitSound_Server( ent, damageInfo )
+    }
 }
 
 void function ScriptedShieldPlayerFeedbackFix( entity victim, var damageInfo, PlayerDamageFeedbackStruct feedbackStruct )
@@ -239,21 +278,101 @@ int function GetShieldHealthMaxWithFix( entity ent )
 }
 
 // effects taken from cl_player.gnut
-entity function PlayShieldHitEffect_Server( entity ent )
+void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutralEffect = false )
 {
-	float shieldHealthFrac = GetShieldHealthFrac( ent )
-
-	int shieldbodyFX = GetParticleSystemIndex( SHIELD_BODY_FX )
+    int shieldbodyFX = GetParticleSystemIndex( SHIELD_BODY_FX )
 	int attachID
 	if ( ent.IsTitan() )
 		attachID = ent.LookupAttachment( "exp_torso_main" )
 	else
 		attachID = ent.LookupAttachment( "ref" ) // TEMP
 
-	entity shieldFXHandle = StartParticleEffectOnEntity_ReturnEntity( ent, shieldbodyFX, FX_PATTACH_POINT_FOLLOW, attachID )
-	EffectSetControlPointVector( shieldFXHandle, 1, GetShieldEffectCurrentColor( 1 - shieldHealthFrac ) )
-    
-    return shieldFXHandle
+    // white shield: play to others to fake shield hit effects( WIP ). also gets played if damage failed to pass through
+    // don't need anymore
+    /*
+    entity shieldFXHandle = StartParticleEffectOnEntity_ReturnEntity( ent, shieldbodyFX, FX_PATTACH_POINT_FOLLOW, attachID )
+	EffectSetControlPointVector( shieldFXHandle, 1, < 1, 1, 1 > )
+    */
+    entity shieldFXHandle
+
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
+    if ( IsValid( attacker ) )
+    {
+        // maybe also try shield hit effect
+        // only do when inflictor is weapon
+        entity inflictor = DamageInfo_GetInflictor( damageInfo )
+        entity weapon = DamageInfo_GetWeapon( damageInfo )
+        if ( IsValid( weapon ) )
+            inflictor = weapon
+        if ( (inflictor instanceof CWeaponX) )
+        {
+            int shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX )
+            vector pos = DamageInfo_GetDamagePosition( damageInfo )
+            // maybe we could trace attacker
+            /*
+            vector entPos = ent.GetOrigin()
+            vector entEyePos = ent.EyePosition()
+            float entCenterDot = ( entEyePos.z + entPos.z ) / 2
+            vector entCenterPos = < entPos.x, entPos.y, entCenterDot >
+            vector victimFacePos = VectorToAngles( Normalize( entCenterPos - pos ) )
+            */
+            vector victimFacePos = VectorToAngles( Normalize( attacker.EyePosition() - pos ) )
+
+            // control point won't work
+            /*
+            entity shieldHitFXHandle = StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
+            //EffectSetControlPointVector( shieldHitFXHandle, 0, < 115, 247, 255 > ) // this hides the effect idk
+            EffectSetControlPointVector( shieldHitFXHandle, 1, < 115, 247, 255 > ) // blue
+            */
+            
+            // wth this works
+            StartParticleEffectInWorldWithControlPoint( shieldHitFX, pos, victimFacePos, < 115, 247, 255 > )
+
+            // bad effect
+            /*
+            int shieldHitFXVictim = GetParticleSystemIndex( SHIELD_HIT_FX_VICTIM )
+            StartParticleEffectOnEntity_ReturnEntity( ent, shieldHitFXVictim, FX_PATTACH_POINT_FOLLOW, attachID )
+            */
+            //SHIELD_HIT_FX_EXTRA
+
+            // debugging for fun
+            // still can't get correct blood spray effect
+            /*
+            shieldHitFX = GetParticleSystemIndex( $"P_impact_flesh_attacker" )
+            EffectSetControlPointVector( StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos ), 1, < 255, 255, 255 > )
+            shieldHitFX = GetParticleSystemIndex( $"impact_flesh" )
+            StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
+            StartParticleEffectInWorldWithControlPoint( GetParticleSystemIndex( $"impact_flesh" ), pos, victimFacePos, < 255, 255, 255 > )
+            StartParticleEffectInWorldWithControlPoint( GetParticleSystemIndex( $"P_impact_flesh_attacker" ), pos, victimFacePos, < 255, 255, 255 > )
+            */
+
+            // extra effect
+            // does not work
+            /*
+            shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX_EXTRA )
+            entity shieldHitFXHandle = StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
+            EffectSetControlPointVector( shieldHitFXHandle, 0, < 115, 247, 255 > ) // blue
+            */
+
+            // still can't control CP
+            /*
+            entity shieldHitFXHandle = StartParticleEffectOnEntity_ReturnEntity( ent, shieldHitFX, FX_PATTACH_POINT_FOLLOW, ent.LookupAttachment( "CHESTFOCUS" ) )
+            EffectSetControlPointVector( shieldHitFXHandle, 1, < 115, 247, 255 > ) // blue
+            */
+        }
+
+        // colored shield: only play to player attacker
+        if ( !neutralEffect && attacker.IsPlayer() )
+        {
+            float shieldHealthFrac = GetShieldHealthFrac( ent )
+
+            shieldFXHandle = StartParticleEffectOnEntity_ReturnEntity( ent, shieldbodyFX, FX_PATTACH_POINT_FOLLOW, attachID )
+            EffectSetControlPointVector( shieldFXHandle, 1, GetShieldEffectCurrentColor( 1 - shieldHealthFrac ) )
+            // TO OWNER ONLY
+            shieldFXHandle.SetOwner( attacker )
+            shieldFXHandle.kv.VisibilityFlags = ENTITY_VISIBLE_TO_OWNER
+        }
+    }
 }
 
 const table SHIELD_COLOR_CHARGE_FULL = { r = 115, g = 247, b = 255 }    // blue
@@ -297,32 +416,86 @@ function GetShieldEffectCurrentColor( shieldHealthFrac )
 	return colorVec
 }
 
-entity function PlayShieldBreakEffect_Server( entity ent )
+// keep similar as _health_regen.gnut does
+// not all damage works fine with sound
+// all the sound has "_1p_vs_3p", "_3p_vs_1p" and "_3p_vs_3p" suffix for us to use
+const string SHIELD_DAMAGE_SOUND_PREFIX = "titanshield_light_bulletimpact" // sound when getting hit by bullets( sadly "titanshield_heavy_bulletimpact_3p_vs_1p" sounds identical to light impact one )
+// only bullet damage plays the sound every time, other damage types have a sound interval because we can't ignore radius damage like native does
+// btw it seems that projectile impacts mostly won't do shield effect... guess we could handle only hitscan weapons?
+const string SHIELD_DAMAGE_SOUND_PREFIX_EXPLOSION = "titanshield_explosive_bulletimpact" // sound when getting hit by explosive damage
+const string SHIELD_DAMAGE_SOUND_PREFIX_ELECTRICAL = "titanshield_energy_bulletimpact" // sound when getting hit by electrical damage
+const string SHIELD_DAMAGE_SOUND_PREFIX_MELEE = "titanshield_meleeimpact" // sound when getting hit by melee
+
+const float SHIELD_DAMAGE_SOUND_INTERVAL_MIN = 0.4 // prevent sound spaming
+const float SHIELD_DAMAGE_SOUND_INTERVAL_MAX = 0.5
+
+void function PlayShieldHitSound_Server( entity ent, var damageInfo )
 {
-	entity shieldEnt = ent
-	if ( IsSoul( ent ) )
-	{
-		shieldEnt = ent.GetTitan()
-		if ( !shieldEnt )
-			return
-	}
+    InitShieldSoundVars( ent )
 
-	float shieldHealthFrac = GetShieldHealthFrac( shieldEnt )
-
-	int shieldBreakFX = GetParticleSystemIndex( SHIELD_BREAK_FX )
-	int attachID
-	if ( shieldEnt.IsTitan() )
-		attachID = shieldEnt.LookupAttachment( "exp_torso_main" )
-	else
-		attachID = shieldEnt.LookupAttachment( "ref" ) // TEMP
-
-	entity shieldFXHandle = StartParticleEffectOnEntity_ReturnEntity( shieldEnt, shieldBreakFX, FX_PATTACH_POINT_FOLLOW, attachID )
-	EffectSetControlPointVector( shieldFXHandle, 1, GetShieldEffectCurrentColor( 1 - shieldHealthFrac ) )
-    
-    return shieldFXHandle
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
+    // shield on-hit sound
+	int damageTypes = DamageInfo_GetCustomDamageType( damageInfo )
+	string shieldHitSound = GetShieldDamagedSound( damageTypes )
+    // only bullet damage plays the sound every time, other damage types have a sound interval because we can't ignore radius damage like native does
+    // only do when inflictor is weapon
+    entity inflictor = DamageInfo_GetInflictor( damageInfo )
+    entity weapon = DamageInfo_GetWeapon( damageInfo )
+    if ( IsValid( weapon ) )
+        inflictor = weapon
+    if ( (inflictor instanceof CWeaponX) )
+    {
+        if ( shieldHitSound == SHIELD_DAMAGE_SOUND_PREFIX )
+            ShieldHitSoundByType( ent, attacker, shieldHitSound )
+        else 
+        {
+            if ( Time() > file.entNextShieldDamageSoundAllowedTime[ ent ] )
+            {
+                ShieldHitSoundByType( ent, attacker, shieldHitSound )
+                // add sound cooldown
+                float nextSoundInterval = RandomFloatRange( SHIELD_DAMAGE_SOUND_INTERVAL_MIN, SHIELD_DAMAGE_SOUND_INTERVAL_MAX )
+                file.entNextShieldDamageSoundAllowedTime[ ent ] = Time() + nextSoundInterval
+            }
+            //else
+            //	print( "player still in shield damage sound cooldown!" )
+        }
+    }
 }
 
-entity function PlayShieldActivateEffect_Server( entity ent )
+void function ShieldHitSoundByType( entity ent, entity attacker, string soundPrefix )
+{
+    // attacker sound
+    if ( IsValid( attacker ) && attacker.IsPlayer() )
+    {
+        EmitSoundOnEntityOnlyToPlayer( ent, attacker, soundPrefix + "_1p_vs_3p" )
+        EmitSoundOnEntityExceptToPlayer( ent, attacker, soundPrefix + "_3p_vs_3p" )
+    }
+    else // netual sound
+        EmitSoundOnEntity( ent, soundPrefix + "_3p_vs_3p" )
+}
+
+string function GetShieldDamagedSound( int damageTypes )
+{
+	string shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX // default sound
+
+	if ( damageTypes & DF_EXPLOSION ) // explosion damage specific sound, overrides bullets
+		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_EXPLOSION
+	if ( damageTypes & DF_ELECTRICAL ) // electrical damage specific sound, overrides explosion and bullets
+		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_ELECTRICAL
+	if ( damageTypes & DF_MELEE ) // melee damage specific sound, has highest priority
+		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_MELEE
+
+	//print( "shieldHitSound: " + shieldHitSound )
+	return shieldHitSound
+}
+
+void function InitShieldSoundVars( entity ent )
+{
+    if ( !( ent in file.entNextShieldDamageSoundAllowedTime ) )
+        file.entNextShieldDamageSoundAllowedTime[ ent ] <- 0.0
+}
+
+void function PlayShieldBreakEffect_Server( entity ent )
 {
 	entity shieldEnt = ent
 	if ( IsSoul( ent ) )
@@ -343,6 +516,27 @@ entity function PlayShieldActivateEffect_Server( entity ent )
 
 	entity shieldFXHandle = StartParticleEffectOnEntity_ReturnEntity( shieldEnt, shieldBreakFX, FX_PATTACH_POINT_FOLLOW, attachID )
 	EffectSetControlPointVector( shieldFXHandle, 1, GetShieldEffectCurrentColor( 1 - shieldHealthFrac ) )
+}
 
-    return shieldFXHandle
+void function PlayShieldActivateEffect_Server( entity ent )
+{
+	entity shieldEnt = ent
+	if ( IsSoul( ent ) )
+	{
+		shieldEnt = ent.GetTitan()
+		if ( !shieldEnt )
+			return
+	}
+
+	float shieldHealthFrac = GetShieldHealthFrac( shieldEnt )
+
+	int shieldBreakFX = GetParticleSystemIndex( SHIELD_BREAK_FX )
+	int attachID
+	if ( shieldEnt.IsTitan() )
+		attachID = shieldEnt.LookupAttachment( "exp_torso_main" )
+	else
+		attachID = shieldEnt.LookupAttachment( "ref" ) // TEMP
+
+	entity shieldFXHandle = StartParticleEffectOnEntity_ReturnEntity( shieldEnt, shieldBreakFX, FX_PATTACH_POINT_FOLLOW, attachID )
+	EffectSetControlPointVector( shieldFXHandle, 1, GetShieldEffectCurrentColor( 1 - shieldHealthFrac ) )
 }
