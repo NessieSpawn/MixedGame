@@ -129,9 +129,13 @@ void function Nessy_April_Fools_Weapons_Init()
 
     // damageSourceId modifier
     // shared function from levels_util.gnut
+    // acutally it breaks MANY behavior. guess better method is we, ugh, only changing the damageSourceId sending to player obit?
+    /*
     foreach ( string className in Levels_GetAllVulnerableEntityClasses() )
         AddDamageFinalCallback( className, OnEntityDamagedByAprilFoolsWeapon ) // have to use final damage otherwise we'll overwrite arc grenade behavior
-
+    */
+    // we can't really handle mods well, let's just changing all the ids to nessy_doll!
+    AddCallback_OnSendingEntityKilledEvent( AprilFoolsEntityKilledEvent )
 
     AddCallback_EntitiesDidLoad( EntitiesDidLoad )
 }
@@ -196,6 +200,7 @@ void function NessyDollProjectiles()
     }
 }
 
+// changing damageSourceId directly BREAKS many behavior!
 void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 {
     // always change damageSourceId no matter how
@@ -274,6 +279,13 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
             return
         }
     }
+}
+
+// changing only when sending obit works much better. too lazy to implement more checks
+void function AprilFoolsEntityKilledEvent( entity victim, var damageInfo, EntityKilledEventStruct eventStruct )
+{
+    if ( file.alwaysChangeDamageSourceId )
+       eventStruct.damageSourceId = eDamageSourceId.bleedout
 }
 
 // settings func
