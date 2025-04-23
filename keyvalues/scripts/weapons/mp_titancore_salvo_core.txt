@@ -1,5 +1,8 @@
 WeaponData
 {
+	// :D
+	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	
 	Mods
 	{
 		fd_salvo_core
