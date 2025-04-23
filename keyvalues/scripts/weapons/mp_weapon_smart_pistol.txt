@@ -215,11 +215,12 @@ WeaponData
 
 		// nessy
 		// ADS mostly fucked for whatever
-		fake_nessy_weapon
-		{
-			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
-			// we'll also have a script for adding fake model to the weapon
-			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
-		}
+		// remove becase we want grunts to have their model out -- pressure
+		// fake_nessy_weapon
+		// {
+		// 	"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+		// 	// we'll also have a script for adding fake model to the weapon
+		// 	"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		// }
 	}
 }
