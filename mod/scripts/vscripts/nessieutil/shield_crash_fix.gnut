@@ -304,7 +304,7 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
         entity weapon = DamageInfo_GetWeapon( damageInfo )
         if ( IsValid( weapon ) )
             inflictor = weapon
-        if ( (inflictor instanceof CWeaponX) )
+        if ( IsValid( inflictor ) && (inflictor instanceof CWeaponX) )
         {
             int shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX )
             vector pos = DamageInfo_GetDamagePosition( damageInfo )
@@ -443,7 +443,7 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
     entity weapon = DamageInfo_GetWeapon( damageInfo )
     if ( IsValid( weapon ) )
         inflictor = weapon
-    if ( (inflictor instanceof CWeaponX) )
+    if ( IsValid( inflictor ) && (inflictor instanceof CWeaponX) )
     {
         if ( shieldHitSound == SHIELD_DAMAGE_SOUND_PREFIX )
             ShieldHitSoundByType( ent, attacker, shieldHitSound )

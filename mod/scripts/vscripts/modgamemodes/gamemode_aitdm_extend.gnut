@@ -638,26 +638,39 @@ void function ExplodeOnTitanStep( entity soldier, var damageInfo )
 	int sourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	if ( sourceId == eDamageSourceId.damagedef_titan_step )
 	{
-		// 300 dmg
-		Explosion_DamageDefSimple(
-			damagedef_stalker_powersupply_explosion_large,
-			soldier.GetOrigin(),
-			soldier,
-			soldier,
-			soldier.GetOrigin()
-		)
-		// 150 dmg. not applied to stalkers
 		if ( soldier.GetClassName() != "npc_stalker" )
 		{
-			Explosion_DamageDefSimple(
-				damagedef_stalker_powersupply_explosion_small,
-				soldier.GetOrigin(),
-				soldier,
-				soldier,
-				soldier.GetOrigin()
-			)
+			// base dmg
+			SoldierGoBoom( soldier, damagedef_stalker_powersupply_explosion_large ) // 300 dmg
+			// extra dmg
+			if ( soldier.GetClassName() == "npc_prowler" )
+			{
+				// prowlers: 600 dmg in total
+				SoldierGoBoom( soldier, damagedef_frag_drone_explode ) // 300 dmg. won't do effect
+			}
+			else
+			{
+				// normal grunts: 450 dmg in total
+				SoldierGoBoom( soldier, damagedef_stalker_powersupply_explosion_small ) // 150dmg
+			}
+		}
+		else
+		{
+			// stalkers: 800 dmg in total
+			SoldierGoBoom( soldier, damagedef_frag_drone_explode ) // 300 dmg. won't do effect
 		}
 	}
+}
+
+void function SoldierGoBoom( entity soldier, int damageDef )
+{
+	Explosion_DamageDefSimple(
+		damageDef,
+		soldier.GetOrigin(),
+		soldier,
+		soldier,
+		soldier.GetOrigin()
+	)
 }
 
 entity function GiveNessyProjectileMod( entity ent, entity weapon )
@@ -858,12 +871,16 @@ void function ProwlerConfig( entity soldier )
 	soldier.SetMaxHealth( 350 )
 	soldier.SetHealth( 350 )
 
-	// APRIL FOOLS SPECIAL: grants shield, higher damage
+	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 	{
+		// higher damage
 		ExtraSpawner_SetProwlerMeleeDamageScale( soldier, 0.6, 8.0 )
+		// grants shield
 		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
 		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
+		// explode on getting stepped by titan
+		AddEntityCallback_OnKilled( soldier, ExplodeOnTitanStep )
 	}
 }
 
@@ -1205,9 +1222,9 @@ void function DelayedSetUpNPCSpawnedTurret( entity soldier )
 void function InitExtraSpawnerSettings()
 {
 	// changed r201 to r101. they just looks better
-	// if we've enabled extreme weapons, specialist grunt will no longer appear, should give grunts their weapons
+	// if we've enabled extreme weapons, specialist grunt will no longer has special weapon, should give others their weapons( also... smart pistol? )
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
-		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson", "mp_weapon_alternator_smg", "mp_weapon_wingman_n"] )
+		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson", "mp_weapon_alternator_smg", "mp_weapon_wingman_n", "mp_weapon_smart_pistol"] )
 	else
 		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson"] )
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_soldier", ["mp_weapon_rocket_launcher", "mp_weapon_mgl"] )
@@ -1219,7 +1236,7 @@ void function InitExtraSpawnerSettings()
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
 
-	// if we've enabled extreme weapons, specialist grunt will no longer appear, should give grunts their weapons
+	// if we've enabled extreme weapons, specialist grunt will no longer has special weapon, should give others their weapons( also... smart pistol? )
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 		ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2", "mp_weapon_shotgun_pistol", "mp_weapon_sniper", "mp_weapon_smart_pistol"] )
 	else
@@ -1235,7 +1252,11 @@ void function InitExtraSpawnerSettings()
 	else
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest"] )
 
-	ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] )
+	// if we've enabled extreme weapons, specialist grunt will no longer has special weapon, should give others their weapons( also... smart pistol? )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar", "mp_weapon_alternator_smg", "mp_weapon_wingman_n", "mp_weapon_smart_pistol", "mp_weapon_shotgun_pistol", "mp_weapon_sniper"] )
+	else
+		ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] )
 	// only re-45 and p2016 don't have "hcog" mod included... using them is good enough
 	// removed because we've disable npc pilot capability of switching to pistol
 	//ExtraSpawner_SetNPCSecondaryWeapons( "npc_pilot_elite", ["mp_weapon_autopistol", "mp_weapon_semipistol"] )
@@ -1405,6 +1426,14 @@ void function OnPlayerConnected( entity player )
 
 //------------------------------------------------------
 
+// APRIL FOOLS SPECIAL: for extreme weapon case, npc_soldier_sidearm and npc_soldier_pve_eliteguard shouldn't be consider as specialist grunts
+const array<string> EXTREME_WEAPON_SPECIALIST_GRUNTS =
+[
+	"npc_soldier_shield_captain",
+	"npc_soldier_drone_summoner",
+	"npc_soldier_training_sentry",
+]
+
 int function AITdmExtend_GetScoreValue( entity ent, bool isDoomedShot = false )
 {
 	int scoreToAdd = 0
@@ -1454,7 +1483,11 @@ int function AITdmExtend_GetScoreValue( entity ent, bool isDoomedShot = false )
 
 	if ( className == "npc_soldier" )
 	{
-		if ( SPECIALIST_GRUNTS.contains( ent.GetAISettingsName() ) )
+		bool isSpecialistGrunt = SPECIALIST_GRUNTS.contains( ent.GetAISettingsName() )
+		// APRIL FOOLS SPECIAL: extreme weapons removes grunt's special weapon, needs to handle that case
+		if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+			isSpecialistGrunt = EXTREME_WEAPON_SPECIALIST_GRUNTS.contains( ent.GetAISettingsName() )
+		if ( isSpecialistGrunt )
 			scoreToAdd = SPECIALIST_GRUNT_SCORE_AMOUNT
 		else
 			scoreToAdd = GRUNT_SCORE_AMOUNT
