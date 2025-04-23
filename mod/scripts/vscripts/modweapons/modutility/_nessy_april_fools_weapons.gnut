@@ -289,7 +289,7 @@ void function OnEntityDamagedByAprilFoolsWeapon( entity ent, var damageInfo )
 void function AprilFoolsEntityKilledEvent( entity victim, var damageInfo, EntityKilledEventStruct eventStruct )
 {
     if ( file.alwaysChangeDamageSourceId )
-       eventStruct.damageSourceId = eDamageSourceId.bleedout
+       eventStruct.damageSourceId = eDamageSourceId.nessy_doll
 }
 
 // settings func
