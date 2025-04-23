@@ -27,7 +27,9 @@ WeaponData
 
 	//"projectilemodel" 								"models/dev/empty_model.mdl"
 	// :D
-	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// remove projectile model for mozambique model weapons because you know... well...
+	// they'll cause bolt/missile weapons to block sight while grenade weapons won't
+	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 	
 	"tracer_effect"   								"weapon_tracers_shotgun"
 	"impact_effect_table" 							"inc_bullet"
