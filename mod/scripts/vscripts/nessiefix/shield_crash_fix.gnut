@@ -71,7 +71,9 @@ const table<string, string> IMPACTS_SOUND_OVERRIDE =
     ["titan_shotgun_bullet"]            = "titanshield_heavy_bulletimpact",
     ["exp_super_spectre"]               = "titanshield_explo_plasmasmall_impact",
     ["titan_bullet_elec"]               = "titanshield_ampedxo16_bulletimpact",
-    ["exp_plasma_lg"]                   = "titanshield_explo_plasmasmall_impact"
+    ["exp_plasma_lg"]                   = "titanshield_explo_plasmasmall_impact",
+    ["melee_titan"]                     = "titanshield_meleeimpact",
+    ["titan_sword"]                     = "titanshield_meleeimpact"
 }
 
 // there's only one PAINFUL thing: we can't get whether a damage is radius damage or not... maybe just ignore most grenade impacts...???
@@ -551,15 +553,21 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
     if ( !IsValid( weapon ) && !IsValid( inflictor ) )
         return
 
+    int damageTypes = DamageInfo_GetCustomDamageType( damageInfo )
+    bool isMeleeHit = bool( damageTypes & DF_MELEE )
     // we don't do projectile checks as long as weapon is valid
-    if ( !IsValid( weapon ) )
+    // also needs to handle melee -- that case no need to check all these
+    if ( !isMeleeHit )
     {
-        if ( IsValid( inflictor ) )
+        if ( !IsValid( weapon ) )
         {
-            // inflictor will be weapon entity for shotgun blast case
-            // EDIT: shotgun blast can still get weapon themselves, inflictor case is for hitscan weapon splash damage
-            if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
-                return
+            if ( IsValid( inflictor ) )
+            {
+                // inflictor will be weapon entity for shotgun blast case
+                // EDIT: shotgun blast can still get weapon themselves, inflictor case is for hitscan weapon splash damage
+                if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
+                    return
+            }
         }
     }
 
@@ -595,41 +603,63 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
 
             // shield hit effect only gets played when hitting direct hits
             bool isDirectHit
-            // we don't do projectile checks as long as weapon is valid
-            if ( IsValid( weapon ) )
-                isDirectHit = WeaponIsDirectHit( weapon, ent, damageInfo )
-            else
+            bool effectDisabled = false
+            if ( !isMeleeHit )
             {
-                if ( IsValid( inflictor ) && inflictor.IsProjectile() )
-                    isDirectHit = ProjectileIsDirectHit( inflictor, ent, damageInfo )
+                // we don't do projectile checks as long as weapon is valid
+                if ( IsValid( weapon ) )
+                    isDirectHit = WeaponIsDirectHit( weapon, ent, damageInfo )
+                else
+                {
+                    if ( IsValid( inflictor ) && inflictor.IsProjectile() )
+                        isDirectHit = ProjectileIsDirectHit( inflictor, ent, damageInfo )
+                }
             }
 
-            // SOFTBALL HARDCODE: no impact sound on enemy entities???
-            bool soundDisabled = false
+            // SOFTBALL HARDCODE: no impact effect on enemy entities???
             if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.ProjectileGetWeaponClassName() == "mp_weapon_softball" )
             {
                 if ( attacker.GetTeam() != ent.GetTeam() && !FriendlyFire_IsEnabled() )
-                    soundDisabled = true
+                    effectDisabled = true
             }
+            //
 
-            if ( isDirectHit && !soundDisabled )
+            if ( ( isMeleeHit || isDirectHit ) && !effectDisabled )
             {
                 // we may wants to hide effect
                 string impactEffectName
-                if ( IsValid( weapon ) )
-                    impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
-                else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
-                    impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
+                if ( !isMeleeHit )
+                {
+                    if ( IsValid( weapon ) )
+                        impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
+                    else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
+                        impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
+                }
 
                 bool hideShieldHitFX = IMPACTS_EFFECT_DISABLED.contains( impactEffectName )
-                // grenade specific checks
-                if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
-                    hideShieldHitFX = !GRENADE_SAFE_IMPACTS.contains( impactEffectName )
+                // melee hit checks
+                if ( isMeleeHit )
+                {
+                    entity meleeWeapon = attacker.GetOffhandWeapon( OFFHAND_MELEE )
+                    if ( !IsValid( meleeWeapon ) )
+                        hideShieldHitFX = true
+                    else
+                    {
+                        impactEffectName = GetImpactTableNameFromWeaponOrProjectile( meleeWeapon )
+                        hideShieldHitFX = IMPACTS_EFFECT_DISABLED.contains( impactEffectName )
+                    }
+                }
+                else
+                {
+                    // grenade specific checks
+                    if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
+                        hideShieldHitFX = !GRENADE_SAFE_IMPACTS.contains( impactEffectName )
+                }
 
                 if ( !hideShieldHitFX )
                 {
                     int shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX )
-                    if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_EXPLOSION ) // explosion damage specific
+                    if ( damageTypes & DF_EXPLOSION ) // explosion damage specific
                         shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX_EXP )
                     
                     vector pos = DamageInfo_GetDamagePosition( damageInfo )
@@ -759,7 +789,8 @@ const string SHIELD_DAMAGE_SOUND_PREFIX = "titanshield_light_bulletimpact" // so
 // btw it seems that projectile impacts mostly won't do shield effect... guess we could handle only hitscan weapons?
 const string SHIELD_DAMAGE_SOUND_PREFIX_EXPLOSION = "titanshield_explosive_bulletimpact" // sound when getting hit by explosive damage
 const string SHIELD_DAMAGE_SOUND_PREFIX_ELECTRICAL = "titanshield_energy_bulletimpact" // sound when getting hit by electrical damage
-const string SHIELD_DAMAGE_SOUND_PREFIX_MELEE = "titanshield_meleeimpact" // sound when getting hit by melee
+// no special sound for human melee actually. titans handled by overrides
+//const string SHIELD_DAMAGE_SOUND_PREFIX_MELEE = "titanshield_meleeimpact" // sound when getting hit by melee
 
 // SPECIAL: titan bullet impact sound
 // welp maybe it should be handled by IMPACTS_SOUND_OVERRIDE stuffs...
@@ -817,53 +848,84 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
     if ( !IsValid( weapon ) && !IsValid( inflictor ) )
         return
 
+    int damageTypes = DamageInfo_GetCustomDamageType( damageInfo )
+    bool isMeleeHit = bool( damageTypes & DF_MELEE )
     // we don't do projectile checks as long as weapon is valid
     // actually the case is... hit scan weapon splash damage won't pass their weapon inside
     // but they'll always be inflictor so no worries?
-    if ( IsValid( weapon ) )
+    // also needs to handle melee -- that case no need to check all these
+    if ( !isMeleeHit )
     {
-        if ( !WeaponIsDirectHit( weapon, ent, damageInfo ) )
-            return
-    }
-    else
-    {
-        if ( IsValid( inflictor ) )
+        if ( IsValid( weapon ) )
         {
-            // inflictor will be weapon entity for shotgun blast case
-            // no need. inflictor will always be weapon, and shotgun blast also pass themselves as "weapon" not other things
-            //if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
-            if ( !inflictor.IsProjectile() )
+            if ( !WeaponIsDirectHit( weapon, ent, damageInfo ) )
                 return
-            
-            // projectile checks
-            if ( inflictor.IsProjectile() )
+        }
+        else
+        {
+            if ( IsValid( inflictor ) )
             {
-                if ( !ProjectileIsDirectHit( inflictor, ent, damageInfo ) )
+                // inflictor will be weapon entity for shotgun blast case
+                // no need. inflictor will always be weapon, and shotgun blast also pass themselves as "weapon" not other things
+                //if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
+                if ( !inflictor.IsProjectile() )
                     return
+                
+                // projectile checks
+                if ( inflictor.IsProjectile() )
+                {
+                    if ( !ProjectileIsDirectHit( inflictor, ent, damageInfo ) )
+                        return
+                }
             }
         }
     }
 
+    entity attacker = DamageInfo_GetAttacker()
+    // SOFTBALL HARDCODE: no impact effect on enemy entities???
+    if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.ProjectileGetWeaponClassName() == "mp_weapon_softball" )
+    {
+        if ( !IsValid( attacker ) )
+            return
+        if ( attacker.GetTeam() != ent.GetTeam() && !FriendlyFire_IsEnabled() )
+            return
+    }
+    //
+
     // get impact effect name for us checking more stuffs
     string impactEffectName
-    if ( IsValid( weapon ) )
-        impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
-    else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
-        impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
+    if ( isMeleeHit )
+    {
+        if ( !IsValid( attacker ) )
+            return
+        // melee weapon checks. if we can't find any melee weapon could just return
+        entity meleeWeapon = attacker.GetOffhandWeapon( OFFHAND_MELEE )
+        if ( !IsValid( meleeWeapon ) )
+            return
+
+        impactEffectName = GetImpactTableNameFromWeaponOrProjectile( meleeWeapon )
+    }
+    else
+    {
+        if ( IsValid( weapon ) )
+            impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
+        else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
+            impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
+        
+        // grenade specific checks
+        if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
+        {
+            if ( !GRENADE_SAFE_IMPACTS.contains( impactEffectName ) )
+                return
+        }
+    }
 
     // some impacts don't have sound
     if ( IMPACTS_SOUND_DISABLED.contains( impactEffectName ) )
         return
 
-    // grenade specific checks
-    if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
-    {
-        if ( !GRENADE_SAFE_IMPACTS.contains( impactEffectName ) )
-            return
-    }
-
     // default shield on-hit sound
-	string shieldHitSound = GetShieldDamagedSound( DamageInfo_GetCustomDamageType( damageInfo ) )
+	string shieldHitSound = GetShieldDamagedSound( damageTypes )
     // overrides
     if ( impactEffectName in IMPACTS_SOUND_OVERRIDE )
         shieldHitSound = IMPACTS_SOUND_OVERRIDE[ impactEffectName ]
@@ -898,8 +960,12 @@ string function GetShieldDamagedSound( int damageTypes )
 		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_EXPLOSION
 	if ( damageTypes & DF_ELECTRICAL ) // electrical damage specific sound, overrides explosion and bullets
 		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_ELECTRICAL
+
+    // no special sound for human melee actually. titans handled by overrides
+    /*
 	if ( damageTypes & DF_MELEE ) // melee damage specific sound, has highest priority
 		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_MELEE
+    */
 
 	//print( "shieldHitSound: " + shieldHitSound )
 	return shieldHitSound
