@@ -881,7 +881,7 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
         }
     }
 
-    entity attacker = DamageInfo_GetAttacker()
+    entity attacker = DamageInfo_GetAttacker( damageInfo )
     // SOFTBALL HARDCODE: no impact effect on enemy entities???
     if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.ProjectileGetWeaponClassName() == "mp_weapon_softball" )
     {
