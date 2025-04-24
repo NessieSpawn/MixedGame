@@ -617,11 +617,15 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
             }
 
             // SOFTBALL HARDCODE: no impact effect on enemy entities???
+            // WHY I MEAN JUST, WHY??? why sometimes vanilla softball has enemy impact effect and sometimes it doesn't
+            // I'M DONE WITH THIS
+            /*
             if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.ProjectileGetWeaponClassName() == "mp_weapon_softball" )
             {
                 if ( attacker.GetTeam() != ent.GetTeam() && !FriendlyFire_IsEnabled() )
                     effectDisabled = true
             }
+            */
             //
 
             if ( ( isMeleeHit || isDirectHit ) && !effectDisabled )
@@ -883,6 +887,9 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
 
     entity attacker = DamageInfo_GetAttacker( damageInfo )
     // SOFTBALL HARDCODE: no impact effect on enemy entities???
+    // WHY I MEAN JUST, WHY??? why sometimes vanilla softball has enemy impact effect and sometimes it doesn't
+    // I'M DONE WITH THIS
+    /*
     if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.ProjectileGetWeaponClassName() == "mp_weapon_softball" )
     {
         if ( !IsValid( attacker ) )
@@ -890,6 +897,7 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
         if ( attacker.GetTeam() != ent.GetTeam() && !FriendlyFire_IsEnabled() )
             return
     }
+    */
     //
 
     // get impact effect name for us checking more stuffs
