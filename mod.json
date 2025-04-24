@@ -26,6 +26,13 @@
 			"Path": "/nessiefix/special_3p_attack_anim_fix.gnut",
 			"RunOn": "SERVER"
 		},
+		{
+			"Path": "/nessiefix/shield_crash_fix.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+                "After": "Nessie_Shield_Crash_Fix_Init"
+            }
+		},
 		// nessie bug fixes end
 		// nessie utility
 		{
@@ -75,13 +82,6 @@
 			"RunOn": "SERVER",
 			"ServerCallback": {
                 "After": "Nessie_Enum_Utility_Init"
-            }
-		},
-		{
-			"Path": "/nessieutil/shield_crash_fix.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-                "After": "Nessie_Shield_Crash_Fix_Init"
             }
 		},
 		{
