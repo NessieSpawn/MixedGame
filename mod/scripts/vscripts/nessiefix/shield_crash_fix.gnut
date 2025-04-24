@@ -83,6 +83,16 @@ const array<string> GRENADE_SAFE_IMPACTS =
     "exp_satchel",
 ]
 
+// NO WAY TO GO HAVE TO HARDCODE
+// still can't resolve anything -- 0 damage impact won't trigger callbacks, explosion damage > impact damage means we can't check things correctly
+// best way is to hardcode inside their weapon files... which is something even worse
+const array<string> WEAPONS_I_DONT_KNOW_HOW_TO_DEAL_WITH =
+[
+    "mp_weapon_mgl",
+    "mp_weapon_softball",
+    "mp_weapon_satchel", // cannot handle AT ALL, I guess
+]
+
 struct
 {
     table<entity, int> entMaxShieldValue
@@ -485,6 +495,14 @@ bool function ProjectileIsDirectHit( entity projectile, entity victim, var damag
     if ( directHitDamage > explosionDamage )
     {
         if ( DamageInfo_GetDamage( damageInfo ) >= directHitDamage )
+            return true
+    }
+    // or there's some hardcoded case where impact damage is lower than explosion damage
+    string weaponName = projectile.ProjectileGetWeaponClassName()
+    if ( WEAPONS_I_DONT_KNOW_HOW_TO_DEAL_WITH.contains( weaponName ) )
+    {
+        // may trigger effect incorrectly if damage is equal to direct hit one but... what the hell
+        if ( DamageInfo_GetDamage( damageInfo ) == directHitDamage )
             return true
     }
 
