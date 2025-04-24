@@ -52,5 +52,5 @@ string function GetImpactTableNameFromWeaponOrProjectile( entity weaponOrProject
     string tempString = string( impactEffect )
     string impactFXName = tempString.slice( 2, tempString.len() - 1 )
 
-    return impactFXName
+    return impactFXName.tolower() // case doesn't matter
 }

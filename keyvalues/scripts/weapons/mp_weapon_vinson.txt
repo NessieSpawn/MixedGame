@@ -1,5 +1,13 @@
 WeaponData
 {
+	// shield hit effect DEBUG
+	// "impact_effect_table" 							"exp_smr"
+
+	// "explosion_damage"								"10" // lower than damage_near_value
+	// "explosion_damage_heavy_armor"					"10" // lower than damage_near_value_titanarmor
+	// "explosion_inner_radius"  						"50"
+	// "explosionradius" 								"180"
+
 	// flag rifle
 	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_weapon_flak_rifle"
 	"OnProjectileExplode"							"OnProjectileExplode_weapon_flak_rifle"

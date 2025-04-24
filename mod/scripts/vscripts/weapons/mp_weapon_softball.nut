@@ -103,7 +103,7 @@ void function OnProjectileCollision_weapon_softball( entity projectile, vector p
 
 	// direct hit softball
 	if ( mods.contains( "direct_hit" ) )
-        OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
+        OnProjectileCollision_DirectHit_NoReturn( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	//
 
 	// vanilla behavior
