@@ -183,8 +183,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		{
 			RunClassDamageFailedByCallbacks( attacker, damageInfo )
 			// first return checks -- stop running callbacks once we lost damage value
-			if ( DamageInfo_GetDamage( damageInfo ) == 0 )
-				return
+			// why do we have to return after all, this damage isn't processed at all
+			//if ( DamageInfo_GetDamage( damageInfo ) == 0 )
+			//	return
 		}
 
 		// Added via AddEntityCallback_OnDamageFailed
@@ -193,8 +194,9 @@ void function CodeCallback_DamagePlayerOrNPC( entity ent, var damageInfo )
 		// Added via AddDamageFailedCallbackSourceID
 		RunDamageFailedSourceIDCallbacks( ent, damageInfo )
 		// second return checks
-		if ( DamageInfo_GetDamage( damageInfo ) == 0 )
-			return
+		// why do we have to return after all, this damage isn't processed at all
+		//if ( DamageInfo_GetDamage( damageInfo ) == 0 )
+		//	return
 
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
