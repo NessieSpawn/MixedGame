@@ -57,7 +57,9 @@ const array<string> IMPACTS_EFFECT_DISABLED =
 
 const array<string> IMPACTS_SOUND_DISABLED =
 [
-    "bullet_mastiff"
+    // actually this won't disable sound
+    // it's just because in vanilla when mastiff hits a point blank there'll be too many sounds gets played together and causes sound drop
+    //"bullet_mastiff"
 ]
 
 // impact sound
@@ -602,7 +604,15 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
                     isDirectHit = ProjectileIsDirectHit( inflictor, ent, damageInfo )
             }
 
-            if ( isDirectHit )
+            // SOFTBALL HARDCODE: no impact sound on enemy entities???
+            bool soundDisabled = false
+            if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.ProjectileGetWeaponClassName() == "mp_weapon_softball" )
+            {
+                if ( attacker.GetTeam() != ent.GetTeam() && !FriendlyFire_IsEnabled() )
+                    soundDisabled = true
+            }
+
+            if ( isDirectHit && !soundDisabled )
             {
                 // we may wants to hide effect
                 string impactEffectName
