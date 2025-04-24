@@ -1,3 +1,5 @@
+untyped // for handling IsCriticalHit_WithScriptedShieldCheck() untyped variables
+
 // this is to fix respawn's weird client-side crash
 // use in-file shield value for non-titan heavy armor target
 // needs to replace all .GetShieldHealth(), .SetShieldHealth(), .GetShieldHealthMax() and .SetShieldHealthMax() method with fixed functions in this file
@@ -51,7 +53,11 @@ const array<string> IMPACTS_EFFECT_DISABLED =
     "melee_spectre",
     "none",
     "titan_meteor",
+]
 
+const array<string> IMPACTS_SOUND_DISABLED =
+[
+    "bullet_mastiff"
 ]
 
 // impact sound
@@ -63,7 +69,7 @@ const table<string, string> IMPACTS_SOUND_OVERRIDE =
     ["titan_shotgun_bullet"]            = "titanshield_heavy_bulletimpact",
     ["exp_super_spectre"]               = "titanshield_explo_plasmasmall_impact",
     ["titan_bullet_elec"]               = "titanshield_ampedxo16_bulletimpact",
-
+    ["exp_plasma_lg"]                   = "titanshield_explo_plasmasmall_impact"
 }
 
 // there's only one PAINFUL thing: we can't get whether a damage is radius damage or not... maybe just ignore most grenade impacts...???
@@ -75,7 +81,6 @@ const array<string> GRENADE_SAFE_IMPACTS =
     "exp_mgl",
     //"exp_frag_grenade", // maybe we do need to check their parent status??? but whatever who'll be so stupid to stand on a exploding frag grenade
     "exp_satchel",
-    
 ]
 
 struct
@@ -175,10 +180,10 @@ void function OnScriptedShieldEntDamageFailed( entity ent, var damageInfo )
     }
 }
 
-// for projectile with pass_through_depth, we won't do effect on non-titan friendly entities
+// for projectile with pass_through_depth, we won't do effect on light armor friendly entities
 bool function IsPassThroughProjectileFriendlyFire( entity ent, var damageInfo )
 {
-    if ( ent.IsTitan() )
+    if ( ent.GetArmorType() == ARMOR_TYPE_HEAVY )
         return false
 
     entity attacker = DamageInfo_GetAttacker( damageInfo )
@@ -187,7 +192,7 @@ bool function IsPassThroughProjectileFriendlyFire( entity ent, var damageInfo )
         entity inflictor = DamageInfo_GetInflictor( damageInfo )
         if ( IsValid( inflictor ) && inflictor.IsProjectile() )
         {
-            if ( inflictor.GetProjectileWeaponSettingFloat( eWeaponVar.pass_through_depth ) > 0 )
+            if ( inflictor.GetProjectileWeaponSettingInt( eWeaponVar.pass_through_depth ) > 0 )
                 return true
         }
     }
@@ -394,7 +399,7 @@ int function GetShieldHealthMaxWithFix( entity ent )
 
 // shared utility for following functions to use
 // hope it's gonna working fine...
-bool function ProjectileIsDirectHit( entity projectile, var damageInfo )
+bool function ProjectileIsDirectHit( entity projectile, entity victim, var damageInfo )
 {
     // distance check version -- with bolt hitsize thinks
     /*
@@ -439,26 +444,73 @@ bool function ProjectileIsDirectHit( entity projectile, var damageInfo )
     */
 
     // damage value check version
-    bool explosionDamage = projectile.GetProjectileWeaponSettingFloat( eWeaponVar.explosion_damage )
+    int explosionDamage = projectile.GetProjectileWeaponSettingInt( eWeaponVar.explosion_damage )
+    float explosionRaidius = projectile.GetProjectileWeaponSettingFloat( eWeaponVar.explosionradius )
     // if our projectile don't have any explosion damage... any damage they dealt should be direct hit
-    if ( explosionDamage <= 0 )
+    if ( explosionDamage <= 0 || explosionRaidius <= 0 )
         return true
     
+    // update explosion damage after initial checks
+    if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+        explosionDamage = projectile.GetProjectileWeaponSettingInt( eWeaponVar.explosion_damage_heavy_armor )
+    
     // most explosive weapons won't have damage falloff, should be safe to think like this
-    float directHitDamage = projectile.GetProjectileWeaponSettingFloat( eWeaponVar.damage_near_value )
+    // this won't work... projectile's damage position IS their origin, thus distance will always be 0
+    /*
+    int directHitDamage = projectile.GetProjectileWeaponSettingInt( eWeaponVar.damage_near_value )
+    if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+        directHitDamage = projectile.GetProjectileWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor )
     // very low / no damage on direct hit!! should be ordnance, softball & mgl stuffs...
     if ( directHitDamage < explosionDamage )
     {
         // consider checking distance
         // idk whether grenade's hitsize is greater than 2hu... needs debugging
-        float grenadeDist = Distance( DamageInfo_GetDamagePosition( damageInfo ), projectile.GetOrigin() )
-        print( "grenade distance between actual damage position: " + string( grenadeDist ) )
-        if ( grenadeDist <= 2 )
+        float projectileDist = Distance( DamageInfo_GetDamagePosition( damageInfo ), projectile.GetOrigin() )
+        //print( "projectile distance between actual damage position: " + string( projectileDist ) )
+        if ( projectileDist <= 2 )
             return true
     }
     else // most grenadier weapon case
     {
         // checking damage report
+        if ( DamageInfo_GetDamage( damageInfo ) >= directHitDamage )
+            return true
+    }
+    */
+
+    // checking damage report. can't handle the case where direct hit damage is lower than explosions( softball and mgl stuffs... fuck it )
+    int directHitDamage = projectile.GetProjectileWeaponSettingInt( eWeaponVar.damage_near_value )
+    if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+        directHitDamage = projectile.GetProjectileWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor )
+    if ( directHitDamage > explosionDamage )
+    {
+        if ( DamageInfo_GetDamage( damageInfo ) >= directHitDamage )
+            return true
+    }
+
+    return false
+}
+
+// with all the things we mess up with projectile, this one should be much easier
+bool function WeaponIsDirectHit( entity weapon, entity victim, var damageInfo )
+{
+    // damage value check version
+    int explosionDamage = weapon.GetWeaponSettingInt( eWeaponVar.explosion_damage )
+    float explosionRaidius = weapon.GetWeaponSettingFloat( eWeaponVar.explosionradius )
+    // if our weapon don't have any explosion damage... any damage they dealt should be direct hit
+    if ( explosionDamage <= 0 || explosionRaidius <= 0 )
+        return true
+
+    // update explosion damage after initial checks
+    if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+        explosionDamage = weapon.GetWeaponSettingInt( eWeaponVar.explosion_damage_heavy_armor )
+
+    // checking damage report. can't handle the case where direct hit damage is lower than explosions
+    int directHitDamage = weapon.GetWeaponSettingInt( eWeaponVar.damage_near_value )
+    if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+        directHitDamage = weapon.GetWeaponSettingInt( eWeaponVar.damage_near_value_titanarmor )
+    if ( directHitDamage > explosionDamage )
+    {
         if ( DamageInfo_GetDamage( damageInfo ) >= directHitDamage )
             return true
     }
@@ -472,26 +524,22 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
     // MANY VALIDATION CHECKS goes here
     entity weapon = DamageInfo_GetWeapon( damageInfo )
     entity inflictor = DamageInfo_GetInflictor( damageInfo )
+    //print( "weapon: " + string( weapon ) )
+    //print( "inflictor: " + string( inflictor ) )
 
     // too bad we don't have anything valid
     if ( !IsValid( weapon ) && !IsValid( inflictor ) )
         return
 
-    // we don't do checks as long as weapon is valid
+    // we don't do projectile checks as long as weapon is valid
     if ( !IsValid( weapon ) )
     {
         if ( IsValid( inflictor ) )
         {
             // inflictor will be weapon entity for shotgun blast case
+            // EDIT: shotgun blast can still get weapon themselves, inflictor case is for hitscan weapon splash damage
             if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
                 return
-            
-            // projectile checks
-            if ( inflictor.IsProjectile() )
-            {
-                if ( !ProjectileIsDirectHit( inflictor ) )
-                    return
-            }
         }
     }
 
@@ -525,79 +573,93 @@ void function PlayShieldHitEffect_Server( entity ent, var damageInfo, bool neutr
         {
         */
 
-            // we may wants to hide effect
-            string impactEffectName
+            // shield hit effect only gets played when hitting direct hits
+            bool isDirectHit
+            // we don't do projectile checks as long as weapon is valid
             if ( IsValid( weapon ) )
-                impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
-            else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
-                impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
-
-            bool hideShieldHitFX = IMPACTS_EFFECT_DISABLED.contains( impactEffectName )
-            // grenade specific checks
-            if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
-                hideShieldHitFX = !GRENADE_SAFE_IMPACTS.contains( impactEffectName )
-
-            if ( !hideShieldHitFX )
+                isDirectHit = WeaponIsDirectHit( weapon, ent, damageInfo )
+            else
             {
-                int shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX )
-                if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_EXPLOSION ) // explosion damage specific
-                    shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX_EXP )
-                
-                vector pos = DamageInfo_GetDamagePosition( damageInfo )
-                // maybe we could trace attacker
-                /*
-                vector entPos = ent.GetOrigin()
-                vector entEyePos = ent.EyePosition()
-                float entCenterDot = ( entEyePos.z + entPos.z ) / 2
-                vector entCenterPos = < entPos.x, entPos.y, entCenterDot >
-                vector victimFacePos = VectorToAngles( Normalize( entCenterPos - pos ) )
-                */
+                if ( IsValid( inflictor ) && inflictor.IsProjectile() )
+                    isDirectHit = ProjectileIsDirectHit( inflictor, ent, damageInfo )
+            }
 
-                // eyepos -> hitpos seems to be better... idk... needs debugging
-                //vector victimFacePos = VectorToAngles( Normalize( pos - attacker.EyePosition() ) )
-                vector victimFacePos = VectorToAngles( Normalize( attacker.EyePosition() - pos ) )
+            if ( isDirectHit )
+            {
+                // we may wants to hide effect
+                string impactEffectName
+                if ( IsValid( weapon ) )
+                    impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
+                else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
+                    impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
 
-                // control point won't work
-                /*
-                entity shieldHitFXHandle = StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
-                //EffectSetControlPointVector( shieldHitFXHandle, 0, < 115, 247, 255 > ) // this hides the effect idk
-                EffectSetControlPointVector( shieldHitFXHandle, 1, < 115, 247, 255 > ) // blue
-                */
-                
-                // wth this works
-                StartParticleEffectInWorldWithControlPoint( shieldHitFX, pos, victimFacePos, < 115, 247, 255 > )
+                bool hideShieldHitFX = IMPACTS_EFFECT_DISABLED.contains( impactEffectName )
+                // grenade specific checks
+                if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
+                    hideShieldHitFX = !GRENADE_SAFE_IMPACTS.contains( impactEffectName )
 
-                // bad effect
-                /*
-                int shieldHitFXVictim = GetParticleSystemIndex( SHIELD_HIT_FX_VICTIM )
-                StartParticleEffectOnEntity_ReturnEntity( ent, shieldHitFXVictim, FX_PATTACH_POINT_FOLLOW, attachID )
-                */
-                //SHIELD_HIT_FX_EXTRA
+                if ( !hideShieldHitFX )
+                {
+                    int shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX )
+                    if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_EXPLOSION ) // explosion damage specific
+                        shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX_EXP )
+                    
+                    vector pos = DamageInfo_GetDamagePosition( damageInfo )
+                    // maybe we could trace attacker
+                    /*
+                    vector entPos = ent.GetOrigin()
+                    vector entEyePos = ent.EyePosition()
+                    float entCenterDot = ( entEyePos.z + entPos.z ) / 2
+                    vector entCenterPos = < entPos.x, entPos.y, entCenterDot >
+                    vector victimFacePos = VectorToAngles( Normalize( entCenterPos - pos ) )
+                    */
 
-                // debugging for fun
-                // still can't get correct blood spray effect
-                /*
-                shieldHitFX = GetParticleSystemIndex( $"P_impact_flesh_attacker" )
-                EffectSetControlPointVector( StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos ), 1, < 255, 255, 255 > )
-                shieldHitFX = GetParticleSystemIndex( $"impact_flesh" )
-                StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
-                StartParticleEffectInWorldWithControlPoint( GetParticleSystemIndex( $"impact_flesh" ), pos, victimFacePos, < 255, 255, 255 > )
-                StartParticleEffectInWorldWithControlPoint( GetParticleSystemIndex( $"P_impact_flesh_attacker" ), pos, victimFacePos, < 255, 255, 255 > )
-                */
+                    // eyepos -> hitpos seems to be better... idk... needs debugging
+                    //vector victimFacePos = VectorToAngles( Normalize( pos - attacker.EyePosition() ) )
+                    vector victimFacePos = VectorToAngles( Normalize( attacker.EyePosition() - pos ) )
 
-                // extra effect
-                // does not work
-                /*
-                shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX_EXTRA )
-                entity shieldHitFXHandle = StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
-                EffectSetControlPointVector( shieldHitFXHandle, 0, < 115, 247, 255 > ) // blue
-                */
+                    // control point won't work
+                    /*
+                    entity shieldHitFXHandle = StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
+                    //EffectSetControlPointVector( shieldHitFXHandle, 0, < 115, 247, 255 > ) // this hides the effect idk
+                    EffectSetControlPointVector( shieldHitFXHandle, 1, < 115, 247, 255 > ) // blue
+                    */
+                    
+                    // wth this works
+                    StartParticleEffectInWorldWithControlPoint( shieldHitFX, pos, victimFacePos, < 115, 247, 255 > )
 
-                // still can't control CP
-                /*
-                entity shieldHitFXHandle = StartParticleEffectOnEntity_ReturnEntity( ent, shieldHitFX, FX_PATTACH_POINT_FOLLOW, ent.LookupAttachment( "CHESTFOCUS" ) )
-                EffectSetControlPointVector( shieldHitFXHandle, 1, < 115, 247, 255 > ) // blue
-                */
+                    // bad effect
+                    /*
+                    int shieldHitFXVictim = GetParticleSystemIndex( SHIELD_HIT_FX_VICTIM )
+                    StartParticleEffectOnEntity_ReturnEntity( ent, shieldHitFXVictim, FX_PATTACH_POINT_FOLLOW, attachID )
+                    */
+                    //SHIELD_HIT_FX_EXTRA
+
+                    // debugging for fun
+                    // still can't get correct blood spray effect
+                    /*
+                    shieldHitFX = GetParticleSystemIndex( $"P_impact_flesh_attacker" )
+                    EffectSetControlPointVector( StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos ), 1, < 255, 255, 255 > )
+                    shieldHitFX = GetParticleSystemIndex( $"impact_flesh" )
+                    StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
+                    StartParticleEffectInWorldWithControlPoint( GetParticleSystemIndex( $"impact_flesh" ), pos, victimFacePos, < 255, 255, 255 > )
+                    StartParticleEffectInWorldWithControlPoint( GetParticleSystemIndex( $"P_impact_flesh_attacker" ), pos, victimFacePos, < 255, 255, 255 > )
+                    */
+
+                    // extra effect
+                    // does not work
+                    /*
+                    shieldHitFX = GetParticleSystemIndex( SHIELD_HIT_FX_EXTRA )
+                    entity shieldHitFXHandle = StartParticleEffectInWorld_ReturnEntity( shieldHitFX, pos, victimFacePos )
+                    EffectSetControlPointVector( shieldHitFXHandle, 0, < 115, 247, 255 > ) // blue
+                    */
+
+                    // still can't control CP
+                    /*
+                    entity shieldHitFXHandle = StartParticleEffectOnEntity_ReturnEntity( ent, shieldHitFX, FX_PATTACH_POINT_FOLLOW, ent.LookupAttachment( "CHESTFOCUS" ) )
+                    EffectSetControlPointVector( shieldHitFXHandle, 1, < 115, 247, 255 > ) // blue
+                    */
+                }
             }
 
         /*
@@ -727,19 +789,28 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
     if ( !IsValid( weapon ) && !IsValid( inflictor ) )
         return
 
-    // we don't do checks as long as weapon is valid
-    if ( !IsValid( weapon ) )
+    // we don't do projectile checks as long as weapon is valid
+    // actually the case is... hit scan weapon splash damage won't pass their weapon inside
+    // but they'll always be inflictor so no worries?
+    if ( IsValid( weapon ) )
+    {
+        if ( !WeaponIsDirectHit( weapon, ent, damageInfo ) )
+            return
+    }
+    else
     {
         if ( IsValid( inflictor ) )
         {
             // inflictor will be weapon entity for shotgun blast case
-            if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
+            // no need. inflictor will always be weapon, and shotgun blast also pass themselves as "weapon" not other things
+            //if ( !inflictor.IsProjectile() && !(inflictor instanceof CWeaponX) )
+            if ( !inflictor.IsProjectile() )
                 return
             
             // projectile checks
             if ( inflictor.IsProjectile() )
             {
-                if ( !ProjectileIsDirectHit( inflictor ) )
+                if ( !ProjectileIsDirectHit( inflictor, ent, damageInfo ) )
                     return
             }
         }
@@ -751,6 +822,10 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
         impactEffectName = GetImpactTableNameFromWeaponOrProjectile( weapon ) // shared utility from _unpredicted_impact_fix.gnut
     else if ( IsValid( inflictor ) && inflictor.IsProjectile() )
         impactEffectName = GetImpactTableNameFromWeaponOrProjectile( inflictor )
+
+    // some impacts don't have sound
+    if ( IMPACTS_SOUND_DISABLED.contains( impactEffectName ) )
+        return
 
     // grenade specific checks
     if ( IsValid( inflictor ) && inflictor.IsProjectile() && inflictor.GetClassName() == "grenade" )
@@ -787,7 +862,7 @@ string function GetShieldDamagedSound( int damageTypes )
 
     // this may not very necessary though... should've handled by overrides
     /*
-    if ( damageTypes & DF_KNOCKBACK )
+    if ( damageTypes & DF_KNOCK_BACK )
 		shieldHitSound = SHIELD_DAMAGE_SOUND_PREFIX_HEAVY
     */
     

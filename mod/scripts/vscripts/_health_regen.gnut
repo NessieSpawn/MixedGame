@@ -453,7 +453,7 @@ string function GetPilotShieldDamagedSound( int damageTypes )
 	// not working fine, using titan sound is good enough
 	//if ( damageTypes & DF_BULLET ) // bullet damage specific sound
 	//	shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_BULLET
-	if ( damageTypes & DF_KNOCKBACK )
+	if ( damageTypes & DF_KNOCK_BACK )
 		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_HEAVY
 	if ( damageTypes & DF_EXPLOSION ) // explosion damage specific sound, overrides bullets
 		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_EXPLOSION
