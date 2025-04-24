@@ -307,7 +307,7 @@ void function OnProjectileCollision_weapon_modded_archer( entity projectile, vec
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile )
 	// direct hit
 	if ( mods.contains( "direct_hit" ) )
-        OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
+        OnProjectileCollision_DirectHit_NoReturn( projectile, pos, normal, hitEnt, hitbox, isCritical )
 
 #if SERVER
 	// needed for cruise missile to get signal before missile gets destroyed

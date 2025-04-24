@@ -271,6 +271,7 @@ void function HealthRegen_OnClientConnected( entity player )
 const string PILOT_SHIELD_DAMAGE_SOUND = "titanshield_light_bulletimpact_3p_vs_1p"
 // only bullet damage plays the sound every time, other damage types have a sound interval because we can't ignore radius damage like native does
 //const string PILOT_SHIELD_DAMAGE_SOUND_BULLET = "titanshieldwall_light_bulletimpact_1p_vs_3p" // sound when getting hit by bullets( sadly "titanshield_heavy_bulletimpact_3p_vs_1p" sounds identical to light impact one )
+const string PILOT_SHIELD_DAMAGE_SOUND_HEAVY = "titanshield_heavy_bulletimpact_3p_vs_1p"
 const string PILOT_SHIELD_DAMAGE_SOUND_EXPLOSION = "titanshield_explosive_bulletimpact_3p_vs_1p" // sound when getting hit by explosive damage
 const string PILOT_SHIELD_DAMAGE_SOUND_ELECTRICAL = "titanshield_energy_bulletimpact_3p_vs_1p" // sound when getting hit by electrical damage
 const string PILOT_SHIELD_DAMAGE_SOUND_MELEE = "titanshield_meleeimpact_3p_vs_1p" // sound when getting hit by melee
@@ -452,6 +453,8 @@ string function GetPilotShieldDamagedSound( int damageTypes )
 	// not working fine, using titan sound is good enough
 	//if ( damageTypes & DF_BULLET ) // bullet damage specific sound
 	//	shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_BULLET
+	if ( damageTypes & DF_KNOCKBACK )
+		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_HEAVY
 	if ( damageTypes & DF_EXPLOSION ) // explosion damage specific sound, overrides bullets
 		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_EXPLOSION
 	if ( damageTypes & DF_ELECTRICAL ) // electrical damage specific sound, overrides explosion and bullets
