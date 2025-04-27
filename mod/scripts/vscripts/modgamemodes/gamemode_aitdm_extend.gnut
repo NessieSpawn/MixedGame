@@ -638,8 +638,19 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 	string newWeapon = VALID_TITANWEAPONS[ RandomInt( VALID_TITANWEAPONS.len() ) ]
 	// I'm done with this shit let's just hardcode weapon mods
 	array<string> mods
-	if ( newWeapon == "mp_titanweapon_triplethreat" )
-		mods.append( "disable_default_magnetic" )
+	switch ( newWeapon )
+	{
+		case "mp_titanweapon_sticky_40mm"
+			mods.append( "atlas_40mm" ) // do need a mod to buff their damage without
+			break
+		case "mp_titanweapon_triplethreat":
+			mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
+			break
+		case "mp_titanweapon_rocketeer_rocketstream":
+			//mods.append( "brute_rocket" ) // maybe better use brute4_quad_rocket to have constant behavior with npc titans...? idk
+			mods.append( "brute4_quad_rocket" )
+			break
+	}
 	entity weapon = soldier.GiveWeapon( newWeapon, mods )
 	weapon = GiveNessyProjectileMod( soldier, weapon ) // this actually destroyes org weapon
 	soldier.SetActiveWeaponByName( newWeapon )
@@ -754,7 +765,8 @@ const array<string> EARNMETER_BUFF_GRUNTS = // buff earnmeter earn from these gr
 	"npc_soldier_shield_captain",
 ]
 
-// APRIL FOOLS SPECIAL: random model from teams
+// APRIL FOOLS SPECIAL
+// random model from teams
 const array<asset> VALID_GRUNT_MODELS =
 [
 	$"models/humans/grunts/mlt_grunt_lmg.mdl",
@@ -765,6 +777,22 @@ const array<asset> VALID_GRUNT_MODELS =
 	$"models/humans/grunts/imc_grunt_shotgun.mdl",
 	$"models/humans/grunts/mlt_grunt_rifle.mdl",
 	$"models/humans/grunts/imc_grunt_rifle.mdl",
+]
+// grunt specific faction leader models!
+const array<asset> VALID_SPECIALIST_GRUNT_MODELS =
+[
+	// npc special, players cannot use
+	$"models/humans/heroes/mlt_hero_barker.mdl",
+	$"models/humans/heroes/imc_hero_marder.mdl",
+
+	// player with altpilot can also having these models
+	$"models/Humans/heroes/imc_hero_ash.mdl",
+	$"models/Humans/heroes/imc_hero_blisk.mdl",
+	$"models/humans/heroes/mlt_hero_jack.mdl",
+	$"models/humans/heroes/mlt_hero_sarah.mdl",
+	$"models/humans/pilots/sp_medium_geist_f.mdl",
+	$"models/humans/pilots/sp_medium_reaper_m.mdl",
+	$"models/humans/pilots/sp_medium_stalker_m.mdl",
 ]
 void function GruntConfig( entity soldier )
 {
@@ -800,10 +828,16 @@ void function GruntConfig( entity soldier )
 	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
-		// random model from teams
-		if ( VALID_GRUNT_MODELS.contains( soldier.GetModelName() ) )
-			soldier.SetModel( VALID_GRUNT_MODELS[ RandomInt( VALID_GRUNT_MODELS.len() ) ] )
-		
+		// grunt specific faction leader models!
+		if ( isSpecialistGrunt )
+			soldier.SetModel( VALID_SPECIALIST_GRUNT_MODELS[ RandomInt( VALID_SPECIALIST_GRUNT_MODELS.len() ) ] )
+		else
+		{
+			// random model from teams
+			if ( VALID_GRUNT_MODELS.contains( soldier.GetModelName() ) )
+				soldier.SetModel( VALID_GRUNT_MODELS[ RandomInt( VALID_GRUNT_MODELS.len() ) ] )
+		}
+
 		// random titan weapon assignment
 		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 			GiveHumanTitanWeapon( soldier )

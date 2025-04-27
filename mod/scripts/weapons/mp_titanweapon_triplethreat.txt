@@ -39,6 +39,9 @@ WeaponData
 	"playermodel" 									"models/weapons/titan_triple_threat_og/w_titan_triple_threat_og.mdl"
 	"holstermodel"  								"models/weapons/titan_triple_threat_og/w_titan_triple_threat_og.mdl"
 
+	// northstar missing projectile kill replay
+	"projectile_killreplay_enabled"					"1"
+
 	MP_BASE
 	{
 		"damage_near_distance"							"1500"
@@ -500,6 +503,9 @@ WeaponData
 		{
 			// update bounce sound
 			"bounce_effect_table"							"bounce_arc"
+
+			// no longer has explosion delay, remove killreplay
+			"projectile_killreplay_enabled"					"1"
 		}
 
         rolling_rounds
