@@ -9,6 +9,8 @@ global function DecideRespawnPlayer
 global function RespawnAsPilot
 global function RespawnAsTitan
 global function TryGameModeAnnouncement
+// modified function, basically for gamemodes that needs to grant player control later after their join( eg. gruntmode )
+global function RemoveGamemodeAnnouncementForPlayer
 
 // modified callback: allowing change something before player actually respawns
 global function AddCallback_OnPlayerDecideRespawn
@@ -31,6 +33,7 @@ global function PlayerWatchesKillReplayWrapper // this function should share wit
 global function PlayerClassChangeToSpectator // shared with other files such _spectator.gnut
 global function SetPlayerCameraToIntermissionCam // shared
 global function GetReplayTimeSinceAttackerSpawned // shared with _gamestate_mp.nut
+global function SetEntityReplayStartTimeOffset // shared with _ai_gamemodes.gnut and extra_ai_spawner.gnut. allowing us offset reaper's replay start time while not changing their .ai.spawnTime
 global function StopKillReplayForPlayer // shared with _gamestate_mp.nut
 
 global function IsPlayerDeathsHidden // new added
@@ -93,6 +96,7 @@ struct
 	table<entity, bool> playerDisableForcedRespawn
 	float respawnDelayForced
 	table<entity, float> playerRespawnDelayForced
+	table<entity, float> entReplayStartTimeOffset
 
 	bool enableLateRespawn = true
 	array<string> respawnedPlayerUIDs = []
@@ -139,6 +143,9 @@ void function BaseGametype_Init_MPSP()
 	// funny ragdoll impact effects
 	AddCallback_OnPilotBecomesTitan( OnPilotBecomesTitan )
 	AddCallback_OnTitanBecomesPilot( OnTitanBecomesPilot )
+
+	// modified signal for handling gamemode announcement
+	RegisterSignal( "RemoveGamemodeAnnouncement" )
 }
 
 void function SetIntermissionCamera( entity camera )
@@ -336,6 +343,7 @@ void function HandleRespawningLateJoiners( entity player )
 void function DelayedGamemodeAnnouncement( entity player )
 {
 	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "RemoveGamemodeAnnouncement" )
 	
 	const float fadeInWait = 1.7
 	float connectionTime = Time()
@@ -347,6 +355,12 @@ void function DelayedGamemodeAnnouncement( entity player )
 	wait announcementDelay
 	if ( GetGameState() == eGameState.Playing )
 		TryGameModeAnnouncement( player )
+}
+
+// modified function, basically for gamemodes that needs to grant player control later after their join( eg. gruntmode )
+void function RemoveGamemodeAnnouncementForPlayer( entity player )
+{
+	player.Signal( "RemoveGamemodeAnnouncement" )
 }
 
 void function CodeCallback_OnClientDisconnected( entity player, string reason )
@@ -855,6 +869,27 @@ void function NotifyClientsOfTitanDeath( entity victim, var damageInfo )
 	if ( scriptDamageType & DF_VORTEX_REFIRE )
 		damageSourceId = eDamageSourceId.mp_titanweapon_vortex_shield
 
+	// no headshot think for titans, I think...?
+	
+	// modified: use struct so we can modify settings
+	EntityKilledEventStruct eventStruct
+	eventStruct.attackerEHandle = attackerEHandle
+	eventStruct.victimEHandle = victimEHandle
+	eventStruct.scriptDamageType = scriptDamageType
+	eventStruct.damageSourceId = damageSourceId
+
+	// added via AddCallback_OnSendingEntityKilledEvent
+	// shared from modified _codecallbacks_common.gnut
+	RunCallbacks_OnSendingEntityKilledEvent( victim, damageInfo, eventStruct )
+	//
+
+	// get modified contents to pass into remotecall
+	attackerEHandle = eventStruct.attackerEHandle
+	victimEHandle = eventStruct.victimEHandle
+	scriptDamageType = eventStruct.attackerEHandle
+	damageSourceId = eventStruct.damageSourceId
+	//
+
 	foreach ( player in GetPlayerArray() )
 		Remote_CallFunction_NonReplay( player, "ServerCallback_OnTitanKilled", attackerEHandle, victimEHandle, scriptDamageType, damageSourceId )
 }
@@ -1005,9 +1040,24 @@ float function GetReplayTimeSinceAttackerSpawned( entity attacker )
 			timeSinceAttackerSpawned = Time() - GetPlayerLastRespawnTime( attacker )
 		else if ( attacker.IsNPC() ) // npc
 			timeSinceAttackerSpawned = Time() - attacker.ai.spawnTime
+
+		// overrides: allowing offset replay start time for warpfall entities such as reapers
+		if ( attacker in file.entReplayStartTimeOffset )
+		{
+			timeSinceAttackerSpawned -= file.entReplayStartTimeOffset[ attacker ]
+			//print( "file.entReplayStartTimeOffset[ attacker ]: " + string( file.entReplayStartTimeOffset[ attacker ] ) )
+		}
 	}
 
 	return timeSinceAttackerSpawned
+}
+
+void function SetEntityReplayStartTimeOffset( entity ent, float offset )
+{
+	if ( !( ent in file.entReplayStartTimeOffset ) )
+		file.entReplayStartTimeOffset[ ent ] <- 0.0
+	if ( offset >= 0 ) // never offset value lower than 0 because in that case entity not yet spawned, replay will select a random npc
+		file.entReplayStartTimeOffset[ ent ] = offset
 }
 
 //void function PlayerWatchesKillReplayWrapper( entity player, entity attacker, float timeSinceAttackerSpawned, float timeOfDeath, float beforeTime, table replayTracker )
@@ -1104,6 +1154,11 @@ void function DecideRespawnPlayer( entity player, entity spawnpoint = null )
 	// have to manully clear dissolving effect for player before player.RespawnPlayer() is called
 	// this should be enough. also made a defensive fix in sh_death_package.gnut, EnsureDissolveEffectIsClearedForPlayer()
 	player.DissolveStop()
+
+	// MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise we can't change it anymore during this game
+	// EDIT: still broken after changing class. can't handle that case
+	player.kv.rendermode = 0
+	player.kv.renderamt = 255
 
 	// modified callback: allowing change something before player actually respawns
 	// Added via AddCallback_OnPlayerDecideRespawn

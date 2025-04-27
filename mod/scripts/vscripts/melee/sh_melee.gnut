@@ -121,6 +121,8 @@ struct
 	table<entity, string> npcLastExecutionUsed
 	// modified for bleedout
 	bool alwaysRandomSyncedMelee = false
+	// modified for us use different execution every time
+	table<entity, string> entLastExecutedByRef
 } file
 
 function MeleeShared_Init()
@@ -709,7 +711,11 @@ bool function PlayerTriesSyncedMelee( entity player, entity target )
 function TransferDamageHistoryToTarget( entity target )
 {
 	entity titanSoul = target.GetTitanSoul()
-	target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
+	// we can have damage history disabled now, needs to check
+#if SERVER
+	if ( !DamageHistory_IsDisabledOnEntity( target ) )
+#endif
+		target.e.recentDamageHistory = titanSoul.e.recentDamageHistory
 }
 
 bool function DoSyncedMelee( entity player, entity target )
@@ -761,6 +767,9 @@ bool function DoSyncedMelee( entity player, entity target )
 		player.p.lastExecutionUsed = action.ref
 	else if ( player.IsNPC() )
 		SetNPCLastUsedExecution( player, action.ref )
+	
+	// modified for us use a different execution every time
+	SetEntLastExecutedByRef( target, action.ref )
 
 	if ( actions in file.syncedMeleeServerCallbacks )
 		thread SyncedMeleeServerCallbacks( actions, action, player, target )
@@ -971,7 +980,7 @@ SyncedMelee ornull function FindBestSyncedMelee( entity attacker, entity target,
 	//if ( IsPilot( attacker ) )
 #if SERVER
 	if ( IsPilot( attacker ) && !hasExecutionRefOverride )
-#else // vanilla behavior
+#else // vanilla behavior, saved for client-side
 	if ( IsPilot( attacker ) )
 #endif
 	{
@@ -1033,7 +1042,7 @@ SyncedMelee ornull function FindBestSyncedMelee( entity attacker, entity target,
 				// PickRandomExecution has been reworked
 				// pass an array<SyncedMelee> is enough
 				//returnVal = PickRandomExecution( actions, attacker )
-				returnVal = PickRandomExecution( actions.syncedMelees, attacker )
+				returnVal = PickRandomExecution( actions.syncedMelees, attacker, target, false, file.alwaysRandomSyncedMelee )
 				break
 			}
 #endif
@@ -1126,7 +1135,7 @@ SyncedMelee ornull function FindBestSyncedMelee( entity attacker, entity target,
 
 			// "PickRandomExecution()" has been reworked, it can handle npc usage now
 			// we can still pick actions that been set as "canBePickedByRandomExecution" if we have ref override
-			returnVal = PickRandomExecution( bestActions, attacker, hasExecutionRefOverride )
+			returnVal = PickRandomExecution( bestActions, attacker, target, hasExecutionRefOverride, hasExecutionRefOverride || file.alwaysRandomSyncedMelee )
 		#endif
 #if MP
 	}
@@ -1513,18 +1522,22 @@ bool function IsAttackerRef( SyncedMelee ornull action, entity target )
 #if SERVER
 // rework here, we pass an array<SyncedMelee> is enough
 //SyncedMelee ornull function PickRandomExecution( SyncedMeleeChooser actions, entity attacker )
-SyncedMelee ornull function PickRandomExecution( array<SyncedMelee> syncedMelees, entity attacker, bool ignorePickDisabling = false )
+SyncedMelee ornull function PickRandomExecution( array<SyncedMelee> syncedMelees, entity attacker, entity target = null, bool ignorePickDisabling = false, bool targetRecivesDifferentExecution = false )
 {
 	array<SyncedMelee> possibleExecutions = []
 
 	//SyncedMelee neckSnap
 	SyncedMelee ornull neckSnap // neckSnap can be null!!!
-	string lastExecution = attacker.IsPlayer() ? attacker.p.lastExecutionUsed : GetNPCLastUsedExecution( attacker )
-	
+	string attackerLastUsedExecution = attacker.IsPlayer() ? attacker.p.lastExecutionUsed : GetNPCLastUsedExecution( attacker )
+	string targetLastExecutedBy
+	if ( IsValid( target ) )
+		targetLastExecutedBy = GetEntLastExecutedByRef( target )
+
 	// rework here, we pass an array<SyncedMelee> is enough
 	//foreach ( action in actions.syncedMelees )
 	foreach ( action in syncedMelees )
 	{
+		// default execution!
 		if ( action.ref == "execution_neck_snap" )
 			neckSnap = action
 
@@ -1538,10 +1551,17 @@ SyncedMelee ornull function PickRandomExecution( array<SyncedMelee> syncedMelees
 			continue
 
 		// if we have more than 1 execution to choose, don't repeatly using a same execution
-		if ( syncedMelees.len() > 1 && action.ref == lastExecution )
+		// this is vanilla behavior! but vanilla don't have the "syncedMelees.len() > 1" check...
+		if ( syncedMelees.len() > 1 && action.ref == attackerLastUsedExecution )
+			continue
+
+		// also don't make target receive same execution multiple times if we have more than 2 executions to choose
+		// this isn't vanilla behavior, so only do it when we pass a different variable
+		if ( targetRecivesDifferentExecution && syncedMelees.len() > 2 && action.ref == targetLastExecutedBy )
 			continue
 
 		// modified element in struct SyncedMelee. we can decide whether to pick this execution
+		// if we have ref override then there's no need to check this case
 		if ( !ignorePickDisabling && !action.canBePickedByRandomExecution )
 			continue
 		
@@ -1573,6 +1593,24 @@ string function GetNPCLastUsedExecution( entity npc )
 	if ( !( npc in file.npcLastExecutionUsed ) )
 		return ""
 	return file.npcLastExecutionUsed[ npc ]
+}
+
+// maybe, I mean maybe... npcs works better with a global value because they only have 1 life
+//void function SetNPCsLastUsedExecution( string execution )
+
+// modified for us use different execution every time
+void function SetEntLastExecutedByRef( entity ent, string execution )
+{
+	if ( !( ent in file.entLastExecutedByRef ) )
+		file.entLastExecutedByRef[ ent ] <- ""
+	file.entLastExecutedByRef[ ent ] = execution
+}
+
+string function GetEntLastExecutedByRef( entity ent )
+{
+	if ( !( ent in file.entLastExecutedByRef ) )
+		return ""
+	return file.entLastExecutedByRef[ ent ]
 }
 #endif // SERVER
 #endif // MP

@@ -71,6 +71,9 @@ WeaponData
 		dissolve_instant // use together with ninja_projectile. blink out upon impact
 		{
 		}
+		no_impact_effect // remove impact effect
+		{
+		}
 
 		// modded
 		data_knife_projectile
@@ -114,7 +117,7 @@ WeaponData
 		}
 		gm_sonarpulser // longer sonar
 		{
-			"grenade_ignition_time"							"*2"
+			"grenade_ignition_time"							"*1.333333" // 6s. was *2( 9s )
 		}
 
 		// gamemode kraber specifics
@@ -125,6 +128,16 @@ WeaponData
 		kunai_mode_amped // required if player has amped_tacticals
 		{
 			"regen_ammo_refill_rate"						"--92" // 1s cooldown with amped_tacticals
+		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
 		}
 	}
 }

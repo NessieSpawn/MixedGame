@@ -272,6 +272,10 @@ void function SuperSpectre_StartNukeSequence( entity npc, entity attacker = null
 	// nuke sequence checks so we don't do it over and over
 	if ( SuperSpectre_IsReaperDoingNukeSequence( npc ) )
 		return
+
+	// store nuke start time, so we can offset damage history
+	// mainly because at this point reapers no longer take damage and after explosion their damage history will become old
+	float nukeSequenceStartTime = Time()
 	
 	// do pre-setup
 	npc.ai.killShotSound = false
@@ -344,6 +348,14 @@ void function SuperSpectre_StartNukeSequence( entity npc, entity attacker = null
 
 	// wait for effect grow
 	WaitFrame()
+
+	// modified behavior: offset stored damage history time if we did self-destruction
+	if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
+	{
+		float timeElapsed = Time() - nukeSequenceStartTime
+		DamageHistory_OffsetDamageTime( npc, timeElapsed )
+	}
+
 	// kill the reaper
 	// now reworked with SuperSpectre_SetFreezeDuringNukeSequence(): create a temp reaper and gib it
 	// don't gib real reaper, left for SuperSpectreNukes() to destroy them

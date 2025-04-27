@@ -100,12 +100,16 @@ void function PlayerAssistScoreEventForNPCKilled( entity victim, entity attacker
     if ( victim.IsTitan() )
     {
         // titan damage history stores in titanSoul
+        // soul checks now wrapped inside ScoreEvent_PlayerAssist(), no longer needs extra checks
+        /*
         entity titanSoul = victim.GetTitanSoul()
         if ( IsValid( titanSoul ) )
         {
             // shared from _score.nut
             ScoreEvent_PlayerAssist( titanSoul, attacker, "TitanAssist" )
         }
+        */
+        ScoreEvent_PlayerAssist( victim, attacker, "TitanAssist" )
     }
 }
 

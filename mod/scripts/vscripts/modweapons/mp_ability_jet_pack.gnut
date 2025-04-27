@@ -26,8 +26,6 @@ const float HOVER_SOUND_DURATION = 2.2 // should relap a sound if ends, no need 
 
 const int JET_PACK_AMMO_REDUCE_PER_BURST = 25
 const int JET_PACK_AMMO_REDUCE_PER_TICK = 3
-
-const bool JET_PACK_FREEFALL_SOUND_ENABLED = false
 // weapon management
 const float JET_PACK_WEAPON_DEPLOY_DELAY = 0.0 // no delay for deploying weapon
 
@@ -49,7 +47,6 @@ const float JET_PACK_GLIDE_DURATION_GRUNT = 0.8 // longer glide to make controll
 const int JET_PACK_AMMO_REDUCE_PER_BURST_GRUNT = 40 // higher so player won't have bad looping sound
 const int JET_PACK_AMMO_REDUCE_PER_TICK_GRUNT = 5
 
-const bool JET_PACK_FREEFALL_SOUND_ENABLED_GRUNT = true // emit freefall sound after lifting
 const float JET_PACK_WEAPON_DEPLOY_DELAY_GRUNT = 0.4  // player needs to wait for 0.3s before they can pull out weapon
 
 // use this function to add callback to movements
@@ -69,7 +66,7 @@ void function MpAbilityJetPack_Init()
     RegisterSignal( "JetPackThinkEnd" )
     RegisterSignal( "JetPackBurst" )
     RegisterSignal( "JetPackLift" )
-    RegisterSignal( "StartGlideThink" )
+    RegisterSignal( "JetPackGlideThink" )
     RegisterSignal( "StartFreeFallSound" )
     RegisterSignal( "ConsumeJetPackAmmo" ) // this should signal a table, but it requires file to be untyped
     RegisterSignal( "ManageWeaponDeployment" )
@@ -476,8 +473,8 @@ vector function GainVelocityVertical( vector vel, float speedGain, float minSpee
 void function JetPackGlideThink( entity player, entity weapon )
 {
     player.EndSignal( "OnDestroy" )
-    player.Signal( "StartGlideThink" )
-    player.EndSignal( "StartGlideThink" )
+    player.Signal( "JetPackGlideThink" )
+    player.EndSignal( "JetPackGlideThink" )
     // end thread when weapon start new burst or lift
     weapon.EndSignal( "JetPackBurst" )
     weapon.EndSignal( "JetPackLift" )
@@ -506,7 +503,7 @@ void function JetPackGlideThink( entity player, entity weapon )
         WaitFrame()
     }
 
-    if( IsValid( player ) ) // don't reset gravity if triggered another "StartGlideThink"
+    if( IsValid( player ) ) // don't reset gravity if triggered another "JetPackGlideThink"
         RestorePlayerPermanentGravity( player )
 }
 
@@ -562,14 +559,6 @@ void function ManageJetPackPlayerWeaponDeployment( entity player, entity weapon 
 
 void function JumpJetFreeFallSound( entity player, entity weapon )
 {
-    bool emitSound = JET_PACK_FREEFALL_SOUND_ENABLED
-    bool isGruntJet = weapon.HasMod( "gm_flyer" )
-    if ( isGruntJet )
-        emitSound = JET_PACK_FREEFALL_SOUND_ENABLED_GRUNT
-
-    if ( !emitSound )
-        return
-
     player.EndSignal( "OnDestroy" )
     player.Signal( "StartFreeFallSound" )
     player.EndSignal( "StartFreeFallSound" )
@@ -607,11 +596,12 @@ void function JumpJetFreeFallSound( entity player, entity weapon )
     )
 
     // wait for player drop to ground or start traversing
-    while ( !player.IsOnGround() && !player.IsTraversing() )
+    // zipline also cancels fall sound
+    while ( !player.IsOnGround() && !player.IsTraversing() && !player.IsZiplining() )
         WaitFrame( true ) // ignore 10fps limitation to have better effect
 }
 
-bool function IsPlayerNearGround( entity player, float checkHeight = 256 )
+bool function IsPlayerNearGround( entity player, float checkHeight = 200 ) // default convar "pilot_freefall_sound_height" value is 200
 {
 	array<entity> ignoreEnts
 	// always ignore all npcs and players, try to hit onto ground

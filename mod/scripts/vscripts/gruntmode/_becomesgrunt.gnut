@@ -85,6 +85,7 @@ void function BecomesGruntMode_Init()
 
 	// score
 	ScoreEvent_DisableCallSignEvent( true ) // since players are grunts, never show callsign things
+	ScoreEvent_DisablePilotAssist( true ) // since players are grunts, never do assist score for killing each other
 	// health regen
 	HealthRegen_SetCustomRegenDelay( 6.0, 6.0, 6.0 ) // grunt's health regen delay is forced to be 6.0(no matter pas_fast_health_regen is equiped)
 	HealthRegen_SetCustomRegenRate( 4.0, 4.0 ) // grunt's health regen rate is forced to be 4.0
@@ -194,7 +195,7 @@ void function OnPlayerDealDamage( entity victim, var damageInfo )
 void function OnPlayerPostDamage( entity player, var damageInfo )
 {
 	// playlistvar check
-	if ( GetCurrentPlaylistVarInt( "grunt_player_protection", 1 ) == 0 )
+	if ( GetCurrentPlaylistVarInt( "grunt_player_protection", 0 ) == 0 )
 		return
 
 	// general check
@@ -511,8 +512,13 @@ void function ReaperConfig( entity soldier )
 	GruntModeFriendlyHighlight( soldier )
 
 	// even stronger
-	soldier.SetMaxHealth( 4600 ) // was 5000
-	soldier.SetHealth( 4600 )
+	//soldier.SetMaxHealth( 4600 ) // was 5000
+	//soldier.SetHealth( 4600 )
+
+	soldier.SetMaxHealth( 5300 )
+	soldier.SetHealth( 5300 )
+
+	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.25 ) // less likely can be in pain animation( at least 1250 damage/3000 repeat damage required, makes only player/titan can trigger their pain )
 }
 
 void function TitanConfig( entity soldier )
@@ -668,10 +674,13 @@ void function InGameSpawnFromDroppod( entity player )
 
 	//print( "player.s.respawnCount: " + string( player.s.respawnCount ) )
 
-	// first time respawn? take 1 frame hold
+	// first time respawn? take 1 frame hold, otherwise player will face wrong direction( maybe it's fixed by SetAbsOrigin? idk )
 	if ( player.s.respawnCount == 1 )
 	{
+		RemoveGamemodeAnnouncementForPlayer( player ) // remove gamemode announcement, we send it after player landing
+		
 		// don't get killed during this state
+		HideName( player )
 		player.SetInvulnerable()
 		player.NotSolid()
 		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
@@ -682,10 +691,14 @@ void function InGameSpawnFromDroppod( entity player )
 		ScreenFadeFromBlack( player, 1.0, 0.5 ) // bit shorter hold time because this isn't very stable due to player respawn
 		wait 0.2 // seems more stable?
 
+		ShowName( player )
 		player.ClearInvulnerable()
 		player.Solid()
 		player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
 		player.SetNoTarget( false )
+
+		// do gamemode announcement
+		thread WaitForPlayerDisembarksDroppod( player )
 	}
 
 	//SpawnFromDroppod( player, 6 ) // less droppod lifetime, hopefully reduce entity count
@@ -696,6 +709,19 @@ void function InGameSpawnFromDroppod( entity player )
 	//	SpawnFromDroppod( player, 5 )
 
 	SpawnFromDroppod( player, -1, true ) // infinite hold time if player stays inside, grants invincibility
+}
+
+void function WaitForPlayerDisembarksDroppod( entity player )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+
+	// wait for player parent update
+	WaitFrame()
+	while ( IsValid( player.GetParent() ) )
+		WaitFrame()
+	
+	TryGameModeAnnouncement( player )
 }
 
 void function DisableBoostBar( entity player )
@@ -1134,14 +1160,16 @@ void function InitGruntModeSpawnerSettings()
 	ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson"] )
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_soldier", ["mp_weapon_rocket_launcher", "mp_weapon_mgl"] )
 	ExtraSpawner_SetNPCGrenadeWeapons( "npc_soldier", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_electric_smoke", "mp_weapon_grenade_emp"] )
-	// buff double take damage and fire rate, disable archers fire at human players and increase their damage against titans
-	ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_higher_damage", "npc_shorter_rest", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
+	// disable archers fire at human players and increase their damage against titans
+	ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
 	
 	ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2"] )
 	// removed arc launcher cuz they're bit too powerful
 	ExtraSpawner_SetNPCAntiTitanWeapons( "npc_spectre", ["mp_weapon_mgl", "mp_weapon_defender"] )
 	// spectres don't throw grenades, just keep here
 	//ExtraSpawner_SetNPCGrenadeWeapons( "npc_spectre", ["mp_weapon_frag_grenade", "mp_weapon_thermite_grenade", "mp_weapon_grenade_emp"] )
+	// buff double take damage and fire rate
+	ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage", "npc_shorter_rest"] )
 
 	//ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] ) // spitfire have both holosight and aog, not adding
 	ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] )
@@ -1183,8 +1211,24 @@ void function InitGruntModeSpawnerSettings()
 	// modified function in class_wallrun.gnut
 	Wallrun_SetProtectionForRodeoPlayerStyle( eRodeoPlayerProtectionStyle.PROTECTION_AGAINST_NON_AGGRO_NPC ) // modified function in class_wallrun.gnut. player can be damaged by npcs aggro at them
 
+	// modified functions in _base_gametype.gnut
+	GameMode_SetCanUseNPCAsLastAttacker( true ) // allow use npcs as last attacker, so we can get more accurate score from npcs
+	GameMode_SetUseLastValidAttacker( true ) // allow finding from entity's damage history for last valid attacker, so we can get more accurate score from npcs
+
+	// damage history settings, for better handling npc score
+	GameMode_SetPlayerDamageHistoryLifeTime( 30.0 ) // modified function from _codecallbacks.gnut
+	TitanHealth_SetNPCTitanDamageHistoryLifeTime( 30.0 ) // modified function from _titan_health.gnut
+	ExtraSpawner_SetNPCDamageHistoryLifeTime( 12.0 )
+
+	// modified function in _ai_suicide_spectres.gnut
+	SuicideSpectre_SetUseGlobalChainExplosionTimer( false ) // sets npc owned ticks to have constant explosion timer. chain explosion delay is calculated per player
+
 	// modified function in levels_util.gnut
 	Levels_SetNPCAssistScoreEnabled( true ) // award assist score to players on npc killing each other, so players won't complain
+
+	// modified function in sh_damage_history.gnut
+	DamageHistory_EnableOffsetDamageTimeForSelfDestruction( true ) // move damage time along with time of self-destruction, that way we can get more accurate damage time on them
+	DamageHistory_SetNPCKillStealPreventionTime( 3.0 ) // transfer score to player if npc killed an target
 }
 
 //////////////////////////////////////////////

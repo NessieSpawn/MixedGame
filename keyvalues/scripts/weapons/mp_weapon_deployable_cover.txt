@@ -30,8 +30,28 @@ WeaponData
 		hard_cover_always // always function as hard cover
 		{
 		}
-		bleedout_balance // done in scripts -- nerfed health
+		bleedout_balance // done in scripts -- nerfed health, use together with hard_cover_always
 		{
+		}
+
+		// gruntmode specific
+		grunt_mode // no regen mod
+		{
+			"regen_ammo_refill_rate"						"*0.0"	
+		}
+
+		gm_fortress // heavily nerfed health, use together with hard_cover_always
+		{
+		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
 		}
 	}
 }

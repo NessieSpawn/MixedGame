@@ -14,6 +14,41 @@ global function AnimEvent_detach_pistol
 
 global function AnimEvent_headshot_death
 global function AnimEvent_headstab_death
+
+// general visual flag
+global function AnimEvent_turnoff_executionDOF
+
+// globalize all other function that can may used by modded executions!!
+global function StealP2011MuzzleFlash
+global function AnimEvent_back_shot_high
+global function AnimEvent_back_shot_low
+global function AnimEvent_front_shot_high
+global function AnimEvent_headstab_death_headshotFX
+global function PhaseShiftExplodeSound
+global function PlaySoundsForBodyType
+global function GrappleStabSound
+global function GrappleBodyfallSound
+global function AnimEvent_attach_pulseBlade
+global function AnimEvent_play_sonar_execution_sounds
+global function AnimEvent_mriPulseEvent
+global function AnimEvent_Cloak_On
+global function AnimEvent_Cloak_Off
+global function AnimEvent_mechanical_sparks_sound_event
+global function AnimEvent_attach_wingman
+global function AnimEvent_spawn_decoy1
+global function AnimEvent_spawn_decoy2
+global function AnimEvent_spawn_decoy3
+global function AnimEvent_holopilot_headshot_sfx
+global function HoloPilot_Execution_MuzzleFlash
+global function AnimEvent_spawn_awall
+global function AnimEvent_CreateAwall
+global function AnimEvent_awall_victim_start_sfx
+global function AnimEvent_awall_victim_shield_sfx
+global function AnimEvent_awall_victim_impact01_sfx
+global function AnimEvent_awall_victim_impact02_sfx
+global function AnimEvent_awall_victim_impact03_sfx
+global function AnimEvent_awall_victim_bodyfall_sfx
+global function AnimEvent_attach_wingman_awall_execution
 #endif
 
 const SWORD_MODEL = $"models/weapons/bolo_sword/v_bolo_sword.mdl"
@@ -41,6 +76,10 @@ function MeleeSyncedHumanShared_Init()
 
 	RegisterSignal( "DeleteAWall" ) //ForAWallExecution
 	RegisterSignal( "PlayNextSound" ) //ForAwallExecution, generally could be used when we have long chains of sounds that need to be played that are different for robopilots versus non-robopilots
+
+	// modified signals to cancel out other scripts
+	RegisterSignal( "AnimEvent_headshot_death" )
+	RegisterSignal( "AnimEvent_headstab_death" )
 #endif
 /*
 #if SERVER
@@ -387,7 +426,9 @@ function MeleeSyncedHumanShared_Init()
 
 		    	AnimEventData headStabEvent
 		    	headStabEvent.eventName = "headshot_death" //Use head shot instead of headstab for this execution
-		    	headStabEvent.callback = AnimEvent_headshot_death
+		    	// MODIFIED: do stab effect while doing headshot FX
+				//headStabEvent.callback = AnimEvent_headshot_death
+				headStabEvent.callback = AnimEvent_headstab_death_headshotFX
 
 		    	AnimEventData turnoffExecutionDOFEvent
 		    	turnoffExecutionDOFEvent.eventName = "turnoff_execution_dof"
@@ -600,11 +641,11 @@ void function AnimEvent_attach_knife( entity ent )
 }
 */
 
-void function AnimEvent_attach_knife_common( entity ent, asset knifeModel )
+void function AnimEvent_attach_knife_common( entity ent, asset knifeModel, string attachment = "KNIFE" )
 {
 	entity knife = CreatePropDynamic( knifeModel )
 	knife.kv.targetname = KNIFE_TARGETNAME
-	knife.SetParent( ent, "KNIFE", false, 0.0 )
+	knife.SetParent( ent, attachment, false, 0.0 )
 
 	OnThreadEnd(
 	function() : ( knife )
@@ -613,7 +654,6 @@ void function AnimEvent_attach_knife_common( entity ent, asset knifeModel )
 			{
 				knife.Destroy()
 			}
-
 		}
 	)
 
@@ -717,8 +757,10 @@ void function AnimEvent_headshot_death( entity ent )
 	// defensive fix for executing a prop
 	if ( ent.IsPlayer() || ent.IsNPC() )
 	{
-		if ( TryHeadshotDeathFX( ent ) )
-			return
+		// do we really want to skip headshot effects?
+		//if ( TryHeadshotDeathFX( ent ) )
+		//	return
+		TryHeadshotDeathFX( ent )
 	}
 	// defensive fix for executing certain prop models
 	if ( tagIdx > 0 )
@@ -728,6 +770,9 @@ void function AnimEvent_headshot_death( entity ent )
 		else
 			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_BLOOD_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
 	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headshot_death" )
 	#endif
 }
 
@@ -787,6 +832,33 @@ void function AnimEvent_headstab_death( entity ent )
 		else
 			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
 	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headstab_death" )
+	#endif
+}
+
+// MODIFIED: do stab effect while doing headshot FX
+void function AnimEvent_headstab_death_headshotFX( entity ent )
+{
+	#if SERVER
+	int tagIdx = ent.LookupAttachment( "HEADSHOT" )
+
+	// defensive fix for executing a prop
+	if ( ent.IsPlayer() || ent.IsNPC() )
+		TryHeadshotDeathFX( ent )
+
+	// defensive fix for executing certain prop models
+	if ( tagIdx > 0 )
+	{
+		if ( ent.IsMechanical() )
+			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( MECHANICAL_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
+		else
+			StartParticleEffectOnEntityWithPos( ent, GetParticleSystemIndex( HUMAN_STAB_FX ), FX_PATTACH_POINT_FOLLOW, tagIdx, <0, 0, 0>, < 0, 0, 0 > )
+	}
+
+	// modified signals to cancel out other scripts
+	ent.Signal( "AnimEvent_headstab_death" )
 	#endif
 }
 
@@ -885,6 +957,16 @@ void function AnimEvent_mriPulseEvent( entity ent )
 
 	int meleeAttackerTeam = syncedMeleeAttacker.GetTeam()
 
+	// defensive fix for executing modded prop models
+	int headShotAttachmentIndex = ent.LookupAttachment( "HEADSHOT" )
+	if ( headShotAttachmentIndex < 0 )
+		return
+	
+	float startTime = Time()
+	Highlight_ClearEnemyHighlight( ent )
+	Highlight_SetEnemyHighlightWithParams( ent, "enemy_sonar_execution", <startTime, Time(), 0>, ent.GetAttachmentOrigin( headShotAttachmentIndex ) )
+
+	/*
 	int headShotAttachmentIndex
 	float startTime = Time()
 
@@ -892,6 +974,7 @@ void function AnimEvent_mriPulseEvent( entity ent )
 	headShotAttachmentIndex = ent.LookupAttachment( "HEADSHOT" )
 	//Highlight_SetEnemyHighlightWithParam1( ent, "enemy_sonar_execution", ent.GetAttachmentOrigin( headShotAttachmentIndex ) )
 	Highlight_SetEnemyHighlightWithParams( ent, "enemy_sonar_execution", <startTime, Time(), 0>, ent.GetAttachmentOrigin( headShotAttachmentIndex ) )
+	*/
 
 	ent.EndSignal( "OnDestroy" )
 

@@ -13,7 +13,7 @@ global function OnWeaponNpcPrimaryAttack_peacekraber
 
 
 const PEACEKRABER_MAX_BOLTS = 11 // this is the code limit for bolts per frame... do not increase.
-const float PEACEKRABER_BOLT_LIFETIME = 0.8
+const float PEACEKRABER_BOLT_LIFETIME = 0.6 // was 0.8
 bool isWeaponActive = false;
 entity clientWeapon = null;
 
@@ -62,6 +62,11 @@ void function OnWeaponOwnerChanged_weapon_peacekraber (entity weapon, WeaponOwne
 	{
 		isWeaponActive = false
 	}
+	#endif
+
+	// disable run_and_gun on server-side
+	#if SERVER
+	Disable_RunAndGun_ServerSide( weapon, changeParams )
 	#endif
 }
 #if CLIENT
@@ -170,8 +175,10 @@ function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, bool pl
 
 				if ( weapon.GetWeaponClassName() == "mp_weapon_peacekraber" )
 				{
+					// modified to change lifetime, for balance
 					//bolt.SetProjectileLifetime( RandomFloatRange( 1.0, 1.3 ) )
 					bolt.SetProjectileLifetime( PEACEKRABER_BOLT_LIFETIME )
+					//bolt.SetProjectileLifetime( RandomFloatRange( 0.50, 0.65 ) ) // inconsist lifetime, similar to other shotgun though
 				}
 				else
 					bolt.SetProjectileLifetime( RandomFloatRange( 0.50, 0.65 ) )

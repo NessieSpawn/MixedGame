@@ -107,7 +107,8 @@ WeaponData
 			//smart ammo
 		//	"smart_ammo_weapon_type"						"homing_missile"
 		//	"smart_ammo_search_distance"  					"15000"
-		//	"smart_ammo_max_targeted_burst"					"7"
+		//	"smart_ammo_max_targets"						"1" // was default value. don't know how many
+		//  "smart_ammo_max_targeted_burst"					"1" // was 7
 		//	"smart_ammo_targeting_time_min"					"0.45"//"0.37"
 		//	"smart_ammo_targeting_time_max"					"0.8"//"0.65"
 		//	"smart_ammo_targeting_time_min_npc"				"0.1"
@@ -282,12 +283,13 @@ WeaponData
 		//	"titanarmor_critical_hit_required"          "0"
 		//}
 
-		no_ironsight_weapon // should do a check in script to avoid using together with other optics
-		{
+		// should've handled by "stabilizer"
+		// no_ironsight_weapon // should do a check in script to avoid using together with other optics
+		// {
 			// bodygroup
-			"bodygroup1_set"	"0" // stock scope
-			"bodygroup_ads_scope_set"	"0" // scope sight
-		}
+		// 	"bodygroup1_set"	"0" // stock scope
+		// 	"bodygroup_ads_scope_set"	"0" // scope sight
+		// }
 
 		bleedout_balance
 		{
@@ -353,8 +355,8 @@ WeaponData
 		// gruntmode specific
 		gm_heavysniper // high titan damage kraber, bypass titan armor
 		{
-			"damage_near_value_titanarmor"					"++400" // 830, 3 shots = 2490
-			"damage_far_value_titanarmor" 					"++400" // 830, 3 shots = 2490
+			"damage_near_value_titanarmor"					"++375" // 805 was ++400(830)
+			"damage_far_value_titanarmor" 					"++375" // 805 was ++400(830)
 
 			"titanarmor_critical_hit_required"          	"0"
 
@@ -373,6 +375,36 @@ WeaponData
 
 		//	"npc_accuracy_multiplier_pilot"					"++2.0" // 3.0
 		//}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		// maybe use together with stabilizer for no-sniper-scope view...
+		// TOO BAD is that we can't use this without client-side install because respawn hardcoded some muzzle flash on client-side
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			// FFS this cannot be changed, otherwise npcs will crash client-side without mod installed
+			// just make sure weapon drops are disabled when using this
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
+
+			// mozambique cannot rechamber
+			// guess we changing it to a fake behavior: merge reload time into base rechamber time
+			// this equals to infinite ammo clip, at a cost of lower fire rate
+			// not compatible with extended ammo
+			"ammo_clip_size"   								"1" // causes desync on manual reload but whatever
+			"rechamber_time"  								"0"
+			// 2.225 = 1.60(kraber's rechamber_time) + 2.5(kraber's reload_time) / 4(kraber's ammo_clip_size)
+			// this fake reload shouldn't be interruptable like rechambering... but whatever, just to compensate
+			"reload_time" 									"2.225"
+			"reload_time_late1" 							"1.1125" // 2.225 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
+			"reloadempty_time"								"2.225"
+			"reloadempty_time_late1"						"1.1125" // 2.225 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
+		
+			// due that we're already modifying client-side, let's just remove scope
+			"bodygroup_ads_scope_set"						"0"
+		}
 
 		// reached 30 mods( with 8 mods removed above, 30 is max )
 	}

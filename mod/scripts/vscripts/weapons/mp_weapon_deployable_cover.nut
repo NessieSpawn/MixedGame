@@ -22,6 +22,8 @@ const DEPLOYABLE_SHIELD_HEALTH = 850
 
 // for bleedout_balance
 const DEPLOYABLE_SHIELD_HEALTH_NERFED = 380
+// for gm_fortress
+const DEPLOYABLE_SHIELD_HEALTH_GRUNT = 580 // shield captain shield value is 100. since this shield cannot be moved and owner weapon is limited, it can be higher?
 
 const DEPLOYABLE_SHIELD_RADIUS = 84
 const DEPLOYABLE_SHIELD_HEIGHT = 89
@@ -101,9 +103,12 @@ var function OnWeaponTossReleaseAnimEvent_weapon_deployable_cover( entity weapon
 		PlayerUsedOffhand( player, weapon )
 
 		#if SERVER
+		// change every projectile sound to be sync with client!
+		/*
 		string projectileSound = GetGrenadeProjectileSound( weapon )
 		if ( projectileSound != "" )
 			EmitSoundOnEntity( deployable, projectileSound )
+		*/
 
 		weapon.w.lastProjectileFired = deployable
 		#endif
@@ -111,6 +116,9 @@ var function OnWeaponTossReleaseAnimEvent_weapon_deployable_cover( entity weapon
 		#if BATTLECHATTER_ENABLED && SERVER
 			TryPlayWeaponBattleChatterLine( player, weapon )
 		#endif
+		string projectileSound = GetGrenadeProjectileSound( weapon )
+		if ( projectileSound != "" )
+			EmitSoundOnEntity( deployable, projectileSound )
 	}
 	
 	#if SERVER && MP
@@ -163,7 +171,7 @@ void function OnDeployableCoverPlanted( entity projectile )
 }
 
 #if SERVER
-// modified to add: "bleedout_balance"
+// modified to add: "bleedout_balance" and "gm_fortress"
 void function DeployCover( entity projectile, vector origin, vector angles, float duration = DEPLOYABLE_SHIELD_DURATION, int health = DEPLOYABLE_SHIELD_HEALTH )
 {
 	Assert( IsValid( projectile ) )
@@ -174,6 +182,8 @@ void function DeployCover( entity projectile, vector origin, vector angles, floa
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
 	if( mods.contains( "bleedout_balance" ) )
 		health = DEPLOYABLE_SHIELD_HEALTH_NERFED
+	if ( mods.contains( "gm_fortress" ) )
+		health = DEPLOYABLE_SHIELD_HEALTH_GRUNT
 
 	EmitSoundOnEntity( projectile, "Hardcover_Shield_Start_3P" )
 
@@ -194,6 +204,21 @@ void function DeployCover( entity projectile, vector origin, vector angles, floa
 	vortexSphere.DisableVortexBlockLOS()
 
 	UpdateShieldWallColorForFrac( vortexSphere.e.shieldWallFX, GetHealthFrac( vortexSphere ) )
+
+	// add duration bar for modded weapon
+	entity owner = projectile.GetThrower()
+	if ( IsValid( owner ) && owner.IsPlayer() )
+	{
+		array<entity> offhandWeapons = owner.GetOffhandWeapons()
+		foreach ( weapon in offhandWeapons )
+		{
+			if ( !weapon.HasMod( "burn_card_weapon_mod" ) )
+			{
+				StatusEffect_AddTimed( weapon, eStatusEffect.simple_timer, 1.0, duration, duration )
+				break
+			}
+		}
+	}
 
 	OnThreadEnd(
 		function() : ( vortexSphere, projectile, mods )
@@ -257,9 +282,9 @@ void function DeployAmpedWall( entity grenade, vector origin, vector angles )
 		foreach ( weapon in offhandWeapons )
 		{
 			//if ( weapon.GetWeaponClassName() == grenade.GetWeaponClassName() ) // function doesn't exist for grenade entities
+			// checks modified for us handling non-burn-mod weapons better! we also wants hard cover to have use bar, they don't seem to have "ammo_timed" cooldown_type though...
 			//if ( weapon.GetWeaponClassName() == "mp_weapon_deployable_cover" )
-			// modified for skill nerfed cover
-			if ( weapon.GetWeaponClassName() == "mp_weapon_deployable_cover" || weapon.HasMod( "hard_cover_always" ) )
+			if ( !weapon.HasMod( "burn_card_weapon_mod" ) )
 			{
 				StatusEffect_AddTimed( weapon, eStatusEffect.simple_timer, 1.0, DEPLOYABLE_SHIELD_DURATION, DEPLOYABLE_SHIELD_DURATION )
 				break

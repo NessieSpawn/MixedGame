@@ -29,12 +29,41 @@ void function FakeWorldModelForWeapon_Init()
 {
     // adding fake model for fake weapons
 	RegisterSignal( "DestroyFakeModel" )
-	AddCallback_OnClientConnected( OnClientConnected )
+	RegisterSignal( "FakeModelWeaponShown" )
+
+	// change to handle both npc and player weapons
+    //AddCallback_OnClientConnected( OnClientConnected )
+    AddCallback_EntitiesDidLoad( EntitiesDidLoad )
+	AddCallback_WeaponDropped( WeaponDropped )
 }
 
 void function OnClientConnected( entity player )
 {
     thread FakeWeaponModelModsThink( player )
+}
+
+void function WeaponDropped( entity weapon )
+{
+	// hidden weapon has dropped!
+	//print( string( weapon ) + " has been dropped!" )
+	if ( weapon in file.weaponsHiddenByAutoThink )
+	{
+		//print( "it is hidden by _pilot_using_titanweapon.gnut, restoring visibility" )
+		// restore visibility
+		// maybe no need to do extra checks
+		//if ( !WeaponHasReplacementModel( weapon ) || !ShouldCurrentWeaponHideOrgWeapon( weapon ) )
+		//{
+			weapon.kv.rendermode = 0
+			weapon.kv.renderamt = 255
+			delete file.weaponsHiddenByAutoThink[ weapon ]
+		//}
+	}
+}
+
+// for handling both npc and player weapons
+void function EntitiesDidLoad()
+{
+    thread FakeWeaponModelModsThink_Global()
 }
 
 void function FakeWeaponModelModsThink( entity player )
@@ -73,6 +102,7 @@ void function FakeWeaponModelModsThink( entity player )
 				{
 					weapon.kv.rendermode = 0
 					weapon.kv.renderamt = 255
+					weapon.Signal( "FakeModelWeaponShown" ) // to stop TrackWeaponAutoHidden()
 					delete file.weaponsHiddenByAutoThink[ weapon ]
 				}
 			}
@@ -99,10 +129,12 @@ void function FakeWeaponModelModsThink( entity player )
 }
 
 // restore weapon visibility on owner death
+// or maybe not. best method is we attach a model to dropped weapons
+// nah, attaching model to it isn't reliable because their model won't have suitable attachments...
 void function TrackWeaponAutoHidden( entity owner, entity weapon )
 {
-	owner.EndSignal( "OnDestroy" )
 	weapon.EndSignal( "OnDestroy" )
+	weapon.EndSignal( "FakeModelWeaponShown" )
 
 	OnThreadEnd
 	(
@@ -120,10 +152,77 @@ void function TrackWeaponAutoHidden( entity owner, entity weapon )
 		}
 	)
 
-	owner.WaitSignal( "OnDeath" )
+	WaitSignal( owner, "OnDeath", "OnDestroy" )
 }
 
-entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", bool hideOrgWeapon = true )
+void function FakeWeaponModelModsThink_Global()
+{
+	while ( true )
+    {
+        // try to create ourselves a fake weapon model if we have titan weapon active
+        // also hide that weapon
+        WaitFrame( true ) // bypass script fps limit for better visual
+
+		array<entity> guysCanUseWeapon
+        guysCanUseWeapon.extend( GetPlayerArray() )
+        guysCanUseWeapon.extend( GetNPCArray() )
+
+        foreach ( entity guy in guysCanUseWeapon )
+        {
+			if ( !IsAlive( guy ) )
+				continue
+
+			array<entity> weapons
+			weapons.extend( guy.GetMainWeapons() )
+			weapons.extend( guy.GetOffhandWeapons() )
+	
+			foreach ( entity weapon in weapons )
+			{
+				if ( !( weapon in file.weaponsHiddenByAutoThink ) )
+				{
+					if ( WeaponHasReplacementModel( weapon ) && ShouldCurrentWeaponHideOrgWeapon( weapon ) )
+					{
+						//print( "trying to hide it!" )
+						weapon.kv.rendermode = 4
+						weapon.kv.renderamt = 0
+						file.weaponsHiddenByAutoThink[ weapon ] <- true
+						thread TrackWeaponAutoHidden( guy, weapon )// restore weapon visibility on owner death
+					}
+				}
+				else
+				{
+					if ( !WeaponHasReplacementModel( weapon ) || !ShouldCurrentWeaponHideOrgWeapon( weapon ) )
+					{
+						weapon.kv.rendermode = 0
+						weapon.kv.renderamt = 255
+						weapon.Signal( "FakeModelWeaponShown" ) // to stop TrackWeaponAutoHidden()
+						delete file.weaponsHiddenByAutoThink[ weapon ]
+					}
+				}
+			}
+
+			entity activeWeapon = guy.GetActiveWeapon()
+			if ( IsValid( activeWeapon ) )
+			{
+				if ( WeaponHasReplacementModel( activeWeapon ) )
+				{
+					//print( "we got pilot's active titan weapon: " + string( activeWeapon ) )
+					if ( !( activeWeapon in file.weaponFakeProp ) )
+						file.weaponFakeProp[ activeWeapon ] <- null
+
+					if ( !IsValid( file.weaponFakeProp[ activeWeapon ] ) )
+					{
+						entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, GetCurrentWeaponReplacementModel( activeWeapon ), GetCurrentWeaponReplacementModelAttachment( activeWeapon ), false )
+						fakeWeapon.kv.modelscale = GetCurrentWeaponReplacementModelScale( activeWeapon )
+						file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+					}
+				}
+			}
+		}
+	}
+}
+
+entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, string attachment = "PROPGUN", bool hideOrgWeapon = true, bool ignoreKeepPrimaryInHand = false )
 {
     //print( "RUNNING FakeWorldModel_CreateForWeapon()" )
 	entity owner = weapon.GetWeaponOwner()
@@ -134,16 +233,30 @@ entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, stri
 		return
     
 	entity prop = CreatePropDynamic( model, owner.GetOrigin(), owner.GetAngles() )
+	// for players, their weapon only has first person model status and we can't bind it for third person model
+	// but for NPCs, I think better method is we bind this weapon to org weapon, not their hand
+	// NONONO this won't work!!! most weapon model don't have proper attachment for each other!
+	// guess currently we just leave model life time think for player only, do need another think for npcs
+	/*
+	if ( owner.IsPlayer() )
+	{
+		prop.SetParent( owner, attachment )
+		thread TrackFakeModelLifeTime( weapon, owner, prop, hideOrgWeapon, ignoreKeepPrimaryInHand )
+	}
+	else
+		prop.SetParent( weapon, "REF" )
+	*/
 	prop.SetParent( owner, attachment )
 	prop.Highlight_SetInheritHighlight( true ) // setup highlight
 	//print( "Creating fake model!" )
 
-	thread TrackFakeModelLifeTime( weapon, owner, prop, hideOrgWeapon )
+	// start lifetime think. this should be compatible with npc usage
+	thread TrackFakeModelLifeTime( weapon, owner, prop, hideOrgWeapon, ignoreKeepPrimaryInHand )
 
     return prop
 }
 
-void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, bool hideOrgWeapon )
+void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, bool hideOrgWeapon, bool ignoreKeepPrimaryInHand )
 {
 	// this hides original weapon
 	if ( hideOrgWeapon )
@@ -197,8 +310,11 @@ void function TrackFakeModelLifeTime( entity weapon, entity owner, entity prop, 
 			{
 				// check main weapon visiblility
 				var keepMainWeaponModel = activeWeapon.GetWeaponInfoFileKeyField( "offhand_keep_primary_in_hand" )
-				if ( keepMainWeaponModel == null || !keepMainWeaponModel )
-					return
+				if ( !ignoreKeepPrimaryInHand ) // we could always allow keeping main weapon!
+				{
+					if ( keepMainWeaponModel == null || !keepMainWeaponModel )
+						return
+				}
 			}
 			else if ( activeWeapon != weapon )  // weapon changed!
 				return

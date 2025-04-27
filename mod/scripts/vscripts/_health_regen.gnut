@@ -269,7 +269,9 @@ void function HealthRegen_OnClientConnected( entity player )
 // vanilla missing visual effect consts
 // sound effects
 const string PILOT_SHIELD_DAMAGE_SOUND = "titanshield_light_bulletimpact_3p_vs_1p"
-const string PILOT_SHIELD_DAMAGE_SOUND_BULLET = "titanshieldwall_light_bulletimpact_1p_vs_3p" // sound when getting hit by bullets( sadly "titanshield_heavy_bulletimpact_3p_vs_1p" sounds identical to light impact one )
+// only bullet damage plays the sound every time, other damage types have a sound interval because we can't ignore radius damage like native does
+//const string PILOT_SHIELD_DAMAGE_SOUND_BULLET = "titanshieldwall_light_bulletimpact_1p_vs_3p" // sound when getting hit by bullets( sadly "titanshield_heavy_bulletimpact_3p_vs_1p" sounds identical to light impact one )
+const string PILOT_SHIELD_DAMAGE_SOUND_HEAVY = "titanshield_heavy_bulletimpact_3p_vs_1p"
 const string PILOT_SHIELD_DAMAGE_SOUND_EXPLOSION = "titanshield_explosive_bulletimpact_3p_vs_1p" // sound when getting hit by explosive damage
 const string PILOT_SHIELD_DAMAGE_SOUND_ELECTRICAL = "titanshield_energy_bulletimpact_3p_vs_1p" // sound when getting hit by electrical damage
 const string PILOT_SHIELD_DAMAGE_SOUND_MELEE = "titanshield_meleeimpact_3p_vs_1p" // sound when getting hit by melee
@@ -321,19 +323,27 @@ float function PilotShieldModifyDamage( entity player, var damageInfo )
 	//entity attacker = DamageInfo_GetAttacker( damageInfo )
 
 	// shield on-hit sound, from PR#65
-	if ( Time() > file.playerNextShieldDamageSoundAllowedTime[ player ] )
-	{
-		int damageTypes = DamageInfo_GetCustomDamageType( damageInfo )
-		string shieldHitSound = GetPilotShieldDamagedSound( damageTypes )
+	int damageTypes = DamageInfo_GetCustomDamageType( damageInfo )
+	string shieldHitSound = GetPilotShieldDamagedSound( damageTypes )
+	// only bullet damage plays the sound every time, other damage types have a sound interval because we can't ignore radius damage like native does
+	// actually can be a bit noisy on FP view, guess we don't do this check
+	/*
+	if ( shieldHitSound == PILOT_SHIELD_DAMAGE_SOUND )
 		EmitSoundOnEntityOnlyToPlayer( player, player, shieldHitSound )
-
-		// add sound cooldown
-		float nextSoundInterval = RandomFloatRange( PILOT_SHIELD_DAMAGE_SOUND_INTERVAL_MIN, PILOT_SHIELD_DAMAGE_SOUND_INTERVAL_MAX )
-		file.playerNextShieldDamageSoundAllowedTime[ player ] = Time() + nextSoundInterval
-	}
-	//else
-	//	print( "player still in shield damage sound cooldown!" )
-
+	else 
+	{
+	*/
+		if ( Time() > file.playerNextShieldDamageSoundAllowedTime[ player ] )
+		{
+			EmitSoundOnEntityOnlyToPlayer( player, player, shieldHitSound )
+			// add sound cooldown
+			float nextSoundInterval = RandomFloatRange( PILOT_SHIELD_DAMAGE_SOUND_INTERVAL_MIN, PILOT_SHIELD_DAMAGE_SOUND_INTERVAL_MAX )
+			file.playerNextShieldDamageSoundAllowedTime[ player ] = Time() + nextSoundInterval
+		}
+		//else
+		//	print( "player still in shield damage sound cooldown!" )
+	//}
+	
 	// visual effect handle
 	// from PR#65
 	if ( shieldHealth > 0 ) // we at least need some shield before triggering following stuffs
@@ -440,8 +450,11 @@ string function GetPilotShieldDamagedSound( int damageTypes )
 {
 	string shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND // default sound
 
-	if ( damageTypes & DF_BULLET ) // bullet damage specific sound
-		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_BULLET
+	// not working fine, using titan sound is good enough
+	//if ( damageTypes & DF_BULLET ) // bullet damage specific sound
+	//	shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_BULLET
+	if ( damageTypes & DF_KNOCK_BACK )
+		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_HEAVY
 	if ( damageTypes & DF_EXPLOSION ) // explosion damage specific sound, overrides bullets
 		shieldHitSound = PILOT_SHIELD_DAMAGE_SOUND_EXPLOSION
 	if ( damageTypes & DF_ELECTRICAL ) // electrical damage specific sound, overrides explosion and bullets

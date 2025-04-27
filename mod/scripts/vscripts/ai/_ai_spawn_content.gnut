@@ -877,6 +877,11 @@ void function AssignGruntModelForWeaponClass( entity npc, entity weapon, string 
 
 				case "rifle":
 				default:
+
+					// mods allow use of shotgun grunts
+					model = TEAM_IMC_GRUNT_MODEL_RIFLE
+					break
+					/*
 #if SP
 					model = TEAM_IMC_GRUNT_MODEL_RIFLE
 #else
@@ -895,6 +900,8 @@ void function AssignGruntModelForWeaponClass( entity npc, entity weapon, string 
 					}
 #endif
 					break
+					*/
+
 			}
 			break
 

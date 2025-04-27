@@ -10,6 +10,13 @@ global function OnWeaponNpcPrimaryAttack_titanweapon_grenade_volley
 
 const FUSE_TIME = 0.5
 
+// we have more than 1 base weapons for this mod!
+const array<string> GRENADE_VOLLEY_BASE_WEAPONS =
+[
+	"mp_titanweapon_salvo_rockets", // original weapon
+	"mp_titanweapon_dumbfire_rockets", // weapon that has npc animation, works better
+]
+
 void function MpTitanweaponGrenadeVolley_Init()
 {
 #if SERVER
@@ -17,33 +24,37 @@ void function MpTitanweaponGrenadeVolley_Init()
 	//RegisterWeaponDamageSource( "mp_titanweapon_grenade_volley", "榴彈齊射" )
 	RegisterWeaponDamageSource( "mp_titanweapon_grenade_volley", "#WPN_TITAN_SHOULDER_GRENADE" )
 
-	// vortex refire override
-	Vortex_AddImpactDataOverride_WeaponMod( 
-		"mp_titanweapon_salvo_rockets", // weapon name
-		"brute4_grenade_volley", // mod name
-		$"wpn_vortex_projectile_frag_FP", // absorb effect
-		$"wpn_vortex_projectile_frag", // absorb effect 3p
-		"grenade" // refire behavior
-	)
+	// register settings override
+	foreach ( string weaponName in GRENADE_VOLLEY_BASE_WEAPONS )
+	{
+		// vortex refire override
+		Vortex_AddImpactDataOverride_WeaponMod( 
+			weaponName, // weapon name
+			"brute4_grenade_volley", // mod name
+			$"wpn_vortex_projectile_frag_FP", // absorb effect
+			$"wpn_vortex_projectile_frag", // absorb effect 3p
+			"grenade" // refire behavior
+		)
 
-	// vortex behavior override
-	// seems brute4 didn't implement this, I'll also keep it removed... maybe?
-	/*
-	Vortex_AddBehaviorOverride_WeaponMod(
-		"mp_titanweapon_salvo_rockets", // weapon name 
-		"brute4_grenade_volley", // mod name
-		"", // vortex impact sound 1p( seems no where used )
-		"", // vortex impact sound 3p
-		$"", // vortex impact effect
-		"fall" // ignores vortex behavior
-	)
-	*/
+		// vortex behavior override
+		// seems brute4 didn't implement this, I'll also keep it removed... maybe?
+		/*
+		Vortex_AddBehaviorOverride_WeaponMod(
+			weaponName, // weapon name 
+			"brute4_grenade_volley", // mod name
+			"", // vortex impact sound 1p( seems no where used )
+			"", // vortex impact sound 3p
+			$"", // vortex impact effect
+			"fall" // ignores vortex behavior
+		)
+		*/
 
-	// vortex refire callback
-	AddCallback_OnProjectileRefiredByVortex_ClassName( "mp_titanweapon_salvo_rockets", OnGrenadeVolleyRefireByVortex )
+		// vortex refire callback
+		AddCallback_OnProjectileRefiredByVortex_ClassName( weaponName, OnGrenadeVolleyRefireByVortex )
 
-	// retain damage mod on refired by vortex
-	Vortex_AddWeaponModRetainedOnRefire( "mp_titanweapon_salvo_rockets", "brute4_grenade_volley" )
+		// retain damage mod on refired by vortex
+		Vortex_AddWeaponModRetainedOnRefire( weaponName, "brute4_grenade_volley" )
+	}
 
 	// keep mod data on refired by vortex
 	Vortex_AddProjectileModToKeepDataOnRefire( "brute4_grenade_volley" )
@@ -121,11 +132,13 @@ function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, isN
 		nade.SetModel( $"models/weapons/grenades/m20_f_grenade_projectile.mdl" )
 		#if SERVER
 			nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_grenade_volley ) // change damageSourceID
-			EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
+			// change every grenade sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 			Grenade_Init( nade, weapon )
 		#else
 			SetTeam( nade, weaponOwner.GetTeam() ) // helps magnetic find target?
 		#endif
+		EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 
 		// fix for trail effect, so clients without scripts installed can see the trail
 		StartParticleEffectOnEntity( nade, GetParticleSystemIndex( $"weapon_40mm_projectile" ), FX_PATTACH_ABSORIGIN_FOLLOW, -1 )

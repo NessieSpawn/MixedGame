@@ -284,7 +284,8 @@ void function StartZiplinePlacement( entity player, entity weapon ) // main cont
 				if ( gruntModeVer ) // grunt mode usage
 				{
 					speedScale = ZIPLINE_MOVESPEED_SCALE_GRUNT
-					destroyOnDeath = true
+					// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+					//destroyOnDeath = true
 				}
 				ZiplineGun_FireZipline( player, infiniteDuration, speedScale, destroyOnDeath )
 				results.success = true // mark as succeeded

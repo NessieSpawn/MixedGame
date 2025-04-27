@@ -28,12 +28,12 @@ const float PORTAL_FX_TICKRATE = 1.5
 const float PORTAL_DURATION = 30 // should be a multipiler of PORTAL_FX_TICKRATE, could be PORTAL_DURATION + PORTAL_FX_TICKRATE * 2 in actrual
 const float PORTAL_MAX_DISTANCE = 4200 // was 3500, may should set higher since lastPos wasn't very accurate
 // speed boost
-const float PORTAL_SPEED_BOOST_SEVERITY = 0.15
+const float PORTAL_SPEED_BOOST_SEVERITY = 0.15 // was 0.25. this ability no longer holsters weapon now, guess we grant less speed boost
 const bool PORTAL_FORCE_HOLSTER = false
 
 // portal modifiers
 const float PORTAL_MAX_DISTANCE_GRUNT = 2800 // grunt mode specific: destroy portals on death, less distance
-const float PORTAL_SPEED_BOOST_SEVERITY_GRUNT = 0.25 // pretty fast
+const float PORTAL_SPEED_BOOST_SEVERITY_GRUNT = 0.1 // was 0.25, which is pretty fast
 const bool PORTAL_FORCE_HOLSTER_GRUNT = true
 
 const bool shouldDoWarpEffect = true // warp is so annoying! can turn it off if need( before I able to remove extra nodes )
@@ -247,9 +247,14 @@ void function PortalStart( entity player, entity weapon )
 				bool holdingPortal = IsValid( activeWeapon ) && activeWeapon.HasMod( "wraith_portal" )
 				if ( !holdingPortal ) // only allowed to do placement and holster weapon when switched off portal
 				{
+					//player.DisableWeaponViewModel() // still shows weapon in hand
 					player.HolsterWeapon()
-					if ( player.IsInputCommandHeld( IN_ATTACK ) ) // place portal if player pressing attack
-						break
+					// adding animation checks: player needs able to use weapon before placing portal!
+					if ( !player.Anim_IsActive() && !IsValid( player.GetParent() ) )
+					{
+						if ( player.IsInputCommandHeld( IN_ATTACK ) ) // place portal if player pressing attack
+							break
+					}
 				}
 			}
 			else // normal type
@@ -305,12 +310,21 @@ void function PortalStart( entity player, entity weapon )
 		StopSoundOnEntity( player, "Pilot_PhaseShift_Loop_1P" )
 		StopSoundOnEntity( player, "Pilot_PhaseShift_Loop_3P" )
 		// grunt mode ver
+		// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+		/*
 		if ( isGruntModeVer && !IsAlive( player ) ) // grunt player died
 			player.Signal( "PlacedPortal" ) // clean up indicator, don't do portal placement
 		else
 			PortalEnd( player, weapon, startPos, startAng, progressPoses, progressAngs, wasCrouchedArray, travelTime, portalLeft, isInfiniteDistance, isInfiniteDuration )
+		*/
+		PortalEnd( player, weapon, startPos, startAng, progressPoses, progressAngs, wasCrouchedArray, travelTime, portalLeft, isInfiniteDistance, isInfiniteDuration )
 		if ( forceHolster )
+		{
+			//player.EnableWeaponViewModel()
+			// do weapon deploy animation as penalty
+			//player.HolsterWeapon()
 			player.DeployWeapon() // recover weapon usage
+		}
 	}
 	if( IsValid( portalTrail ) )
 		EffectStop( portalTrail )
@@ -355,8 +369,11 @@ void function PortalEnd( entity player, entity weapon, vector startPos, vector s
 		return
 	}
 	// grunt mode ver
+	// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+	/*
 	if ( isGruntModeVer && !IsAlive( player ) ) // grunt player died, also handled in PortalStart()
 		return
+	*/
 
 	// idk how to use it
 	//DebugDrawCircle( startPos, startAng, 60, 128, 255, 128, false, PORTAL_DURATION, 32 )
@@ -516,11 +533,14 @@ void function PortalEnd( entity player, entity weapon, vector startPos, vector s
 		thread PortalLifetimeManagement( startTrig, endTrig, PORTAL_DURATION )
 
 	// grunt mode ver
+	// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+	/*
 	if ( isGruntModeVer )
 	{
 		thread PortalTriggerDestroyOwnerDeath( player, startTrig )
 		thread PortalTriggerDestroyOwnerDeath( player, endTrig )
 	}
+	*/
 }
 
 void function PortalLifetimeManagement( entity startTrig, entity endTrig, float duration )
@@ -572,7 +592,10 @@ void function OnPortalTriggerEnter( entity trigger, entity ent )
 		return
 	if ( !IsAlive( ent ) )
 		return
-	if ( ent.IsPhaseShifted() || ent.GetParent() )
+	if ( ent.IsPhaseShifted() )
+		return
+	// animation checks
+	if ( ent.GetParent() || ent.Anim_IsActive() )
 		return
 	if ( ent.IsZiplining() ) // don't phase a ziplining player! they will go back to start!
 		return

@@ -1,7 +1,15 @@
+// VERY OLD file
 global function MpAbilityArcBlast_Init
 
 global function OnWeaponPrimaryAttack_ability_arc_blast
 bool saveMeleeEnable = true
+
+const array<string> VALID_DRONE_TYPES = 
+[ 
+	"npc_drone_beam", 
+	"npc_drone_rocket", 
+	"npc_drone_plasma" 
+]
 
 void function MpAbilityArcBlast_Init()
 {
@@ -13,6 +21,19 @@ var function OnWeaponPrimaryAttack_ability_arc_blast( entity weapon, WeaponPrima
 	entity owner = weapon.GetWeaponOwner()
 	if( weapon.HasMod( "area_force" ) )
 		thread AreaForceThink( weapon, owner )
+
+	if ( weapon.HasMod( "drone_summoner" ) )
+	{
+		#if SERVER
+			entity owner = weapon.GetWeaponOwner()
+			entity drone = SpawnDroneFromPlayer( owner, VALID_DRONE_TYPES[ RandomInt( VALID_DRONE_TYPES.len() ) ] )
+			
+			if( !IsValid( drone ) ) // drone spawn failed!
+				return 0
+
+			return weapon.GetWeaponSettingInt( eWeaponVar.ammo_per_shot )
+		#endif
+	}
 }
 
 void function AreaForceThink( entity offhand, entity player )

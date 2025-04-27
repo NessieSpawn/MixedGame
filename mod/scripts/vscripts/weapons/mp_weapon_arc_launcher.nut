@@ -145,7 +145,7 @@ void function OnProjectileCollision_weapon_arc_launcher( entity projectile, vect
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
 
 	if ( mods.contains( "direct_hit" ) )
-        OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
+        OnProjectileCollision_DirectHit_NoReturn( projectile, pos, normal, hitEnt, hitbox, isCritical )
 
 	if ( mods.contains( "smoke_launcher" ) )
 		return OnProjectileCollision_weapon_smoke_launcher( projectile, pos, normal, hitEnt, hitbox, isCritical )

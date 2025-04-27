@@ -14,6 +14,9 @@ WeaponData
 	// atlas has xo16_vanguard modifier but it's same with this one, should be safe
 	"activitymodifier"							"mp_titanweapon_xo16"
 
+	// modified fix: titan weapons should've disallow headshots
+	"allow_headshots" 								"0"
+
 	Mods
 	{
 		arc_rounds

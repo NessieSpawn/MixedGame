@@ -193,6 +193,7 @@ void function IntroSpawnPlayerInDroppod( entity player )
 	player.EndSignal( "OnDeath" )
 
 	// don't get killed during this state
+	HideName( player )
 	player.SetInvulnerable()
 	player.NotSolid()
 	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_NOBODY
@@ -205,6 +206,7 @@ void function IntroSpawnPlayerInDroppod( entity player )
 	ScreenFadeFromBlack( player, 2.0, 1.0 ) // bit shorter fade time because this isn't very stable due to player respawn
 	wait 0.2 // seems more stable?
 
+	ShowName( player )
 	player.ClearInvulnerable()
 	player.Solid()
 	player.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
@@ -234,8 +236,11 @@ void function WaitForPlayerDisembarksDroppod( entity player )
 	player.EndSignal( "OnDeath" )
 	player.EndSignal( "OnDestroy" )
 	
+	// wait for player parent update
+	WaitFrame()
 	while ( IsValid( player.GetParent() ) )
 		WaitFrame()
+	
 	TryGameModeAnnouncement( player )
 }
 
@@ -548,6 +553,6 @@ void function WaitForPlayerTouchGround( entity player )
 	player.EndSignal( "GruntModeIntroTouchGround" ) // main functional signal
 
 	// failsafe looping case
-	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() )
+	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() && !player.IsZiplining() )
 		WaitFrame()
 }

@@ -1,9 +1,49 @@
 WeaponData
 {
+	// vanilla has just nowhere uses this drone, guess it's safe to change default value
+	"damage_far_value"								"7" // vanilla value is 5
+	"damage_near_value_titanarmor"					"150"
+	"damage_far_value_titanarmor" 					"90"
+
+	"explosion_damage"								"7" // vanilla value is 40
+	"explosion_damage_heavy_armor"					"50" // vanilla value is 300
+
+	// npc behavior adjustments
+	"npc_damage_far_value"							"7" // vanilla value is 5
+	"npc_damage_near_value_titanarmor"				"90" // fd_damage value is 150, vanilla value is 50
+	"npc_damage_far_value_titanarmor" 				"60" // fd_damage value is 130, vanilla value is 30
+
+	"npc_explosion_damage"							"7" // vanilla value is 10
+
+	"npc_max_burst"   								"6" // vanilla value is 9, but when their target killed during burst, they'll have reduced rest( npc_rest_time_between_bursts_expedite )... which works pretty weird, guess we better have reduced burst
+
+	// incredibly high bolt_hitsize( to compensate low projectile speed I think ), maybe we do reduced value
+	"bolt_hitsize"									"15.0" // vanilla value is 30, plasma turret value is 10
+	"bolt_hitsize_grow1_size"						"15.0" // vanilla value is 30, plasma turret value is 10
+	"bolt_hitsize_grow2_size"						"16.5" // vanilla value is 40, plasma turret value is 11
+	"bolt_hitsize_growfinal_size"					"16.5" // vanilla value is 40, plasma turret value is 11
+
 	Mods
 	{
 		fd_damage
 		{
+			// keep vanilla vortex refire damage... shall we?
+			"damage_far_value"								"5"
+			"damage_near_value_titanarmor"					"2"
+			"damage_far_value_titanarmor" 					"2"
+			"explosion_damage"								"40"
+			"explosion_damage_heavy_armor"					"300"
+
+			// or we could just fix them all
+			//"damage_near_value_titanarmor"					"150"
+			//"damage_far_value_titanarmor" 					"130"
+
+			// keep vanilla behavior
+			"npc_max_burst"   								"9"
+			"bolt_hitsize"									"30.0"
+			"bolt_hitsize_grow1_size"						"30.0"
+			"bolt_hitsize_grow2_size"						"40.0"
+			"bolt_hitsize_growfinal_size"					"40.0"
 		}
 		npc_elite_weapon
 		{
@@ -52,6 +92,12 @@ WeaponData
 			"npc_lead_time_max_dist"						"4000"
 			"npc_fire_at_enemy_defense_time"				"1.0"
 
+		}
+
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
 		}
 	}
 }

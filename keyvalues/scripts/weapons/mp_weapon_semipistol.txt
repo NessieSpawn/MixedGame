@@ -134,19 +134,19 @@ WeaponData
 			// bodygroup
 			"bodygroup3_set"	"0" // iron sight
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"fast_swap_to"				"0"
 			//"damage_near_value"			"16"
 			//"ammo_clip_size"			"14"
 			//"zoom_fov"					"60"
 			//"ads_move_speed_scale"							"1.0"
-		}
+		// }
 
 		// npc usage
 		//npc_sniper_grunt
@@ -172,6 +172,33 @@ WeaponData
 		fake_tf1_sprint_anim_active
 		{
 			"activitymodifier"						"satchel"
+		}
+
+		// just for fun here: tf1's burst mode( burnmod )
+		burst
+		{
+			"fire_rate"   					"12"
+			"burst_fire_count"				"3"
+			"burst_fire_delay"				"0.28"
+
+			"viewkick_pitch_hardScale"		"1.2"
+			"viewkick_pitch_base" 			"-0.4"
+			"viewkick_pitch_random"   		"-0.25"
+			"viewkick_yaw_base"   			"0.15"
+			"viewkick_yaw_random" 			"0.5"
+
+			"damage_near_value"   			"25" // damage adjusted to tf2 value. tf1 value 60
+			// new adding adjustment, cuz org tf2 p2016 is very powerful on headshot
+			"damage_headshot_scale"			"1.5"
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }

@@ -7,11 +7,32 @@ global function OnProjectileCollision_ninja_projectile
 // it takes time to dissolve itself, so don't make it's lifetime too long
 const float NINJA_PROJECTILE_LIFETIME = 3.0 
 
+// weapons those supports ninja projectile
+const array<string> NINJA_PROJECTILE_WEAPONS =
+[
+    "mp_weapon_grenade_sonar", // basic weapon: kunai
+    "mp_weapon_grenade_gravity", // shuriken, no damage source ID though
+    "mp_weapon_thermite_grenade", // shuriken with stronger effects on client
+]
+
 void function WeaponMod_NinjaProjectile_Init()
 {
     #if SERVER
         RegisterWeaponDamageSource( "mp_weapon_ninja_projectile_kunai", "#MELEE_KUNAI" )
         RegisterWeaponDamageSource( "mp_weapon_ninja_projectile_dataknife", "#PATCH_DATAKNIFE" )
+
+        // vortex refire override
+        // always absorb ninja projectiles, idk why they still trigger original effects after refiring
+        foreach ( string weaponName in NINJA_PROJECTILE_WEAPONS )
+        {
+            Vortex_AddImpactDataOverride_WeaponMod( 
+                weaponName, // weapon name
+                "ninja_projectile", // mod name
+                GetWeaponInfoFileKeyFieldAsset_Global( weaponName, "vortex_absorb_effect" ), // absorb effect
+                GetWeaponInfoFileKeyFieldAsset_Global( weaponName, "vortex_absorb_effect_third_person" ), // absorb effect 3p
+                "absorb" // refire behavior
+            )
+        }
     #endif
 }
 
@@ -48,35 +69,37 @@ void function OnProjectileCollision_ninja_projectile( entity projectile, vector 
 
     // fx goes every collision
     #if SERVER
-        projectile.proj.projectileBounceCount++
-        if ( projectile.proj.projectileBounceCount == 1 ) // firstBounce
+        if ( !mods.contains( "no_impact_effect" ) )
         {
-            // play a sound
-            entity owner = projectile.GetOwner()
-            if( IsValid( owner ) && owner.IsPlayer() )
+            projectile.proj.projectileBounceCount++
+            if ( projectile.proj.projectileBounceCount == 1 ) // firstBounce
             {
-                EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_3P" )
-                EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_1P" )
+                // play a sound
+                entity owner = projectile.GetOwner()
+                if( IsValid( owner ) && owner.IsPlayer() )
+                {
+                    EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_3P" )
+                    EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_1P" )
+                }
+                else
+                    EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
             }
-            else
-                EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
+            // removing normal for FX
+            vector fxPos = pos //pos + normal
+            PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, VectorToAngles( normal ) )
+            //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "PulseBlade_SurfaceImpact_BubbleShield_3P" )
+            //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
         }
-        // removing normal for FX
-        vector fxPos = pos //pos + normal
-        PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, VectorToAngles( normal ) )
-        //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "PulseBlade_SurfaceImpact_BubbleShield_3P" )
-        //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
-        
     #endif
 
     bool didStick = false
-    if ( mods.contains( "impact_bounce" ) ) // bounce on impact
+    if ( mods.contains( "impact_bounce" ) ) // bounce on impact, keep same behavior as pulse blade to avoid desync
     {
         if ( IsHumanSized( hitEnt ) )//Don't stick on Pilots/Grunts/Spectres. Causes pulse blade to fall into ground
 		    return
         didStick = PlantStickyGrenade( projectile, pos, normal, hitEnt, hitbox, 4.0, false )
     }
-    else // always try to stick
+    else // always try to stick, keep same behavior as firestar/gravity star to avoid desync
         didStick = PlantSuperStickyGrenade( projectile, pos, normal, hitEnt, hitbox )
 
     #if SERVER

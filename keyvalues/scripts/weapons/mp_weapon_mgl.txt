@@ -9,13 +9,13 @@ WeaponData
 
 	MP_BASE
 	{
-		"npc_damage_near_value"   						"0"
-		"npc_damage_far_value"							"0"
+		"npc_damage_near_value"   						"10" // increase from 0 because we've nerf explosion damage( they normally won't hit human though )
+		"npc_damage_far_value"							"10"
 		"npc_damage_near_value_titanarmor"				"255" // was using 270
 		"npc_damage_far_value_titanarmor" 				"255" // was using 270
 
 		// vanilla missing
-		"npc_explosion_damage"							"25" // mostly can't hurt a player( player value is 35 )
+		"npc_explosion_damage"							"15" // nerfed down from 25 because it can easily hurt rodeo players! EDIT: mostly can't hurt a player( player value is 35 )
 		"npc_explosion_damage_heavy_armor"				"50" // was 150, but... this damage is also applied when direct-hit, needs to nerf( player value is 70 )
 
 		// ttf2 mgl is two-round-burst
@@ -152,7 +152,7 @@ WeaponData
 		classic_antititan_weapon // client script required
 		{
 			//"fire_rate"   									"3"
-			// remove burst fire, use burst_fire_delay as fire_rate. causes less desync
+			// remove burst fire, use burst_fire_delay as fire_rate. cause less desync at lower latency
 			"burst_fire_count"								"1"
 			"burst_fire_delay"								"0.33"
 		}
@@ -160,6 +160,16 @@ WeaponData
 		// special
 		friendlyfire_weapon
 		{
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
 		}
     }
 }

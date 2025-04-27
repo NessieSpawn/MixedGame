@@ -1,5 +1,13 @@
 WeaponData
 {
+	// shield hit effect DEBUG
+	// "impact_effect_table" 							"exp_smr"
+
+	// "explosion_damage"								"10" // lower than damage_near_value
+	// "explosion_damage_heavy_armor"					"10" // lower than damage_near_value_titanarmor
+	// "explosion_inner_radius"  						"50"
+	// "explosionradius" 								"180"
+
 	// flag rifle
 	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_weapon_flak_rifle"
 	"OnProjectileExplode"							"OnProjectileExplode_weapon_flak_rifle"
@@ -133,6 +141,18 @@ WeaponData
 			"reloadempty_time"								"*1.3"
 			"reloadempty_time_late1"						"*1.3"
 			"reloadempty_time_late2"						"*1.3"
+
+			// change to script handle, stop sound at specific point for better effect
+			"burst_or_looping_fire_sound_start_1p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_middle_1p"			"Null_Remove_SoundHook"
+
+			// better low ammo for non-looping sound
+			"low_ammo_sound_name_1"							"lmg_LowAmmo_Shot1"
+			"low_ammo_sound_name_2"							"P2011_LowAmmo_Shot1"
+			"low_ammo_sound_name_3"							"P2011_LowAmmo_Shot2"
+			"low_ammo_sound_name_4"							"P2011_LowAmmo_Shot3"
+			"low_ammo_sound_name_5"							"P2011_LowAmmo_Shot4"
+			"low_ammo_sound_name_6"							"P2011_LowAmmo_Shot5"
 		}
 
 		// tediore
@@ -175,12 +195,12 @@ WeaponData
 			// bodygroup
 			"bodygroup1_set"	"0" // iron sight
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"damage_near_value"			"18"
 			//"damage_far_value"			"18"
@@ -204,6 +224,15 @@ WeaponData
 
 			//"spread_decay_delay"  							"0.25"
 			//"spread_decay_rate"   							"10"
+		// }
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 

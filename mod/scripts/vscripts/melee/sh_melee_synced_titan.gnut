@@ -331,8 +331,14 @@ void function Execution_Ion_Prime( entity attacker )
 {
 	string coreWeapon = "mp_titancore_laser_cannon"
 	// we've add fake laser core for npc execution, should be fine now
-	//if ( attacker.IsNPC() ) // saved for npc execution condition: never fire a lasercannon
-	//	coreWeapon = "mp_titancore_siege_mode" // change to placeholder core weapon if a npc ever used this execution
+	// still better to add a mod for npcs, for identifying
+	// because npcs may run over all anim events before animation actually starts, which can't be handled with most Anim_Active() checks
+	array<string> coreMods = []
+	if ( attacker.IsNPC() ) // saved for npc execution condition: never fire a lasercannon
+	{
+		//coreWeapon = "mp_titancore_siege_mode" // change to placeholder core weapon if a npc ever used this execution
+		coreMods.append( "npc_execution_laser_core" )
+	}
 
 	MeleeSyncedTitan_ReplaceExecutionAttackerLoadout( 
 		attacker, 
@@ -341,7 +347,7 @@ void function Execution_Ion_Prime( entity attacker )
 		"", [],		// "mp_titanability_laser_trip", won't use during execution
 		"mp_titanweapon_laser_lite", [],
 		"", [],		// "melee_titan_punch_ion", won't use during execution
-		coreWeapon, []
+		coreWeapon, coreMods
 	)
 }
 
@@ -393,7 +399,10 @@ void function Execution_Tone_Fix( entity attacker, entity target )
 	// HACKY fix here: if we're holding 40mm and we don't have any ammo left
 	// add 1 clip so we don't receive reloading during animation
 	// don't know why respawn fixed ammo for prime execution but not this...
-	entity mainWeapon = attacker.GetMainWeapons()[0]
+	entity mainWeapon
+	array<entity> weapons = attacker.GetMainWeapons()
+	if ( weapons.len() > 0 )
+		mainWeapon = weapons[0]
 	//print( "mainWeapon: " + string( mainWeapon ) )
 	if ( IsValid( mainWeapon ) )
 	{
@@ -435,7 +444,10 @@ void function Execution_TonePrime_Fix( entity attacker, entity target )
 	// if we're holding 40mm and we don't have enough ammo for performing execution( 3 rounds required )
 	// set clip to 3 so we don't receive reloading during animation
 	// note: this breaks vanilla behavior, which sets weapon ammo to FULL and fire 3 shots, resulting 9 rounds in clip after execution
-	entity mainWeapon = attacker.GetMainWeapons()[0]
+	entity mainWeapon
+	array<entity> weapons = attacker.GetMainWeapons()
+	if ( weapons.len() > 0 )
+		mainWeapon = weapons[0]
 	//print( "mainWeapon: " + string( mainWeapon ) )
 	if ( IsValid( mainWeapon ) )
 	{
@@ -713,24 +725,16 @@ string function MeleeSyncedTitan_GetBestExecutionRefForTitanVsTitan( entity atta
 				continue
 
 			// we should at least find one from following case, otherwise we failsafe
-			if ( TitanExecutionRefIsPrime( otherRef ) )
+			if ( TitanExecutionRefIsPrime( otherRef ) && TitanExecutionRefIsPrime( executionRef ) ) // if finding ref is prime, our ref needs also be prime
 			{
-				// if finding ref is prime, our ref needs also be prime
-				if ( TitanExecutionRefIsPrime( executionRef ) )
-				{
-					//print( "both our ref and finding ref is PRIME! returning a valid prime execution" )
-					return otherRef
-				}
+				//print( "both our ref and finding ref is PRIME! returning a valid prime execution" )
+				return otherRef
 			}
-			else if ( MeleeSyncedTitan_RefHasLinkedExecutions( otherRef ) ) // shared function from _melee_synced_titan.gnut
+			else if ( MeleeSyncedTitan_RefHasLinkedExecutions( otherRef ) && MeleeSyncedTitan_RefHasLinkedExecutions( executionRef ) ) // if finding ref is random, our ref needs also be random. function shared from _melee_synced_titan.gnut
 			{
-				// if finding ref is random, our ref needs also be random
-				if ( MeleeSyncedTitan_RefHasLinkedExecutions( executionRef ) )
-				{
-					//print( "both our ref and finding ref is RANDOM! returning a valid random execution" )
-					array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( otherRef )  // shared function from _melee_synced_titan.gnut
-					return linkedRefs[ RandomInt( linkedRefs.len() ) ]
-				}
+				//print( "both our ref and finding ref is RANDOM! returning a valid random execution" )
+				array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( otherRef )  // shared function from _melee_synced_titan.gnut
+				return linkedRefs[ RandomInt( linkedRefs.len() ) ]
 			}
 			else
 				lastRefFound = otherRef // if we still can't find one, use this ref as a failsafe
@@ -769,12 +773,38 @@ string function MeleeSyncedTitan_GetRandomExecutionRefForTitanVsTitan( entity at
 	if ( validExecutions.len() == 0 ) // can't find any valid execution!
 		return "" // let's just use classic execution... at least it never crashes
 
+	// never repeatly use a same execution
+	array<string> extraCheckExecutions
+	string attackerLastUsedExecution = MeleeSyncedTitan_GetTitanLastUsedExecution( attacker )
+	string targetLastExecutedBy = MeleeSyncedTitan_GetTitanLastExecutedByRef( target )
+	foreach ( string ref in validExecutions )
+	{
+		// skips random execution
+		if ( MeleeSyncedTitan_RefHasLinkedExecutions( ref ) )
+			continue
+
+		// if we have more than 1 execution to choose, don't repeatly using a same execution
+		if ( validExecutions.len() > 1 && ref == attackerLastUsedExecution )
+			continue
+
+		// also don't make target receive same execution multiple times if we have more than 2 executions to choose
+		if ( validExecutions.len() > 2 && ref == targetLastExecutedBy )
+			continue
+
+		extraCheckExecutions.append( ref )
+	}
+
+	// default case
 	string randomExecution = validExecutions[ RandomInt( validExecutions.len() ) ]
+	// extra checks!
+	if ( extraCheckExecutions.len() > 0 )
+		randomExecution = extraCheckExecutions[ RandomInt( extraCheckExecutions.len() ) ]
+
 	// insure we're not returning a random execution ref( their data should be empty, needs to get from linked execution )
 	if ( MeleeSyncedTitan_RefHasLinkedExecutions( randomExecution ) ) // shared function from _melee_synced_titan.gnut
 	{
 		array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( randomExecution )  // shared function from _melee_synced_titan.gnut
-		randomExecution = linkedRefs[ RandomInt( linkedRefs.len() ) ]
+		return linkedRefs[ RandomInt( linkedRefs.len() ) ]
 	}
 
 	return randomExecution
@@ -791,13 +821,38 @@ array<string> function GetValidExecutionsForAttackerVsTarget( entity attacker, e
 
 	string attackerChassis = GetSoulTitanSubClass( attackerSoul )
 	string targetChassis = GetSoulTitanSubClass( targetSoul )
-	array<string> validExecutions
 	array<string> attackerValidExecutions = GetAttackerChassisValidExecutions( attackerChassis )
 	array<string> victimValidExecutions = GetVictimChassisValidExecutions( targetChassis )
-	// find from all valid executions
+
+	array<string> executionsFromRandomRef
+	// insure we're not returning a random execution ref( their data should be empty, needs to get from linked execution )
+	// welp we do NEED returning those executions for whatever, otherwise MeleeSyncedTitan_GetBestExecutionRefForTitanVsTitan() will be messed up
 	foreach ( string ref in attackerValidExecutions )
 	{
-		if ( victimValidExecutions.contains( ref ) )
+		if ( MeleeSyncedTitan_RefHasLinkedExecutions( ref ) ) // shared function from _melee_synced_titan.gnut
+		{
+			//attackerValidExecutions.removebyvalue( ref ) // never include random ref!!
+			array<string> linkedRefs = MeleeSyncedTitan_GetLinkedExecutionsFromRef( ref )  // shared function from _melee_synced_titan.gnut
+			foreach ( linkRef in linkedRefs )
+			{
+				if ( !executionsFromRandomRef.contains( linkRef ) )
+					executionsFromRandomRef.append( linkRef )
+			}
+		}
+	}
+
+	// append ref from random executions to our pool
+	foreach ( string ref in executionsFromRandomRef )
+	{
+		if ( !attackerValidExecutions.contains( ref ) )
+			attackerValidExecutions.append( ref )
+	}
+
+	// find from all valid executions
+	array<string> validExecutions
+	foreach ( string ref in attackerValidExecutions )
+	{
+		if ( !validExecutions.contains( ref ) && victimValidExecutions.contains( ref ) )
 		{
 			// debug
 			//print( "Found valid execution: " + ref )
@@ -1122,6 +1177,7 @@ void function ReplaceExecutionAttackerLoadout_Threaded( entity guy, string prima
 			equipmentSaved = true // mark as equipment saved
 		}
 
+		/*
 		if ( equipment != "" )
 		{
 			entity weapon = guy.GetOffhandWeapon( OFFHAND_EQUIPMENT )
@@ -1133,6 +1189,7 @@ void function ReplaceExecutionAttackerLoadout_Threaded( entity guy, string prima
 				guy.TakeOffhandWeapon( OFFHAND_EQUIPMENT )
 			}
 		}
+		*/
 
 		// apply new weapons after certain weapon being taken, or game might crash because of dual smart ammo weapons
 		// primary 

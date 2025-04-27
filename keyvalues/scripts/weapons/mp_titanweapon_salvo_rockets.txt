@@ -40,6 +40,7 @@ WeaponData
 		}
 
 		// brute4
+		// note that currently all files uses mod in mp_titanweapon_dumbfire_rockets because that one has NPC animation
 		brute4_grenade_volley
 		{
 			"activitymodifier"								"mp_titanweapon_dumbfire_rockets" // tp animation
@@ -61,7 +62,7 @@ WeaponData
 			"impact_effect_table"							"exp_softball_grenade"
 
 			//firing sound, overwrites rocket salve's with empty ones
-			//real trail effect done in script so other clients can hear it
+			//sound effect done in script so other clients can hear it
 			"fire_sound_1_player_1p"						"Null_Remove_SoundHook"
 			"fire_sound_1_player_3p"						"Null_Remove_SoundHook"
 
@@ -95,7 +96,7 @@ WeaponData
 			"damage_near_value_titanarmor"   				"10"
 			"damage_near_value_titanarmor"					"10"
 
-			"explosion_damage"								"40"
+			"explosion_damage"								"30" // was 40. too easy to kill a pilot with 40 damage... but only when they're grounded
 			"explosion_damage_heavy_armor"					"230"
 
 			// npc usage
@@ -105,7 +106,7 @@ WeaponData
 			"npc_damage_near_value_titanarmor"				"10"
 
 			// add npc explosion damages: this weapon mod rely on explosions to deal damage
-			"npc_explosion_damage"							"40"
+			"npc_explosion_damage"							"25" // was 40
 			"npc_explosion_damage_heavy_armor"				"230"
 
 			// last version missing these which made grenade volley for npcs extremely powerful
@@ -121,17 +122,18 @@ WeaponData
 			"npc_rest_time_between_bursts_min"				"9.0"
 			"npc_rest_time_between_bursts_max"				"14.0"
 
-			"npc_charge_time_min"							"1.0"	// for rocketpod animation time
-			"npc_charge_time_max"							"1.0"
+			// makes npcs have a fire delay. no need because we've reduced npc damage against pilots
+			//"npc_charge_time_min"							"1.0"	// for rocketpod animation time
+			//"npc_charge_time_max"							"1.0"
 
-			"explosion_inner_radius"  						"160"
-			"explosionradius" 								"240"
-			"impulse_force"   								"1"
+			"explosion_inner_radius"  						"160" // softball uses 50 while satchel uses 120, once tried 120 but was too bad
+			"explosionradius" 								"240" // softball uses 150, frag grenade uses 320, satchel uses 250. once tried 200 but was too bad
+			"impulse_force"   								"500" // was 1. 500 is value for PHYS_EXPLOSION_LARGE( though in TF|2 500 isn't enough at all )
 
 			//ammo, adjust from salvo rocket's maxnium of 120 ammo
-			"ammo_per_shot"									"15"
+			"ammo_per_shot"									"15" // 9-nade burst
 
-			"regen_ammo_refill_rate"						"15.0"
+			"regen_ammo_refill_rate"						"15.0" // 8s cooldown
 			"regen_ammo_refill_start_delay"					"1.0"
 
 			//charge, can make players cook in hand
@@ -204,6 +206,12 @@ WeaponData
 
 		// misc fix here: this is only a stub mark, actually gets applied on upgrading to multi-targeting missile
 		shoulder_rockets_fix
+		{
+		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
 		{
 		}
 	}

@@ -802,6 +802,7 @@ entity function BleedoutScoreEventAttacker( entity victim, entity attacker, var 
 			}
 			
 			// we add a assist if there're no assist handled in score event
+			// happens when another player only landed last-hit on this target
 			if ( IsValid( attacker ) && attacker.IsPlayer() && attacker != victim )
 			{
 				bool hasAssisted = false

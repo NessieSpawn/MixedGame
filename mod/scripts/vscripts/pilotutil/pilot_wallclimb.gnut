@@ -582,6 +582,12 @@ void function RetrievePlayerSettings( entity player, StoredPlayerSettingsStruct 
 {
 	file.playerClassChangeThroughWallClimb[ player ] = true // mark as this player changing settings through this file, we won't run things in PilotWallClimbThink()
 	
+	// MUST RESET RENDERMODE BEFORE CLASS CHANGE! otherwise we can't change it anymore during current life
+	// still not working well... guess we'll have to hide player when using model proxy
+	/*
+	player.kv.rendermode = 0
+	player.kv.renderamt = 255
+	*/
 	player.SetPlayerSettingsWithMods( storedStruct.settings, storedStruct.settingsMods )
 	player.SetPlayerSettingPosMods( PLAYERPOSE_STANDING, storedStruct.standMods )
 	player.SetPlayerSettingPosMods( PLAYERPOSE_CROUCHING, storedStruct.crouchMods )

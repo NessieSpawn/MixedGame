@@ -26,10 +26,22 @@ struct
 {
 	table< entity, array<entity> > playerLaggingBoltTable
 	array<entity> totalLaggingBolts
+
+	// EDIT: cooldown system works fine without animation, guess we remove scripted behavior
+	//bool weaponWarned // for nessy weapon, client-side variable
+	//table<entity, float> weaponLastAmmoRegenTime // for nessy weapon, fake ammo regen behavior from script
 } file
 
 const int LAGGING_BOLT_PER_PLAYER_MIN = 48
 const int LAGGING_BOLT_WORLD_MAX = 312
+
+// for nessy weapon use as constant
+// EDIT: cooldown system works fine without animation, guess we remove scripted behavior
+/*
+const int NESSY_LSTAR_WARNING_AMMO = 9 // same as regular lstar ammo_min_to_fire
+const float NESSY_LSTAR_AMMO_REGEN_RATE = 9
+const float NESSY_LSTAR_AMMO_REGEN_DELAY = 0.2
+*/
 
 void function MpWeaponLSTAR_Init()
 {
@@ -95,6 +107,23 @@ int function LSTARPrimaryAttack( entity weapon, WeaponPrimaryAttackParams attack
 		return 1
 
 	// Warning sound:
+	// modified: hardcoded for nessy weapons because we removed their ammo_min_to_fire
+	// EDIT: cooldown system works fine without animation, guess we remove scripted behavior
+	/*
+	if ( weapon.HasMod( "fake_nessy_weapon" ) )
+	{
+		if ( !file.weaponWarned )
+		{
+			int currAmmo = weapon.GetWeaponPrimaryClipCount()
+			if ( currAmmo == NESSY_LSTAR_WARNING_AMMO )
+			{
+				EmitSoundOnEntity( owner, LSTAR_WARNING_SOUND_1P )
+				file.weaponWarned = true
+			}
+		}
+	}
+	else // vanilla behavior
+	*/
 	{
 		entity owner = weapon.GetWeaponOwner()
 		int currAmmo = weapon.GetWeaponPrimaryClipCount()
@@ -111,6 +140,15 @@ int function LSTARPrimaryAttack( entity weapon, WeaponPrimaryAttackParams attack
 	// vanilla behavior
 	int result
 	result = FireGenericBoltWithDrop( weapon, attackParams, isPlayerFired )
+
+	// also adding ammo regen think for nessy weapon down here
+	// we can't make it inside weapon files because that will make their ammo counter appear as "infinite"
+	// EDIT: cooldown system works fine without animation, guess we remove scripted behavior
+	/*
+	if ( weapon.HasMod( "fake_nessy_weapon" ) )
+		thread NessyLstarManualAmmoRegen(  )
+	*/
+
 	return result
 }
 
@@ -128,7 +166,14 @@ var function OnWeaponNpcPrimaryAttack_weapon_lstar( entity weapon, WeaponPrimary
 
 void function OnWeaponCooldown_weapon_lstar( entity weapon )
 {
-	weapon.PlayWeaponEffect( LSTAR_COOLDOWN_EFFECT_1P, LSTAR_COOLDOWN_EFFECT_3P, "SWAY_ROTATE" )
+	// handle stuffs like changing model, requires installing on client!
+	entity owner = weapon.GetWeaponOwner()
+	if ( IsValid( owner ) && owner.IsPlayer() )
+	{
+		entity viewmodel = owner.GetViewModelEntity()
+		if ( IsValid( viewmodel ) && viewmodel.GetModelName() == $"models/weapons/lstar/ptpov_lstar.mdl" )
+			weapon.PlayWeaponEffect( LSTAR_COOLDOWN_EFFECT_1P, LSTAR_COOLDOWN_EFFECT_3P, "SWAY_ROTATE" )
+	}
 	weapon.EmitWeaponSound_1p3p( "LSTAR_VentCooldown", "LSTAR_VentCooldown_3p" )
 }
 
@@ -137,15 +182,23 @@ void function OnWeaponReload_weapon_lstar( entity weapon, int milestoneIndex )
 	if ( milestoneIndex != 0 )
 		return
 
-	weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "shell" )
-	weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "spinner" )
-	weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_L" )
-	weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_R" )
+	// handle stuffs like changing model, requires installing on client!
+	entity owner = weapon.GetWeaponOwner()
+	if ( IsValid( owner ) && owner.IsPlayer() )
+	{
+		entity viewmodel = owner.GetViewModelEntity()
+		if ( IsValid( viewmodel ) && viewmodel.GetModelName() == $"models/weapons/lstar/ptpov_lstar.mdl" )
+		{
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "shell" )
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "spinner" )
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_L" )
+			weapon.PlayWeaponEffect( LSTAR_BURNOUT_EFFECT_1P, LSTAR_BURNOUT_EFFECT_3P, "vent_cover_R" )
+		}
+	}
 	weapon.EmitWeaponSound_1p3p( LSTAR_BURNOUT_SOUND_1P, LSTAR_BURNOUT_SOUND_3P )
 
 	// lagging bolt
 	#if SERVER
-		entity owner = weapon.GetWeaponOwner()
 		if( owner.IsPlayer() )
 			PlayerReleaseLaggingBolts( owner )
 	#endif

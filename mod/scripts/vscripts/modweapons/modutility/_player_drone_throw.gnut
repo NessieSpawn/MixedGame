@@ -2,7 +2,7 @@ global function PlayerDroneThrow_Init
 global function SpawnDroneFromPlayer
 
 // if using light pilot or heavy pilot model, it's gonna crash
-const array<asset> droneSpawnerAllowedModel = 
+const array<asset> DRONE_SPAWNER_ALLOWED_MODEL = 
 [
 	// models that using medium pilot core animations
 	$"models/humans/grunts/mlt_grunt_lmg.mdl", 
@@ -31,7 +31,28 @@ const array<asset> droneSpawnerAllowedModel =
 	$"models/humans/pilots/pilot_medium_geist_f.mdl",
 
 	$"models/robots/spectre/imc_spectre.mdl",
+
+	$"models/humans/grunts/imc_grunt_shield_captain.mdl",
 ]
+
+// change model for those incompatible to kinda fitable ones
+const array<asset> LIGHT_PILOT_MODELS =
+[
+	$"models/humans/pilots/pilot_light_ged_m.mdl", 
+	$"models/humans/pilots/pilot_light_ged_f.mdl", 
+	$"models/humans/pilots/pilot_light_jester_m.mdl", 
+	$"models/humans/pilots/pilot_light_jester_f.mdl", 
+]
+const asset LIGHT_PILOT_REPLACEMENT_MODEL = $"models/robots/spectre/imc_spectre.mdl"
+
+const array<asset> HEAVY_PILOT_MODELS =
+[
+	$"models/humans/pilots/pilot_heavy_drex_m.mdl", 
+	$"models/humans/pilots/pilot_heavy_drex_f.mdl", 
+	$"models/humans/pilots/pilot_heavy_roog_m.mdl", 
+	$"models/humans/pilots/pilot_heavy_roog_f.mdl", 
+]
+const asset HEAVY_PILOT_REPLACEMENT_MODEL = $"models/humans/grunts/imc_grunt_shield_captain.mdl"
 
 void function PlayerDroneThrow_Init()
 {
@@ -48,9 +69,16 @@ entity function SpawnDroneFromPlayer( entity player, string aiSettings )
 		return null
 
 	// generic check
-	if ( !PlayerCanSpawnDrone( player ) )
+	if ( player.Anim_IsActive() || IsValid( player.GetParent() ) )
+		return null
+	if ( !player.IsOnGround() || player.IsWallRunning() || player.IsTraversing() )
 	{
 		SendHudMessage( player, "接觸地面以釋放無人機", -1, -0.35, 255, 255, 100, 255, 0, 3, 0 )
+		return null
+	}
+	if ( player.IsCrouched() )
+	{
+		SendHudMessage( player, "Stand Up to Release Your Drones", -1, -0.35, 255, 255, 100, 255, 0, 3, 0 )
 		return null
 	}
 
@@ -58,7 +86,10 @@ entity function SpawnDroneFromPlayer( entity player, string aiSettings )
 	vector angles = player.GetAngles()
 	int team = player.GetTeam()
 	entity owner = player
-	vector deployOrigin = PositionOffsetFromEnt( player, 64, 0, 0 )
+	// PositionOffsetFromEnt() is fucked on players because player actual angle is their eyeangles
+	// let's just use their origin
+	//vector deployOrigin = PositionOffsetFromEnt( player, 64, 0, 0 )
+	vector deployOrigin = origin
 	float verticalClearance = GetVerticalClearance( deployOrigin )
 	string spawnAnimDrone
 	string spawnAnimSoldier
@@ -95,8 +126,8 @@ entity function SpawnDroneFromPlayer( entity player, string aiSettings )
 		return null
 	
 	asset playerModel = player.GetModelName()
-	if( !droneSpawnerAllowedModel.contains( playerModel ) )
-		thread PickRandomModelForSpawning( player, playerModel )
+	if( !DRONE_SPAWNER_ALLOWED_MODEL.contains( playerModel ) )
+		thread PickRandomModelForSpawning( player )
 
 	drone.NotSolid()
 	thread PlayAnim( player, spawnAnimSoldier, origin, angles )
@@ -112,14 +143,6 @@ entity function SpawnDroneFromPlayer( entity player, string aiSettings )
 	thread DroneCleanupOnOwnerDeath_Thread( player, drone )
 
 	return drone
-}
-
-bool function PlayerCanSpawnDrone( entity player )
-{
-	return player.IsOnGround() 
-		   && !player.IsWallRunning()
-		   && !player.IsTraversing()
-		   && !player.Anim_IsActive()
 }
 
 void function AnimProgessCheck( entity player )
@@ -140,22 +163,39 @@ void function AnimProgessCheck( entity player )
 	player.Anim_Stop()
 }
 
-void function PickRandomModelForSpawning( entity player, asset startModel )
+void function PickRandomModelForSpawning( entity player )
 {
+	table savedStuff
+	savedStuff.startModel <- player.GetModelName()
+	savedStuff.fullBodyGroup <- player.GetFullBodygroup()
+
+	// this one don't wait a frame so model can be set before anim starts
+	asset targetModel = DRONE_SPAWNER_ALLOWED_MODEL[ RandomInt( DRONE_SPAWNER_ALLOWED_MODEL.len() ) ]
+	// allow better model to be picked if we're using specific model
+	asset playerModel = player.GetModelName()
+	if ( LIGHT_PILOT_MODELS.contains( playerModel ) )
+		targetModel = LIGHT_PILOT_REPLACEMENT_MODEL
+	else if ( HEAVY_PILOT_MODELS.contains( playerModel ) )
+		targetModel = HEAVY_PILOT_REPLACEMENT_MODEL
+	
+	player.SetModel( targetModel )
+	player.SetValueForModelKey( targetModel )
+
 	OnThreadEnd(
-		function(): ( player, startModel )
+		function(): ( player, savedStuff )
 		{
 			if( IsValid( player ) )
 			{
-				player.SetModel( startModel )
-				player.SetValueForModelKey( startModel )
+				asset modelToRecover = expect asset( savedStuff.startModel )
+				int bodygroupToRecover = expect int( savedStuff.fullBodyGroup )
+
+				player.SetModel( modelToRecover )
+				player.SetValueForModelKey( modelToRecover )
+				player.SetFullBodygroup( bodygroupToRecover )
 			}
 		}
 	)
-	// this one don't wait a frame so model can be set before anim starts
-	asset targetModel = droneSpawnerAllowedModel[ RandomInt( droneSpawnerAllowedModel.len() ) ]
-	player.SetModel( targetModel )
-	player.SetValueForModelKey( targetModel )
+
 	WaittillAnimDone( player )
 }
 
@@ -165,13 +205,22 @@ void function HolsterWeaponForDroneSpawning( entity owner )
 		function(): ( owner )
 		{
 			if( IsValid( owner ) )
-				DeployAndEnableWeapons( owner )
+			{
+				//DeployAndEnableWeapons( owner )
+				DeployViewModelAndEnableWeapons( owner )
+				// maybe still adding weapon deploy penalty
+				owner.HolsterWeapon()
+				owner.DeployWeapon()
+			}
 		}
 	)
 	WaitFrame()
 	if( !IsAlive( owner ) )
 		return
-	HolsterAndDisableWeapons( owner )
+	// holstering weapon hides weapon model during animation
+	// also makes player pull out weapon much slower... weapon deploy is included in animation I think
+	//HolsterAndDisableWeapons( owner )
+	HolsterViewModelAndDisableWeapons( owner )
 	WaittillAnimDone( owner )
 }
 

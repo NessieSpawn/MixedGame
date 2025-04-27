@@ -1,3 +1,4 @@
+untyped // for handling stuffs inside table
 global function Nessie_Funny_Functions_Init
 
 // funny stuffs with clientcommand!
@@ -37,6 +38,18 @@ global function PlayerBecomesMarvin
 
 global function NessyFunny_EnablePlayerTickDamageByDefault // THIS IS DEFAULT SETTING. remember that PlayerBecomesTick() parameters can bypass this
 global function PlayerBecomesTick
+
+// barker -- reimplement after getting funcion
+// still not working fine, but spectres and stalkers looks good
+/*
+global function BecomeFakeBarker
+global function BecomeFakeSpectre
+*/
+// to be shared for debugging
+global function CreateModelProxyForEntity
+
+// brains
+global function BrainDead
 
 enum eMarvinMovement
 {
@@ -114,6 +127,8 @@ struct
 	table<entity, int> fakeTickMovementState
 	table<entity, TickOverloadBehavior> tickOverloadBehavior
 	table<entity, bool> playerTickDoingSuicideChase
+
+	table<entity, entity> entFakeModelProxy
 } file
 
 void function Nessie_Funny_Functions_Init()
@@ -174,6 +189,23 @@ void function Nessie_Funny_Functions_Init()
 	RegisterSignal( "TickPlayerTouchGround" )
 	AddClientCommandCallback( "becometick", CC_PlayerBecomeFakeTick )
 
+	// fake model proxy
+	PrecacheParticleSystem( $"P_stalker_eye_foe" )
+	PrecacheParticleSystem( $"P_stalker_eye_friend" )
+	PrecacheParticleSystem( $"P_spectre_eye_foe" )
+	PrecacheParticleSystem( $"P_spectre_eye_friend" )
+	RegisterSignal( "FakeModelProxyOwnerDeath" )
+	// BAD bone merge, funny though
+	AddClientCommandCallback( "fakebarker", CC_BecomeFakeBarker )
+	AddClientCommandCallback( "fakemarder", CC_BecomeFakeMarder )
+	// works really fine, just need a better model for handling hitboxes
+	AddClientCommandCallback( "fakespectre", CC_BecomeFakeSpectre )
+	AddClientCommandCallback( "fakestalker", CC_BecomeFakeStalker )
+
+	// funny enough
+	RegisterSignal( "BrainDead" )
+	AddClientCommandCallback( "braindead", CC_BrainDead )
+
 	// callbacks
 	AddCallback_OnClientConnected( OnClientConnected )
 	AddCallback_OnPlayerRespawned( OnPlayerRespawned )
@@ -184,9 +216,21 @@ void function Nessie_Funny_Functions_Init()
 	// modified callback defined in mp_ability_holopilot.nut, gets called whenever a player projects hologram
 	AddCallback_OnDecoyCreated( OnDecoyCreated )
 	// this has been removed, AddCallback_OnDecoyCreated() can handle everything!
-	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )s
+	//AddCallback_OnModdedDecoyCreated( OnDecoyCreated )
+	AddCallback_PlayerDecoyDie( OnDecoyDie )
+	AddCallback_PlayerDecoyDissolve( OnDecoyDissolve )
+
 	// modified callback defined in _utility_shared.nut, for us disabling replay
 	AddCallback_ShouldDoReplay( ShouldDoFunnyReplayStuffs )
+
+	AddCallback_PlayerClassChanged( OnPlayerChangedClass )
+	// HANDLE everything related with our model proxy
+	// function Levels_GetAllVulnerableEntityClasses() shared from levels_util.gnut
+	foreach ( string className in Levels_GetAllVulnerableEntityClasses() )
+	{
+		//AddDamageFinalCallback( className, OnEntityFinalDamaged ) // I JUST CAN"T DEAL WITH RAGDOLLS WHY
+		AddDeathCallback( className, OnEntityDeath ) // not working well because we can't remove player's ragdoll
+	}
 }
 
 // callbacks
@@ -204,6 +248,8 @@ void function OnClientConnected( entity player )
 
 	file.playerNextFakeMarvinScriptedAnimAllowedTime[ player ] <- 0.0
 	file.playerTickDoingSuicideChase[ player ] <- false
+
+	file.entFakeModelProxy[ player ] <- null
 }
 
 void function OnPlayerRespawned( entity player )
@@ -211,6 +257,12 @@ void function OnPlayerRespawned( entity player )
 	// clean up variables we setup with usage of fake npcs
 	if ( !IsAlive( file.playerFakeNPC[ player ] ) ) // to prevent other files calling fake npc func before this callback
 		file.playerUsingFakeNPCThisLife[ player ] = false
+
+	// clean up fake model proxy on respawn, so that they can cover death animation stuffs( may also transfer to ragdolls? idk )
+	// currently I'll set ent to proxy's model on death to play death animation, this clean up won't really work
+	// EDIT: force resetting model may work really bad, could track model's position or something?
+	if ( IsValid( file.entFakeModelProxy[ player ] ) )
+		file.entFakeModelProxy[ player ].Destroy()
 }
 
 void function OnDecoyCreated( entity player, entity decoy )
@@ -240,6 +292,49 @@ void function OnDecoyCreated( entity player, entity decoy )
 				childEnt = childEnt.NextMovePeer()
 			}
 		}
+
+		if ( IsValid( file.entFakeModelProxy[ player ] ) )
+		{
+			asset modelName = file.entFakeModelProxy[ player ].GetModelName()
+			// init for decoy
+			file.entFakeModelProxy[ decoy ] <- CreateModelProxyForEntity( decoy, modelName )
+		}
+	}
+}
+
+void function OnDecoyDie( entity decoy, int currentState )
+{
+	CleanUpDecoyModelProxy( decoy )
+}
+
+void function OnDecoyDissolve( entity decoy, int currentState )
+{
+	CleanUpDecoyModelProxy( decoy )
+}
+
+void function CleanUpDecoyModelProxy( entity decoy )
+{
+	if ( decoy in file.entFakeModelProxy && IsValid( file.entFakeModelProxy[ decoy ] ) )
+	{
+		entity proxy = file.entFakeModelProxy[ decoy ]
+		// hide decoy, we dissolve proxy instead
+		// resetting decoy's rendermode also works, and proxy will be dissolved as well because decoy seems to dissolve all parented entity in native code
+		/*
+		decoy.kv.rendermode = 4
+		decoy.kv.renderamt = 0
+		*/
+		// we're now changing visibilityFlags, maybe no need to handle like this
+		// EDIT: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
+		decoy.Hide()
+
+		// manually do effect for dissolving
+		// no need because hiding a decoy won't hide it's effect
+		/*
+		int attachIndex = proxy.LookupAttachment( "CHESTFOCUS" )
+		if ( attachIndex > 0 )
+			StartParticleEffectOnEntity( proxy, GetParticleSystemIndex( GHOST_FLASH_EFFECT ), FX_PATTACH_POINT_FOLLOW, attachIndex )
+		*/
+		proxy.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 0 ) // props can't get Decoy_Dissolve() particle effects}
 	}
 }
 
@@ -281,6 +376,90 @@ bool function ShouldDoFunnyReplayStuffs( entity player, entity attacker, float r
 
 	// default returning true to let other callbacks go through
 	return true
+}
+
+void function OnEntityFinalDamaged( entity ent, var damageInfo )
+{
+	// pass damageInfo to our handling table, so that we can create a npc to die for player
+	if ( ( ent in file.entFakeModelProxy ) && IsValid( file.entFakeModelProxy[ ent ] ) )
+	{
+		if ( IsInstantDeath( damageInfo ) || DamageInfo_GetForceKill( damageInfo ) )	
+			return // these could be nice
+		bool surviveDamage = ent.GetHealth() + ent.GetShieldHealth() - DamageInfo_GetDamage( damageInfo ) > 0
+		if ( ent.IsTitan() )
+			surviveDamage = TitanCanSurviveDamage( ent, damageInfo )
+		// KILLSHOT
+		if ( !surviveDamage )
+		{
+			// hopefully this will work
+			table results = {}
+			results.attacker <- DamageInfo_GetAttacker( damageInfo )
+			results.inflictor <- DamageInfo_GetInflictor( damageInfo )
+			results.weapon <- DamageInfo_GetWeapon( damageInfo )
+			results.damageSourceId <- DamageInfo_GetDamageSourceIdentifier( damageInfo )
+			results.origin <- DamageInfo_GetDamagePosition( damageInfo )
+			results.force <- DamageInfo_GetDamageForce( damageInfo )
+			results.scriptType <- DamageInfo_GetCustomDamageType( damageInfo )
+			results.damageType <- DamageInfo_GetDamageType( damageInfo )
+
+			// new adding damageflag DF_NO_PAIN: no pain/death sound on damage
+			// we remove all other damagetypes, leaving only this
+			// all because I don't know how to add DMG_REMOVENORAGDOLL to existing damage...
+			DamageInfo_SetCustomDamageType( damageInfo, DF_NO_PAIN )
+			
+			ent.Die( 
+				results.attacker, 
+				results.inflictor,  
+				{ 	// damage table, remove all death package related stuffs
+					forceKill = true, // force killing them
+					weapon = results.weapon, // just for _stats.gnut to record info
+					damageType = DMG_REMOVENORAGDOLL, // REMOVING RAGDOLL
+					damageSourceId = results.damageSourceId
+				} 
+			)
+
+			Signal( ent, "FakeModelProxyOwnerDeath", results )
+		}
+	}
+}
+
+void function OnPlayerChangedClass( entity player )
+{
+	// if we DO have a fake model active, update visibility because it's gonna be reset after player changing class
+	if ( ( player in file.entFakeModelProxy ) && IsValid( file.entFakeModelProxy[ player ] ) )
+	{
+		// EDIT: still broken after changing class. can't handle that case
+		/*
+		player.kv.rendermode = 4
+		player.kv.renderamt = 0
+		*/
+	}
+}
+
+void function OnEntityDeath( entity ent, var damageInfo )
+{
+	// pass damageInfo to our handling table, so that we can create a npc to die for player
+	if ( ( ent in file.entFakeModelProxy ) && IsValid( file.entFakeModelProxy[ ent ] ) )
+	{
+		// new adding damageflag DF_NO_PAIN: no pain/death sound on damage
+		// we remove all other damagetypes, leaving only this
+		// all because I don't know how to add DMG_REMOVENORAGDOLL to existing damage...
+		// we could remove death package stuffs, this isn't very needed
+		// also, we may always want to gib fake model players. if we do, comment this line out
+		DamageInfo_SetCustomDamageType( damageInfo, DF_NO_PAIN )
+
+		// hopefully this will work
+		table results = {}
+		results.attacker <- DamageInfo_GetAttacker( damageInfo )
+		results.inflictor <- DamageInfo_GetInflictor( damageInfo )
+		results.weapon <- DamageInfo_GetWeapon( damageInfo )
+		results.damageSourceId <- DamageInfo_GetDamageSourceIdentifier( damageInfo )
+		results.origin <- DamageInfo_GetDamagePosition( damageInfo )
+		results.force <- DamageInfo_GetDamageForce( damageInfo )
+		results.scriptType <- DamageInfo_GetCustomDamageType( damageInfo )
+		results.damageType <- DamageInfo_GetDamageType( damageInfo )
+		Signal( ent, "FakeModelProxyOwnerDeath", results )
+	}
 }
 
 // client commands
@@ -2436,4 +2615,581 @@ void function TickPlayerTrackView( entity player )
 		player.SetTrackEntityOffset( < -130.0, 0, 30.0 > ) // sp tick is a bit larger
 	else
 		player.SetTrackEntityOffset( < -120.0, 0, 25.0 > )
+}
+
+// ENOUGH, could've use gib death
+// EDIT: 04/11/2025 change back to use gib death again. I've suffered enough, these proxy cannot be used on players
+entity function CreateModelProxyForEntity( entity ent, asset modelName, string deathNPCClass = "npc_soldier", bool alwaysGibDeath = true )
+{
+	// better hide -- only adds invisibility, won't impact effects
+	// THIS STOPS WORKING ONCE PLAYER RESPAWNED. FUCK IT
+	// EDIT: MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise it just stops working in following games
+	// I've now added an extra fix in _base_gametype_mp.gnut
+	// ALSO, MUST RESET RENDERMODE BEFORE CLASS CHANGE!
+	// it's highly related with SetPlayerSettingsWithMods() method... guess we'll have to wrap it. way too complecated have leave it till we also wrap other model proxy stuffs...
+	// EDIT2: cannot handle settings change AT ALL! guess we'll have to use player.Hide(), removing their jumpjet effects... this will also make health bar tracking become weird
+	// EDIT3: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
+	ent.kv.rendermode = 4
+	ent.kv.renderamt = 0
+	// DAMMIT! HIDING ENTITY WILL REMOVE ALL OF THEIR SOUND!
+	// that gives one way to make a REAL LOW PROFILE for us, but not good for usual use...
+	//ent.Hide()
+	//ent.kv.VisibilityFlags = 0
+
+	// cannot use camo or skin for non-titan model... be awared
+	entity proxy = CreatePropDynamic( modelName, ent.GetOrigin(), ent.GetAngles() )
+	SetTeam( proxy, ent.GetTeam() ) // hopefully we'll have proper team lights
+	proxy.SetParent( ent, "REF" )
+	proxy.SetBoneMerge( ent )
+	proxy.MarkAsNonMovingAttachment()
+	proxy.RemoveFromSpatialPartition()
+	proxy.Highlight_SetInheritHighlight( true )
+	/*
+	SetForceDrawWhileParented( proxy, true ) // have to do this after ent.kv.VisibilityFlags = 0
+	proxy.SetOwner( ent )
+	ent.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY | ENTITY_VISIBLE_TO_ENEMY // not owner only
+	*/
+	// NPC variant
+	/*
+	entity proxy = CreateEntity( "npc_pilot_elite" ) // pilot elite never speak
+	proxy.SetValueForModelKey( modelName )
+	// this should totally avoid any collision?
+	SetSpawnflags( proxy, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
+	DispatchSpawn( proxy )
+	proxy.SetModel( modelName )
+	TakeAllWeapons( proxy )
+	proxy.SetParent( ent, "REF" )
+	proxy.SetBoneMerge( ent )
+	proxy.MarkAsNonMovingAttachment()
+	proxy.RemoveFromSpatialPartition()
+	proxy.Highlight_SetInheritHighlight( true )
+	proxy.Freeze() // can't freeze otherwise model light won't move...
+	*/
+	
+	// why players won't get hide if we don't run this function???
+	// isn't very stable on players idk why
+	if ( !alwaysGibDeath )
+		thread ModelProxyLifetime( ent, proxy, deathNPCClass )
+	else // much easier way
+		thread GibOwnerOnDeath( ent, proxy )
+	//thread TransferChildrenToProxy( ent, proxy )
+
+	return proxy
+}
+
+void function ModelProxyLifetime( entity ent, entity proxy, string deathNPCClass )
+{
+	ent.EndSignal( "OnDestroy" )
+	proxy.EndSignal( "OnDestroy" )
+
+	// better hide -- only adds invisibility, won't impact effects
+	// isn't very stable on players idk why
+	// THIS STOPS WORKING ONCE PLAYER RESPAWNED. FUCK IT
+	// EDIT: MUST RESET RENDERMODE BEFORE RESPAWNING! otherwise it just stops working in following games
+	// I've now added an extra fix in _base_gametype_mp.gnut
+	// EDIT: still broken after changing class. can't handle that case
+	// EDIT2: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
+	//ent.kv.rendermode = 4
+	//ent.kv.renderamt = 0
+
+	// disable death package for player/npc, all handled below
+	// I'm not counting using this thing on players now. let's handle npcs good enough
+	//if ( ent.IsPlayer() || ent.IsNPC() )
+	if ( ent.IsPlayer() )
+		DeathPackage_SetDisabledForEntity( ent, true )
+
+	OnThreadEnd
+	(
+		function() : ( ent, proxy )
+		{
+			if ( IsValid( ent ) )
+			{
+				// restore stuffs
+				// I'm not counting using this thing on players now. let's handle npcs good enough
+				//if ( ent.IsPlayer() || ent.IsNPC() )
+				if ( ent.IsPlayer() )
+					DeathPackage_SetDisabledForEntity( ent, false )
+				// will this make player's next life able to use the think again?
+				// YES IT DOES!
+				// I've now added an extra fix in _base_gametype_mp.gnut
+				// EDIT: still broken after changing class. can't handle that case
+				// EDIT2: fuck all of these. footsteps gets lost once players are hidden. change back to use rendermode changes, at least it works fine for npcs.
+				ent.kv.rendermode = 0
+				ent.kv.renderamt = 255
+				//ent.Show()
+				//ent.kv.VisibilityFlags = ENTITY_VISIBLE_TO_EVERYONE
+			}
+			if ( IsValid( proxy ) )
+				proxy.Destroy()
+		}
+	)
+
+	// why is decoy sending "OnDeath" signal on getting shot???
+	// should only handle for player/npc
+	// nah player and npc also not working fine with these... they'll slide when model changed after death
+	// also stalkers don't have proper animation for player death
+	// I'm not counting using this thing on players now. let's handle npcs good enough
+	//if ( ent.IsPlayer() || ent.IsNPC() )
+	if ( ent.IsPlayer() )
+	{
+		table results = WaitSignal( ent, "FakeModelProxyOwnerDeath" )
+
+		// handling being executed over here
+		if ( ent.Anim_IsActive() )
+		{
+			// at this point we need to restore death package for ent
+			// still can't handle anim event stuffs because death package think is called earlier than player death
+			// it's fine I've suffered enough. could've make stalker players unable to be executed because you know, npcs also do so
+			//DeathPackage_SetDisabledForEntity( ent, false )
+			WaittillAnimDone( ent )
+			// just ragdoll our proxy, should be good enough
+			// maybe player will also drop a ragdoll... whatever
+			// yes they do, and we may have 2 ragdolls dropping together. stupid
+			proxy.BecomeRagdoll( <0,0,0>, false )
+			// if we don't take hold, will leave only a player's ragdoll. actually feels better..?
+			//WaitFrame() // ragdoll take hold
+		}
+		else
+		{
+			// maybe we could just destroy proxy here and let ent themselves play death animation? idk maybe they don't have one
+			// welp maybe better solution: add a npc to play death animation for them
+			/*
+			ent.SetModel( proxy.GetModelName() )
+			ent.SetValueForModelKey( proxy.GetModelName() )
+			ent.kv.rendermode = 0
+			ent.kv.renderamt = 255
+			*/
+			entity deathNPC = CreateEntity( deathNPCClass )
+			deathNPC.SetValueForModelKey( proxy.GetModelName() )
+			// this should totally avoid any collision?
+			// they still gets snatched to their place for whatever
+			SetSpawnflags( deathNPC, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
+			DispatchSpawn( deathNPC )
+			TakeAllWeapons( deathNPC )
+
+			deathNPC.SetModel( proxy.GetModelName() )
+			deathNPC.SetFullBodygroup( proxy.GetFullBodygroup() )
+
+			PainDeathSounds_SetBodyTypeOverride( deathNPC, PainDeathSounds_GetBodyTypeOverride( ent ) )
+
+			deathNPC.kv.CollisionGroup = 0 // stop collision
+			deathNPC.NotSolid() // don't let them blocking bullets
+			deathNPC.SetHealth( 1 ) // so spectres will die from frag grenades
+
+			deathNPC.Die( 
+				null, 
+				null,  
+				{ 	// damage table
+					forceKill = true, // force killing them
+					weapon = results.weapon, 
+					origin = results.origin, 
+					force = results.force, 
+					scriptType = results.scriptType, 
+					damageType = results.damageType, 
+					damageSourceId = results.damageSourceId
+				} 
+			)
+			deathNPC.SetOrigin( ent.GetOrigin() ) // sometimes it moves to weird position, maybe because navmeshes?
+			deathNPC.SetAngles( < 0, ent.GetAngles().y, 0 > ) // no rotation for npcs
+
+			//print( "player on ground: " + string( player.IsOnGround() ) )
+			if ( !ent.IsOnGround() ) // if player died on ground we don't update velocity
+			{
+				vector forceVec = expect vector( results.force ) + ent.GetVelocity()
+				float forceMag = Length( forceVec )
+				forceVec = Normalize( forceVec )
+				const float MAX_FORCE = 30000
+				if ( forceMag > MAX_FORCE )
+					forceMag = MAX_FORCE
+
+				deathNPC.SetVelocity( forceVec * forceMag ) // so the body can fly as players does
+			}
+
+			// drop weapon manually
+			entity activeWeapon = ent.GetActiveWeapon()
+			// activeWeapon will become invalid if player is dropping weapon from death animation
+			if ( IsValid( activeWeapon ) )
+			{
+				//print( "Death cam length modified but player can't make it to drop weapon!" )
+				//print( "Dropping " + string( activeWeapon ) + " manually" )
+				ent.DropWeapon( activeWeapon )
+				activeWeapon.SetVelocity( ent.GetVelocity() )
+			}
+
+			// CAN'T RAGDOLL WITH EMPTY MODEL
+			//thread DelayedFixRagdollWillThis( ent )
+			// still can't show player here... otherwise they'll do ACT_DEATH on changing to spectator
+			/*
+			ent.kv.rendermode = 0
+			ent.kv.renderamt = 255
+			ent.Hide() // should be cleared on respawn with fixed scripts, I think
+			// only one method: leave a head on ground
+			PlayerPulseBladeModel_HideBodyAndLegs( ent )
+			// change to wounded head
+			ent.SetBodygroup( ent.FindBodyGroup( "head" ), 1 )
+			//ent.BecomeRagdoll( <0,0,0>, false ) // ragdoll leave for animation
+			ent.StopPhysics()
+			*/
+			
+			// or maybe something really stupid: use buddy titan model because it's all parts can be hidden
+			thread RagdollAsHiddenBuddyTitan( ent )
+		}
+	}
+	else if ( ent.IsNPC() )
+	{
+		ent.WaitSignal( "OnDeath" )
+		// changing model for dead npcs should work fine
+		// or maybe we could just gib them
+		// EDIT: this will take ~1 frame hold of T-Posing. idk how to tell it's weird but okay...?
+		ent.SetModel( proxy.GetModelName() )
+		ent.SetValueForModelKey( proxy.GetModelName() )
+		ent.kv.rendermode = 0
+		ent.kv.renderamt = 255
+	}
+	else
+		WaitForever()
+}
+
+
+// HOW TO HIDE RAGDOLL AHHHHHHH
+void function DelayedFixRagdollWillThis( entity ent )
+{
+	ent.EndSignal( "OnDestroy" )
+	// wait for death animation to be played for at least 1 frame
+	WaitFrame()
+	if ( IsAlive( ent ) ) // player can respawn
+		return
+	// CAN'T RAGDOLL WITH EMPTY MODEL
+	ent.SetModel( $"models/dev/empty_model.mdl" ) // this is stupid
+	ent.BecomeRagdoll( <0,0,0>, false )
+	ent.StopPhysics()
+}
+
+void function RagdollAsHiddenBuddyTitan( entity ent )
+{
+	ent.EndSignal( "OnDestroy" )
+	ent.StopPhysics()
+
+	// remove ragdoll impact
+	ent.SetRagdollImpactFX( HUMAN_RAGDOLL_IMPACT_TABLE_IDX )
+	ent.SetModel( $"models/titans/buddy/titan_buddy.mdl" )
+	ent.SetBodygroup( ent.FindBodyGroup( "left_arm" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "right_arm" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "left_leg" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "right_leg" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "front" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "back" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "hatch" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "hip" ), 2 )
+	ent.SetBodygroup( ent.FindBodyGroup( "battery_cap_center" ), 1 )
+	ent.SetBodygroup( ent.FindBodyGroup( "battery_cap_outer" ), 1 )
+
+	// wait for model to be actually changed
+	wait 0.2
+	if ( IsAlive( ent ) ) // player can respawn
+		return
+	
+	ent.BecomeRagdoll( <0,0,0>, false )
+	ent.StopPhysics() // player's view still gets slide away idk why
+	StopSoundOnEntity( ent, "buddy_Movement_combat_idle" ) // idle sound played by buddy titan model
+
+	WaitFrame() // wait till ragdoll process
+	if ( IsAlive( ent ) ) // player can respawn
+		return
+	
+	// try to stop camera for whatever!
+	// it doesn't work
+	ent.SetModel( $"models/dev/empty_model.mdl" ) // this is stupid
+	ent.StopPhysics()
+}
+
+
+void function GibOwnerOnDeath( entity ent, entity proxy )
+{
+	ent.EndSignal( "OnDestroy" )
+	proxy.EndSignal( "OnDestroy" )
+
+	// disable death package for player/npc, so we don't gib them twice
+	// this also removes headshot effects but whatever
+	if ( ent.IsPlayer() || ent.IsNPC() )
+		DeathPackage_SetDisabledForEntity( ent, true )
+
+	OnThreadEnd
+	(
+		function() : ( ent, proxy )
+		{
+			if ( IsValid( ent ) )
+			{
+				// restore stuffs
+				if ( ent.IsPlayer() || ent.IsNPC() )
+					DeathPackage_SetDisabledForEntity( ent, false )
+				ent.kv.rendermode = 0
+				ent.kv.renderamt = 255
+			}
+			if ( IsValid( proxy ) )
+				proxy.Destroy()
+		}
+	)
+
+	// why is decoy sending "OnDeath" signal on getting shot???
+	// should only handle for player/npc
+	// nah player and npc also not working fine with these... they'll slide when model changed after death
+	// also stalkers don't have proper animation for player death
+	if ( ent.IsPlayer() || ent.IsNPC() )
+	{
+		// welp... we could also handle headshots manually
+		//ent.WaitSignal( "OnDeath" )
+		table results = WaitSignal( ent, "FakeModelProxyOwnerDeath" )
+		// copied from sh_death_package.gnut
+		int dpFlags = expect int( results.scriptType )
+		if ( ( dpFlags & DF_HEADSHOT ) && IsHumanSized( ent ) && !ent.IsHologram() )
+			TryHeadshotDeathFX( ent )
+		HumanSizedGibDeath( ent )
+	}
+	else
+		WaitForever()
+}
+
+void function GivesPlayerFakeModelProxy( entity player, asset modelName, string deathNPCClass = "npc_soldier" )
+{
+	if ( IsValid( file.entFakeModelProxy[ player ] ) )
+		file.entFakeModelProxy[ player ].Destroy()
+	file.entFakeModelProxy[ player ] = CreateModelProxyForEntity( player, modelName, deathNPCClass )
+}
+
+// just for fun
+bool function CC_BecomeFakeBarker( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeBarker( player )
+	return true
+}
+
+void function BecomeFakeBarker( entity player )
+{
+	GivesPlayerFakeModelProxy( player, $"models/humans/heroes/mlt_hero_barker.mdl" )
+}
+
+bool function CC_BecomeFakeMarder( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeMarder( player )
+	return true
+}
+
+void function BecomeFakeMarder( entity player )
+{
+	GivesPlayerFakeModelProxy( player, $"models/humans/heroes/imc_hero_marder.mdl" )
+}
+
+bool function CC_BecomeFakeSpectre( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeSpectre( player )
+	return true
+}
+
+void function BecomeFakeSpectre( entity player )
+{
+	GivesPlayerFakeModelProxy( player, $"models/robots/spectre/imc_spectre.mdl", "npc_spectre" )
+	// have to add effect
+	// effects won't follow, which is fucked
+	/*
+	entity spectreProxy = file.entFakeModelProxy[ player ]
+	entity eyeFXFriendly = StartParticleEffectOnEntity_ReturnEntity( spectreProxy, GetParticleSystemIndex( $"P_spectre_eye_friend" ), FX_PATTACH_POINT, spectreProxy.LookupAttachment( "EYEGLOW" ) )
+	eyeFXFriendly.SetOwner( player )
+	SetTeam( eyeFXFriendly, player.GetTeam() )
+	eyeFXFriendly.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
+	entity eyeFXEnemy = StartParticleEffectOnEntity_ReturnEntity( spectreProxy, GetParticleSystemIndex( $"P_spectre_eye_foe" ), FX_PATTACH_POINT, spectreProxy.LookupAttachment( "EYEGLOW" ) )
+	eyeFXEnemy.SetOwner( player )
+	SetTeam( eyeFXEnemy, player.GetTeam() )
+	eyeFXEnemy.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
+	*/
+}
+
+bool function CC_BecomeFakeStalker( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BecomeFakeStalker( player )
+	return true
+}
+
+void function BecomeFakeStalker( entity player )
+{
+	asset model = $"models/robots/stalker/robot_stalker.mdl" // default to use imc-style stalker: white one
+	if ( player.GetTeam() == TEAM_MILITIA )
+		model = $"models/robots/stalker/robot_stalker_red.mdl"
+	GivesPlayerFakeModelProxy( player, model, "npc_stalker" )
+	// have to add effect
+	// effects won't follow, which is fucked
+	/*
+	entity stalkerProxy = file.entFakeModelProxy[ player ]
+	entity eyeFXFriendly = StartParticleEffectOnEntity_ReturnEntity( stalkerProxy, GetParticleSystemIndex( $"P_stalker_eye_friend" ), FX_PATTACH_POINT, stalkerProxy.LookupAttachment( "FX_C_EYE" ) )
+	eyeFXFriendly.SetOwner( player )
+	SetTeam( eyeFXFriendly, player.GetTeam() )
+	eyeFXFriendly.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
+	entity eyeFXEnemy = StartParticleEffectOnEntity_ReturnEntity( stalkerProxy, GetParticleSystemIndex( $"P_stalker_eye_foe" ), FX_PATTACH_POINT, stalkerProxy.LookupAttachment( "FX_C_EYE" ) )
+	eyeFXEnemy.SetOwner( player )
+	SetTeam( eyeFXEnemy, player.GetTeam() )
+	eyeFXEnemy.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
+	*/
+}
+
+bool function CC_BrainDead( entity player, array<string> args )
+{
+	if ( !GetConVarBool( "sv_cheats" ) && !file.clientCommandsEnabled )
+		return false
+
+	BrainDead( player )
+	return true
+}
+
+// still no enough attachments to cover body
+const array<string> BRAIN_DEAD_ATTACHMENTS = 
+[
+	//"OFFSET",
+	//"REF",
+	"HEADFOCUS",
+	"HEADSHOT",
+	//"CHESTFOCUS",
+	//"PROPGUN",
+	//"VDU",
+	"L_HAND",
+	"R_HAND",
+	//"KNIFE",
+	//"ORIGIN",
+	//"SHIELD",
+	"foot_L_sole",
+	"foot_R_sole",
+	//"FLAG",
+	//"vent_right_back",
+	//"vent_left_back",
+	//"RIFLE_HOLSTER",
+	//"ANTI_TITAN_HOLSTER",
+	//"SIDEARM_HOLSTER",
+	"vent_right",
+	"vent_left",
+	//"vent_right_out",
+	//"vent_left_out",
+	"vent_center",
+	//"vent_center_out",
+	//"BATTERY_ATTACH",
+]
+
+void function BrainDead( entity player )
+{
+	// drop existing brains
+	player.Signal( "BrainDead" )
+
+	// leave only a head first
+	PlayerPulseBladeModel_HideBodyAndLegs( player )
+	// change to wounded head
+	player.SetBodygroup( player.FindBodyGroup( "head" ), 1 )
+
+	// start attaching brains
+	array<entity> brains
+	foreach ( string attachment in BRAIN_DEAD_ATTACHMENTS )
+	{
+		entity brain = CreateHumanBrain( player.GetOrigin(), player.GetAngles() )
+		brain.SetParent( player, attachment )
+		brain.Highlight_SetInheritHighlight( true )
+		brain.NotSolid() // to avoid blocking bullets
+		brains.append( brain )
+	}
+	// one giant brain using "CHESTFOCUS"
+	entity bodyBrain = CreateHumanBrain( player.GetOrigin(), player.GetAngles(), 4 )
+	bodyBrain.SetParent( player, "CHESTFOCUS" )
+	bodyBrain.Highlight_SetInheritHighlight( true )
+	bodyBrain.SetOrigin( < 0, 0, -5 > ) // closer to body
+
+	thread ManageBrainsLifeTime( player, brains )
+	thread ManageBodyBrainLifeTime( player, bodyBrain )
+}
+
+void function ManageBrainsLifeTime( entity player, array<entity> brains )
+{
+	OnThreadEnd
+	(
+		function() : ( player, brains )
+		{
+			// make brains drop to ground
+			vector velocity = Vector( 0, 0, 0 )
+			if ( IsValid( player ) )
+				velocity = player.GetVelocity()
+			ArrayRemoveInvalid( brains )
+			foreach ( entity brain in brains )
+			{
+				brain.ClearParent()
+				brain.SetVelocity( velocity )
+				thread DelayedPinkmistBrain( brain )
+				brain.Solid() // start colliding with bullets
+			}
+			// ragdoll player immediately on death
+			if ( IsValid( player ) && !IsAlive( player ) )
+			{
+				player.BecomeRagdoll( velocity, false )
+				player.Gib( velocity )
+			}
+		}
+	)
+
+	WaitSignal( player, "OnDeath", "OnDestroy", "BrainDead" )
+}
+
+void function ManageBodyBrainLifeTime( entity player, entity brain )
+{
+	brain.EndSignal( "OnDestroy" )
+
+	WaitSignal( player, "OnDeath", "OnDestroy", "BrainDead" )
+	brain.Dissolve( ENTITY_DISSOLVE_PINKMIST, < 0, 0, 0 >, 0 )
+}
+
+// similar function exists in nessie_debug.gnut, this one allowing us always spawn a brain
+entity function CreateHumanBrain( vector origin, vector angles, float scale = 2.0 )
+{
+	entity prop_physics = CreateEntity( "prop_physics" )
+	prop_physics.SetValueForModelKey( $"models/gibs/human_gibs.mdl" )
+	prop_physics.SetModel( $"models/gibs/human_gibs.mdl" ) // required to make finding bodygroup work
+	prop_physics.kv.spawnflags = 4 // 4 = SF_PHYSPROP_DEBRIS
+	prop_physics.kv.fadedist = 2000
+	prop_physics.kv.renderamt = 255
+	prop_physics.kv.rendercolor = "255 255 255"
+	prop_physics.kv.CollisionGroup = TRACE_COLLISION_GROUP_DEBRIS
+
+	// funny things
+	int bodyGroupIndex = prop_physics.FindBodyGroup( "gibs" )
+	/* 
+		index
+		studio "gib_lump_LOD0.smd"
+		studio "gib_small_02_LOD0.smd"
+		studio "gib_brain_LOD0.smd"
+		studio "gib_muscle_LOD0.smd"
+		studio "gib_small_01_LOD0.smd"
+	*/
+	prop_physics.SetBodygroup( bodyGroupIndex, 2 )
+
+	prop_physics.kv.modelscale = scale // should be good enough?
+
+	prop_physics.SetOrigin( origin )
+	prop_physics.SetAngles( angles )
+	DispatchSpawn( prop_physics )
+	prop_physics.SetModel( $"models/gibs/human_gibs.mdl" )
+
+	return prop_physics
+}
+
+void function DelayedPinkmistBrain( entity gib, float dissolveDelay = 8.0 ) // 8s is default force respawn delay
+{
+	gib.EndSignal( "OnDestroy" )
+
+	wait dissolveDelay
+	gib.Dissolve( ENTITY_DISSOLVE_PINKMIST, < 0, 0, 0 >, 0 )
 }

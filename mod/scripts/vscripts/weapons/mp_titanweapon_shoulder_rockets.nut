@@ -116,7 +116,7 @@ var function OnWeaponPrimaryAttack_titanweapon_shoulder_rockets( entity weapon, 
 		}
 		else
 		{
-			entity missile = weapon.FireWeaponMissile( attackParams.pos, attackParams.dir, SHOULDERROCKETS_MISSILE_SPEED, damageTypes.projectileImpact, damageTypes.explosive, false, shouldPredict )
+			entity missile = FireWeaponMissile_RecordData( weapon, attackParams.pos, attackParams.dir, SHOULDERROCKETS_MISSILE_SPEED, damageTypes.projectileImpact, damageTypes.explosive, false, shouldPredict )
 			weapon.SetWeaponBurstFireCount( 1 )
 		}
 

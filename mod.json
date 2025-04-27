@@ -26,6 +26,13 @@
 			"Path": "/nessiefix/special_3p_attack_anim_fix.gnut",
 			"RunOn": "SERVER"
 		},
+		{
+			"Path": "/nessiefix/shield_crash_fix.gnut",
+			"RunOn": "SERVER",
+			"ServerCallback": {
+                "After": "Nessie_Shield_Crash_Fix_Init"
+            }
+		},
 		// nessie bug fixes end
 		// nessie utility
 		{
@@ -75,13 +82,6 @@
 			"RunOn": "SERVER",
 			"ServerCallback": {
                 "After": "Nessie_Enum_Utility_Init"
-            }
-		},
-		{
-			"Path": "/nessieutil/shield_crash_fix.gnut",
-			"RunOn": "SERVER",
-			"ServerCallback": {
-                "After": "Nessie_Shield_Crash_Fix_Init"
             }
 		},
 		{
@@ -491,6 +491,16 @@
                 "After": "Sh_MixedGame_ClientSide_Installation_Check_Init"
             }
 		},
+		{
+			"Path": "/sharedutil/sh_serverside_objects.gnut",
+			"RunOn": "( CLIENT || SERVER ) && MP",
+            "ServerCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            },
+			"ClientCallback": {
+                "After": "Sh_Serverside_Objects_Folder_Init"
+            }
+		},
 		// shared utilities end
 		// grunt mode
 		{
@@ -828,6 +838,26 @@
                 "After": "MpWeaponShotgunDoubleBarrel_Init"
             }
 		},
+		{
+			"Path": "/modweapons/vanilla_miss/mp_weapon_hemlok_fixed.nut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponHemlok_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponHemlok_Init"
+            }
+		},
+		{
+			"Path": "/modweapons/vanilla_miss/mp_weapon_sword.nut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponSword_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponSword_Init"
+            }
+		},
 		// vanilla missing weapon scripts end
 		// northstar missing weapon scripts
 		{
@@ -838,6 +868,16 @@
             },
             "ServerCallback": {
                 "After": "MpWeaponShotgunDoubleBarrelTFO_Init"
+            }
+		},
+		{
+			"Path": "/modweapons/northstar_miss/mp_weapon_kunai.gnut",
+			"RunOn": "CLIENT || SERVER",
+			"ClientCallback": {
+                "After": "MpWeaponKunai_Init"
+            },
+            "ServerCallback": {
+                "After": "MpWeaponKunai_Init"
             }
 		},
 		// northstar missing weapon scripts end
@@ -1041,6 +1081,13 @@
 			"RunOn": "SERVER",
             "ServerCallback": {
                 "After": "Fake_Titanfall1_Sprint_Animation_Init"
+			}
+		},
+		{
+			"Path": "/modweapons/modutility/_nessy_april_fools_weapons.gnut",
+			"RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "Nessy_April_Fools_Weapons_Init"
 			}
 		},
 		// modded weapon utility end

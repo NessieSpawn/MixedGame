@@ -40,6 +40,7 @@ global function AddTitanKilledDialogueEvent
 // nessie modify
 global function ScoreEvent_DisableCallSignEvent
 global function ScoreEvent_EnableComebackEvent // doesn't exsit in vanilla, make it a setting
+global function ScoreEvent_DisablePilotAssist // here just for removing PilotAssist for gruntmode
 // funny things to be shared with other files, add more kill streak stuffs
 global function UpdateUntimedKillStreaks
 global function UpdateMixedTimedKillStreaks
@@ -79,6 +80,7 @@ struct
 	bool disableCallSignEvent = false
 	bool headshotDialogue = false
 	bool comebackEvent = false
+	bool disablePilotAssist = false
 } file
 
 void function Score_Init()
@@ -352,7 +354,8 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	//if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
 	//	AddPlayerScore( attacker, "Headshot", victim )
 	// modified to handle specific damages
-	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
+	// also needs to validate headshot
+	if ( IsValidHeadShot( damageInfo, victim ) && DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
 	{
 		AddPlayerScore( attacker, "Headshot", victim )
 		// headshot dialogue, doesn't exist in vanilla so make it a setting
@@ -423,7 +426,9 @@ void function ScoreEvent_PlayerKilled( entity victim, entity attacker, var damag
 	if ( !victim.IsTitan() ) // titan assist handled by ScoreEvent_TitanKilled()
 	{
 		// wrap into this function
-		ScoreEvent_PlayerAssist( victim, attacker, "PilotAssist" )
+		// allow script to toggle this off, for gruntmode
+		if ( !file.disablePilotAssist )
+			ScoreEvent_PlayerAssist( victim, attacker, "PilotAssist" )
 	}
 }
 
@@ -587,12 +592,18 @@ void function ScoreEvent_TitanKilled( entity victim, entity attacker, var damage
 		ScoreEvent_PlayerAssist( damageHistorySaver, attacker, "TitanAssist" )
 	}
 	*/
+
+	// soul checks now wrapped inside ScoreEvent_PlayerAssist(), no longer needs extra checks
+	/*
 	entity titanSoul = victim.GetTitanSoul()
 	if ( IsValid( titanSoul ) )
 	{
 		// wrap into this function
 		ScoreEvent_PlayerAssist( titanSoul, attacker, "TitanAssist" )
 	}
+	*/
+
+	ScoreEvent_PlayerAssist( victim, attacker, "TitanAssist" )
 }
 
 void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageInfo )
@@ -614,7 +625,7 @@ void function ScoreEvent_NPCKilled( entity victim, entity attacker, var damageIn
 	catch(ex) {}
 
 	// headshot
-	if ( DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
+	if ( IsValidHeadShot( damageInfo, victim ) && DamageInfo_GetCustomDamageType( damageInfo ) & DF_HEADSHOT )
 		AddPlayerScore( attacker, "Headshot", victim, null, -1, 0.0, victim ) // no extra value earn from npc headshots
 
 	// npc&player mixed killsteaks
@@ -871,6 +882,13 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 	if ( !IsValid( victim ) || victim.IsMarkedForDeletion() )
 		return
 
+	// titan damage history stores in titanSoul
+	if ( victim.IsTitan() )
+	{
+		if ( IsValid( victim.GetTitanSoul() ) )
+			victim = victim.GetTitanSoul()
+	}
+
 	table<int, bool> alreadyAssisted
 	foreach( DamageHistoryStruct attackerInfo in victim.e.recentDamageHistory )
 	{
@@ -912,7 +930,13 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 					continue
 			}
 		}
-		
+
+		// assist is now allowed if it's a friendly player and we disabled score
+		bool friendlyPlayerAssist = attackerInfo.attacker.GetTeam() == victim.GetTeam()
+		bool shouldAddScoreForFriendlyAssist = FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill()
+		if ( friendlyPlayerAssist && !shouldAddScoreForFriendlyAssist )
+			continue
+
 		bool exists = attackerInfo.attacker.GetEncodedEHandle() in alreadyAssisted ? true : false
 		if( attackerInfo.attacker != attacker && !exists )
 		{
@@ -920,6 +944,9 @@ void function ScoreEvent_PlayerAssist( entity victim, entity attacker, string ev
 			Remote_CallFunction_NonReplay( attackerInfo.attacker, "ServerCallback_SetAssistInformation", attackerInfo.damageSourceId, attacker.GetEncodedEHandle(), victim.GetEncodedEHandle(), attackerInfo.time )
 			AddPlayerScore( attackerInfo.attacker, eventName, victim, displayTypeOverride, -1, 1.0, victim )
 			attackerInfo.attacker.AddToPlayerGameStat( PGS_ASSISTS, 1 )
+			// northstar new adding fix: player assist callback
+			foreach ( callback in svGlobal.onPlayerAssistCallbacks )
+				callback( attackerInfo.attacker, victim )
 		}
 	}
 }
@@ -943,4 +970,9 @@ void function ScoreEvent_EnableHeadshotDialogue( bool enable )
 void function ScoreEvent_EnableComebackEvent( bool enable )
 {
 	file.comebackEvent = enable
+}
+
+void function ScoreEvent_DisablePilotAssist( bool disable )
+{
+	file.disablePilotAssist = disable
 }

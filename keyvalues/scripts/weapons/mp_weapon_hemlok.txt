@@ -1,5 +1,6 @@
 WeaponData
 {
+	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_hemlok"
 	"OnWeaponReload"								"OnWeaponReload_Tediore"
 	"OnProjectileCollision"							"OnProjectileCollision_Tediore"
 
@@ -118,12 +119,12 @@ WeaponData
 		}
 
 		// nessie self balance
-        nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+        // nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"damage_near_value"			"20"
 			//"damage_far_value"			"20"
@@ -132,6 +133,125 @@ WeaponData
 
 			//"dof_zoom_nearDepthStart"						"6.0"
 			//"dof_zoom_nearDepthEnd"							"8.8"
+		// }
+
+		// just for fun: tf|1 starburst( actually tf|2 hemlock's screen shows STARBURST mode )
+		starburst
+		{
+			// debug only
+			//"fire_mode"   					"auto"
+
+			// my own balance, not included in tf|1
+			"damage_near_value"   			"25" // adjusted to tf|2 value. tf|1 value 50
+			"damage_far_value"				"18" // adjusted to tf|2 value. tf|1 value 35
+			"damage_very_far_value"			"15" // new adding
+
+			"fire_rate"   					"20"
+			"burst_fire_count"				"5"
+			"burst_fire_delay"				"0.24"
+			"ammo_clip_size"				"25"
+			// allows extended ammo to be fired fully... or maybe not? leaving 1 in clip makes weapon always tactical reload, which differs it from other's extended ammo mod
+			//"ammo_min_to_fire"				"1"
+			"ammo_min_to_fire"				"5"
+
+			// tf|2 "viewkick_pitch_base" is -0.95, tf|1 is -0.75
+			//"viewkick_pitch_base" 							"-0.7"
+			"viewkick_pitch_base" 							"-0.9"
+			"viewkick_pitch_hardScale"		"1.65"
+
+			// have to change burst sound cuz original one only considered 3-round burst
+
+			// now change to script handle, stop sound at specific point for better effect
+			// works pretty bad, let's just use npc firing sound
+			//"fire_sound_2_player_1p"						"Weapon_Hemlok_FirstShot_npc" // Weapon_Hemlok_FirstShot_1P actually works, but sounds like it bursts more than 5 shots
+			//"fire_sound_2_player_3p"						"Weapon_Hemlok_FirstShot_npc"
+			//"fire_sound_2_npc"								"Weapon_Hemlok_FirstShot_npc"
+
+			//"fire_sound_2_player_1p"						"Weapon_Hemlok_FirstShot_1P"
+			//"fire_sound_2_player_3p"						"Weapon_Hemlok_FirstShot_3P"
+
+			"fire_sound_2_player_1p"						"Weapon_Hemlok_FirstShot_npc"
+			"fire_sound_2_player_3p"						"Weapon_Hemlok_FirstShot_npc"
+
+			"burst_or_looping_fire_sound_start_1p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_start_3p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_start_npc"			"Null_Remove_SoundHook"
+		}
+		// tf|1 scrapped stuff, actually I think this was later used by apex's single-fire mode
+		lmg
+		{
+			"damage_near_value"   			"25" // adjusted to tf|2 value. tf|1 value 50
+			"damage_far_value"				"18" // adjusted to tf|2 value. tf|1 value 35
+			"damage_very_far_value"			"15" // new adding
+
+			// don't change fire_mode... and it will be like apex single fire?
+			//"fire_mode"   					"auto"
+			"fire_rate"						"8"
+			"burst_fire_count"				"0"
+			"burst_fire_delay"				"0"
+			"ammo_min_to_fire"				"1"
+
+			// tf|2 "viewkick_pitch_base" is -0.95, tf|1 is -0.75
+			//"viewkick_pitch_base" 							"-0.85"
+			"viewkick_pitch_base" 							"-1.05"
+			"viewkick_pitch_random"   						"0.4"
+	        "viewkick_pitch_softScale"						"0.8"
+	        "viewkick_pitch_hardScale"						"0.85"
+
+			"viewkick_yaw_base"   							"0.2"
+			"viewkick_yaw_random" 							"0.45"
+	        "viewkick_yaw_softScale"						"0.5"
+	        "viewkick_yaw_hardScale"						"0.75"
+
+	        "viewkick_scale_firstshot_ads"					"1.0"
+
+			"viewkick_scale_valueLerpStart"   				"0"
+			"viewkick_scale_valueLerpEnd" 					"3"
+
+			"viewkick_perm_pitch_base"						"0"
+			"viewkick_perm_pitch_random"  				 	"0"
+			"viewkick_perm_yaw_base"						"0"
+			"viewkick_perm_yaw_random"						"0"
+
+			"viewkick_perm_yaw_random_innerexclude"			"0.2"
+
+			// have to change burst sound cuz original one only considered 3-round burst
+
+			// now change to script handle, stop sound at specific point for better effect
+			//"fire_sound_2_player_1p"						"Weapon_Hemlok_FirstShot_npc"
+			//"fire_sound_2_player_3p"						"Weapon_Hemlok_FirstShot_npc"
+			//"fire_sound_2_npc"								"Weapon_Hemlok_FirstShot_npc"
+
+			//"fire_sound_2_player_1p"						"Weapon_Hemlok_FirstShot_1P"
+			//"fire_sound_2_player_3p"						"Weapon_Hemlok_FirstShot_3P"
+
+			"fire_sound_2_player_1p"						"Weapon_Hemlok_FirstShot_npc"
+			"fire_sound_2_player_3p"						"Weapon_Hemlok_FirstShot_npc"
+
+			"burst_or_looping_fire_sound_start_1p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_start_3p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_start_npc"			"Null_Remove_SoundHook"
+
+			// low ammo sound fix
+			"low_ammo_sound_name_1"							"Hemlok_LowAmmo_Shot1"
+			"low_ammo_sound_name_2"							"Hemlok_LowAmmo_Shot2"
+			"low_ammo_sound_name_3"							"Hemlok_LowAmmo_Shot2"
+			"low_ammo_sound_name_4"							"Hemlok_LowAmmo_Shot3"
+			"low_ammo_sound_name_5"							"Hemlok_LowAmmo_Shot3"
+
+			"low_ammo_sound_name_6"							"Null_Remove_SoundHook"
+			"low_ammo_sound_name_7"							"Null_Remove_SoundHook"
+			"low_ammo_sound_name_8"							"Null_Remove_SoundHook"
+			"low_ammo_sound_name_9"							"Null_Remove_SoundHook"
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }

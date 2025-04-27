@@ -83,6 +83,8 @@ global const ARC_CANNON_SIGNAL_DEACTIVATED	= "ArcCannonDeactivated"
 global const ARC_CANNON_SIGNAL_CHARGEEND = "ArcCannonChargeEnd"
 // for we handling fixed charge effect on server-side
 const ARC_CANNON_SIGNAL_FIREWEAPON = "ArcCannonFireWeapon"
+// for we handling sound fix on client-side
+const ARC_CANNON_SIGNAL_CHARGEBEGIN = "ArcCannonChargeBegin"
 
 global const ARC_CANNON_BEAM_EFFECT = $"wpn_arc_cannon_beam"
 global const ARC_CANNON_BEAM_EFFECT_MOD = $"wpn_arc_cannon_beam_mod"
@@ -132,6 +134,9 @@ function ArcCannon_Init()
 	RegisterSignal( ARC_CANNON_SIGNAL_CHARGEEND )
 	// for we handling fixed charge effect on server-side
 	RegisterSignal( ARC_CANNON_SIGNAL_FIREWEAPON )
+	// for we handling sound fix on client-side
+	RegisterSignal( ARC_CANNON_SIGNAL_CHARGEBEGIN )
+	RegisterSignal( "ArcCannonWeaponSwitched" )
 
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT )
 	PrecacheParticleSystem( ARC_CANNON_BEAM_EFFECT_MOD )
@@ -205,6 +210,9 @@ function ArcCannon_ChargeBegin( entity weapon )
 	// now change to use settings file
 	//weapon.PlayWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge", "muzzle_flash" )
 	//thread TrackArcCannonChargeEffect( weapon, weaponOwner )
+	
+	// signal for sound fix
+	weapon.Signal( ARC_CANNON_SIGNAL_CHARGEBEGIN )
 }
 
 void function TrackArcCannonChargeEffect( entity weapon, entity weaponOwner )
@@ -324,6 +332,12 @@ function FireArcCannon( entity weapon, WeaponPrimaryAttackParams attackParams )
 	// now change to use settings file
 	//weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" ) // defensive fix
 
+	// more of sound fix -- add back rechamber sound
+	#if CLIENT
+		thread ArcCannonRechamberSoundThink( weapon )
+	#endif
+	//
+
 	local attachmentName = "muzzle_flash"
 	local attachmentIndex = weapon.LookupAttachment( attachmentName )
 	Assert( attachmentIndex >= 0 )
@@ -339,6 +353,75 @@ function FireArcCannon( entity weapon, WeaponPrimaryAttackParams attackParams )
 
 	return 1
 }
+
+// more of sound fix -- add back rechamber sound using tf|2 ones
+#if CLIENT
+void function ArcCannonRechamberSoundThink( entity weapon )
+{
+	weapon.EndSignal( "OnDestroy" )
+	weapon.EndSignal( ARC_CANNON_SIGNAL_CHARGEBEGIN )
+	weapon.EndSignal( "ArcCannonWeaponSwitched" )
+
+	wait 0.16 // seems to help sound sync with animation
+	entity owner = weapon.GetWeaponOwner()
+	if ( !IsValid( owner ) )
+		return
+	if ( !owner.IsPlayer() )
+		return
+
+	table results
+	results.soundPlayed <- false
+	
+	OnThreadEnd(
+		function() : ( weapon, results )
+		{
+			//if ( IsValid( weapon ) && !results.soundPlayed )
+			if ( IsValid( weapon ) )
+			{
+				//print( "stopping sound" )
+				StopSoundOnEntity( weapon, "arctool_smallpanel_deactivate" )
+				entity owner = weapon.GetWeaponOwner()
+				if ( IsValid( owner ) && owner.GetActiveWeapon() == weapon )
+				{
+					//print( "fixing sound" )
+					// weapon still valid but sound not played through? owner must be charging another attack, only do rechamber sound
+					EmitSoundOnEntityWithSeek( weapon, "arctool_smallpanel_deactivate", 0.67 )
+				}
+			}
+		}
+	)
+
+	float soundDuration = GetSoundDuration( "arctool_smallpanel_deactivate" )
+	//print( "soundDuration: " + string( soundDuration ) )
+	EmitSoundOnEntity( weapon, "arctool_smallpanel_deactivate" )
+	thread TrackArcCannonWeaponSwitch( weapon, soundDuration )
+	// actually a better method is -- always play rechamber sound inside OnThreadEnd(), here's just for discharging sound
+	//wait soundDuration
+	wait soundDuration - 0.301765 // play charging sound here
+	results.soundPlayed = true
+}
+
+void function TrackArcCannonWeaponSwitch( entity weapon, float maxDuration )
+{
+	weapon.EndSignal( "OnDestroy" )
+	float endTime = Time() + maxDuration + 0.1 // don't interrupt basic sound
+	entity orgOwner = weapon.GetWeaponOwner()
+	orgOwner.EndSignal( "OnDestroy" )
+	while ( Time() < endTime )
+	{
+		if ( weapon.GetWeaponOwner() != orgOwner )
+			break
+
+		if ( orgOwner.GetActiveWeapon() != weapon )
+			break
+
+		WaitFrame()
+	}
+
+	weapon.Signal( "ArcCannonWeaponSwitched" )
+}
+#endif
+//
 
 table function GetFirstArcCannonTarget( entity weapon, WeaponPrimaryAttackParams attackParams )
 {

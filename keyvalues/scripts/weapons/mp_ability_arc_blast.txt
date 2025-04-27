@@ -6,7 +6,8 @@ WeaponData // client script required
 
 	//Projectile Stuff
 	//"projectilemodel" 								"models/industrial/grappling_hook_end.mdl"
-	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	"projectilemodel"								"models/dev/empty_model.mdl"
 	"projectile_trail_effect_0" 					"weapon_kraber_projectile"
 
 	//Behavior
@@ -64,6 +65,21 @@ WeaponData // client script required
 		no_regen
 		{
 			"regen_ammo_refill_rate"						"*0"
+		}
+
+		// gruntmode specific, to avoid overriding ticks
+		drone_summoner
+		{
+		}
+		// hopefully this can sync with clients...
+		gm_specialist
+		{
+			"ammo_clip_size"   								"1"
+			"ammo_default_total"							"1"
+			"ammo_min_to_fire"								"1"
+			"ammo_per_shot"									"1"
+			"regen_ammo_refill_rate"						"0"
+			"fire_duration"									"999999" // so player without client-install can know that weapon is drained out. remember to re-give weapon on getting care package
 		}
 	}
 }

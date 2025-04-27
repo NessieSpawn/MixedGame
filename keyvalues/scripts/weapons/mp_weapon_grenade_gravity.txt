@@ -82,6 +82,9 @@ WeaponData
 		dissolve_instant // use together with ninja_projectile. blink out upon impact
 		{
 		}
+		no_impact_effect // remove impact effect
+		{
+		}
 
 		// modded
 		ar_trajectory // client required
@@ -133,6 +136,10 @@ WeaponData
 		{
 			"regen_ammo_refill_rate"						"*0"
 		}
+		// gruntmode class
+		gm_gravitymaster // use together with gravity_lift
+		{
+		}
 
 		// gamemode kraber specifics
 		ordnance_boost // in script: won't spawn gravity trigger, only explosions, can't hurt others
@@ -142,6 +149,16 @@ WeaponData
 		{
 			"regen_ammo_refill_start_delay"					"++1"
 			"regen_ammo_refill_rate"						"--44.5" // 2s cooldown
+		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
 		}
 	}
 }

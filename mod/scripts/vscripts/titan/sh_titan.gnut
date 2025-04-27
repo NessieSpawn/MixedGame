@@ -444,6 +444,9 @@ function TitanEjectPlayer( entity ejectTitan, bool instant = false ) //TODO: Thi
 	e.damageSourceId <- ( "damageSourceId" in soul.lastAttackInfo ) ? soul.lastAttackInfo.damageSourceId : -1
 	e.damageTypes <- soul.lastAttackInfo.scriptType
 	e.overrideAttacker <- soul.soul.nukeAttacker
+	// modified, store eject start time, so we can offset damage history
+	// mainly because at this point titans no longer take damage and after explosion their damage history will become old
+	e.ejectStartTime <- Time()
 
 	// modified to make mp_titanability_nuke_eject work
 	e.hasNuclearCore <- false
@@ -565,6 +568,14 @@ function TitanEjectPlayer( entity ejectTitan, bool instant = false ) //TODO: Thi
 			entity soul = titan.GetTitanSoul()
 			if ( !soul.soul.diesOnEject )
 				return
+
+			// modified behavior: offset stored damage history time if we did self-destruction
+			if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
+			{
+				float timeElapsed = Time() - expect float ( e.ejectStartTime )
+				DamageHistory_OffsetDamageTime( titan, timeElapsed )
+			}
+			//
 
 			Assert( titan.IsTitan() )
 			Assert( soul.IsEjecting() )
@@ -1118,6 +1129,13 @@ function NuclearCoreExplosion( vector origin, e )
 		freezeDuringNuke = SoulShouldFreezeTitanDuringNukeChainReaction( soul )
 	if ( IsAlive( titan ) )
 	{
+		// modified behavior: offset stored damage history time if we did self-destruction
+		if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
+		{
+			float timeElapsed = Time() - expect float ( e.ejectStartTime )
+			DamageHistory_OffsetDamageTime( titan, timeElapsed )
+		}
+
 		// if we want to freeze titan during nuke explosions, don't do DMG_REMOVENORAGDOLL
 		if ( freezeDuringNuke )
 			titan.Die( e.attacker, e.inflictor, { scriptType = DF_EXPLOSION, damageSourceId = e.damageSourceId } )

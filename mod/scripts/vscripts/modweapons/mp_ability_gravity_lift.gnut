@@ -4,6 +4,8 @@ global function MpAbilityGravityLift_Init
 global function OnWeaponTossReleaseAnimEvent_ability_gravity_lift
 global function OnProjectileCollision_ability_gravity_lift
 
+const float LIFT_FORCE_TO_LEAVE_GROUND = 325 // if player is on ground, always need a higher value to make them leave ground!
+
 // Gravity Lift
 const float LIFT_THROW_POWER_SCALE = 0.3
 const float LIFT_HEIGHT = 1200
@@ -17,6 +19,18 @@ const float LIFT_TOP_TIME_LIMIT = 2
 const float LIFT_LIFETIME = 10
 const float LIFT_COOLDOWN = 0.0 // 0.5 // time between second lift, I guess it's no need for titanfall?
 const float LIFT_MAX_LIFETIME_EXTEND = 1.5 // cap to 1.5x lifetime
+
+// gruntmode player usage
+const float LIFT_HEIGHT_GRUNT = 900
+const float LIFT_RISE_SPEED_GRUNT = 210 // grunt jet pack value is 150
+const float LIFT_HORIZONTAL_MOVE_SPEED_GRUNT = 150 // grunt jet pack value is 150
+const float LIFT_AIR_ACCELERATION_GRUNT = 2000 // higher for better control
+const float LIFT_PULL_SPEED_HORIZON_GRUNT = 300 // grunt jet pack value is 200
+const float LIFT_PULL_SPEED_VERTICAl_GRUNT = 240 // grunt jet pack is 180
+const float LIFT_TOP_TIME_LIMIT_GRUNT = 0.5 // similar to horizon one
+const float LIFT_LIFETIME_GRUNT = 12 // was 10, obviously needs a longer life time for better controlling
+const float LIFT_COOLDOWN_GRUNT = 0.5 // time between second lift, actually nowhere used for now!
+const float LIFT_MAX_LIFETIME_EXTEND_GRUNT = 1.3333 // was 1.5. 1.0 means cannot extend duration
 
 // classname checks
 const bool LIFT_ALLOW_HEAVYARMOR = false
@@ -59,6 +73,9 @@ struct
 {
 	table<entity, int> playerInGravLiftCount // for handling multiple gravlifts!
 	table<entity, GravLiftSavedSettings> playerGravLiftSavedSettings // for we can recover player's settings after they leave lift
+
+	// trigger table
+	table< entity, array<string> > gravLiftTriggerMods
 } file
 
 void function MpAbilityGravityLift_Init()
@@ -74,6 +91,8 @@ void function MpAbilityGravityLift_Init()
 
 		RegisterSignal( "EnterGravityLift" )
 		RegisterSignal( "LeaveGravityLift" )
+
+		RegisterSignal( "StartFreeFallSound" )
 
 		AddCallback_OnClientConnected( OnClientConnected )
 	#endif
@@ -168,6 +187,12 @@ void function GravityLiftThink( entity projectile )
 	projectile.Hide() // don't show the shuriken to player
 	EmitSoundOnEntity( projectile, "default_gravitystar_impact_3p" )
 
+	// adding nerfed version
+	array<string> mods = Vortex_GetRefiredProjectileMods( projectile )
+	float liftHeight = LIFT_HEIGHT
+	if ( mods.contains( "gm_gravitymaster" ) )
+		liftHeight = LIFT_HEIGHT_GRUNT
+	
 	array<entity> liftEffects
 	if ( USE_HARVESTER_BEAM )
 	{
@@ -183,7 +208,7 @@ void function GravityLiftThink( entity projectile )
 		entity bottomFX = PlayFX( LIFT_BOTTOM_FX, pos + < 0, 0, -20 >, < -90, 0, 0 > )
 		EffectSetControlPointVector( bottomFX, 1, < 0,100,255 > ) // purly blue
 		liftEffects.append( bottomFX )
-		for ( int i = 0; i <= LIFT_HEIGHT; i += 128 )
+		for ( int i = 0; i <= liftHeight; i += 128 )
 		{
 			entity segmentFX = PlayFX( LIFT_SEGMENT_FX, pos + < 0, 0, i >, < -90, 0, 0 > )
 			//EmitSoundOnEntity( segmentFX, "amb_emit_s2s_rushing_wind_v1_01" )
@@ -195,7 +220,7 @@ void function GravityLiftThink( entity projectile )
 	/* // setup trigger
 	entity trigger = CreateEntity( "trigger_cylinder" )
 	trigger.SetRadius( LIFT_RADIUS )
-	trigger.SetAboveHeight( LIFT_HEIGHT + 200 ) // set a bit higher, this is not a single scriptRef anymore
+	trigger.SetAboveHeight( liftHeight + 200 ) // set a bit higher, this is not a single scriptRef anymore
 	trigger.SetBelowHeight( -1 )
 	trigger.SetOrigin( projectile.GetOrigin() )
 
@@ -204,8 +229,11 @@ void function GravityLiftThink( entity projectile )
 	DispatchSpawn( trigger )
 	*/
 
-	entity trigger = CreateTriggerRadiusMultiple( projectile.GetOrigin(), LIFT_RADIUS, [], TRIG_FLAG_START_DISABLED | TRIG_FLAG_NO_PHASE_SHIFT, LIFT_HEIGHT, -1 )
+	entity trigger = CreateTriggerRadiusMultiple( projectile.GetOrigin(), LIFT_RADIUS, [], TRIG_FLAG_START_DISABLED | TRIG_FLAG_NO_PHASE_SHIFT, liftHeight, -1 )
 	//trigger.SetParent( projectile, "ORIGIN" )
+
+	// save mods for trigger
+	file.gravLiftTriggerMods[ trigger ] <- mods
 
 	AddCallback_ScriptTriggerEnter( trigger, OnGravityLiftTriggerEnter )
 	AddCallback_ScriptTriggerLeave( trigger, OnGravityLiftTriggerLeave )
@@ -221,6 +249,16 @@ void function GravityLiftLifeTime( entity projectile, entity trigger, array<enti
 	trigger.EndSignal( "OnDestroy" )
 	//gravLiftBeam.EndSignal( "OnDestroy" )
 
+	// adding nerfed version
+	array<string> mods = Vortex_GetRefiredProjectileMods( projectile )
+	float liftLifeTime = LIFT_LIFETIME
+	float maxTimePctExtend = LIFT_MAX_LIFETIME_EXTEND
+	if ( mods.contains( "gm_gravitymaster" ) )
+	{
+		liftLifeTime = LIFT_LIFETIME_GRUNT
+		maxTimePctExtend = LIFT_MAX_LIFETIME_EXTEND_GRUNT
+	}
+
 	OnThreadEnd(
 		function(): ( projectile, trigger, liftEffects )
 		{
@@ -231,8 +269,8 @@ void function GravityLiftLifeTime( entity projectile, entity trigger, array<enti
 		}
 	)
 
-	float endTime = Time() + LIFT_LIFETIME
-	float maxEndTime = Time() + ( LIFT_LIFETIME * LIFT_MAX_LIFETIME_EXTEND ) // for players staying on it, it will try it's best to keep alive
+	float endTime = Time() + liftLifeTime
+	float maxEndTime = Time() + ( liftLifeTime * maxTimePctExtend ) // for players staying on it, it will try it's best to keep alive
 	while ( true )
 	{
 		array<entity> inLiftEntities = GetAllEntitiesInTrigger( trigger )
@@ -384,6 +422,22 @@ void function EntityInGravityLift( entity ent, entity trigger )
 	ent.EndSignal( "EnterGravityLift" )
 	ent.EndSignal( "LeaveGravityLift" )
 
+	// add nerfed version, get mods from saved stuffs
+	float liftHeight = LIFT_HEIGHT
+	float riseSpeed = LIFT_RISE_SPEED
+	float horizontalMoveSpeed = LIFT_HORIZONTAL_MOVE_SPEED
+	float liftAirAcceleration = LIFT_AIR_ACCELERATION
+	float topTimeLimit = LIFT_TOP_TIME_LIMIT
+	array<string> mods = file.gravLiftTriggerMods[ trigger ]
+	if ( mods.contains( "gm_gravitymaster" ) )
+	{
+		liftHeight = LIFT_HEIGHT_GRUNT
+		riseSpeed = LIFT_RISE_SPEED_GRUNT
+		horizontalMoveSpeed = LIFT_HORIZONTAL_MOVE_SPEED_GRUNT
+		liftAirAcceleration = LIFT_AIR_ACCELERATION_GRUNT
+		topTimeLimit = LIFT_TOP_TIME_LIMIT_GRUNT
+	}
+
 	int visualStatusEffect = -1
 	if ( ent.IsPlayer() ) // add a bit visual effect for player
 		visualStatusEffect = StatusEffect_AddEndless( ent, eStatusEffect.emp, 0.05 )
@@ -398,7 +452,7 @@ void function EntityInGravityLift( entity ent, entity trigger )
 	results.bouncedFromLift <- false // bool, to get if the entity is leaving the lift manually or being bounced away
 
 	OnThreadEnd(
-		function(): ( ent, trigger, visualStatusEffect, storedStats, results )
+		function(): ( ent, trigger, visualStatusEffect, storedStats, results, mods )
 		{
 			if ( IsValid( ent ) ) // any valid ent should be restore gravity or someother keyvalues
 			{
@@ -424,31 +478,49 @@ void function EntityInGravityLift( entity ent, entity trigger )
 				}
 
 				// consider this means the entity is force bounced away, or trigger caused them being force bounced
+				float horizontalPullSpeed = LIFT_PULL_SPEED_HORIZON
+				float verticalPullSpeed = LIFT_PULL_SPEED_VERTICAl
+				if ( mods.contains( "gm_gravitymaster" ) )
+				{
+					horizontalPullSpeed = LIFT_PULL_SPEED_HORIZON_GRUNT
+					verticalPullSpeed = LIFT_PULL_SPEED_VERTICAl_GRUNT
+				}
 				if ( !ent.IsPlayer() || results.bouncedFromLift || !IsValid( trigger ) ) 
-					BounceEntityForward( ent )
+					BounceEntityForward( ent, horizontalPullSpeed, verticalPullSpeed )
 				else
-					BouncePlayerFromLift( ent, expect vector( storedStats.lastTickVel ) ) // last tick's velocity can mostly get player's move direction
+					BouncePlayerFromLift( ent, expect vector( storedStats.lastTickVel ), horizontalPullSpeed, verticalPullSpeed ) // last tick's velocity can mostly get player's move direction
 			
 				if ( results.bouncedFromLift && IsValid( trigger ) ) // remove entity from current trigger if it's force bounced!
-					ScriptTriggerRemoveEntity( trigger, ent )
+				{
+					// using this needs an anti-crash
+					if ( ent in trigger.e.scriptTriggerData.entities )
+						ScriptTriggerRemoveEntity( trigger, ent )
+				}
 			}
 		}
 	)
 
 	float bottomHeight = trigger.GetOrigin().z
-	float topEnterHeight = LIFT_HEIGHT - LIFT_TOP_HEIGHT
+	float topEnterHeight = liftHeight - LIFT_TOP_HEIGHT
 	float nearTopHeight = bottomHeight + topEnterHeight
-	float topHeight = bottomHeight + LIFT_HEIGHT
+	float topHeight = bottomHeight + liftHeight
 
 	bool nearHighest = false
 	bool reachedHighest = false
-	float reachHighestTime // for saving reach highest part's time
+	float reachHighestTime = -1 // for saving reach highest part's time
+	bool jumpJetSoundFixed = false
 
 	// player lifting specific
 	if ( ent.IsPlayer() )
 	{
 		StopSoundOnEntity( ent, "titan_flight_hover_3p" ) // clear existing sound
 		EmitSoundOnEntity( ent, "titan_flight_hover_3p" )
+
+		// clean up jumpjet sound
+		StopSoundOnEntity( ent, "jumpjet_jet_body_1p" )
+		StopSoundOnEntity( ent, "jumpjet_jet_body_3p" )
+		StopSoundOnEntity( ent, "jumpjet_freefall_body_1p" )
+		StopSoundOnEntity( ent, "jumpjet_freefall_body_3p" )
 	}
 
 	bool firstLoop = true
@@ -464,8 +536,8 @@ void function EntityInGravityLift( entity ent, entity trigger )
 		{
 			storedStats.lastTickVel = ent.GetVelocity()
 			// player specific settings
-			ent.kv.airSpeed = LIFT_HORIZONTAL_MOVE_SPEED
-			ent.kv.airAcceleration = LIFT_AIR_ACCELERATION
+			ent.kv.airSpeed = horizontalMoveSpeed
+			ent.kv.airAcceleration = liftAirAcceleration
 			ent.SetGroundFrictionScale( 0.0 )
 		}
 
@@ -483,8 +555,10 @@ void function EntityInGravityLift( entity ent, entity trigger )
 
 		// lift the entity
 		ent.kv.gravity = 0.0001 // never uses 0.0, it means default gravity
-		vector airSpeed = ent.GetVelocity() //GetEntityGravLiftVelocity( ent, LIFT_HORIZONTAL_MOVE_SPEED )
-		airSpeed.z = reachedHighest ? 0.0 : LIFT_RISE_SPEED
+		vector airSpeed = ent.GetVelocity() //GetEntityGravLiftVelocity( ent, horizontalMoveSpeed )
+		airSpeed.z = reachedHighest ? 0.0 : riseSpeed
+		if ( ent.IsOnGround() ) // have to force player off ground!!
+			airSpeed.z = LIFT_FORCE_TO_LEAVE_GROUND
 		if ( LIFT_LERP_TO_HIGHEST_PART ) // lerp to highest part
 		{
 			if ( nearHighest ) // near top check
@@ -492,18 +566,26 @@ void function EntityInGravityLift( entity ent, entity trigger )
 				// calculate speed!
 				float topMoveFrac = ( ent.GetOrigin().z - nearTopHeight ) / LIFT_TOP_HEIGHT
 				//print( "topMoveFrac: " + string( topMoveFrac ) )
-				airSpeed.z = max( LIFT_TOP_RISE_SPEED_MIN, ( 1 - topMoveFrac ) * LIFT_RISE_SPEED )
+				airSpeed.z = max( LIFT_TOP_RISE_SPEED_MIN, ( 1 - topMoveFrac ) * riseSpeed )
 			}
 		}
 		if ( ent.IsPlayer() && PlayerNotDoingInput( ent ) ) // not doing any input, we take 2 ticks to fully stop player, so they can feel better controlling
-			airSpeed = GainVelocityHorizontal( airSpeed, -( LIFT_HORIZONTAL_MOVE_SPEED * 0.5 ), 0.0 ) //RemoveVelocityHorizonal( airSpeed )
+			airSpeed = GainVelocityHorizontal( airSpeed, -( horizontalMoveSpeed * 0.5 ), 0.0 ) //RemoveVelocityHorizonal( airSpeed )
 		else
-			airSpeed = LimitVelocityHorizontal( airSpeed, LIFT_HORIZONTAL_MOVE_SPEED )
+			airSpeed = LimitVelocityHorizontal( airSpeed, horizontalMoveSpeed )
 		ent.SetVelocity( airSpeed )
 
 		if ( reachedHighest ) // reached highest!
 		{
-			if ( Time() > reachHighestTime + LIFT_TOP_TIME_LIMIT ) // more than limit!
+			if ( Time() > reachHighestTime && !jumpJetSoundFixed )
+			{
+				//print( "removing freefall sound!" )
+				StopSoundOnEntity( ent, "jumpjet_freefall_body_1p" )
+				StopSoundOnEntity( ent, "jumpjet_freefall_body_3p" )
+				jumpJetSoundFixed = true
+			}
+
+			if ( Time() > reachHighestTime + topTimeLimit ) // more than limit!
 			{
 				if ( ent.IsPlayer() )
 				{
@@ -586,11 +668,77 @@ bool function PlayerNotDoingInput( entity player )
 	return inputAngs.x == 0 && inputAngs.y == 0
 }
 
-void function BouncePlayerFromLift( entity player, vector lastTickVel ) // last tick's velocity can mostly get player's move direction
+void function BouncePlayerFromLift( entity player, vector lastTickVel, float horizontalSpeed = LIFT_PULL_SPEED_HORIZON, float verticalSpeed = LIFT_PULL_SPEED_VERTICAl ) // last tick's velocity can mostly get player's move direction
 {
-	vector airSpeed = GetPlayerHorizontalSpeedForced( lastTickVel, LIFT_PULL_SPEED_HORIZON )
-	airSpeed.z = LIFT_PULL_SPEED_VERTICAl
+	vector airSpeed = GetPlayerHorizontalSpeedForced( lastTickVel, horizontalSpeed )
+	airSpeed.z = verticalSpeed
 	player.SetVelocity( airSpeed )
+	thread GravityLiftFreeFallSound( player )
+}
+
+void function GravityLiftFreeFallSound( entity player )
+{
+	//print( "RUNNING GravityLiftFreeFallSound()" )
+
+    player.EndSignal( "OnDestroy" )
+    player.Signal( "StartFreeFallSound" )
+    player.EndSignal( "StartFreeFallSound" )
+    // end thread when player enter a new lift
+    player.EndSignal( "EnterGravityLift" )
+    //player.EndSignal( "LeaveGravityLift" )
+
+    // wait for player's vertical speed lowered
+    while ( player.GetVelocity().z >= 0 )
+        WaitFrame()
+
+    // player already on ground?
+    if ( player.IsOnGround() )
+        return
+    // player is pretty close to ground?
+    if ( IsPlayerNearGround( player ) )
+        return
+
+    // start sound 
+    StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+    StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+    EmitSoundOnEntityOnlyToPlayer( player, player, "jumpjet_freefall_body_1p" )
+    EmitSoundOnEntityExceptToPlayer( player, player, "jumpjet_freefall_body_3p" )
+
+    OnThreadEnd
+    (
+        function(): ( player )
+        {
+			//print( "RUNNING GravityLiftFreeFallSound() OnThreadEnd()" )
+            if ( IsValid( player ) )
+            {
+                StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+                StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+            }
+        }
+    )
+
+    // wait for player drop to ground or start traversing
+	// zipline also cancels fall sound
+    while ( !player.IsOnGround() && !player.IsTraversing() && !player.IsZiplining() )
+        WaitFrame( true ) // ignore 10fps limitation to have better effect
+}
+
+bool function IsPlayerNearGround( entity player, float checkHeight = 200 ) // default convar "pilot_freefall_sound_height" value is 200
+{
+	array<entity> ignoreEnts
+	// always ignore all npcs and players, try to hit onto ground
+	ignoreEnts.extend( GetPlayerArray() )
+	ignoreEnts.extend( GetNPCArray() )
+
+	vector traceStart = player.GetOrigin()
+	vector traceEnd = traceStart - < 0, 0, checkHeight >
+
+	TraceResults downTrace = TraceLine( traceStart, traceEnd, ignoreEnts, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+	entity hitEnt = downTrace.hitEnt
+	if ( !IsValid( hitEnt ) ) // we cannot trace any entity
+		return false
+
+	return true
 }
 
 vector function GetPlayerHorizontalSpeedForced( vector moveVel, float speed )
@@ -605,23 +753,26 @@ vector function GetPlayerHorizontalSpeedForced( vector moveVel, float speed )
 	return moveVel
 }
 
-void function BounceEntityForward( entity ent )
+void function BounceEntityForward( entity ent, float horizontalSpeed = LIFT_PULL_SPEED_HORIZON, float verticalSpeed = LIFT_PULL_SPEED_VERTICAl )
 {
 	vector airSpeed
 	if ( ent.IsPlayer() ) // player specifics
 	{
 		vector playerAngles = ent.EyeAngles()
 		vector forward = AnglesToForward( < 0, playerAngles.y, 0 > ) // yaw only
-		airSpeed = forward * LIFT_PULL_SPEED_HORIZON
-		airSpeed.z = LIFT_PULL_SPEED_VERTICAl
+		airSpeed = forward * horizontalSpeed
+		airSpeed.z = verticalSpeed
 	}
 	else
 	{
-		airSpeed = ent.GetForwardVector() * LIFT_PULL_SPEED_HORIZON
-		airSpeed.z = LIFT_PULL_SPEED_VERTICAl
+		airSpeed = ent.GetForwardVector() * horizontalSpeed
+		airSpeed.z = verticalSpeed
 	}
 
 	ent.SetVelocity( airSpeed )
+
+	if ( ent.IsPlayer() )
+		thread GravityLiftFreeFallSound( ent )
 }
 
 /* // unused, pretty bad to control

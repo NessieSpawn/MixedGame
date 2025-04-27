@@ -58,17 +58,32 @@ WeaponData
 			"damage_far_value"								"++10" // 35
 			"damage_very_far_value"							"++5" // 25
 
-			"fire_sound_2_player_1p"						"Weapon_P2011_Fire_1P"
-			"fire_sound_2_player_3p"						"Null_Remove_SoundHook" // "Weapon_Wingman_Fire_3P", this is played by server!
-			"fire_sound_2_npc"								"Weapon_Wingman_Fire_NPC"
+			// change to script handle, stop sound at specific point for better effect
+			// actually if we don't install this on client, first person sound effect will be all good...
+			//"fire_sound_2_player_1p"						"Weapon_P2011_Fire_1P"
+			//"fire_sound_2_player_3p"						"Null_Remove_SoundHook" // "Weapon_Wingman_Fire_3P", this is played by server!
+			//"fire_sound_2_npc"								"Weapon_Wingman_Fire_NPC"
 
-			"low_ammo_sound_name_1"							"P2011_LowAmmo_Shot1"
-			"low_ammo_sound_name_2"							"P2011_LowAmmo_Shot2"
-			"low_ammo_sound_name_3"							"P2011_LowAmmo_Shot3"
-			"low_ammo_sound_name_4"							"P2011_LowAmmo_Shot4"
-			"low_ammo_sound_name_5"							"P2011_LowAmmo_Shot5"
+			// better low ammo for non-looping sound
+			"low_ammo_sound_name_1"							"lmg_LowAmmo_Shot1"
+			"low_ammo_sound_name_2"							"P2011_LowAmmo_Shot1"
+			"low_ammo_sound_name_3"							"P2011_LowAmmo_Shot2"
+			"low_ammo_sound_name_4"							"P2011_LowAmmo_Shot3"
+			"low_ammo_sound_name_5"							"P2011_LowAmmo_Shot4"
+			"low_ammo_sound_name_6"							"P2011_LowAmmo_Shot5"
 
-			"looping_sounds"								"0"
+			//"looping_sounds"								"0"
+
+			// don't change firing sound to looping sound otherwise it will feel really bad!
+			//"fire_sound_2_player_1p"						"Weapon_LMG_Loop_1P"
+			//"fire_sound_2_player_3p"						"Weapon_LMG_Loop_3P"
+
+			// welp don't really need such a fix, looping sound feels bad when not played through
+			// just change sound effect to "Weapon_LMG_FirstShot_1P" is enough. played by script
+			//"fire_sound_2_player_1p"						"Weapon_LMG_FirstShot_1P"
+			//"fire_sound_2_player_3p"						"Weapon_LMG_Loop_3P"
+			"burst_or_looping_fire_sound_start_1p"			"Null_Remove_SoundHook"
+			"burst_or_looping_fire_sound_middle_1p"			"Null_Remove_SoundHook"
 
 			//"damage_headshot_scale"							"1.25"
 		}
@@ -98,12 +113,12 @@ WeaponData
 			// bodygroup
 			"bodygroup1_set"	"0" // iron sight
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"damage_near_value"			"18"
 			//"damage_far_value"			"18"
@@ -112,15 +127,23 @@ WeaponData
 
 			//"dof_zoom_nearDepthStart"						"4.0"
 			//"dof_zoom_nearDepthEnd"							"6.5"
-		}
+		// }
 
 		// bleedout
 		bleedout_balance
 		{
-			"fire_rate"   									"--1" // 8, may cause desync
+			// remove fire rate penalty -- introduce reload time penalty
+			//"fire_rate"   									"--1" // 8, may cause desync
 			"damage_near_value"   							"--10" // 25
 			"damage_far_value"								"--8" // 17, 14 shots to kill 225hp
 			"damage_very_far_value"							"--8" // 12, 19 shots to kill 225hp
+
+			// reload time penalty -- same values as apex legends
+			"reload_time" 									"*1.214286"
+			"reload_time_late1"								"*1.333333"
+			"reloadempty_time"								"*1.261261"
+			"reloadempty_time_late1"						"*1.287554"
+			"reloadempty_time_late2"						"*1.487805"
 		}
 
 		// gruntmode specifics
@@ -129,6 +152,22 @@ WeaponData
 			"damage_near_value"   							"--10" // 25
 			"damage_far_value"								"--8" // 17
 			"damage_very_far_value"							"--8" // 12
+
+			// reload time penalty -- same values as apex legends
+			"reload_time" 									"*1.214286"
+			"reload_time_late1"								"*1.333333"
+			"reloadempty_time"								"*1.261261"
+			"reloadempty_time_late1"						"*1.287554"
+			"reloadempty_time_late2"						"*1.487805"
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 }

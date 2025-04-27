@@ -20,5 +20,27 @@ WeaponData
 			"npc_min_burst"   								"*0.4" // 4
 			"npc_max_burst"   								"*0.2" // 4
 		}
+
+		// for npc_soldier_training_sentry to use
+		npc_turret_weapon
+		{
+			//"npc_damage_near_value"   						"*0.5" // 12.5, ramp up to 13 inside range
+
+			"npc_damage_near_value"   						"*0.36" // 9
+			"npc_damage_far_value"							"*0.6" // 3
+			//"npc_damage_near_value_titanarmor"				"50"
+			"npc_damage_far_value_titanarmor" 				"*0.5" // 25
+
+			"npc_damage_near_distance"						"*0.75" // 750
+			"npc_damage_far_distance" 						"*0.8" // 1200
+
+			//"npc_min_burst"   								"*0.7" // 7
+			//"npc_max_burst"   								"*0.35" // 7
+
+			"npc_max_burst"   								"*0.5" // 10, 90 max damage per burst
+
+			"npc_rest_time_between_bursts_min"				"*1.5" // 1.5
+			//"npc_rest_time_between_bursts_max"				"1.5"
+		}
 	}
 }

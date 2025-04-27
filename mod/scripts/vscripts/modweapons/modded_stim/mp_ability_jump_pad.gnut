@@ -10,8 +10,8 @@ global function OnProjectileCollision_ability_jump_pad
 #endif
 
 // not letting too much jump pads causes crash
-const float JUMP_PAD_LIFETIME = 15
-const int MAX_JUMP_PAD_CONT = 64
+const float JUMP_PAD_LIFETIME = 20 // increased from 15. zipline gun lasts 30s
+const int MAX_JUMP_PAD_COUNT = 64
 // taken from r5 jumppad
 const float JUMP_PAD_VIEW_PUNCH_SOFT = 10.0 // 25.0 in r5
 const float JUMP_PAD_VIEW_PUNCH_HARD = 2.0 // 4.0 in r5
@@ -20,6 +20,25 @@ const float JUMP_PAD_VIEW_PUNCH_RAND = 2.0 // 4.0 in r5
 const float JUMP_PAD_VIEW_PUNCH_SOFT_TITAN = 120.0
 const float JUMP_PAD_VIEW_PUNCH_HARD_TITAN = 20.0
 const float JUMP_PAD_VIEW_PUNCH_RAND_TITAN = 20.0
+
+// classname checks
+const bool JUMP_PAD_ALLOW_HEAVYARMOR = false
+const array<string> JUMP_PAD_ALLOWED_CLASSES =
+[
+	// player
+	"player",
+	// npc
+	"npc_soldier",
+	"npc_stalker",
+	"npc_spectre",
+	"npc_prowler",
+	"npc_marvin",
+	"npc_pilot_elite",
+	// projectile
+
+	// prop
+
+]
 
 struct JumpPadStruct
 {
@@ -58,9 +77,12 @@ void function MpAbilityJumpPad_Init()
     // triple jump
     RegisterSignal( "JumpPadGainTripleJump" )
     RegisterSignal( "JumpPadTripleJumpThinkStart" )
-	
+
 	// cooldown
 	RegisterSignal( "JumpPadCooldown" )
+
+	// freefall
+	RegisterSignal( "StartFreeFallSound" )
 
     AddCallback_OnClientConnected( JumpPadInitilaize )
 #endif
@@ -101,8 +123,12 @@ var function OnWeaponTossReleaseAnimEvent_ability_jump_pad( entity weapon, Weapo
 			weapon.w.lastProjectileFired = deployable
 
 			// owner lifestate management
+			// destroys grunt zipline on death
+			// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+			/*
 			if ( weapon.HasMod( "gm_jumper" ) )
 				thread TrackProjectileOwnerLifeTime( deployable, ownerPlayer )
+			*/
         #endif
     }
 
@@ -145,8 +171,10 @@ void function OnJumpPadPlanted( entity projectile )
 void function JumpPadInitilaize( entity player )
 {
     // defined in mp_ability_heal.nut
-    //file.playerInJumpPadCooldown[player] <- false
-	file.playerInJumpPad[player] <- false
+	//if ( !( player in file.playerInJumpPadCooldown ) )
+    //	file.playerInJumpPadCooldown[player] <- false
+	if ( !( player in file.playerInJumpPad ) )
+		file.playerInJumpPad[player] <- false
 }
 
 /* // now using file.playerInJumpPad
@@ -190,8 +218,11 @@ void function DeployJumpPad( entity projectile, vector origin, vector angles )
 	thread JumpPadThink( projectile, tower )
 
 	// grunt mode specifics!
+	// 1/16/2025 EDIT: abilities that can't deal damage no longer destroy themselves on owner death
+	/*
 	if ( mods.contains( "gm_jumper" ) )
 		thread DestroyJumpPadOnOwnerDeath( projectile, projectile.GetOwner() )
+	*/
 	if( !mods.contains( "infinite_jump_pad" ) )
 		thread CleanupJumpPad( tower, projectile, JUMP_PAD_LIFETIME )
 	#endif
@@ -255,16 +286,19 @@ void function JumpPadTriggerEnter( entity trigger, entity ent )
 {
 	if( !IsAlive( ent ) )
 		return
-	if( !ent.IsPlayer() )
+	// allow npcs to use jump pad now
+	//if( !ent.IsPlayer() )
+	//	return
+	if ( !EntityAllowedToUseJumpPad( ent ) )
 		return
 	if( ent.IsPhaseShifted() )
 		return
 	if( ent.GetParent() != null )
 		return
-	if( ent.IsTitan() )
-		return
 	//if( IsPlayerInJumpPadCooldown( player ) )
 	//	return
+	// allow npc usage, always initialize here
+	JumpPadInitilaize( ent )
 	if ( file.playerInJumpPad[ ent ] ) // already in jumppad?
 		return
 	
@@ -275,35 +309,68 @@ void function JumpPadTriggerEnter( entity trigger, entity ent )
 
 void function JumpPadTriggerLeave( entity trigger, entity ent )
 {
-	if( !ent.IsPlayer() )
-		return
+	// allow npcs to use jump pad now
+	//if( !ent.IsPlayer() )
+	//	return
+	// allow npc usage, always initialize here
+	JumpPadInitilaize( ent )
 
 	// this only marks player as left jump pad
 	if ( file.playerInJumpPad[ ent ] )
 		file.playerInJumpPad[ ent ] = false
 }
 
+bool function EntityAllowedToUseJumpPad( entity ent )
+{
+	if ( !IsValid( ent ) )
+		return false
+
+	// only affects pilots, npcs, prop_physics and grenades
+	if ( !JUMP_PAD_ALLOW_HEAVYARMOR && ent.GetArmorType() == ARMOR_TYPE_HEAVY )
+		return false
+	string className = ent.GetClassName()
+	if ( !JUMP_PAD_ALLOWED_CLASSES.contains( className ) )
+		return false
+
+	// all checks passed
+	return true
+}
+
 void function GiveJumpPadEffect( entity player )
 {
-	StopSoundOnEntity( player, "Boost_Card_SentryTurret_Deployed_3P" ) // prevent sound stacking
-	for( int i = 0; i < 3; i++ ) // was 5
+	if ( player.IsPlayer() )
+	{
+		StopSoundOnEntity( player, "Boost_Card_SentryTurret_Deployed_3P" ) // prevent sound stacking
+		for( int i = 0; i < 2; i++ ) // was 3, first version uses 5
+			EmitSoundOnEntity( player, "Boost_Card_SentryTurret_Deployed_3P" )
+	}
+	else // reduce npc noise
 		EmitSoundOnEntity( player, "Boost_Card_SentryTurret_Deployed_3P" )
-	//Remote_CallFunction_Replay( player, "ServerCallback_ScreenShake", 5, 10, 0.5 )
-	player.ViewPunch( player.GetOrigin(), JUMP_PAD_VIEW_PUNCH_SOFT, JUMP_PAD_VIEW_PUNCH_HARD, JUMP_PAD_VIEW_PUNCH_RAND )
+	
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+	{
+		//Remote_CallFunction_Replay( player, "ServerCallback_ScreenShake", 5, 10, 0.5 )
+		player.ViewPunch( player.GetOrigin(), JUMP_PAD_VIEW_PUNCH_SOFT, JUMP_PAD_VIEW_PUNCH_HARD, JUMP_PAD_VIEW_PUNCH_RAND )
+	}
 
 	vector targetVelocity
-	if( player.IsInputCommandHeld( IN_DUCK ) || player.IsInputCommandHeld( IN_DUCKTOGGLE ) ) // further but lower
+	if( player.IsPlayer() && ( player.IsInputCommandHeld( IN_DUCK ) || player.IsInputCommandHeld( IN_DUCKTOGGLE ) ) ) // further but lower
 		targetVelocity = < player.GetVelocity().x * 1.5, player.GetVelocity().y * 1.5, 550 >
 	else // higher
 		targetVelocity = < player.GetVelocity().x * 1.3, player.GetVelocity().y * 1.3, 750 >
 	thread JumpPadForcedVelocity( player, targetVelocity ) // maybe not a good idea: prevent jump higher through manually jump input, also prevents tap strafe
 
-	player.TouchGround() // regen doublejump
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+		player.TouchGround() // regen doublejump
 
-	thread JumpPadFlying( player ) // signal sender
-	//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
-	thread JumpPadTrailThink( player )
-	thread JumpPadTripleJumpThink( player )
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+	{
+		thread JumpPadFlying( player ) // signal sender
+		//thread JumpPadCooldownThink( player ) // now using file.playerInJumpPad
+		thread JumpPadTrailThink( player )
+		thread JumpPadTripleJumpThink( player )
+		thread JumpPadFreefallSoundThink( player )
+	}
 }
 
 void function JumpPadFlying( entity player )
@@ -313,23 +380,39 @@ void function JumpPadFlying( entity player )
 	player.Signal( "JumpPadFlyStart" )
 	player.EndSignal( "JumpPadFlyStart" )
 
+	AddPlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, SignalOnPlayerTouchGround )
+
 	OnThreadEnd(
 		function(): ( player )
 		{
+			//print( "JumpPadFlying() function has ended!" )
 			if( IsValid( player ) )
-				player.Signal( "JumpPadPlayerTouchGround" )
+				RemovePlayerMovementEventCallback( player, ePlayerMovementEvents.TOUCH_GROUND, SignalOnPlayerTouchGround )
 		}
 	)
 
-	wait 1 // wait for player leave ground
+	waitthread WaitForPlayerTouchGround( player )
+}
 
-	while( true )
-	{
-		if( player.IsOnGround() )
-			break
+void function SignalOnPlayerTouchGround( entity player )
+{
+	player.Signal( "JumpPadPlayerTouchGround" )
+}
 
+void function WaitForPlayerTouchGround( entity player )
+{
+	// "OnDeath" and "OnDestroy" inherits from JumpPadFlying()
+	player.EndSignal( "JumpPadPlayerTouchGround" ) // main functional signal
+
+	wait 0.2 // wait for player actrually leaving ground
+
+	// failsafe looping case
+	while ( !player.IsOnGround() && !player.IsWallRunning() && !player.IsWallHanging() && !player.IsZiplining() )
 		WaitFrame()
-	}
+
+	// if our code hits here, it must means player triggered failsafe case...
+	// manually do signal to end other threads
+	player.Signal( "JumpPadPlayerTouchGround" )
 }
 
 void function JumpPadForcedVelocity( entity player, vector targetVelocity )
@@ -345,11 +428,16 @@ void function JumpPadForcedVelocity( entity player, vector targetVelocity )
 	while( Time() < startTime + forcedTime )
 	{
 		player.SetVelocity( targetVelocity )
-		player.ConsumeDoubleJump() // disable double jump
+		if ( player.IsPlayer() ) // add compatibliity for npc usage
+			player.ConsumeDoubleJump() // disable double jump
 		WaitFrame()
 	}
 
-	player.TouchGround() // restore one doublejump usage
+	if ( player.IsPlayer() ) // add compatibliity for npc usage
+		player.TouchGround() // restore one doublejump usage
+
+	// apex legends behavior: vertical speed won't go down 0 for some moment, to prevent using jumppad inside rooms to have weird interaction
+	// maybe no need to implement though... our gravity lift also not using apex behavior( has no cooldown between multiple lifts )
 }
 
 void function JumpPadTripleJumpThink( entity player )
@@ -455,6 +543,74 @@ void function JumpPadCooldownThink( entity player )
 }
 */
 
+void function JumpPadFreefallSoundThink( entity player )
+{
+	// clean up jumpjet sound
+    StopSoundOnEntity( player, "jumpjet_jet_body_1p" )
+    StopSoundOnEntity( player, "jumpjet_jet_body_3p" )
+    StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+    StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+
+	player.EndSignal( "OnDestroy" )
+	// end thread when player enter another jump pad or touch ground
+	player.Signal( "StartFreeFallSound" )
+	player.EndSignal( "StartFreeFallSound" )
+	//player.EndSignal( "JumpPadFlyStart" )
+	player.EndSignal( "JumpPadPlayerTouchGround" )
+
+	// wait for player's vertical speed lowered
+	while ( player.GetVelocity().z >= 0 )
+		WaitFrame()
+
+	// player already on ground?
+	if ( player.IsOnGround() )
+		return
+	// player is pretty close to ground?
+	if ( IsPlayerNearGround( player ) )
+		return
+
+	// start sound 
+	StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+	StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+	EmitSoundOnEntityOnlyToPlayer( player, player, "jumpjet_freefall_body_1p" )
+	EmitSoundOnEntityExceptToPlayer( player, player, "jumpjet_freefall_body_3p" )
+
+	OnThreadEnd
+	(
+		function(): ( player )
+		{
+			if ( IsValid( player ) )
+			{
+				StopSoundOnEntity( player, "jumpjet_freefall_body_1p" )
+				StopSoundOnEntity( player, "jumpjet_freefall_body_3p" )
+			}
+		}
+	)
+
+	// wait for player drop to ground or start traversing
+	// zipline also cancels fall sound
+	while ( !player.IsOnGround() && !player.IsTraversing() && !player.IsZiplining() )
+		WaitFrame( true ) // ignore 10fps limitation to have better effect
+}
+
+bool function IsPlayerNearGround( entity player, float checkHeight = 200 ) // default convar "pilot_freefall_sound_height" value is 200
+{
+	array<entity> ignoreEnts
+	// always ignore all npcs and players, try to hit onto ground
+	ignoreEnts.extend( GetPlayerArray() )
+	ignoreEnts.extend( GetNPCArray() )
+
+	vector traceStart = player.GetOrigin()
+	vector traceEnd = traceStart - < 0, 0, checkHeight >
+
+	TraceResults downTrace = TraceLine( traceStart, traceEnd, ignoreEnts, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+	entity hitEnt = downTrace.hitEnt
+	if ( !IsValid( hitEnt ) ) // we cannot trace any entity
+		return false
+
+	return true
+}
+
 void function TrackProjectileOwnerLifeTime( entity projectile, entity owner )
 {
 	owner.EndSignal( "OnDestroy" )
@@ -493,7 +649,7 @@ void function CleanupJumpPad( entity tower, entity projectile, float delay )
 
 void function JumpPadLimitThink()
 {
-	if( file.placedJumpPads.len() >= MAX_JUMP_PAD_CONT )
+	if( file.placedJumpPads.len() >= MAX_JUMP_PAD_COUNT )
 	{
 		JumpPadStruct curJumpPad = file.placedJumpPads[0]
 		if( IsValid( curJumpPad.tower ) )

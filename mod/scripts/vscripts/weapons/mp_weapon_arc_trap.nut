@@ -107,13 +107,19 @@ var function OnWeaponTossReleaseAnimEvent_weapon_arc_trap( entity weapon, Weapon
 		#if SERVER
 		deployable.e.fd_roundDeployed = weapon.e.fd_roundDeployed
 
+		// change every projectile sound to be sync with client!
+		/*
 		string projectileSound = GetGrenadeProjectileSound( weapon )
 		if ( projectileSound != "" )
 			EmitSoundOnEntity( deployable, projectileSound )
+		*/
 
 		weapon.w.lastProjectileFired = deployable
 		deployable.e.burnReward = weapon.e.burnReward
 		#endif
+		string projectileSound = GetGrenadeProjectileSound( weapon )
+		if ( projectileSound != "" )
+			EmitSoundOnEntity( deployable, projectileSound )
 
 		#if BATTLECHATTER_ENABLED && SERVER
 			TryPlayWeaponBattleChatterLine( player, weapon )
@@ -264,8 +270,12 @@ void function DeployArcTrap( entity projectile )
 		eyeButton.UnsetUsable()
 
 	// some ceremony
-	StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
-	idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+	// anti-crash for modified trap model
+	if ( startAttachID > 0 )
+	{
+		StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+		idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+	}
 	thread BeepSound( projectile )
 
 	entity trig = CreateEntity( "trigger_cylinder" )
@@ -345,11 +355,16 @@ void function DeployArcTrap( entity projectile )
 			continue
 		}
 
-		StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
-		fx = StartParticleEffectOnEntity_ReturnEntity( mover, fxId, FX_PATTACH_ABSORIGIN_FOLLOW, -1 )
+		// anti-crash for modified trap model
+		if ( startAttachID > 0 )
+		{
+			StartParticleEffectOnEntity( projectile, StartFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+			fx = StartParticleEffectOnEntity_ReturnEntity( mover, fxId, FX_PATTACH_ABSORIGIN_FOLLOW, -1 )
+		}
 
 		waitthread ActivateArcTrap( owner, mover, projectile, eyeButton, ARC_TRAP_DURATION )
-		EffectStop( fx )
+		if ( IsValid( fx ) )
+			EffectStop( fx )
 
 		if ( BoostStoreEnabled() )
 			eyeButton.UnsetUsable()
@@ -369,7 +384,9 @@ void function DeployArcTrap( entity projectile )
 
 		if ( restartFx )
 		{
-			idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
+			// anti-crash for modified trap model
+			if ( startAttachID > 0 )
+				idleLightFX = StartParticleEffectOnEntity_ReturnEntity( projectile, idleFxId, FX_PATTACH_POINT_FOLLOW, startAttachID )
 			thread BeepSound( projectile )
 		}
 	}
@@ -454,7 +471,11 @@ void function ActivateArcTrap( entity owner, entity mover, entity projectile, en
 	if( mods.contains( "one_time_arc_trap" ) )
 	{
 		if ( IsValid( projectile ) )
-			projectile.GrenadeExplode( < 0, 0, 1 > ) // explode after use
+		{
+			// dissolving a used trap gives better visual
+			//projectile.GrenadeExplode( < 0, 0, 1 > ) // explode after use
+			projectile.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 100 )
+		}
 	}
 }
 

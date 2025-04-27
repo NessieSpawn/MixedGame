@@ -1,0 +1,647 @@
+
+global function DamageHistoryInit
+global function StoreDamageHistoryAndUpdate
+global function WasRecentlyHitForDamage
+global function WasRecentlyHitByEntity
+global function WasRecentlyHitByDamageSourceId
+global function GetLatestAssistingPlayerInfo
+global function GetTotalDamageTakenInTime
+global function GetTotalDamageTaken
+global function GetTotalDamageTakenByPlayer
+global function GetDamageSortedByAttacker
+global function GetTitansHitMeInTime
+global function GetLastDamageTime
+global function GetDamageEventsForTime
+global function WasRecentlyHitForDamageType
+global function GetRodeoAttacksByPlayer
+global function GetLastDamageSourceStringForAttacker
+global function TotalDamageOverTime_BlendedOut
+global function ClearRecentDamageHistory
+global function AttackerDamagesSort
+
+// modified contents
+#if SERVER
+// new adding feature: allow scripts modify npc kill steal prevention value, so we can better handle npc gamemodes
+global function DamageHistory_SetNPCKillStealPreventionTime
+// allow us offset damage history for self-destruct units, to get more accurate kill steal prevention
+global function DamageHistory_EnableOffsetDamageTimeForSelfDestruction
+global function DamageHistory_ShouldOffsetDamageTimeForSelfDestruction
+global function DamageHistory_OffsetDamageTime // everytime a entity offsets damage time, they won't receive further updates. BE SURE to destroy the entity!
+global function DamageHistory_IsDisabledOnEntity
+#endif
+
+global struct AttackerDamage
+{
+	entity attacker
+	string attackerName
+	float totalDamage
+	table<int,float> damageBySource
+}
+
+global struct DamageHistoryStruct
+{
+	string attackerName
+	string attackerPetName
+	vector origin
+	float damage
+	int damageType
+	int damageSourceId
+	entity attacker
+	int attackerEHandle
+	float attackerHealthPercent
+	float time
+	array<string> weaponMods
+	bool victimIsTitan
+	bool rodeoDamage
+}
+
+global struct AssistingPlayerStruct
+{
+	entity player
+	int damageSourceId
+	float assistTime
+}
+
+// modified settings goes here
+#if SERVER
+struct
+{
+	table<entity, bool> entDamageHistorySystemDisabled
+	float npcKillStealPreventionTime = 0.0 // MAX_NPC_KILL_STEAL_PREVENTION_TIME is defined later than this file, can't use it
+	bool offsetDamageTimeForSelfDestruction = false
+} file
+#endif
+//
+
+void function DamageHistoryInit()
+{
+}
+
+void function ClearRecentDamageHistory( entity player )
+{
+	// damage history can be disabled for self-destucting units
+#if SERVER
+	if ( DamageHistory_IsDisabledOnEntity( player ) )
+		return
+#endif
+
+	player.e.recentDamageHistory.clear()
+}
+
+DamageHistoryStruct function StoreDamageHistoryAndUpdate( entity storeEnt, float maxTime, float damage, vector damageOrigin, int damageType, int damageSourceId, entity attacker = null, array<string> weaponMods = [] )
+{
+	DamageHistoryStruct damageHistory
+
+	// damage history can be disabled for self-destucting units
+#if SERVER
+	if ( DamageHistory_IsDisabledOnEntity( storeEnt ) )
+		return damageHistory
+#endif
+
+	float time = Time()
+
+	#if SERVER
+		if ( !attacker.IsPlayer() )
+		{
+			entity newAttacker = GetPlayerFromEntity( attacker )
+			if ( IsValid_ThisFrame( newAttacker ) )
+				attacker = newAttacker
+		}
+	#endif
+
+	if ( damageType & DF_VORTEX_REFIRE )
+		damageSourceId = eDamageSourceId.mp_titanweapon_vortex_shield
+
+	if ( IsValid( attacker ) )
+	{
+		#if CLIENT
+			AttackerDisplayNameStruct names = GetAttackerDisplayNamesFromClassname( attacker )
+			damageHistory.attackerName = names.attackerName
+			damageHistory.attackerPetName = names.attackerPetName
+			damageHistory.attackerHealthPercent = max( 0.0, float( attacker.GetHealth() ) / float( attacker.GetMaxHealth() ) * 100.0 )
+		#endif
+	}
+
+	damageHistory.origin = damageOrigin
+	damageHistory.damage = damage
+	damageHistory.damageType = damageType
+	damageHistory.damageSourceId = damageSourceId
+	damageHistory.attacker = attacker
+	damageHistory.time = time
+	damageHistory.weaponMods = weaponMods
+
+	if ( IsSoul( storeEnt ) )
+	{
+		damageHistory.victimIsTitan = true
+	}
+	else
+	{
+		// clear the damage history
+		if ( GetHealthFrac( storeEnt ) == 1.0 )
+			maxTime = 0
+
+		damageHistory.victimIsTitan = false
+	}
+
+	if ( maxTime >= 0 )
+		UpdateDamageHistory( storeEnt, maxTime, time )
+
+	storeEnt.e.recentDamageHistory.insert( 0, damageHistory )
+
+	return damageHistory
+}
+
+float function GetLastDamageTime( entity player )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	if ( !player.e.recentDamageHistory.len() )
+		return -1.0
+
+	return player.e.recentDamageHistory[ 0 ].time
+}
+
+array<DamageHistoryStruct> function GetDamageEventsForTime( entity player, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+
+	array<DamageHistoryStruct> events
+
+	foreach ( event in player.e.recentDamageHistory )
+	{
+		if ( event.time < time )
+			return events
+
+		events.insert( 0, event )
+	}
+
+	return events
+}
+
+void function UpdateDamageHistory( entity player, float maxTime, float time )
+{
+	// damage history can be disabled for self-destucting units
+#if SERVER
+	if ( DamageHistory_IsDisabledOnEntity( player ) )
+		return
+#endif
+
+	// remove old damage history entries
+	int i
+	float removeTime = time - maxTime
+
+	for ( i = player.e.recentDamageHistory.len() - 1; i >= 0; i-- )
+	{
+		DamageHistoryStruct history = player.e.recentDamageHistory[ i ]
+
+		if ( history.time > removeTime )
+			return
+
+		player.e.recentDamageHistory.remove( i )
+	}
+}
+
+bool function WasRecentlyHitByEntity( entity player, entity ent, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+	// remove old damage history entries
+	int i
+
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.time < time )
+			continue
+
+		if ( history.attacker == ent )
+			return true
+	}
+
+	return false
+}
+
+bool function WasRecentlyHitForDamage( entity player, float damageAmount, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+	// remove old damage history entries
+	int i
+
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.time < time )
+			continue
+
+		if ( history.damage >= damageAmount )
+			return true
+	}
+
+	return false
+}
+
+bool function WasRecentlyHitForDamageType( entity player, float damageType, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+	// remove old damage history entries
+	int i
+
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.time < time )
+			continue
+
+		if ( history.damageType == damageType )
+			return true
+	}
+
+	return false
+}
+
+float function GetTotalDamageTaken( entity player )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float total = 0
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		total += history.damage
+	}
+
+	return total
+}
+
+float function GetTotalDamageTakenInTime( entity player, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+	// remove old damage history entries
+	int i
+
+	float total = 0
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.time < time )
+			continue
+
+		total += history.damage
+	}
+
+	return total
+}
+
+array<entity> function GetTitansHitMeInTime( entity player, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+	// remove old damage history entries
+	array<entity> titans
+
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.time < time )
+			continue
+
+		if ( !IsValid( history.attacker ) )
+			continue
+		if ( !history.attacker.IsTitan() )
+			continue
+		if ( titans.contains( history.attacker ) )
+			continue
+
+		titans.append( history.attacker )
+	}
+
+	return titans
+}
+
+float function GetTotalDamageTakenByPlayer( entity player, entity attacker )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	Assert( IsValid( attacker ) )
+	// remove old damage history entries
+	int i
+
+	float total = 0
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.attacker != attacker )
+			continue
+
+		total += history.damage
+	}
+
+	return total
+}
+
+array<AttackerDamage> function GetDamageSortedByAttacker( entity ent, float totalTime )
+{
+	// why don't we just get soul from titan than Asserting things away
+	//Assert( !ent.IsTitan(), "Pass titan soul, not titan itself" )
+
+	// I think every function in this file needs get soul from titans!
+	ent = ValidateDamageHistorySaver( ent )
+
+	float firstCheckTime = Time() - totalTime
+	table<entity,AttackerDamage> attackerDamagesTable
+	array<AttackerDamage> attackerDamages
+
+	foreach ( history in ent.e.recentDamageHistory )
+	{
+		if ( history.attacker == null )
+			continue
+
+		if ( history.time < firstCheckTime )
+			continue
+
+		AttackerDamage attackerDamage
+		if ( history.attacker in attackerDamagesTable )
+		{
+			attackerDamage = attackerDamagesTable[ history.attacker ]
+		}
+		else
+		{
+			attackerDamagesTable[ history.attacker ] <- attackerDamage
+
+			attackerDamage.attacker = history.attacker
+			attackerDamages.append( attackerDamage )
+		}
+
+		if ( !( history.damageSourceId in attackerDamage.damageBySource ) )
+		{
+			attackerDamage.damageBySource[ history.damageSourceId ] <- 0
+		}
+
+		attackerDamage.damageBySource[ history.damageSourceId ] += history.damage
+		attackerDamage.totalDamage += history.damage
+	}
+
+	attackerDamages.sort( AttackerDamagesSort )
+
+	return attackerDamages
+}
+
+int function AttackerDamagesSort( AttackerDamage a, AttackerDamage b )
+{
+	if ( a.totalDamage > b.totalDamage )
+		return -1
+	if ( b.totalDamage > a.totalDamage )
+		return 1
+	return 0
+}
+
+bool function WasRecentlyHitByDamageSourceId( entity player, int damageSourceId, float hitTime )
+{
+	// I think every function in this file needs get soul from titans!
+	player = ValidateDamageHistorySaver( player )
+
+	float time = Time() - hitTime
+	// remove old damage history entries
+	int i
+	DamageHistoryStruct history
+
+	foreach ( history in player.e.recentDamageHistory )
+	{
+		if ( history.time < time )
+			continue
+
+		if ( history.damageSourceId == damageSourceId )
+			return true
+	}
+
+	return false
+}
+
+
+// Used to get the player that did the last damage in cases where an NPC, not associated with a player, gives the killing blow.
+// at this point not every entity uses e.recentDamageHistory so some entities won't give assist points when they die ( soldiers, turrets etc. )
+AssistingPlayerStruct function GetLatestAssistingPlayerInfo( entity ent )
+{
+	// I think every function in this file needs get soul from titans!
+	ent = ValidateDamageHistorySaver( ent )
+
+	float lastTime = 0.0
+	float currentTime = Time()
+	AssistingPlayerStruct assistingPlayerInfo
+
+	foreach ( history in ent.e.recentDamageHistory )
+	{
+		if ( !IsValid( history.attacker ) || !history.attacker.IsPlayer() )
+			continue
+
+		if ( history.time <= lastTime )
+			continue
+
+		// I feel like this shouldn't be a const, better leave a setting for everybody
+	#if SERVER
+		if ( currentTime - history.time >= file.npcKillStealPreventionTime )
+			continue
+	#elseif CLIENT // TF|2 obviously not storing any damage history on client-side, this is just to anti compile error...
+		if ( currentTime - history.time >= MAX_NPC_KILL_STEAL_PREVENTION_TIME )
+			continue
+	#endif
+
+		// I do think more stuffs should be checked...
+		// trying to use similar check as _score.nut does
+		// checks for self damage
+		if ( history.attacker == ent )
+			continue
+		// checks for blank damage( scorch thermite, pilot non-critical-hit titan or smoke healing stuffs )
+		if ( history.damage <= 0 )
+			continue
+		//
+
+		lastTime = history.time
+		assistingPlayerInfo.player = history.attacker
+		assistingPlayerInfo.damageSourceId = history.damageSourceId
+		assistingPlayerInfo.assistTime = history.time
+	}
+
+	return assistingPlayerInfo
+}
+
+array<DamageHistoryStruct> function GetRodeoAttacksByPlayer( entity player, entity attacker, float time )
+{
+	float validTime = Time() - time
+	array<DamageHistoryStruct> events
+
+	if ( !IsValid( player ) )
+		return events
+
+	if ( !player.IsTitan() )
+		return events
+
+	if ( !IsValid( attacker ) )
+		return events
+
+	entity soul = player.GetTitanSoul()
+	if ( !IsValid( soul ) )
+		return events
+
+	foreach ( history in soul.e.recentDamageHistory )
+	{
+		if ( history.time < validTime )
+			continue
+
+		if ( history.attacker != attacker )
+			continue
+
+		if ( !( history.damageType & DF_RODEO ) )
+			continue
+
+		events.append( history )
+	}
+
+	return events
+}
+
+string function GetLastDamageSourceStringForAttacker( entity victim, entity attacker )
+{
+	// why is only some of the functions have this check? why?
+	//if ( victim.IsTitan() )
+	//	victim = victim.GetTitanSoul()
+
+	// I think every function in this file needs get soul from titans!
+	victim = ValidateDamageHistorySaver( victim )
+
+	if ( !IsValid( victim ) )
+		return ""
+
+	array<DamageHistoryStruct> recentDamageHistory = victim.e.recentDamageHistory
+	foreach ( damageHistory in recentDamageHistory )
+	{
+		if ( !IsValid( damageHistory.attacker ) || !damageHistory.attacker.IsPlayer() )
+			continue
+
+		if ( damageHistory.attacker == attacker )
+			return DamageSourceIDToString( damageHistory.damageSourceId )
+	}
+
+	return ""
+}
+
+float function TotalDamageOverTime_BlendedOut( entity soul, float start, float end )
+{
+	// rev 3 with damage history
+	float totalAcquiredDamage = 0
+	float time = Time()
+	float ignoreTime = time - end
+	float blendOutStarts = time - start
+
+	foreach ( history in soul.e.recentDamageHistory )
+	{
+		// dont care about the history past this point
+		if ( history.time < ignoreTime )
+			break
+
+		float newDamage
+		if ( history.damage < 0 )
+		{
+			newDamage = history.damage
+		}
+		else
+		{
+			newDamage = GraphCapped( history.time, blendOutStarts, ignoreTime, history.damage, 0 )
+		}
+
+		totalAcquiredDamage += newDamage
+	}
+
+	return totalAcquiredDamage
+}
+
+// I think every function in this file needs get soul from titans!
+entity function ValidateDamageHistorySaver( entity ent )
+{
+	// titan damage history stores in titanSoul
+	// this check is not vanilla behavior! but I think every function in this file needs it...
+	if ( ent.IsTitan() )
+	{
+		if ( IsValid( ent.GetTitanSoul() ) )
+			return ent.GetTitanSoul()
+	}
+	return ent
+}
+
+// modified contents
+#if SERVER
+// new adding feature: allow scripts modify npc kill steal prevention value, so we can better handle npc gamemodes
+void function DamageHistory_SetNPCKillStealPreventionTime( float preventionTime )
+{
+	file.npcKillStealPreventionTime = preventionTime
+}
+
+void function DamageHistory_EnableOffsetDamageTimeForSelfDestruction( bool enable )
+{
+	file.offsetDamageTimeForSelfDestruction = enable
+}
+
+bool function DamageHistory_ShouldOffsetDamageTimeForSelfDestruction()
+{
+	return file.offsetDamageTimeForSelfDestruction
+}
+
+void function DamageHistory_OffsetDamageTime( entity ent, float timerChange )
+{
+	// never affects player
+	if ( ent.IsPlayer() )
+		return
+
+	// I think every function in this file needs get soul from titans!
+	ent = ValidateDamageHistorySaver( ent )
+
+	// stops recording damage history if we ever used this utility
+	DamageHistory_SetDisabledOnEntity( ent, true )
+
+	// offset everything inside history
+	foreach ( history in ent.e.recentDamageHistory )
+		history.time += timerChange
+}
+
+void function DamageHistory_SetDisabledOnEntity( entity ent, bool disable )
+{
+	// never affects player
+	if ( ent.IsPlayer() )
+		return
+
+	// I think every function in this file needs get soul from titans!
+	ent = ValidateDamageHistorySaver( ent )
+	
+	if ( !( ent in file.entDamageHistorySystemDisabled ) )
+		file.entDamageHistorySystemDisabled[ ent ] <- false
+
+	file.entDamageHistorySystemDisabled[ ent ] = disable
+}
+
+bool function DamageHistory_IsDisabledOnEntity( entity ent )
+{
+	// never affects player
+	if ( ent.IsPlayer() )
+		return false
+
+	// I think every function in this file needs get soul from titans!
+	ent = ValidateDamageHistorySaver( ent )
+	
+	if ( !( ent in file.entDamageHistorySystemDisabled ) )
+		return false
+	
+	return file.entDamageHistorySystemDisabled[ ent ]
+}
+#endif

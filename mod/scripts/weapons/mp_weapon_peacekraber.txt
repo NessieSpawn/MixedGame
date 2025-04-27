@@ -73,11 +73,11 @@ WeaponData
 
 	// Damage - When Used by Players
 	"damage_type" 									"bullet"
-	"damage_near_distance"							"500"
-	"damage_far_distance" 							"1000"
+	"damage_near_distance"							"500" // mastiff uses 350, original value is 500
+	"damage_far_distance" 							"750" // mastiff uses 750, original value is 1000
 	// since rechamber has been nerfed, maybe no need to nerf damage
 	"damage_near_value"   							"15"
-	"damage_far_value"								"10" //"15" // range also been nerfed in script
+	"damage_far_value"								"10" // once tried 11 at 1.1x headshot damage. original value is 15
 	"damage_near_value_titanarmor"					"40"
 	"damage_far_value_titanarmor" 					"30"
 
@@ -90,13 +90,22 @@ WeaponData
 	"ammo_display_as_clips"							"0"
 	"reload_is_segmented"							"0"
 
+	// better use same reload as kraber
+	//"reload_time" 									"2.5"
+	//"reload_time_late1" 							"2.2"
+	//"reload_time_late2" 							"0"
+	//"reloadempty_time"								"3.5"
+	//"reloadempty_time_late1"						"2.5"
+	//"reloadempty_time_late2"						"1.7"
+	//"reloadempty_time_late2"						"1.1"
 	"reload_time" 									"2.5"
-	"reload_time_late1" 							"2.2"
-	"reload_time_late2" 							"0"
-	"reloadempty_time"								"3.5"
-	"reloadempty_time_late1"						"2.5"
-	"reloadempty_time_late2"						"1.7"
-	"reloadempty_time_late2"						"1.1"
+	"reload_time_late1" 							"1.52"
+	"reload_time_late2" 							"0.63"
+	"reloadempty_time"								"3.61"
+	"reloadempty_time_late1"						"2.63"
+	"reloadempty_time_late2"						"1.75"
+	"reloadempty_time_late3"						"0.55"
+
 	"rechamber_time"								"1.1"//"0.924"
 	"viewmodel_offset_ads"							"0 0 0"
 
@@ -121,19 +130,13 @@ WeaponData
 	"fx_muzzle_flash_world"							"wpn_muzzleflash_40mm"
 	"fx_muzzle_flash_attach"						"muzzle_flash"
 
-	"critical_hit_damage_scale"						"1.3"
+	// pilot weapons never has critical hit damage scale
+	"critical_hit_damage_scale"						"1.0" // was 1.3
 	"critical_hit"									"1"
-	"projectile_inherit_owner_velocity_scale"		"0.2"
+	"projectile_inherit_owner_velocity_scale"		"0.2" // ??????????
 	
 	// this one is truly overpowered, should nerf
-	"bolt_hitsize"									"0.5"
-	"bolt_hitsize_grow1_time"						"0.075"
-	"bolt_hitsize_grow1_size"						"1.0"
-	"bolt_hitsize_grow2_time"						"0.075"
-	"bolt_hitsize_grow2_size"						"2.5"
-	"bolt_hitsize_growfinal_lerptime"				"0.18"
-	"bolt_hitsize_growfinal_size"					"4.0"
-
+	// original value
 	//"bolt_hitsize"								"0.5"
 	//"bolt_hitsize_grow1_time"						"0.075"
 	//"bolt_hitsize_grow1_size"						"4.0"
@@ -142,6 +145,18 @@ WeaponData
 	//"bolt_hitsize_growfinal_lerptime"				"0.18"
 	//"bolt_hitsize_growfinal_size"					"6.0"
 	//"bolt_bounce_frac"								"1.0"
+
+	// after 0.1s weapon should no longer has client prediction, should be safe to change bolt size
+	// welp northstar uses 4.0 hitsize at 0.075s... should be fine?
+	// current value is basically doubled size of kraber's, base bolt_hitsize uses mastiff one
+	"bolt_hitsize"									"0.5"
+	"bolt_hitsize_grow1_time"						"0.035" // original value is 0.75, kraber uses 0.035, mastiff uses 0.025
+	"bolt_hitsize_grow1_size"						"1.0"
+	"bolt_hitsize_grow2_time"						"0.08" // original value is 0.75, kraber uses 0.08, mastiff uses 0.18
+	"bolt_hitsize_grow2_size"						"2.0"
+	"bolt_hitsize_growfinal_lerptime"				"0.18"
+	"bolt_hitsize_growfinal_size"					"4.0"
+
    	"titanarmor_critical_hit_required"              "1"
 	"critical_hit"									"1"
 
@@ -162,8 +177,13 @@ WeaponData
 	"allow_empty_click"   							"1"
 	"empty_reload_only"   							"0"
 	"trigger_snipercam"   							"0"
-	"allow_headshots" 								"0"
-	"primary_fire_does_not_block_sprint"			"1"
+
+	// try to allow headshots, with bit less headshot damage scale
+	"allow_headshots" 								"1"
+	"damage_headshot_scale"							"1.25" // new adding, 18.75 ~= 19 damage at close range. was 1.1( 16.5 damage at close range, equals to 17 damage and falls off at range )
+	"headshot_distance" 							"800" // same as mastiff
+
+	"primary_fire_does_not_block_sprint"			"1" // ????????????
 	"ads_move_speed_scale"							"0.5"
 	"aimassist_disable_hipfire"						"0"
 	"aimassist_disable_ads"							"0"
@@ -315,19 +335,67 @@ WeaponData
 	"sprintcycle_time"								".55"
 	"sprint_fractional_anims"						"0"
 
+	// lifetime actually handled by script
 	"projectile_lifetime"							"0.5"
 	"projectile_damage_reduction_per_bounce"		"0.0"
 	"projectile_damages_owner"						"0"
 
-	// Crosshair
+	// Crosshair, actually handled by script
 	"red_crosshair_range" 							"300"
 	active_crosshair_count				"0"
 
+	// more fixes to be reliable
+	//"anim_alt_idleAttack"	"1" // desyncs if client-side not installed!
+
+	// Bodygroups:
+	"bodygroup1_name"	"scope_dcom"
+	"bodygroup1_set"	"0"
+	"bodygroup2_name"	"scope_zoom"
+	"bodygroup2_set"	"0"
+	"bodygroup3_name"	"ammo"
+	"bodygroup3_set"	"0" // not enabled because we'll eject shotgun shells
+	"bodygroup4_name"	"scope_outline"
+	"bodygroup4_set"	"0"
+	"bodygroup5_name"	"scope_oracle"
+	"bodygroup5_set"	"0" // looks better with this scope? nah nevermind
+	"bodygroup6_name"	"proscreen"
+	"bodygroup6_set"	"0"
+
+	"clip_bodygroup"						"at_rifle_magazine"
+    "clip_bodygroup_index_shown"			"0"
+    "clip_bodygroup_index_hidden"			"1"
+    "clip_bodygroup_show_for_milestone_0"	"1"
+    "clip_bodygroup_show_for_milestone_1"	"0"
+    "clip_bodygroup_show_for_milestone_2"	"1"
+    "clip_bodygroup_show_for_milestone_3"	"1"
+
+	// not enabled because we'll eject shotgun shells
+	//"bodygroup_ammo_index_count"			"6"
+
+
+	// Ammo Counter
+	// Kraber
+	//"ui1_enable"		"1"
+	//UiData1
+	//{
+	//	"ui"									"ui/kraber_ammo_counter"
+	//	"mesh"							"models/weapons/attachments/kraber_rui_lower"
+	//	Args
+	//	{
+	//		vis						player_zoomfrac
+	//		ammo						weapon_ammo
+	//		clipSize					weapon_clipSize
+	//	}
+	//}
+
+	// Wingman
 	"ui6_enable"		"1"
 	UiData6
 	{
 		"ui"							"ui/b3wing_ammo_counter"
-		"mesh"						"models/weapons/attachments/sniper_scope_rui_upper"
+		// changing mesh. will it work for kraber model?
+		//"mesh"							"models/weapons/attachments/sniper_scope_rui_upper"
+		"mesh"							"models/weapons/attachments/kraber_rui_lower"
 		Args
 		{
 			ammo						weapon_ammo
@@ -335,6 +403,7 @@ WeaponData
 			clipCount					weapon_stockpileClipCount
 		}
 	}
+
 	RUI_CrosshairData
 	{
 		DefaultArgs
@@ -354,4 +423,40 @@ WeaponData
 			"ui"						"ui/crosshair_lstar"
 			"base_spread"				"4"
 		}
+	} // northstar missing scope...
+
+
+	// modified contents here
+	Mods
+	{
+		// disable primary_fire_does_not_block_sprint on server-side
+		// effect done in script _disable_run_and_gun_on_server.gnut
+		disable_run_and_gun_server
+		{
+
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
+
+			// mozambique cannot rechamber
+			// guess we changing it to a fake behavior: merge reload time into base rechamber time
+			// this equals to infinite ammo clip, at a cost of lower fire rate
+			// not compatible with extended ammo
+			"ammo_clip_size"   								"1" // causes desync on manual reload but whatever
+			"rechamber_time"  								"0"
+			// 1.6 = 1.60(peacekraber's rechamber_time) + 2.5(peacekraber's reload_time) / 5(peacekraber's ammo_clip_size)
+			// this fake reload shouldn't be interruptable like rechambering... but whatever, just to compensate
+			"reload_time" 									"1.6"
+			"reload_time_late1" 							"0.8" // 1.6 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
+			"reloadempty_time"								"1.6"
+			"reloadempty_time_late1"						"0.8" // 1.6 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
+		}
+	}
 }

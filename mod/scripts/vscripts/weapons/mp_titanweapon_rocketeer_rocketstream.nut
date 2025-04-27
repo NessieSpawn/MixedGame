@@ -300,13 +300,18 @@ int function FireMissileStream( entity weapon, WeaponPrimaryAttackParams attackP
 		{
 			SetTeam( missile, weaponOwner.GetTeam() )
 #if SERVER
+			// change every projectile sound to be sync with client!
+			/*
 			string whizBySound = "Weapon_Sidwinder_Projectile"
 			EmitSoundOnEntity( missile, whizBySound )
+			*/
 			if ( weapon.w.missileFiredCallback != null )
 			{
 				weapon.w.missileFiredCallback( missile, weaponOwner )
 			}
 #endif // #if SERVER
+			string whizBySound = "Weapon_Sidwinder_Projectile"
+			EmitSoundOnEntity( missile, whizBySound )
 		}
 
 		return 1
@@ -421,8 +426,10 @@ void function FireMissileStream_Spiral( entity weapon, WeaponPrimaryAttackParams
 			missiles.append( missile )
 
 #if SERVER
-			EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
+			// change every projectile sound to be sync with client!
+			//EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
 #endif // #if SERVER
+			EmitSoundOnEntity( missile, "Weapon_Sidwinder_Projectile" )
 		}
 	}
 }

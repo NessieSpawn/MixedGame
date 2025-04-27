@@ -8,7 +8,7 @@ global function AddCallback_OnClientSideWithMixedGameInstalledConnected
 struct
 {
     array<entity> connectedModdedPlayers
-    array< void functionref( entity player ) > onClientSideWithMixedGameInstalledConnectedCallbacks
+    array< void functionref( entity player, string modType ) > onClientSideWithMixedGameInstalledConnectedCallbacks
 } file
 
 void function Sh_MixedGame_ClientSide_Installation_Check_Init()
@@ -29,13 +29,17 @@ bool function CC_ClientWithMixedGameInstalledOnClientSide( entity player, array<
         return false
     file.connectedModdedPlayers.append( player )
 
+    // we can pass a specific mod type inside, so that we can handle their fixes and stuffs individually
+    string modType = ""
+    if ( args.len() > 0 )
+        modType = args[0]
     foreach ( callbackFunc in file.onClientSideWithMixedGameInstalledConnectedCallbacks )
-        callbackFunc( player )
+        callbackFunc( player, modType )
     
     return true
 }
 
-void function AddCallback_OnClientSideWithMixedGameInstalledConnected( void functionref( entity player ) callbackFunc )
+void function AddCallback_OnClientSideWithMixedGameInstalledConnected( void functionref( entity player, string modType ) callbackFunc )
 {
     if ( !file.onClientSideWithMixedGameInstalledConnectedCallbacks.contains( callbackFunc ) )
         file.onClientSideWithMixedGameInstalledConnectedCallbacks.append( callbackFunc )
@@ -53,7 +57,7 @@ void function SendCilentCommandToServer_Threaded()
         entity player = GetLocalClientPlayer()
         if ( IsValid( player ) )
         {
-            player.ClientCommand( "InstalledSuperMixedGameClient" )
+            player.ClientCommand( "InstalledSuperMixedGameClient FULL" ) // FULL MOD INSTALLED!
             return
         }
 

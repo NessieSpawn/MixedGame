@@ -101,12 +101,12 @@ WeaponData
 			// bodygroup
 			"bodygroup6_set"	"0" // iron sight
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"damage_near_value"			"14"
 			//"damage_far_value"			"14"
@@ -130,6 +130,18 @@ WeaponData
 
 			//"spread_decay_delay"  							"0.25"
 			//"spread_decay_rate"   							"10"
+		// }
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		
+			// requires installing on client
+			"viewmodel_offset_ads"							"0 0 0"
 		}
 	}
 }

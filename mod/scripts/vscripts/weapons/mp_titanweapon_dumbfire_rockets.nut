@@ -9,6 +9,7 @@ global function OnWeaponAttemptOffhandSwitch_titanweapon_dumbfire_rockets
 //Cluster Missile
 //----------------
 
+// where do this function used?
 var function OnWeaponPrimaryAttack_titanweapon_multi_cluster( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	int ammoReq = weapon.GetAmmoPerShot()
@@ -35,6 +36,12 @@ bool function OnWeaponAttemptOffhandSwitch_titanweapon_dumbfire_rockets( entity 
 
 var function OnWeaponPrimaryAttack_titanweapon_dumbfire_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// modded weapon
+	if( weapon.HasMod( "brute4_grenade_volley" ) )
+		return OnWeaponPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+	//
+
+	// vanilla behavior
 	bool shouldPredict = weapon.ShouldPredictProjectiles()
 	weapon.EmitWeaponNpcSound( LOUD_WEAPON_AI_SOUND_RADIUS_MP, 0.2 )
 
@@ -107,6 +114,12 @@ entity function FireClusterRocket( entity weapon, vector attackPos, vector attac
 #if SERVER
 var function OnWeaponNPCPrimaryAttack_titanweapon_dumbfire_rockets( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	// modded weapon
+	if( weapon.HasMod( "brute4_grenade_volley" ) )
+		return OnWeaponNpcPrimaryAttack_titanweapon_grenade_volley( weapon, attackParams )
+	//
+
+	// vanilla behavior
 	return OnWeaponPrimaryAttack_titanweapon_dumbfire_rockets( weapon, attackParams )
 }
 #endif

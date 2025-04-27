@@ -11,6 +11,7 @@ WeaponData
 	"flyoutEnabled"									"0"
 
 	// modified callbacks
+	"OnWeaponOwnerChanged"							"OnWeaponOwnerChanged_gunship_missile"
 	"OnWeaponActivate"								"OnWeaponActivate_gunship_missile"
 	"OnWeaponPrimaryAttack"							"OnWeaponPrimaryAttack_gunship_missile"
 
@@ -104,7 +105,7 @@ WeaponData
 			"ammo_clip_size"								"1"
 			"instant_swap_to"								"1"
 			"fire_rate"   									"*0.0001"
-			"attack_button_presses_melee"					"1"
+			//"attack_button_presses_melee"					"1"
 		}
 		incap_shield_modifier // helps player know about their incap shiled's health? also change modifier
 		{
@@ -152,6 +153,10 @@ WeaponData
 		}
 		pilot_sword_primary // use together with pilot_emptyhanded
 		{
+			// sword has animations, better not letting them HOLD to melee, just for better blending
+			// this causes desync! ahhhh I don't want to think about it, just leaving everything default value
+			//"fire_mode"   									"semi-auto"
+
 			"viewmodel"   									"models/weapons/bolo_sword/ptpov_bolo_sword.mdl"
 			// world model can't show properly when client-side not installed
 			// we do it in script
@@ -193,6 +198,29 @@ WeaponData
 		
 			// activity modifier: third person animation
 			"activitymodifier"								"mp_titanweapon_predator_cannon"
+		}
+
+		// disable run_and_gun on server-side
+		// effect done in script _disable_run_and_gun_on_server.gnut
+		// here's just for disabling sprint while pressing melee
+		disable_run_and_gun_server
+		{
+		}
+
+		// allow sword to attack ignoring sprint checks. needs disable_run_and_gun_server to avoid desync!
+		gm_beastking
+		{
+			"primary_fire_does_not_block_sprint"			"1"
+			"crosshair_force_sprint_fade_disabled"          "1"
+
+			//"fire_rate"   									"*100"
+
+			// no need to change animation for whatever, hold melee delay is due to sword's "melee_raise_recovery_animtime" stuffs
+			// guess we could change all these for better control, animation issue isn't that necessary...
+			//"holster_time"									"0.01"
+			//"deploy_time" 									"0.01"
+			//"lower_time"  									"0.01"
+			//"raise_time"  									"0.01"
 		}
 	}
 }

@@ -25,6 +25,15 @@ global function RunClassFinalDamageByCallbacks
 global function RunClassPostDamageByCallbacks
 global function RunFinalDamageSourceIDCallbacks
 global function RunPostDamageSourceIDCallbacks
+// still some more modification: allow callbacks when damage failed to pass through ScriptCallback_ShouldEntTakeDamage()
+global function AddDamageFailedCallback
+global function AddDamageFailedByCallback
+global function AddEntityCallback_OnDamageFailed
+global function AddDamageFailedCallbackSourceID
+global function RunClassDamageFailedCallbacks
+global function RunClassDamageFailedByCallbacks
+global function RunEntityDamageFailedCallbacks
+global function RunDamageFailedSourceIDCallbacks
 //
 global function AddDeathCallback
 global function RemoveDeathCallback
@@ -96,6 +105,7 @@ global function EntityKilledEvent_IsDisabledForEntity
 
 // so we can modify entity killed event easily
 global function AddCallback_OnSendingEntityKilledEvent
+global function RunCallbacks_OnSendingEntityKilledEvent // shared
 
 global struct EntityKilledEventStruct
 {
@@ -119,6 +129,11 @@ struct
 	table< string, array< void functionref( entity, var ) > > classPostDamageByCallbacks
 	table< int, array< void functionref( entity, var ) > > finalDamageSourceIdCallbacks
 	table< int, array< void functionref( entity, var ) > > postDamageSourceIdCallbacks
+	// still some more modification: allow callbacks when damage failed to pass through ScriptCallback_ShouldEntTakeDamage()
+	table< string, array< void functionref( entity, var ) > > classDamageFailedCallbacks
+	table< string, array< void functionref( entity, var ) > > classDamageFailedByCallbacks
+	table< entity, array< void functionref( entity, var ) > > entDamageFailedCallbacks
+	table< int, array< void functionref( entity, var ) > > damageFailedSourceIdCallbacks
 	//
 
 	// nessie modify
@@ -133,6 +148,17 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 	// gametype script decides if ent should take damage
 	if ( !ScriptCallback_ShouldEntTakeDamage( ent, damageInfo ) )
 	{
+		// modified here: allowing callbacks if damage failed to pass through ScriptCallback_ShouldEntTakeDamage()
+		// Added via AddDamageFailedCallback
+		RunClassDamageFailedCallbacks( ent, damageInfo )
+		// Added via AddDamageFailedByCallback
+		if ( IsValid( DamageInfo_GetAttacker( damageInfo ) ) )
+			RunClassDamageFailedByCallbacks( DamageInfo_GetAttacker( damageInfo ), damageInfo )
+		// Added via AddEntityCallback_OnDamageFailed
+		RunEntityDamageFailedCallbacks( ent, damageInfo )
+		// Added via AddDamageFailedCallbackSourceID
+		RunDamageFailedSourceIDCallbacks( ent, damageInfo )
+	
 		DamageInfo_SetDamage( damageInfo, 0 )
 		return
 	}
@@ -156,6 +182,7 @@ void function CodeCallback_DamageEntity( entity ent, var damageInfo )
 		printt( "    after AddEntityCallback_OnDamaged() callbacks:", DamageInfo_GetDamage( damageInfo ) )
 	#endif
 
+	// NOTE: THIS damageSourceId is used amongst ALL damageSourceID callbacks!
 	int damageSourceId = DamageInfo_GetDamageSourceIdentifier( damageInfo )
 	if ( damageSourceId in shGlobal.damageSourceIdCallbacks )
 	{
@@ -339,8 +366,7 @@ void function SendEntityKilledEvent( entity ent, var damageInfo )
 	eventStruct.damageSourceId = damageSourceId
 
 	// added via AddCallback_OnSendingEntityKilledEvent
-	foreach ( callbackFunc in file.sendingEntityKilledEventCallbacks )
-		callbackFunc( ent, damageInfo, eventStruct )
+	RunCallbacks_OnSendingEntityKilledEvent( ent, damageInfo, eventStruct )
 	//
 
 	// get modified contents to pass into remotecall
@@ -529,6 +555,88 @@ void function RunPostDamageSourceIDCallbacks( int id, entity ent, var damageInfo
 		return
 
 	foreach ( callbackFunc in file.postDamageSourceIdCallbacks[id] )
+	{
+		callbackFunc( ent, damageInfo )
+	}
+}
+
+// still some more modification: allow callbacks when damage failed to pass through ScriptCallback_ShouldEntTakeDamage()
+void function AddDamageFailedCallback( string className, void functionref( entity, var ) callbackFunc )
+{
+	if ( !( className in file.classDamageFailedCallbacks ) )
+		file.classDamageFailedCallbacks[className] <- []
+
+	file.classDamageFailedCallbacks[className].append( callbackFunc )
+}
+void function RunClassDamageFailedCallbacks( entity ent, var damageInfo )
+{
+	string className = ent.GetClassName()
+	if ( !( className in file.classDamageFailedCallbacks ) )
+		return
+
+	foreach ( callbackFunc in file.classDamageFailedCallbacks[className] )
+	{
+		callbackFunc( ent, damageInfo )
+		if ( DamageInfo_GetDamage( damageInfo ) == 0 )
+			return
+	}
+}
+
+void function AddDamageFailedByCallback( string className, void functionref( entity, var ) callbackFunc )
+{
+	if ( !( className in svGlobal.damageByCallbacks ) )
+		file.classDamageFailedByCallbacks[className] <- []
+
+	file.classDamageFailedByCallbacks[className].append( callbackFunc )
+}
+void function RunClassDamageFailedByCallbacks( entity ent, var damageInfo )
+{
+	string className = ent.GetClassName()
+	if ( !( className in file.classDamageFailedByCallbacks ) )
+		return
+
+	foreach ( callbackFunc in file.classDamageFailedByCallbacks[className] )
+	{
+		callbackFunc( ent, damageInfo )
+		if ( DamageInfo_GetDamage( damageInfo ) == 0 )
+			return
+	}
+}
+
+void function AddEntityCallback_OnDamageFailed( entity ent, void functionref( entity, var ) callbackFunc )
+{
+	ent.SetDamageNotifications( true )
+	if ( !( ent in file.entDamageFailedCallbacks ) )
+		file.entDamageFailedCallbacks[ent] <- []
+	file.entDamageFailedCallbacks[ent].append( callbackFunc )
+}
+void function RunEntityDamageFailedCallbacks( entity ent, var damageInfo )
+{
+	if ( !( ent in file.entDamageFailedCallbacks ) )
+		return
+
+	foreach ( callbackFunc in file.entDamageFailedCallbacks[ent] )
+	{
+		callbackFunc( ent, damageInfo )
+		// according to their org ent.e function calls this won't return if damage hits 0
+	}
+}
+
+void function AddDamageFailedCallbackSourceID( int id, void functionref(entity, var) callbackFunc )
+{
+	if ( !( id in file.damageFailedSourceIdCallbacks ) )
+		file.damageFailedSourceIdCallbacks[id] <- []
+
+	file.damageFailedSourceIdCallbacks[id].append( callbackFunc )
+}
+void function RunDamageFailedSourceIDCallbacks( entity ent, var damageInfo )
+{
+	// at this point damage haven't been modified by callbacks at all, it's safe for us to get id from info
+	int id = DamageInfo_GetDamageSourceIdentifier( damageInfo )
+	if ( !( id in file.damageFailedSourceIdCallbacks ) )
+		return
+
+	foreach ( callbackFunc in file.damageFailedSourceIdCallbacks[id] )
 	{
 		callbackFunc( ent, damageInfo )
 	}
@@ -1119,6 +1227,12 @@ void function AddCallback_OnSendingEntityKilledEvent( void functionref( entity, 
 {
 	if ( !file.sendingEntityKilledEventCallbacks.contains( callbackFunc ) )
 		file.sendingEntityKilledEventCallbacks.append( callbackFunc )
+}
+// shared for base_gametype_mp.gnut to use
+void function RunCallbacks_OnSendingEntityKilledEvent( entity ent, var damageInfo, EntityKilledEventStruct eventStruct )
+{
+	foreach ( callbackFunc in file.sendingEntityKilledEventCallbacks )
+		callbackFunc( ent, damageInfo, eventStruct )
 }
 
 // utility for current file

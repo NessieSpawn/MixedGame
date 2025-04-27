@@ -255,6 +255,8 @@ WeaponData
 		}
 		brute4_cluster_payload_ammo
 		{
+			"rui_crosshair_index"			"1"
+
 			"damage_near_value"             		"*1.5"
 			"damage_far_value"              		"*1.5"
 			"damage_near_value_titanarmor"			"*1.0" // was nerfed to *0.5, brute4 uses *1.5
@@ -447,5 +449,47 @@ WeaponData
 		}
 
 		// should've reached max mod lines of 200
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
+	}
+
+	RUI_CrosshairData
+	{
+		DefaultArgs
+		{
+			adjustedSpread				weapon_spread
+			adsFrac 					player_zoomFrac
+			isSprinting					player_is_sprinting
+			isReloading					weapon_is_reloading
+			teamColor					crosshair_team_color
+			isAmped						weapon_is_amped
+			crosshairMovementX          crosshair_movement_x
+			crosshairMovementY          crosshair_movement_y
+		}
+
+		// changed from vanilla: use TF|1 quad rocket crosshair
+		Crosshair_1
+		{
+			"ui"						"ui/crosshair_quad_rocket"
+			"base_spread"				"10.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
+		}
+
+		Crosshair_2
+		{
+			"ui"						"ui/crosshair_smr"
+			"base_spread"				"10.0"
+			Args
+			{
+				isFiring				weapon_is_firing
+			}
+		}
 	}
 }

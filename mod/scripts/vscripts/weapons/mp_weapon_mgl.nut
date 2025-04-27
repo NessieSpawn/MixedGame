@@ -86,13 +86,15 @@ void function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams
 	{
 		entity weaponOwner = weapon.GetWeaponOwner()
 		#if SERVER
-			EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
+			// change every projectile sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
 			// will set proj.onlyAllowSmartPistolDamage = true, which makes us cannot destroy it by normal weapons
 			Grenade_Init( nade, weapon )
 		#else
 			//InitMagnetic needs to be after the team is set on both client and server.
 			SetTeam( nade, weaponOwner.GetTeam() )
 		#endif
+		EmitSoundOnEntity( nade, "Weapon_MGL_Grenade_Emitter" )
 
 		// nessie modified MGL
 		if( weapon.HasMod( "nessie_mgl" ) )

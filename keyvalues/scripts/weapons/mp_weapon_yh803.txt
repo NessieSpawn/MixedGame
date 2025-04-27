@@ -1,5 +1,13 @@
 WeaponData
 {
+	MP_BASE
+	{
+		// remove lead for whatever, missile hitsize is fucked
+		"npc_lead_time_scale"							"0.0" // 0.0011
+		"npc_lead_time_min_dist"						"100"
+		"npc_lead_time_max_dist"						"4000"
+	}
+
 	// Effects
 	"fire_sound_1_player_1p"						"TDay_MegaTurret_Fire_A"
 	"fire_sound_1_player_3p"						"TDay_MegaTurret_Fire_A"
@@ -13,10 +21,10 @@ WeaponData
 
 	"impact_effect_table" 							"exp_rocket_shoulder" // exp_small
 
-	"projectile_launch_speed"						"1500" // vanilla uses 800, plasma turret uses 2000, smr uses 3300
+	"projectile_launch_speed"						"3300" // first version uses 1500, second version uses 2200, vanilla uses 800, plasma turret uses 2000, smr uses 3300, salvo rocket uses 2200, tf|1 smr uses 2800, rocket drone uses 1600
 
-	"npc_min_burst"									"4" // vanilla uses 3, plasma turret uses 6
-	"npc_max_burst"									"6" // vanilla uses 3, plasma turret uses 6
+	"npc_min_burst"									"5" // first version uses 4, vanilla uses 3, plasma turret uses 6
+	"npc_max_burst"									"5" // first version uses 6, vanilla uses 3, plasma turret uses 6
 	"npc_rest_time_between_bursts_min"				"1" // vanilla uses 3.5, plasma turret uses 1
 	"npc_rest_time_between_bursts_max"				"1" // vanilla uses 4.5, plasma turret uses 1
 
@@ -24,14 +32,24 @@ WeaponData
 
 	// taken from turretplasma
 	"explosion_damages_owner"						"0"
-	"explosion_inner_radius"  						"30"
-	"explosionradius" 								"60" // plasma turret uses 50
+	"explosion_inner_radius"  						"35" // plasma turret uses 30, rocket drone uses 20
+	"explosionradius" 								"60" // plasma turret uses 50, rocket drone uses 60
+	"npc_aim_at_feet"								"1" // try to main explosions to deal damage because we're bad at direct hits...?
 
 	// taken from smr
+	// they still have very weird aiming position idk why
+	// alright, that might because they don't have big enough hitsize because they're firing missiles...
 	"proficiency_poor_spreadscale"					"3.0"
 	"proficiency_average_spreadscale" 				"2"
 	"proficiency_good_spreadscale"					"1.4"
 	"proficiency_very_good_spreadscale"   			"1.4"
+
+	// or maybe that's because we're not init base spread for them? will that affect npc usage??
+	// Spread
+	"spread_stand_hip"  							"0"
+	"spread_stand_ads"   							"0"
+	"spread_decay_rate"   							"10"
+	"spread_decay_delay"  							".35"
 
 	// vanilla missing
 	"npc_explosion_damage"							"30" // player value is 50
@@ -40,7 +58,7 @@ WeaponData
 	"npc_min_engage_range"							"0"
 	"npc_max_engage_range"							"1600"
 	"npc_min_engage_range_heavy_armor"				"400"
-	"npc_max_engage_range_heavy_armor"				"2000"
+	"npc_max_engage_range_heavy_armor"				"2200"
 
 	"npc_spread_defocused_cone_multiplier"			"1.0"
 
@@ -51,11 +69,20 @@ WeaponData
 		{
 			"npc_damage_near_value"   						"*0.3" // 15
 			"npc_damage_far_value"							"*0.3" // 15
-			"npc_explosion_damage"							"*0.3" // 9
+			"npc_explosion_damage"							"*0.333333" // ~10, was * 0.4( 12 ) when turret not aiming at feets
 
-			"npc_damage_near_value_titanarmor"				"*0.6" // 118.2
-			"npc_damage_far_value_titanarmor" 				"*0.6" // 118.2
-			"npc_explosion_damage_heavy_armor"				"*0.6" // 54
+			//"npc_damage_near_value_titanarmor"				"*0.6" // 118.2
+			//"npc_damage_far_value_titanarmor" 				"*0.6" // 118.2
+			//"npc_explosion_damage_heavy_armor"				"*0.6" // 54
+
+			"npc_damage_near_value_titanarmor"				"*0.710066" // ~140
+			"npc_damage_far_value_titanarmor" 				"*0.710066" // ~140
+		}
+
+		// nessy
+        // npc weapons: a identifier for script to force update model
+		fake_nessy_weapon
+		{
 		}
 	}
 }

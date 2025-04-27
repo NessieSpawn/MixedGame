@@ -275,12 +275,13 @@ WeaponData
 		//	"impact_effect_table" 							"exp_emp"
 		//}
 
-		error_softball
-		{
-			"explosion_damage"								"*0.15"
-			"explosion_damage_heavy_armor"					"*0.15"
-			"projectile_trail_effect_0" 					"" // to trigger a "error particle" effect in script
-		}
+		// not very funny, kinda removed
+		// error_softball
+		// {
+		// 	"explosion_damage"								"*0.15"
+		// 	"explosion_damage_heavy_armor"					"*0.15"
+		// 	"projectile_trail_effect_0" 					"" // to trigger a "error particle" effect in script
+		// }
 
 		// temporarily removed for softball
 		//grenade_launcher
@@ -350,6 +351,24 @@ WeaponData
 		impact_pulse
 		{
 			"impulse_force"									"++7000" // 7000 with rocket_jumper, weird funny
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
+
+			// alright then
+			// reload time isn't compatible with extended_ammo
+			"reload_is_segmented"							"0"
+			"reload_time" 									"5.05" // 0.95(softball's reload_time) + 0.82(softball's reloadsegment_time_loop) * 5(softball's ammo_clip_size - 1)
+			"reload_time_late1" 							"2.525" // 5.05 / 2.1(mozambique's reload_time) * 1.05(mozambique's reload_time_late1)
+			"reloadempty_time"								"5.05" // 0.95(softball's reload_time_empty) + 0.82(softball's reloadsegment_time_loop) * 5(softball's ammo_clip_size - 1)
+			"reloadempty_time_late1"						"2.525" // 5.05 / 2.1(mozambique's reloadempty_time) * 1.05(mozambique's reloadempty_time_late1)
 		}
 
 		// mods count max is 30, now having 30 mods and 8 mods removed!

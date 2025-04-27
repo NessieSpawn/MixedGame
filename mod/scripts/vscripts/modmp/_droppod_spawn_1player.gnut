@@ -175,8 +175,20 @@ void function SpawnPlayerInDropPod( entity player, vector targetOrigin, vector a
 
 		player.Signal( "PlayerDroppodImpact" )
 		RemoveCinematicFlag( player, CE_FLAG_HIDE_MAIN_HUD )
+		vector posBeforeFix = player.GetOrigin()
 		FindNearestSafeSpotAndPutEntity( player, 1 ) // defensive fix
-		player.SetAngles( angles ) // always facing the spawnpoint
+		if ( player.GetOrigin() != posBeforeFix )
+		{
+			print( "player droppod landing position fixed!" )
+			// update pod position to player's new pos
+			pod.Anim_Stop() // stop any droppod sequence pending
+			pod.SetAbsOrigin( player.GetOrigin() )
+			//player.SetOrigin( pod.GetOrigin() )
+		}
+		// idk why pods moving everywhere... turns out it needs to set abs origin
+		//print( "player pos: " + string( player.GetOrigin() ) )
+		//print( "pod pos: " + string( pod.GetOrigin() ) )
+		player.SetAbsAngles( angles ) // always facing the spawnpoint. seems SetAbsAngles could handle it
 
 		// give loadout again so they'll have weapon deploy animations
 		if ( Loadouts_CanGivePilotLoadout( player ) ) // to fit vanilla: give loadout upon touched ground, so they'll have weapon's first deploy animation
@@ -243,6 +255,28 @@ void function DroppodPlayerProtectionThink( entity player, entity pod, float max
 		WaitFrame()
 		if ( Distance( player.GetOrigin(), safeOrigin ) > droppodRadius )
 			break
+		
+		entity activeWeapon = player.GetActiveWeapon()
+		if ( IsValid( activeWeapon ) )
+		{
+			// trying to ads
+			if ( player.GetZoomFrac() > 0 )
+				break
+
+			// trying to charge up weapon
+			if ( activeWeapon.IsChargeWeapon() && activeWeapon.GetWeaponChargeFraction() > 0 )
+				break
+
+			// trying to use ability or cook grenade
+			// player can have only offhand weapons such as melee... needs to check main weapon count as well
+			if ( player.GetMainWeapons().len() > 0 && activeWeapon.IsWeaponOffhand() )
+				break
+
+			// trying to lock with weapon
+			// maybe we break protection whenever player tried to aim down sight?
+			//if ( activeWeapon.GetWeaponSettingBool( eWeaponVar.attack_button_presses_ads ) && player.GetZoomFrac() == 1 )
+			//	break
+		}
 	}
 }
 

@@ -254,6 +254,9 @@ void function StalkerOnDamaged_Internal( entity npc, var damageInfo )
 	// no further checks, maybe not accurate but whatever
 	if ( GetShieldHealthWithFix( npc ) - int( damage ) >= 0 )
 		return
+	
+	// also needs to calculate shield damage reduction to avoid accidental limb blown off
+	damage -= float( GetShieldHealthWithFix( npc ) )
 	//
 
 	// limb dead yet?
@@ -715,7 +718,9 @@ bool function DamageShouldOverloadStalker( entity npc, var damageInfo )
 	if ( hitGroup < HITGROUP_GENERIC )
 		hitGroup = HITGROUP_GENERIC
 	
-	float health = npc.GetHealth().tofloat()
+	// also needs to calculate shield damage reduction to avoid accidental limb blown off
+	//float health = npc.GetHealth().tofloat() 
+	float health = float( npc.GetHealth() + GetShieldHealthWithFix( npc ) )
 	float damage = DamageInfo_GetDamage( damageInfo )
 	// modified check: killshot to overload
 	bool isKillShot = health - damage <= 1.0 // hitting stalker to 1HP means we can overload them. prevent accidentally kill them
@@ -812,6 +817,11 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 {
 	Assert( !StalkerMeltingDown( npc ) )
 
+	// modified variable: store gear overload start time, so we can offset damage history
+	// mainly because at this point stalkers no longer takes damage and after explosion their damage history will become old
+	table e
+	e.overloadStartTime <- Time()
+
 	if ( !IsCrawling( npc ) && StalkerCanCrawl( npc ) )
 		thread FallAndBecomeCrawlingStalker( npc )
 
@@ -863,7 +873,7 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 	entity fx = PlayFXOnEntity( STALKER_REACTOR_CRITICAL_FX, nukeFXInfoTarget )
 
 	OnThreadEnd(
-	function() : ( nukeFXInfoTarget, fx, npc, attacker )
+	function() : ( nukeFXInfoTarget, fx, npc, attacker, e )
 		{
 			if ( IsValid( npc ) )
 				StopSoundOnEntity( nukeFXInfoTarget, STALKER_REACTOR_CRITICAL_SOUND )
@@ -886,6 +896,14 @@ void function StalkerGearOverloads( entity npc, entity attacker = null )
 					damageAttacker = npc
 
 				vector force = GetDeathForce()
+
+				// modified behavior: offset stored damage history time if we did self-destruction
+				if ( DamageHistory_ShouldOffsetDamageTimeForSelfDestruction() )
+				{
+					float timeElapsed = Time() - expect float ( e.overloadStartTime )
+					DamageHistory_OffsetDamageTime( npc, timeElapsed )
+				}
+
 				npc.Die( damageAttacker, npc, { force = force, scriptType = DF_GIB, damageSourceId = eDamageSourceId.suicideSpectreAoE } )
 			}
 		}
@@ -1262,7 +1280,9 @@ void function StalkerHeadShot( entity npc, var damageInfo, int hitGroup )
 	if ( !attacker.IsPlayer() && !DamageUtility_IsNPCLocationBasedDamageEnabled() )
 		return
 
-	if ( DamageInfo_GetDamage( damageInfo ) < npc.GetHealth() )
+	// also needs to calculate shield damage reduction to avoid accidental limb blown off
+	//if ( DamageInfo_GetDamage( damageInfo ) < npc.GetHealth() )
+	if ( DamageInfo_GetDamage( damageInfo ) < ( npc.GetHealth() + GetShieldHealthWithFix( npc ) ) )
 	{
 		// force lethal if we have done more than this much damage
 		// modified to use a setting for headshot required damage
@@ -1307,7 +1327,9 @@ void function StalkerHeadShot( entity npc, var damageInfo, int hitGroup )
 		npc.SetBodygroup( bodyGroupIndex, stateIndex )
 	}
 
-	DamageInfo_SetDamage( damageInfo, npc.GetMaxHealth() )
+	// also needs to deplete shield to actually kill the stalker
+	//DamageInfo_SetDamage( damageInfo, npc.GetMaxHealth() )
+	DamageInfo_SetDamage( damageInfo, npc.GetMaxHealth() + GetShieldHealthMaxWithFix( npc ) )
 }
 
 vector function GetDeathForce()

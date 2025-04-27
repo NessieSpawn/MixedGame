@@ -148,8 +148,11 @@ void function TitanReplace_Init()
 	RegisterDefaultTitanPickCharacters()
 }
 
-void function TitanReplaceOnModdedPlayerConnected( entity player )
+void function TitanReplaceOnModdedPlayerConnected( entity player, string modType )
 {
+	if ( modType != "FULL" ) // not installing FULL mod. we may split this mod to some other package in future?
+		return
+	
 	if ( !file.moddedPlayers.contains( player ) )
 		file.moddedPlayers.append( player )
 }
@@ -2261,10 +2264,17 @@ void function TitanReplace_BecomeModdedBrute4( entity titan, bool isPickup = fal
 					titan.GiveOffhandWeapon("mp_titanability_rocketeer_ammo_swap", OFFHAND_ANTIRODEO, ["brute4_cluster_payload"] )
 
 				//Offence
+				// change to use cluster missile weapon mod for npc animations
+				/*
 				if( passiveType == eTitanReplacePassiveTypes.OFFENSE )
 					titan.GiveOffhandWeapon("mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
 				else
 					titan.GiveOffhandWeapon("mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+				*/
+				if( passiveType == eTitanReplacePassiveTypes.OFFENSE )
+					titan.GiveOffhandWeapon("mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
+				else
+					titan.GiveOffhandWeapon("mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 
 				//Titan Core
 				if( passiveType == eTitanReplacePassiveTypes.CORE )

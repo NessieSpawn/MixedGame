@@ -34,23 +34,33 @@ void function PilotCrouchWalkThink( entity player )
     float boostSeverity
 	array<string> classMods = player.GetPlayerSettingsMods()
     
-    // ravenant crouch
-	if ( classMods.contains( "ravenant_ability" ) ) 
-	{
+    // ravenant crouch and gruntmode crouch boost
+	if ( classMods.contains( "ravenant_ability" ) || classMods.contains( "courch_walk_boost" ) ) 
 		hasCrouchBoost = true
-		boostSeverity = RAVENANT_CROUCH_BOOST_SEVERITY
-	}
-	// gruntmode crouch boost
-	if ( classMods.contains( "courch_walk_boost" ) )
-	{
-		hasCrouchBoost = true
-		boostSeverity = GRUNT_CROUCH_BOOST_SEVERITY
-	}
 
     if ( !hasCrouchBoost )
         return
 
-    int crouchBoostHandle = -1
+    int loopCount = 0 // debug only
+    array<int> crouchBoostHandles // why we have to handle like this...
+    bool crouchBoostAdded = false // the only way to fix this... idk why handle not accurate in some case
+    
+    // to fix issues with gruntmode wallclimb, always clear boost handle on class change
+    OnThreadEnd
+    (
+        function(): ( player, crouchBoostHandles )
+        {
+            if ( IsValid( player ) )
+            {
+                foreach ( int handle in crouchBoostHandles )
+                {
+                    //print( "removing handle: " + string( handle ) )
+                    StatusEffect_Stop( player, handle )
+                }
+            }
+        }
+    )
+    
     while ( true )
     {
         WaitFrame( true ) // always wait first, this ignores fps limit
@@ -61,34 +71,65 @@ void function PilotCrouchWalkThink( entity player )
         // ravenant crouch
         if ( classMods.contains( "ravenant_ability" ) ) 
         {
+            boostSeverity = RAVENANT_CROUCH_BOOST_SEVERITY
             if ( hasColiseumMod )
                 boostSeverity = RAVENANT_CROUCH_BOOST_SEVERITY_COLISEUN
         }
         // gruntmode crouch boost
         if ( classMods.contains( "courch_walk_boost" ) )
         {
+            boostSeverity = GRUNT_CROUCH_BOOST_SEVERITY
             if ( hasColiseumMod )
                 boostSeverity = GRUNT_CROUCH_BOOST_SEVERITY_COLISEUN
         }
 
-        if ( !player.IsOnGround() || player.IsWallRunning() ) // skip check and stop existing speedboost if we're off ground or wallrunning
+        // skip check and stop existing speedboost if we've off ground
+        if ( !player.IsOnGround() || player.IsWallRunning() || player.IsTraversing() || player.Anim_IsActive() || IsValid( player.GetParent() ) )
         {
-            if ( crouchBoostHandle != -1 )
+            foreach ( _index, int handle in crouchBoostHandles )
             {
-                StatusEffect_Stop( player, crouchBoostHandle )
-                crouchBoostHandle = -1
+                //print( "removing handle: " + string( handle ) )
+                StatusEffect_Stop( player, handle )
+                crouchBoostHandles.remove( _index )
             }
+            crouchBoostAdded = false
             continue
         }
 
-        if ( player.IsCrouched() && crouchBoostHandle == -1 ) // completely crouched, don't have to check sliding since slide in ttf2 not affected by speed_boost
+        if ( player.IsCrouched() ) // completely crouched, don't have to check sliding since slide in ttf2 not affected by speed_boost
         {
-            crouchBoostHandle = StatusEffect_AddEndless( player, eStatusEffect.speed_boost, boostSeverity )
+            if ( !crouchBoostAdded )
+            {
+                // try to stop last crouch boost...?
+                foreach ( _index, int handle in crouchBoostHandles )
+                {
+                    //print( "removing handle: " + string( handle ) )
+                    StatusEffect_Stop( player, handle )
+                    crouchBoostHandles.remove( _index )
+                }
+                if ( crouchBoostHandles.len() == 0 )
+                {
+                    int newHandle = StatusEffect_AddEndless( player, eStatusEffect.speed_boost, boostSeverity )
+                   // print( "created handle: " + string( newHandle ) )
+                    //print( "loopCount: " + string( loopCount ) )
+                    crouchBoostHandles.append( newHandle )
+                }
+                crouchBoostAdded = true
+            }
         }
-        else if ( !player.IsCrouched() && crouchBoostHandle != -1 ) // not crouched
+        else // not crouched
         {
-            StatusEffect_Stop( player, crouchBoostHandle )
-            crouchBoostHandle = -1
+            if ( crouchBoostAdded )
+            {
+                foreach ( _index, int handle in crouchBoostHandles )
+                {
+                    //print( "removing handle: " + string( handle ) )
+                    StatusEffect_Stop( player, handle )
+                    crouchBoostHandles.remove( _index )
+                }
+                crouchBoostAdded = false
+            }
         }
+        loopCount++
     }
 }

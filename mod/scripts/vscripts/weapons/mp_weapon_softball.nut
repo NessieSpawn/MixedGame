@@ -82,12 +82,14 @@ function FireGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, isN
 	if ( nade )
 	{
 		#if SERVER
-			EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
+			// change every grenade sound to be sync with client!
+			//EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 			Grenade_Init( nade, weapon )
 		#else
 			entity weaponOwner = weapon.GetWeaponOwner()
 			SetTeam( nade, weaponOwner.GetTeam() )
 		#endif
+		EmitSoundOnEntity( nade, "Weapon_softball_Grenade_Emitter" )
 	}
 }
 
@@ -101,7 +103,7 @@ void function OnProjectileCollision_weapon_softball( entity projectile, vector p
 
 	// direct hit softball
 	if ( mods.contains( "direct_hit" ) )
-        OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
+        OnProjectileCollision_DirectHit_NoReturn( projectile, pos, normal, hitEnt, hitbox, isCritical )
 	//
 
 	// vanilla behavior

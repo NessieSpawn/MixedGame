@@ -145,6 +145,7 @@ global function ExtraSpawner_EnableNPCNoPainOnDamage
 // shared utility
 global function ExtraSpawner_IsNPCSpawnedFromExtraSpawner
 global function ExtraSpawner_IsSquadFromExtraSpawner
+global function ExtraSpawner_EntIsNPCFakeDecoy
 
 // debug
 const bool EXTRA_SPAWNER_DEBUG = false
@@ -219,7 +220,7 @@ const int TITAN_STEPPING_ON_DAMAGE_NPC_PILOT = 250
 const int NPC_PILOT_MAX_DAMAGE_TAKEN_PER_SECOND = 300 // pilots will only take 300 dmg per second
 
 // damage dealt by prowler multiplyer
-// base damage for MP: claw: 80, pounce: 100
+// base damage for MP: claw: 80, pounce: 100. can use these value for checking attack type, I think?
 // this is now served as default value, can be modified by other files through ExtraSpawner_SetProwlerMeleeDamageScale()
 const float PROWLER_MELEE_DAMAGE_MULTIPLIER = 0.4 // was 0.5
 // damage dealt by prowler to heavy armor units multiplyer
@@ -666,6 +667,8 @@ void function ExtraAISpawner_Init()
 		AddClientCommandCallback( "gruntdroppod", CC_SpawnGruntDroppod )
 		//AddClientCommandCallback( "npcweapon_bodygrouptest", CC_DoNPCWeaponBodyGroupTestSpawn )
 		AddClientCommandCallback( "overloadedstalkers", CC_SpawnOverloadedStalkers )
+		AddClientCommandCallback( "heavypilot", CC_SpawnFakeHeavyPilot )
+		AddClientCommandCallback( "lightpilot", CC_SpawnFakeLightPilot )
 	#endif // EXTRA_SPAWNER_DEBUG
 }
 
@@ -899,7 +902,13 @@ void function OnReaperChangeTeam( entity reaper )
 					if ( ent.IsProjectile() )
 						ent.Destroy()
 					else if ( ent.IsNPC() && !ent.ai.fragDroneArmed )
+					{
 						ent.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+						ent.SetNoTarget( true )
+						ent.EnableNPCFlag( NPC_IGNORE_ALL )
+						ent.NotSolid()
+						ent.SetInvulnerable() // can still take radius damage after nonsolid!
+					}
 				}
 			}
 		}
@@ -1894,7 +1903,9 @@ void function NPCModdedBruteLoadout( entity titan )
 	// we have buffed quad rocket that have higher projectile speed and can make npcs do explosion damage
 	// no need to use multi-targeting missile( which extra_spawner branch uses )
 	//titan.GiveOffhandWeapon( "mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	// change to use cluster missile weapon mod for npc animations
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 	//Titan Core
 	titan.GiveOffhandWeapon( "mp_titancore_flight_core", OFFHAND_EQUIPMENT )
 	//Melee
@@ -1960,7 +1971,9 @@ void function NPCModdedBrute4Loadout( entity titan )
 	//Tactical
 	titan.GiveOffhandWeapon( "mp_titanability_rocketeer_ammo_swap", OFFHAND_ANTIRODEO, ["brute4_cluster_payload"] )
 	//Offence
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	// change to use cluster missile weapon mod for npc animations
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley"] )
 	//Titan Core
 	titan.GiveOffhandWeapon( "mp_titancore_flight_core", OFFHAND_EQUIPMENT, ["brute4_barrage_core"] )
 	//Melee
@@ -2110,7 +2123,7 @@ const float CORE_EXPIRE_TIME_GRACE_PERIOD = 3.0 // if titan still have anim acti
 bool function ExtraSpawner_IsValidExecutionTarget( entity attacker, entity target )
 {
 	// fake decoy ent
-	if ( EntIsNPCFakeDecoy( target ) )
+	if ( ExtraSpawner_EntIsNPCFakeDecoy( target ) )
 		return false
 
 	// npc vanguard titan
@@ -3422,7 +3435,9 @@ void function VanguardBruteLoadout( entity titan )
 	// we have buffed quad rocket that have higher projectile speed and can make npcs do explosion damage
 	// no need to use multi-targeting missile( which extra_spawner branch uses )
 	//titan.GiveOffhandWeapon( "mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
-	titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
+	// change to use cluster missile weapon mod for npc animations
+	//titan.GiveOffhandWeapon( "mp_titanweapon_salvo_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
+	titan.GiveOffhandWeapon( "mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE, ["brute4_grenade_volley", "magnetic_rollers"] )
 	//Titan Core. leaving it unchanged, vanguard can't use hover
 	// EDIT: maybe change it to upgrade core with no upgrading?( only recharges shield. max shield increased to 2500 in NPCVanguard_SetUpTitan() )
 	//titan.GiveOffhandWeapon( "mp_titancore_flight_core", OFFHAND_EQUIPMENT )
@@ -4507,6 +4522,59 @@ bool function CC_SpawnOverloadedStalkers( entity player, array<string> args )
 	vector rot = < 0, ClampAngle( playerAngs.y - 180 ), 0 >
 
 	thread ExtraSpawner_SpawnOverloadedStalkerDropPod( pos, rot, GetPlayerAISpawnTeam( player, args ) )
+	return true
+}
+
+// their body gets floating. pretty bad
+const array<asset> HEAVY_PILOT_MODELS =
+[
+	$"models/humans/pilots/pilot_heavy_drex_m.mdl",
+	$"models/humans/pilots/pilot_heavy_drex_f.mdl",
+	$"models/humans/pilots/pilot_heavy_roog_m.mdl",
+	$"models/humans/pilots/pilot_heavy_roog_f.mdl",
+]
+bool function CC_SpawnFakeHeavyPilot( entity player, array<string> args )
+{
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	vector pos = GetPlayerCrosshairOrigin( player )
+	vector playerAngs = player.EyeAngles()
+	vector rot = < 0, ClampAngle( playerAngs.y - 180 ), 0 >
+   
+	entity pilot = ExtraSpawner_SpawnPilotElite( pos, rot, GetPlayerAISpawnTeam( player, args ) )
+	pilot.SetModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" )
+	CreateModelProxyForEntity( pilot, HEAVY_PILOT_MODELS[ RandomInt( HEAVY_PILOT_MODELS.len() ) ], "npc_pilot_elite", false )
+	return true
+}
+
+// their body gets floating. pretty bad
+const array<asset> LIGHT_PILOT_MODELS =
+[
+	$"models/humans/pilots/pilot_light_ged_m.mdl",
+	$"models/humans/pilots/pilot_light_ged_f.mdl",
+	$"models/humans/pilots/pilot_light_jester_m.mdl",
+	$"models/humans/pilots/pilot_light_jester_f.mdl",
+]
+bool function CC_SpawnFakeLightPilot( entity player, array<string> args )
+{
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	if( !BATTERY_SPAWNERS.contains( player.GetUID() ) )
+		return false
+	
+	vector pos = GetPlayerCrosshairOrigin( player )
+	vector playerAngs = player.EyeAngles()
+	vector rot = < 0, ClampAngle( playerAngs.y - 180 ), 0 >
+   
+	// do need a AISettings that sets mechanical stuffs for this
+	entity pilot = ExtraSpawner_SpawnPilotElite( pos, rot, GetPlayerAISpawnTeam( player, args ) )
+	pilot.SetModel( $"models/robots/spectre/imc_spectre.mdl" )
+	CreateModelProxyForEntity( pilot, LIGHT_PILOT_MODELS[ RandomInt( LIGHT_PILOT_MODELS.len() ) ], "npc_spectre", false )
 	return true
 }
 
@@ -6057,7 +6125,9 @@ void function ExtraSpawner_NPCTitanDrops( entity titan, bool standUp = true )
 			warningDuration = GetHotDropImpactTime( titan, regularTitanfallAnim )
 		}
 		// fake spawnTime to the time they actually starts thinking, so we don't get bad killreplay view
-		titan.ai.spawnTime = Time() + diff + WARPFALL_SOUND_DELAY + WARPFALL_FX_DELAY
+		//titan.ai.spawnTime = Time() + diff + WARPFALL_SOUND_DELAY + WARPFALL_FX_DELAY
+		// now we have modified settings in _base_gametype_mp.gnut to allow us offset replay start time
+		SetEntityReplayStartTimeOffset( titan, diff + WARPFALL_SOUND_DELAY + WARPFALL_FX_DELAY )
 
 		// friendly warning
 		foreach ( entity player in GetPlayerArrayOfTeam( team ) )
@@ -6627,7 +6697,7 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			npc.SetTitle( "砲塔工程師" )
 
 			// setup turret placement
-			const int totalTurretSettings = 2 // set to 3 if we want to enable hitscan turret
+			const int totalTurretSettings = 3 // set to 3 if we want to enable hitscan turret
 			switch ( RandomInt( totalTurretSettings ) )
 			{
 				// plasma turret
@@ -6642,9 +6712,10 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 
 				// sentry turret
 				// kinda annoying, not enabled
-				//case 2:
-				//	AiTurretGrunt_NPCPlacementSettings( npc, NPC_PLACED_TURRET_AISETTINGS, HITSCAN_TURRET_MODEL, "mp_weapon_yh803_bullet", "#WPN_SENTRY_TURRET" )
-				//	break
+				// 1/13/2025 edit: tried to balance them, should be safe to enable again?
+				case 2:
+					AiTurretGrunt_NPCPlacementSettings( npc, NPC_PLACED_TURRET_AISETTINGS, HITSCAN_TURRET_MODEL, "mp_weapon_yh803_bullet", "#WPN_SENTRY_TURRET" )
+					break
 			}
 
 			thread TurretGruntThink( npc ) // start turret placement think
@@ -8644,6 +8715,8 @@ const int NPC_PILOT_DECOY_HEALTH = 50 // EDIT: was nerfed to 30, but we've made 
 const float NPC_PILOT_DECOY_TIMEOUT = DECOY_DURATION
 const float NPC_PILOT_DECOY_DESTINATION_HOLD_TIME = 5 // how long our decoy will hold their desired position before start following owner
 
+const float NPC_PILOT_DECOY_MAX_RANGE = 1500 // how long pilot decoy can move
+
 void function NPCPilotHoloPilotThink( entity pilot, entity abilityWeapon )
 {
 	// EndSignals() should been set by ScriptedNPCPilotTacticalAbility_Threaded()
@@ -8717,11 +8790,46 @@ void function NPCPilotHoloPilotThink( entity pilot, entity abilityWeapon )
 			//vector velocity = GetNPCVelocity( pilot )
 			vector ornull velocity = null // guess we'd better use default velocity...
 			vector ornull destOrigin = null
+
+			// first version: assault to target, then follows owner
+			/*
 			entity enemy = pilot.GetEnemy()
 			if ( IsAlive( enemy ) )
 				destOrigin = enemy.GetOrigin()
 			//print( "npc speed: " + string( Length( velocity ) ) )
 			CreateNPCDecoyEnt( pilot, NPC_PILOT_DECOY_HEALTH, NPC_PILOT_DECOY_TIMEOUT, velocity, destOrigin, NPC_PILOT_DECOY_DESTINATION_HOLD_TIME, true )
+			*/
+
+			// second version: assault based on line-of-sight, then hold position
+			/*
+			entity enemy = pilot.GetEnemy()
+			if ( IsAlive( enemy ) )
+			{
+				vector faceToEnemy = VectorToAngles( Normalize( enemy.GetOrigin() - pilot.GetOrigin() ) )
+				faceToEnemy.x = 0
+				faceToEnemy.z = 0
+				vector vectorToEnemy = AnglesToForward( vectorToEnemy )
+
+				array<entity> ignoreEnts
+				// always ignore all npcs and players, try to hit enemy
+				ignoreEnts.extend( GetPlayerArray() )
+				ignoreEnts.extend( GetNPCArray() )
+
+				vector traceStart = pilot.EyePosition()
+				vector traceEnd = traceStart + ( vectorToEnemy * NPC_PILOT_DECOY_MAX_RANGE )
+
+				TraceResults eyeTrace = TraceLine( traceStart, traceEnd, ignoreEnts, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+				destOrigin = eyeTrace.endPos
+			}
+			CreateNPCDecoyEnt( pilot, NPC_PILOT_DECOY_HEALTH, NPC_PILOT_DECOY_TIMEOUT, velocity, destOrigin )
+			*/
+
+			// current version: assault to target, but no longer follows owner
+			entity enemy = pilot.GetEnemy()
+			if ( IsAlive( enemy ) )
+				destOrigin = enemy.GetOrigin()
+			//print( "npc speed: " + string( Length( velocity ) ) )
+			CreateNPCDecoyEnt( pilot, NPC_PILOT_DECOY_HEALTH, NPC_PILOT_DECOY_TIMEOUT, velocity, destOrigin )
 		}
 
 		// cooldown between next use
@@ -8755,11 +8863,18 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 	entity decoy = CreateNPC( decoyClass, friendlyTeam, spawnPos, spawnAngle )
 	SetSpawnOption_AISettings( decoy, decoyAISet )
 	SetSpawnOption_SquadName( decoy, npc.kv.squadname )
+
+	// this should totally avoid any collision?
+	// needs to remove SF_NPC_START_EFFICIENT otherwise they'll never combat
+	SetSpawnflags( decoy, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION ) )
+	
 	if ( ExtraSpawner_IsNPCSpawnedFromExtraSpawner( npc ) )
 		ExtraSpawner_SetUpSpawnedNPC( decoy )
 	
 	// npc model take hold from T-pose and non-alert state
 	thread DelayedShowNPCDecoy( npc, decoy, velocity )
+	// function is now shared. better set before DispatchSpawn() so that other files can get it
+	file.npcFakeDecoyEntArray.append( decoy )
 	
 	DispatchSpawn( decoy )
 
@@ -8867,7 +8982,8 @@ entity function CreateNPCDecoyEnt( entity npc, int health = 50, float timeOut = 
 
 	thread NPCDecoyLifeTime( decoy, weaponProp, timeOut )
 	thread NPCDecoyDistractNPC( decoy ) // fake player decoy's extremely high npc attack priority
-	file.npcFakeDecoyEntArray.append( decoy )
+	// should set before DispatchSpawn()
+	//file.npcFakeDecoyEntArray.append( decoy )
 
 	// go to desired position
 	thread NPCDecoyAssaultThink( decoy, npc, destOrigin, destHoldTime, followOwner )
@@ -8969,7 +9085,7 @@ void function DelayedShowNPCDecoy( entity npc, entity decoy, vector ornull veloc
 		PutEntityInSafeSpot( decoy, decoy, null, startPos, decoy.GetOrigin() )
 }
 
-bool function EntIsNPCFakeDecoy( entity ent )
+bool function ExtraSpawner_EntIsNPCFakeDecoy( entity ent )
 {
 	return file.npcFakeDecoyEntArray.contains( ent )
 }
@@ -11725,7 +11841,9 @@ void function ExtraSpawner_SpawnReaperCanLaunchTicks( vector pos, vector rot, in
 	reaper.kv.VisibilityFlags = visibilityFlags // restore visibility after warpfall starts in spawncallbacks
 
 	// fake a spawntime to delay replay tracking, hide it's spawn
-	reaper.ai.spawnTime = Time() + 0.5
+	//reaper.ai.spawnTime = Time() + 0.5
+	// now we have modified settings in _base_gametype_mp.gnut to allow us offset replay start time
+	SetEntityReplayStartTimeOffset( reaper, 0.5 ) // this means we delay their replay by 0.5s!
 
 	// reaper highlight
 	// sp_enemy_pilot kinda bad, visible through viewmodel
@@ -11792,6 +11910,16 @@ void function ExtraSpawner_SetUpNukeDeathReaper( entity reaper )
 
 	// visual misc
 	SuperSpectre_SetDoBodyGroupUpdateOnDamage( reaper, true ) // vanilla removed feature turns to settings: update bodygroup to doomed state( like MP titans ) if taking enough damage
+
+	// weapon: no pre fire delay, shorter range for more aggressive play, nerfed damage
+	// maybe leave only for april fools gamemode. normal reapers already deadly enough
+	/*
+	foreach ( entity weapon in reaper.GetMainWeapons() )
+	{
+		weapon.AddMod( "aggressive_ai" )
+		weapon.AddMod( "npc_nuke_reaper" )
+	}
+	*/
 }
 
 void function ExtraSpawner_ReaperTickLaunchThink( entity reaper, string tickType )
@@ -11940,6 +12068,9 @@ entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClas
 {
 	entity mapIconNPC = CreateEntity( fakeIconNPCClass )
 
+	// this should totally avoid any collision?
+	SetSpawnflags( mapIconNPC, ( SF_NPC_NO_PLAYER_PUSHAWAY | SF_NPC_ALLOW_SPAWN_SOLID | SF_NPC_ALTCOLLISION | SF_NPC_START_EFFICIENT ) )
+
 	DispatchSpawn( mapIconNPC )
 	TakeAllWeapons( mapIconNPC )
 
@@ -11953,7 +12084,12 @@ entity function CreateNPCAsFakeMapIconForNPC( entity npc, string fakeIconNPCClas
 
 	mapIconNPC.SetOwner( npc ) // disable collision against owner, but not good enough
 	mapIconNPC.SetAngles( angles ) // face to ground
+
+	// could use a constant offset after changing spawn flags?
+	// we can't do so. SF_NPC_NO_PLAYER_PUSHAWAY only affects player somehow, do we have better flags?
 	mapIconNPC.SetOrigin( offset ) // so nobody can see them, also try to prevent collision!
+	//mapIconNPC.SetOrigin( < 0, 0, -5 > )
+
 	mapIconNPC.NotSolid()
 	//mapIconNPC.kv.solid = SOLID_HITBOXES // seems this can make them stop collide with other entity? no this can't
 	mapIconNPC.kv.CollisionGroup = 0

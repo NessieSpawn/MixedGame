@@ -52,7 +52,8 @@ void function ProectionHighlightThink( entity player, float duration )
 	while( Time() - startTime <= duration )
 	{
 		Highlight_SetEnemyHighlight( player, "sp_enemy_pilot" )
-		player.Highlight_SetParam( 2, 0, < 255,215,0 > )
+		player.Highlight_SetParam( 2, 0, < 255,215,0 > ) // gold highlight
+
 		WaitFrame()
 	}
 }

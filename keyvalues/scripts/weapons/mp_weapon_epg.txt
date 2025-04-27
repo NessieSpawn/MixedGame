@@ -140,18 +140,18 @@ WeaponData
 		friendlyfire_weapon
 		{
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 
 			//"damage_near_value"			"*0.5"
 			//"damage_far_value"			"*0.5"
 			//"explosion_damage"			"*0.5"
 			//"zoom_fov"					"60"
-		}
+		// }
 
 		// gamemode_kraber specific
 		direct_hit // done in script: only damage players when direct hit!
@@ -192,6 +192,16 @@ WeaponData
 			"npc_damage_far_value"							"--16" // 33, heavily nerfed version uses 28
 
 			"npc_explosion_damage"							"--5" // 20, heavily nerfed version uses 15
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
 		}
 	}
 }

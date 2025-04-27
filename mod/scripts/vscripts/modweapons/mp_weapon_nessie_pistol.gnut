@@ -15,6 +15,14 @@ const asset NESSIE_DRONE_FX = $"P_xo_battery"
 const float NESSIE_DRONE_LIFETIME = 12
 const float NESSIE_GRUNT_LIFETIME = 15
 
+const float NESSIE_PROP_LIFETIME = 10
+const float NESSIE_PROP_MAXCOUNT = 512 // pretty scary
+
+struct
+{
+	array<entity> nessieDolls
+} file
+
 void function MpWeaponNessiePistol_Init()
 {
 	#if SERVER
@@ -22,6 +30,7 @@ void function MpWeaponNessiePistol_Init()
 
 		// burnmod replace
 		ModdedBurnMods_AddReplacementBurnMod( "apex_nessie", "burn_mod_apex_nessie" )
+		ModdedBurnMods_AddDisabledMod( "nessie_doll_launcher" )
 	#endif
 }
 
@@ -35,8 +44,120 @@ void function NessiePrecache()
 
 var function OnWeaponPrimaryAttack_weapon_nessie_pistol( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
+	if ( weapon.HasMod( "nessie_doll_launcher" ) )
+		return FireNessieProp( weapon, attackParams )
+
 	return FireNessieGrenade( weapon, attackParams, false )
 }
+
+// this is't actually a weapon, it fires a prop
+var function FireNessieProp( entity weapon, WeaponPrimaryAttackParams attackParams )
+{
+	entity owner = weapon.GetWeaponOwner()
+#if CLIENT
+	weapon.EmitWeaponSound_1p3p( "Weapon_SmartPistol_FireSuppressed_1P", "" )
+	weapon.EmitWeaponSound_1p3p( "weapon_shotgunpistol_fire_suppressed_1p", "" )
+#elseif SERVER
+	// funny firing sound
+	if ( owner.IsPlayer() )
+	{
+		//EmitSoundOnEntityOnlyToPlayer( weapon, owner, "Weapon_SmartPistol_FireSuppressed_1P" )
+		EmitSoundOnEntityExceptToPlayer( weapon, owner, "Weapon_SmartPistol_FireSuppressed_3P" )
+		EmitSoundOnEntityExceptToPlayer( weapon, owner, "weapon_shotgunpistol_fire_suppressed_3p" )
+	}
+	else
+	{
+		EmitSoundOnEntity( weapon, "Weapon_SmartPistol_FireSuppressed_3P" )
+		EmitSoundOnEntity( weapon, "weapon_shotgunpistol_fire_suppressed_3p" )
+	}
+#endif // SERVER
+
+#if SERVER
+	entity nessie = CreateEntity( "prop_dynamic" )
+	nessie.SetValueForModelKey( NESSIE_MODEL )
+	DispatchSpawn( nessie )
+
+	// attach nessie to physics
+	vector origin = owner.EyePosition() + owner.GetViewVector() * 9.5
+	vector angles = < 0, owner.EyeAngles().y, 0 >
+	entity physics = CreatePropPhysics( $"models/dev/empty_physics.mdl", origin, angles )
+	// huh
+	// can't be used due to no attachments
+	/*
+	entity physics = CreatePropPhysics( $"models/gibs/human_gibs.mdl", origin, angles )
+	physics.Hide()
+	SetForceDrawWhileParented( nessie, true )
+	*/
+
+	// attach nessie
+	nessie.SetParent( physics, "origin" )
+	//nessie.SetParent( physics, "REF" )
+
+	nessie.SetAngles( < 0, 90, 0 > ) // rotate
+	nessie.SetOrigin( < 0, 0, -3 > ) // offset
+
+	// throw forward
+	physics.SetVelocity( owner.GetViewVector() * 800 + owner.GetVelocity() * 1.0 ) // was *1.5
+
+	if ( weapon.HasMod( "rgb_nessie" ) )
+		thread RGB_Highlight( nessie, true )
+
+	float lifeTime = NESSIE_PROP_LIFETIME
+	if ( weapon.HasMod( "infinite_duration_nessie" ) )
+		lifeTime = -1 // infinite
+	bool dissolve = weapon.HasMod( "rgb_nessie" )
+	thread NessiePhysicsLifeTimeCheck( physics, nessie, lifeTime, dissolve )
+
+	file.nessieDolls.append( nessie )
+	NessieLimitThink()
+#endif
+
+	return 1
+}
+
+#if SERVER
+void function NessiePhysicsLifeTimeCheck( entity physics, entity nessie, float maxLifeTime, bool dissolve )
+{
+	nessie.EndSignal( "OnDestroy" )
+	physics.EndSignal( "OnDestroy" )
+
+	OnThreadEnd(
+		function(): ( nessie, physics )
+		{
+			if( IsValid( nessie ) )
+				nessie.Destroy()
+			if( IsValid( physics ) )
+				physics.Destroy()
+		}
+	)
+
+	if ( maxLifeTime > 0 )
+	{
+		wait maxLifeTime
+		//file.nessieDolls.removebyvalue( nessie ) // already dissolving, no longer consider as living thing
+		if ( dissolve )
+			nessie.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+		else
+		{
+			// function defined in prop_utility.gnut, taken from r5s3
+			thread PROTO_FadeModelAlphaOverTime( nessie, 1.0, 255, 0 )
+		}
+		wait 2.0
+	}
+	else
+		WaitForever()
+}
+
+void function NessieLimitThink()
+{
+	if( file.nessieDolls.len() > NESSIE_PROP_MAXCOUNT )
+	{
+		if( IsValid( file.nessieDolls[0] ) )
+			file.nessieDolls[0].Destroy()
+		file.nessieDolls.remove(0)
+	}
+}
+#endif
 
 var function FireNessieGrenade( entity weapon, WeaponPrimaryAttackParams attackParams, bool isNPCFiring = false )
 {

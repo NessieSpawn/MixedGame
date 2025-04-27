@@ -62,7 +62,7 @@ global const ARCHON_CANNON_DAMAGE_CHARGE_RATIO		= 0.95		// 0.85 in original arch
 const ARCHON_CANNON_CHARGED_FIRING_SOUND_FRAC 		= 0.7 // if charge frac is higher than this, we do an extra firing sound
 
 //Mods
-global const ARCHON_CANNON_SIGNAL_DEACTIVATED	= "ArcCannonDeactivated"
+global const ARCHON_CANNON_SIGNAL_DEACTIVATED	= "ArchonCannonDeactivated"
 
 global const ARCHON_CANNON_BEAM_EFFECT = $"wpn_arc_cannon_beam"
 global const ARCHON_CANNON_BEAM_EFFECT_ENHANCED = $"wpn_arc_cannon_beam_mod"
@@ -71,6 +71,8 @@ global const ARCHON_CANNON_BEAM_EFFECT_SF = $"wpn_arc_cannon_beam" //$"wpn_arc_c
 global const ARCHON_CANNON_FX_TABLE = "exp_arc_cannon"
 global const ARCHON_CANNON_FX_TABLE_SF = "exp_arc_cannon" //"exp_arc_cannon_st"
 
+// for we handling sound fix on client-side
+const ARCHON_CANNON_SIGNAL_CHARGEBEGIN = "ArchonCannonChargeBegin"
 
 // we're now setup stuffs in mod.json, return type should be void
 void function MpTitanWeaponArchonArcCannon_Init()
@@ -88,6 +90,10 @@ void function MpTitanWeaponArchonArcCannon_Init()
 	PrecacheParticleSystem( $"wpn_muzzleflash_arc_cannon_fp" )
 	PrecacheParticleSystem( $"wpn_muzzleflash_arc_cannon" )
 	PrecacheParticleSystem( $"wpn_muzzleflash_arcball_st" )
+
+	// for we handling sound fix on client-side
+	RegisterSignal( ARCHON_CANNON_SIGNAL_CHARGEBEGIN )
+	RegisterSignal( "ArchonCannonWeaponSwitched" )
 
 	#if SERVER
 		level._arcCannonTargetsArrayID <- CreateScriptManagedEntArray()
@@ -169,6 +175,9 @@ bool function OnWeaponChargeBegin_titanweapon_archon_arc_cannon( entity weapon )
 	// effect handle
 	// now change to use settings file
 	//weapon.PlayWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge", "muzzle_flash" )
+
+	// signal for sound fix
+	weapon.Signal( ARCHON_CANNON_SIGNAL_CHARGEBEGIN )
 
 	return true
 }
@@ -394,6 +403,12 @@ function FireArchonCannon( entity weapon, WeaponPrimaryAttackParams attackParams
 		// now change to use settings file
 		//if ( owner.IsNPC() ) // for npcs, stop charge effect upon firing
 		//	weapon.StopWeaponEffect( $"wpn_arc_cannon_charge_fp", $"wpn_arc_cannon_charge" )
+	
+		// more of sound fix -- add back rechamber sound
+		#if CLIENT
+			thread ArchonCannonRechamberSoundThink( weapon )
+		#endif
+		//
 	}
 	//if (weapon.GetWeaponClassName() == "mp_titanweapon_shock_shield")
 	if ( weapon.HasMod( "archon_shock_shield" ) ) // shock shield firing
@@ -418,6 +433,65 @@ function FireArchonCannon( entity weapon, WeaponPrimaryAttackParams attackParams
 	}
 	return 1
 }
+
+// more of sound fix -- add back rechamber sound using tf|2 ones
+#if CLIENT
+void function ArchonCannonRechamberSoundThink( entity weapon )
+{
+	weapon.EndSignal( "OnDestroy" )
+	weapon.EndSignal( ARCHON_CANNON_SIGNAL_CHARGEBEGIN )
+	weapon.EndSignal( "ArchonCannonWeaponSwitched" )
+
+	wait 0.16 // seems to help sound sync with animation
+	entity owner = weapon.GetWeaponOwner()
+	if ( !IsValid( owner ) )
+		return
+	if ( !owner.IsPlayer() )
+		return
+	
+	OnThreadEnd(
+		function() : ( weapon )
+		{
+			if ( IsValid( weapon ) )
+			{
+				StopSoundOnEntity( weapon, "arctool_smallpanel_deactivate" )
+				entity owner = weapon.GetWeaponOwner()
+				if ( IsValid( owner ) && owner.GetActiveWeapon() == weapon )
+				{
+					// weapon still valid but sound not played through? owner must be charging another attack, only do rechamber sound
+					EmitSoundOnEntityWithSeek( weapon, "arctool_smallpanel_deactivate", 0.67 )
+				}
+			}
+		}
+	)
+
+	float soundDuration = GetSoundDuration( "arctool_smallpanel_deactivate" )
+	EmitSoundOnEntity( weapon, "arctool_smallpanel_deactivate" )
+	thread TrackArchonCannonWeaponSwitch( weapon, soundDuration )
+	wait soundDuration - 0.301765 // play charging sound here
+}
+
+void function TrackArchonCannonWeaponSwitch( entity weapon, float maxDuration )
+{
+	weapon.EndSignal( "OnDestroy" )
+	float endTime = Time() + maxDuration + 0.1 // don't interrupt basic sound
+	entity orgOwner = weapon.GetWeaponOwner()
+	orgOwner.EndSignal( "OnDestroy" )
+	while ( Time() < endTime )
+	{
+		if ( weapon.GetWeaponOwner() != orgOwner )
+			break
+
+		if ( orgOwner.GetActiveWeapon() != weapon )
+			break
+
+		WaitFrame()
+	}
+
+	weapon.Signal( "ArchonCannonWeaponSwitched" )
+}
+#endif
+//
 
 table function GetFirstArcCannonTarget( entity weapon, WeaponPrimaryAttackParams attackParams )
 {

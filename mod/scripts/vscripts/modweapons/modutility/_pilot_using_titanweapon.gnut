@@ -1,7 +1,8 @@
+// this file now also includes npc usage, for whatever
 untyped
 global function Pilot_Using_TitanWeapons_Init
 
-// we coult use this table for handling each model's scale
+// we could use this table for handling each model's scale
 // but for now I'd prefer having a constant scale value
 const table<asset, float> TITAN_WEAPON_MODEL_SCALE_TABLE =
 {
@@ -43,12 +44,37 @@ struct
 
 void function Pilot_Using_TitanWeapons_Init()
 {
-    AddCallback_OnClientConnected( OnClientConnected )
+    // change to handle both npc and player weapons
+    //AddCallback_OnClientConnected( OnClientConnected )
+    AddCallback_EntitiesDidLoad( EntitiesDidLoad )
+    AddCallback_WeaponDropped( WeaponDropped )
 }
 
 void function OnClientConnected( entity player )
 {
     thread PilotTitanWeaponThink( player )
+}
+
+void function WeaponDropped( entity weapon )
+{
+	// hidden weapon has dropped!
+    // won't matter at normal cases because whenever you put a titan weapon on ground, they can't be picked up
+    // this is just for handling
+    //print( string( weapon ) + " has been dropped!" )
+	if ( weapon in file.weaponsHiddenByThisScript )
+	{
+        //print( "it is hidden by _pilot_using_titanweapon.gnut, restoring visibility" )
+		// restore visibility
+		weapon.kv.rendermode = 0
+        weapon.kv.renderamt = 255
+        delete file.weaponsHiddenByThisScript[ weapon ]
+	}
+}
+
+// for handling both npc and player weapons
+void function EntitiesDidLoad()
+{
+    thread HumansizedTitanWeaponsThink()
 }
 
 void function PilotTitanWeaponThink( entity player )
@@ -124,6 +150,100 @@ void function PilotTitanWeaponThink( entity player )
                         weapon.kv.renderamt = 255
                         delete file.weaponsHiddenByThisScript[ weapon ]
                         //weapon.kv.modelscale = 1.0
+                    }
+                }
+            }
+        }
+    }
+}
+
+void function HumansizedTitanWeaponsThink()
+{
+    while ( true )
+    {
+        // try to create ourselves a fake weapon model if we have titan weapon active
+        // also hide that weapon
+        WaitFrame( true ) // bypass script fps limit for better visual
+
+        array<entity> guysCanUseWeapon
+        guysCanUseWeapon.extend( GetPlayerArray() )
+        guysCanUseWeapon.extend( GetNPCArray() )
+
+        foreach ( entity guy in guysCanUseWeapon )
+        {
+            if ( !IsAlive( guy ) )
+                continue
+
+            array<entity> weapons
+            weapons.extend( guy.GetMainWeapons() )
+            weapons.extend( guy.GetOffhandWeapons() )
+            if ( ( guy.IsPlayer() && IsPilot( guy ) ) || ( guy.IsNPC() && !guy.IsTitan() ) )
+            {
+                foreach ( entity weapon in weapons )
+                {
+                    if ( weapon.GetWeaponInfoFileKeyField( "weaponClass" ) == "titan" )
+                    {
+                        //print( "we got pilot's titan weapon: " + string( weapon ) )
+                        if ( !( weapon in file.weaponsHiddenByThisScript ) )
+                        {
+                            //print( "trying to hide it!" )
+                            weapon.kv.rendermode = 4
+                            weapon.kv.renderamt = 0
+                            file.weaponsHiddenByThisScript[ weapon ] <- true
+                            // might helps muzzle find better position?
+                            // nah this won't work, I'll just accept it
+                            //weapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
+                        }
+                    }
+                }
+
+                entity activeWeapon = guy.GetActiveWeapon()
+                if ( IsValid( activeWeapon ) )
+                {
+                    if ( activeWeapon.GetWeaponInfoFileKeyField( "weaponClass" ) == "titan" )
+                    {
+                        //print( "we got pilot's active titan weapon: " + string( activeWeapon ) )
+                        if ( !( activeWeapon in file.weaponFakeProp ) )
+                            file.weaponFakeProp[ activeWeapon ] <- null
+
+                        if ( !IsValid( file.weaponFakeProp[ activeWeapon ] ) )
+                        {
+                            asset worldModelName
+                            if ( guy.IsPlayer() ) // for players, we need a sheet to handle weapon model... because we can only get their first person model name
+                            {
+                                asset fpModelName = activeWeapon.GetModelName()
+                                //print( "modelname: " + string( fpModelName ) )
+                                if ( fpModelName in TITAN_WEAPON_FP_MODEL_TO_WORLD )
+                                    worldModelName = TITAN_WEAPON_FP_MODEL_TO_WORLD[ fpModelName ]
+                            }
+                            else // for npcs, we can get their model name for GOOD
+                                worldModelName = activeWeapon.GetModelName()
+                            
+                            if ( worldModelName != $"" )
+                            {
+                                //print( "trying to create fake model for it" )
+                                // don't hide ORG weapon, weapon hiding handled by this script
+                                entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName, "PROPGUN", false )
+                                fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
+                                file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach ( entity weapon in weapons )
+                {
+                    if ( weapon.GetWeaponInfoFileKeyField( "weaponClass" ) == "titan" )
+                    {
+                        if ( weapon in file.weaponsHiddenByThisScript )
+                        {
+                            weapon.kv.rendermode = 0
+                            weapon.kv.renderamt = 255
+                            delete file.weaponsHiddenByThisScript[ weapon ]
+                            //weapon.kv.modelscale = 1.0
+                        }
                     }
                 }
             }

@@ -55,6 +55,7 @@ global struct NPCPilotStruct
 	int proficiency
 	//float health // why respawn adding this as float?
 	int health
+	int shield // should also allowing shields
 	float physDamageScale
 	
 	array<NPCPilotWeaponStruct> weapons // modified to use a struct
@@ -345,6 +346,10 @@ function NpcPilotEmbarksTitan( entity pilot, entity titan )
 						entity titanLastAttacker = GetLastAttacker( titan )
 						if ( IsValid( titanLastAttacker ) )
 							attacker = titanLastAttacker
+						// also, transfer damage history to pilot, so that we can give score to last assisting player if this case ever happened
+						if ( !DamageHistory_IsDisabledOnEntity( pilot ) && IsValid( titan.GetTitanSoul() ) )
+							pilot.e.recentDamageHistory = titan.GetTitanSoul().e.recentDamageHistory
+						
 						pilot.Die( attacker, attacker, { damageSourceId = damagedef_suicide, scriptType = DF_RAGDOLL } )
 					}
 				}
@@ -676,6 +681,7 @@ void function NpcPilotBecomesTitan( entity pilot, entity titan )
 	//titanSoul.soul.seatedNpcPilot.isInvulnerable		= pilot.IsInvulnerable()
 
 	titanSoul.soul.seatedNpcPilot.health				= pilot.GetMaxHealth()
+	titanSoul.soul.seatedNpcPilot.shield				= GetShieldHealthMaxWithFix( pilot )
 
 	// respawn missing settings saving
 	titanSoul.soul.seatedNpcPilot.spawnflags			= int( pilot.kv.spawnflags )
@@ -781,6 +787,9 @@ entity function NpcTitanBecomesPilot( entity titan )
 
 	pilot.kv.max_health 			= titanSoul.soul.seatedNpcPilot.health
 	pilot.kv.health 				= titanSoul.soul.seatedNpcPilot.health
+
+	SetShieldHealthMaxWithFix( pilot, titanSoul.soul.seatedNpcPilot.shield )
+	SetShieldHealthWithFix( pilot, titanSoul.soul.seatedNpcPilot.shield )
 
 	// respawn missing settings saving
 	pilot.kv.spawnflags 			= titanSoul.soul.seatedNpcPilot.spawnflags

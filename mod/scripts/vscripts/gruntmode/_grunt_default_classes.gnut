@@ -5,6 +5,8 @@ global function Default_GruntMode_Classes_Init
 void function Default_GruntMode_Classes_Init()
 {
 	PrecacheModel( $"models/humans/grunts/imc_grunt_lmg_helmet.mdl" )
+	PrecacheModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" ) // this is only precached in fd by default
+	RegisterSignal( "MarkedForExecutionDeath" ) // for we drop player's helmet when execution should kill them, which is often the case player's head getting hit
     RegisterAllDefaultClass()
 }
 
@@ -40,6 +42,8 @@ const string GM_SCOUT_CLASSNAME					= "Scout"				// nerfed g2 and archer, two gr
 const string GM_FLYER_CLASSNAME					= "Flyer"				// mozambique and chargerifle, weaker jetpack
 const string GM_ASSASSIN_CLASSNAME				= "Assassin"			// silenced wingman elite, chargerifle and arc grenade
 const string GM_STALKER_CLASSNAME				= "Stalker"				// double-barrel shotgun and chargerifle, two holopilot decoy usage
+const string GM_GRAVITYMASTER_CLASSNAME			= "Gravity_Master"		// peacekraber and thunderbolt, one gravity lift usage
+const string GM_FORTRESS_CLASSNAME				= "Fortress"			// SMR(less human damage, more titan damage and cannot headshot), one hard cover usage
 
 void function RegisterAllDefaultClass()
 {
@@ -93,7 +97,6 @@ void function RegisterAllDefaultClass()
 	)
 
 	// shield captain
-	PrecacheModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" ) // this is only precached in fd by default
 	GruntMode_RegisterPlayerClass(
 		GM_SHIELD_CAPTAIN_CLASSNAME,	// classname
 		BecomeShieldCaptain,			// loadout function
@@ -134,9 +137,10 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_BEAST_KING_CLASSNAME,		// classname
 		BecomeBeastKing,				// loadout function
-		true							// specialist, should this class give more score
+		true							// specialist, should this class give more score. beast king also has prowlers which gives enemy 2 points in gruntmode
 	)
 	AddDamageCallbackSourceID( eDamageSourceId.mp_weapon_grenade_electric_smoke, BeastKingSmokeDamageTarget )
+	AddDamageCallbackSourceID( eDamageSourceId.prowler_melee, BeastKingProwlerDamageTarget )
 	//
 
     // jumper
@@ -171,7 +175,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_HEAVY_SNIPER_CLASSNAME,		// classname
 		BecomeHeavySniper,				// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score( value has been changed )
 	)
 
 	// runner
@@ -185,7 +189,7 @@ void function RegisterAllDefaultClass()
 	GruntMode_RegisterPlayerClass(
 		GM_PATH_BUILDER_CLASSNAME,		// classname
 		BecomePathBuilder,				// loadout function
-		false							// specialist, should this class give more score
+		true							// specialist, should this class give more score. after making zipline no longer destroy on death, they should become specialist
 	)
 
 	// scout
@@ -219,6 +223,20 @@ void function RegisterAllDefaultClass()
 	AddCallback_OnDecoyCreated( OnStalkerDecoyCreated )
 	AddCallback_PlayerDecoyDie( OnStalkerDecoyDieOrDissolve )
 	AddCallback_PlayerDecoyDissolve( OnStalkerDecoyDieOrDissolve )
+
+	// gravity master
+	GruntMode_RegisterPlayerClass(
+		GM_GRAVITYMASTER_CLASSNAME,		// classname
+		BecomeGravityMaster,			// loadout function
+		false							// specialist, should this class give more score
+	)
+
+	// fortress
+	GruntMode_RegisterPlayerClass(
+		GM_FORTRESS_CLASSNAME,			// classname
+		BecomeFortress,					// loadout function
+		true							// specialist, should this class give more score
+	)
 }
 
 //////////////////////////////////////////
@@ -240,12 +258,20 @@ void function BecomeAssaultGrunt( entity player )
 		"mp_weapon_r97",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
-		$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
-		$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
+		// all normal grunts now uses random model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
+		//$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
+		//$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"突擊步兵",																// title
 		"以突擊步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	//RandomGruntModel( player )
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -262,12 +288,20 @@ void function BecomeHeavyGrunt( entity player )
 		"mp_weapon_lmg",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"",																	// grenade
-		$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
-		$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		// all normal grunts now uses random model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
+		//$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
+		//$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"重裝步兵",																// title
 		"以重裝步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	//RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_heavy" ) // damage nerfed spitfire
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
@@ -285,12 +319,20 @@ void function BecomeRiflemanGrunt( entity player )
 		"mp_weapon_vinson",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
-		$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
-		$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		// all normal grunts now uses random model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
+		//$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
+		//$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"步槍兵",																// title
 		"以步槍兵重生"												 			// respawn notification
 	)
+
+	// gives random grunt model based on team
+	//RandomGruntModel( player )
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
@@ -307,12 +349,20 @@ void function BecomeShotgunGrunt( entity player )
 		"mp_weapon_shotgun",												// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_frag_grenade",											// grenade
-		$"models/humans/grunts/imc_grunt_shotgun.mdl",						// imc player model
-		$"models/humans/grunts/mlt_grunt_shotgun.mdl",						// mlt player model
+		// all normal grunts now uses random model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
+		//$"models/humans/grunts/imc_grunt_shotgun.mdl",						// imc player model
+		//$"models/humans/grunts/mlt_grunt_shotgun.mdl",						// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"霰彈步兵",																// title
 		"以霰彈步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	//RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_shotgun" ) // fire-rate nerfed eva-8
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
@@ -330,18 +380,55 @@ void function BecomeSniperGrunt( entity player )
 		"mp_weapon_dmr",													// primary weapon
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_grenade_electric_smoke",									// grenade
-		$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
-		$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		// all normal grunts now uses random model
+		// wth, we're not assigning grunt weapon in their .kv scope, which means npc grunt model will always be RIFLE one
+		// guess that works just fine with our specialist grunts
+		//$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
+		//$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
+		TEAM_IMC_GRUNT_MODEL_RIFLE,											// imc player model
+		TEAM_MIL_GRUNT_MODEL_RIFLE,											// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"狙擊步兵",																// title
 		"以狙擊步兵重生"												 		// respawn notification
 	)
+
+	// gives random grunt model based on team
+	//RandomGruntModel( player )
 
 	player.GetMainWeapons()[0].AddMod( "gm_sniper" ) // nerfed dmr
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 	
 	// mlt specific pov camo
 	ApplyMLTGruntCamo( player )
+}
+
+// gives random grunt model based on team
+void function RandomGruntModel( entity player )
+{
+	asset modelName = $"models/humans/grunts/imc_grunt_rifle.mdl"
+	if ( player.GetTeam() == TEAM_MILITIA )
+	{
+		const array<asset> randomModels = 
+		[
+			$"models/humans/grunts/mlt_grunt_rifle.mdl",
+			$"models/humans/grunts/mlt_grunt_lmg.mdl",
+			$"models/humans/grunts/mlt_grunt_smg.mdl",
+			$"models/humans/grunts/mlt_grunt_shotgun.mdl",
+		]
+		modelName = randomModels[ RandomInt( randomModels.len() ) ]
+	}
+	else
+	{
+		const array<asset> randomModels = 
+		[
+			$"models/humans/grunts/imc_grunt_rifle.mdl",
+			$"models/humans/grunts/imc_grunt_lmg.mdl",
+			$"models/humans/grunts/imc_grunt_smg.mdl",
+			$"models/humans/grunts/imc_grunt_shotgun.mdl",
+		]
+		modelName = randomModels[ RandomInt( randomModels.len() ) ]
+	}
+	player.SetModel( modelName )
 }
 
 void function BecomeEngineer( entity player )
@@ -360,7 +447,7 @@ void function BecomeEngineer( entity player )
 		"以工程師重生：携帶一架炮臺"											// respawn notification
 	)
 
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	thread EngineerThink( player ) // death will clear player's turret item
 
@@ -377,6 +464,12 @@ void function EngineerThink( entity player )
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 
+	//PlayerInventory_PushInventoryItemByBurnRef( player, ENGINEER_TURRET_BURNMETER ) // give one usage of turret
+	// refill turrets first
+	RefillEngineerTurrets( player )
+	// carepackage refilling turret think
+	AddEntityCallback_OnUseCarePackage( player, OnEngineerUseCarePackage )
+
 	OnThreadEnd
 	(
 		function(): ( player )
@@ -389,16 +482,17 @@ void function EngineerThink( entity player )
 		}
 	)
 
-	PlayerInventory_PushInventoryItemByBurnRef( player, ENGINEER_TURRET_BURNMETER ) // give one usage of turret
-	// carepackage refilling turret think
-	AddEntityCallback_OnUseCarePackage( player, OnEngineerUseCarePackage )
-
 	thread EngineerTurretsHandler( player )
 
 	player.WaitSignal( "OnDeath" ) // wait for player's death
 }
 
 void function OnEngineerUseCarePackage( entity player, entity pod )
+{
+	RefillEngineerTurrets( player )
+}
+
+void function RefillEngineerTurrets( entity player )
 {
 	// refill turret if we have less turrets than max count
 	if ( PlayerInventory_CountBurnRef( player, ENGINEER_TURRET_BURNMETER ) < ENGINEER_TURRET_MAX_COUNT )
@@ -485,30 +579,62 @@ void function EngineerTurretsHandler( entity player )
 
 void function BecomeSpecialistGrunt( entity player )
 {
-	player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model
+	thread WaitForSpecialistGruntLeaveDropship( player )
+}
+
+void function WaitForSpecialistGruntLeaveDropship( entity player )
+{
+	// thinks for spectre model, no longer used!
+	/*
+	player.EndSignal( "OnDestroy" )
+	player.EndSignal( "OnDeath" )
+	
+	player.SetPlayerSettings( "pilot_light_male" ) // have a better pov model, also temp use this model
+	
+	WaitFrame() // wait for player being set into dropship
+	while( IsValid( player.GetParent() ) && player.GetParent().GetClassName() == "npc_dropship" )
+		WaitFrame() // wait for player leave dropship
+	*/
+
+	player.SetPlayerSettings( "pilot_grapple_male" )
 
 	SimpleClassLoadout(  
 		player,
-		"mp_weapon_lstar",													// primary weapon
+		//"mp_weapon_lstar",													// primary weapon
+		"mp_weapon_car",													// primary weapon
 		"mp_weapon_mgl",													// secondary weapon
 		"",																	// grenade
-		$"",																// imc player model
-		$"",																// mlt player model
+		// model updated -- no longer uses fake spectre model
+		//$"",																// imc player model
+		//$"",																// mlt player model
+		$"models/humans/grunts/imc_grunt_smg.mdl",							// imc player model
+		$"models/humans/grunts/mlt_grunt_smg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"特種步兵",																// title
-		"以特種步兵重生：可釋放兩架無人機"										// respawn notification
+		"以特種步兵重生：可使用無人機和炸蛛"										// respawn notification
 	)
 
+	player.GetMainWeapons()[0].AddMod( "gm_specialist" ) // nerf car's reload time a little bit
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 	
 	// drone spawning ability( two times usage )
-	player.GiveOffhandWeapon( "mp_weapon_frag_drone", OFFHAND_SPECIAL, ["drone_spawner_anim"] )
+	// maybe spawn one drone and one tick could be better...
+	//player.GiveOffhandWeapon( "mp_weapon_frag_drone", OFFHAND_SPECIAL, ["drone_spawner_anim"] )
 
+	// model updated -- no longer uses fake spectre model
+	/*
 	player.SetModel( $"models/robots/spectre/imc_spectre.mdl" ) // safe to reset model
 	// attach a fake head to it
 	CreateMechanicalHeadForPlayer( player )
 	// modified in _ai_spawn_content.gnut, attach fake backpack for drone grunt
 	HACK_DroneGruntModel( player )
+	*/
+
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
+
+	// mlt specific pov camo
+	ApplyMLTGruntCamo( player )
 
 	// doing a better check now!
 	thread SpecialistGruntThink( player )
@@ -526,13 +652,15 @@ struct
 } specialistGrunt
 
 // drone recall
-const bool SPECIALIST_GRUNT_DRONE_RECALL_ENABLED = false
+const bool SPECIALIST_GRUNT_DRONE_RECALL_ENABLED = false // temporary disable drone recall because drones won't block owner bullets
 const float SPECIALIST_GRUNT_RECALL_RANGE = 600
 const float SPECIALIST_GRUNT_RECALL_COOLDOWN = 3.0
 const float SPECIALIST_GRUNT_NOTIFICATION_COOLDOWN = 2.0
 // drone settings
-const int SPECIALIST_GRUNT_DRONE_HEALTH = 70
-const int SPECIALIST_GRUNT_DRONE_MAX_COUNT = 2
+const int SPECIALIST_GRUNT_DRONE_HEALTH = 130 // 70 when having 2 drones
+const int SPECIALIST_GRUNT_DRONE_MAX_COUNT = 1 // don't forget to adjust this value when updating offhand weapons
+// ticks
+const int SPECIALIST_GRUNT_TICK_MAX_COUNT = 1 // EDIT: thrown ticks will try to detonate themselves! -- this only limits ticks in inventory, thrown ticks won't be destroyed even reached max count
 
 void function SpecialistGruntThink( entity player )
 {
@@ -555,6 +683,13 @@ void function SpecialistGruntThink( entity player )
 		AddButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, SpecialistGruntRecallDrones )
 	}
 
+	// refill ticks first
+	RefillSpecialistGruntTicks( player )
+	// give drones
+	player.GiveOffhandWeapon( "mp_ability_arc_blast", OFFHAND_SPECIAL, ["drone_summoner", "gm_specialist"] )
+	// carepackage refilling ticks think
+	AddEntityCallback_OnUseCarePackage( player, OnSpecialistGruntUseCarePackage )
+
     OnThreadEnd(
         function(): ( player )
         {
@@ -565,6 +700,9 @@ void function SpecialistGruntThink( entity player )
 					RemoveButtonPressedPlayerInputCallback( player, IN_USE, SpecialistGruntRecallDrones )
 					RemoveButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, SpecialistGruntRecallDrones )
 				}
+
+				RemoveEntityCallback_OnUseCarePackage( player, OnSpecialistGruntUseCarePackage )
+				PlayerInventory_TakeAllInventoryItems( player ) // clear inventory
             }
         }
     )
@@ -572,6 +710,21 @@ void function SpecialistGruntThink( entity player )
 	thread SpecialistGruntDronesHandler( player )
 
 	player.WaitSignal( "OnDeath" ) // wait for player's death
+}
+
+void function OnSpecialistGruntUseCarePackage( entity player, entity pod )
+{
+	RefillSpecialistGruntTicks( player )
+}
+
+void function RefillSpecialistGruntTicks( entity player )
+{
+	// refill ticks if we have less ticks than max count
+	if ( PlayerInventory_CountBurnRef( player, "burnmeter_ticks" ) < SPECIALIST_GRUNT_TICK_MAX_COUNT )
+		PlayerInventory_PushInventoryItemByBurnRef( player, "burnmeter_ticks" ) // give one usage of turret
+	// remove current drone weapon because we may have entered infinite fire_duration
+	player.TakeOffhandWeapon( OFFHAND_SPECIAL )
+	player.GiveOffhandWeapon( "mp_ability_arc_blast", OFFHAND_SPECIAL, ["drone_summoner", "gm_specialist"] )
 }
 
 array<entity> function GetGruntPlayerOwnedDrones( entity player )
@@ -585,14 +738,32 @@ array<entity> function GetGruntPlayerOwnedDrones( entity player )
 	return drones
 }
 
+array<entity> function GetGruntPlayerOwnedTicks( entity player )
+{
+	array<entity> ticks
+	foreach ( entity tick in GetNPCArrayByClass( "npc_frag_drone" ) )
+	{
+		// seems no need to add armed check?
+		//if ( IsAlive( tick ) && tick.ai.fragDroneArmed && tick.GetBossPlayer() == player )
+		if ( IsAlive( tick ) && tick.GetBossPlayer() == player )
+			ticks.append( tick )
+	}
+	// should we also append tick projectile?
+
+	return ticks
+}
+
 void function SpecialistGruntDronesHandler( entity player )
 {
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
 
 	array<entity> handledDrones
+	array<entity> handledTicks
+	array<entity> explodingTicks
+
 	OnThreadEnd(
-		function(): ( player, handledDrones )
+		function(): ( player, handledDrones, handledTicks )
 		{
 			// player still valid!
 			if ( IsValid( player ) )
@@ -604,6 +775,32 @@ void function SpecialistGruntDronesHandler( entity player )
 					if ( IsAlive( drone ) )
 						drone.Die()
 				}
+				// destroy ticks, including those haven't landed yet
+				foreach ( entity tick in GetNPCArrayByClass( "npc_frag_drone" ) )
+				{
+					if ( IsAlive( tick ) && tick.GetBossPlayer() == player )
+					{
+						if ( tick.ai.fragDroneArmed )
+							handledTicks.append( tick ) // gets cleared later
+						else // isn't armed yet, dissolving it
+						{
+							tick.Dissolve( ENTITY_DISSOLVE_CORE, Vector( 0, 0, 0 ), 500 )
+							tick.SetNoTarget( true )
+							tick.EnableNPCFlag( NPC_IGNORE_ALL )
+							tick.NotSolid()
+							tick.SetInvulnerable() // can still take radius damage after nonsolid!
+						}
+					}
+				}
+				// tick won't be spawned if owner isn't valid anymore, only needs to clear projectile in this case
+				foreach ( entity projectile in GetProjectileArrayEx( "any", player.GetTeam(), TEAM_ANY, Vector( 0, 0, 0 ), -1 ) )
+				{
+					if ( projectile.GetClassName() == "grenade" && projectile.GetThrower() == player )
+					{
+						if ( projectile.ProjectileGetWeaponClassName() == "mp_weapon_frag_drone" )
+							projectile.Destroy()
+					}
+				}
 			}
 			else // player became invalid
 			{
@@ -614,12 +811,21 @@ void function SpecialistGruntDronesHandler( entity player )
 						drone.Die()
 				}
 			}
-        }
+
+			// clear all ticks, should've handle player invalid cases!
+			foreach ( entity tick in handledTicks )
+			{
+				if ( IsValid( tick ) )
+					tick.Signal( "SuicideSpectreForceExplode" )
+			}
+		}
 	)
 
 	while ( true )
 	{
 		ArrayRemoveDead( handledDrones )
+		ArrayRemoveDead( handledTicks )
+		ArrayRemoveDead( explodingTicks )
 
 		foreach ( entity drone in GetGruntPlayerOwnedDrones( player ) )
 		{
@@ -634,6 +840,20 @@ void function SpecialistGruntDronesHandler( entity player )
 			thread DisableDroneSound( drone ) // try to stop annoying sound
 			drone.SetMaxHealth( SPECIALIST_GRUNT_DRONE_HEALTH )
 			drone.SetHealth( drone.GetMaxHealth() )
+			// send notification
+			if ( SPECIALIST_GRUNT_DRONE_RECALL_ENABLED )
+				SendHudMessage( player, "按 使用 可以將無人機移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+		}
+
+		foreach ( entity tick in GetGruntPlayerOwnedTicks( player ) )
+		{
+			if ( handledTicks.contains( tick ) )
+				continue
+			// don't check ticks detonated by this file!
+			if ( explodingTicks.contains( tick ) )
+				continue
+
+			handledTicks.append( tick )
 		}
 
 		// hit max drones?
@@ -644,6 +864,23 @@ void function SpecialistGruntDronesHandler( entity player )
 			{
 				if ( IsAlive( handledDrones[i] ) )
 					handledDrones[i].Die()
+			}
+		}
+		// hit max ticks?
+		int overloadedTickCount = handledTicks.len() - SPECIALIST_GRUNT_TICK_MAX_COUNT
+		if ( overloadedTickCount > 0 )
+		{
+			for ( int i = 0; i < overloadedTickCount; i++ )
+			{
+				entity tick = handledTicks[i]
+				if ( IsAlive( tick ) && tick.ai.fragDroneArmed )
+				{
+					// tick explosion is delayed, remove it from aray
+					tick.Signal( "SuicideSpectreForceExplode" )
+					handledTicks.remove( i )
+					// no longer check it
+					explodingTicks.append( tick )
+				}
 			}
 		}
 
@@ -681,7 +918,7 @@ void function SpecialistGruntRecallDrones( entity player )
 	{
 		if ( Time() - lastNotifyTime >= SPECIALIST_GRUNT_NOTIFICATION_COOLDOWN ) // notification cooldown
 		{
-			SendHudMessage( player, "不可連續召喚",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+			//SendHudMessage( player, "不可連續召喚",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 			specialistGrunt.classTable[player].lastNotifyTime = Time() // update
 		}
 		return
@@ -699,7 +936,8 @@ void function SpecialistGruntRecallDrones( entity player )
 
 		// leave a fx on original place, don't play disappear sound
 		PlayDroneDisappearFX( drone.GetOrigin() )
-		//EmitSoundAtPosition( TEAM_UNASSIGNED, drone.GetOrigin(), SHIFTER_START_SOUND_3P )
+		// we're having only 1 drone now, sound would be cool
+		EmitSoundAtPosition( TEAM_UNASSIGNED, drone.GetOrigin(), SHIFTER_START_SOUND_3P )
 
 		// play another fx on drone, only play one sound
 		PlayDroneAppearFX( drone )
@@ -756,7 +994,9 @@ void function BecomeShieldCaptain( entity player )
 	)
 
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
-	DeathPackage_RemoveEntityHeadshotFXOverride( player ) // shield captains use pilot headshot fx
+	
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
 
 	thread WaitForShieldCaptainPlayerDrop( player )
 }
@@ -793,6 +1033,10 @@ void function BecomeShockGrunt( entity player )
 
 	player.GiveOffhandWeapon( "mp_weapon_arc_trap", OFFHAND_INVENTORY, ["limited_arc_trap", "gm_shock_grunt"] ) // 2 activation arc trap, destroys itself on owner death
 
+	// differ them from stalker
+	player.SetSkin( 1 )
+	player.SetCamo( 18 ) // sea
+
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
 
@@ -819,6 +1063,7 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 		"",																	// grenade
 		$"",																// imc player model
 		$"",																// mlt player model
+		//["normal_wallclimb", "spectre_model"],								// class mods
 		["normal_wallclimb"],												// class mods
 		"幽靈戰士",																// title
 		"以幽靈戰士重生：可以二段跳躍"												// respawn notification
@@ -831,6 +1076,11 @@ void function WaitForSpectrePlayerLeaveDropship( entity player )
 	//WaitFrame() // wait a frame. was waiting for altpilot_recoverFromSpectre(), but the function has been removed!
 	player.SetModel( $"models/robots/spectre/imc_spectre.mdl" ) // safe to set model
 	//player.SetTargetInfoIcon( $"ui/targetinfo_spectre_bounty" ) // will appear an error
+
+	// better POV
+	// SPECTRES CAN'T CHANGE SKIN! WILL MAKE THEM INVISIBLE!
+	//player.SetSkin( 1 )
+	//player.SetCamo( 135 ) // haze white
 }
 
 void function BecomeSonarPulser( entity player )
@@ -856,6 +1106,14 @@ void function BecomeSonarPulser( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
+	// sonar pulser player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_kunai is a modified execution ref
+		// maybe we remove it because it has no pulse blade effect..? also allowing us to use special executions more often
+		["execution_neck_snap", "execution_backshot", "execution_pulseblade"]
+	)
 }
 
 void function BecomeNinja( entity player )
@@ -870,9 +1128,12 @@ void function BecomeNinja( entity player )
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
 		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
 		["disable_doublejump", "pas_wallhang"],								// class mods
+		//["disable_doublejump", "pas_wallhang", "courch_walk_boost"],		// class mods(deprecated)
 		"忍者",																	// title
 		"以忍者重生：可以跑墻/挂墻。無主武器。携帶煙霧發射器，可使用飛刀且投擲物自動回復"		// respawn notification
 	)
+
+	//player.SetPlayerSettingPosMods( PLAYERPOSE_CROUCHING, ["coliseum"] ) // 160 crouchwalk speed
 
 	player.SetMaxHealth( 125 ) // higher health
 	player.SetHealth( 125 ) // higher health
@@ -892,6 +1153,7 @@ void function BecomeNinja( entity player )
 	// offhand weapons won't return themselves and is exclusive, saving classname is enough
 	array<string> ninjaOffhands
 	player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "dissolve_instant", "impact_bounce"] ) // 2s cooldown instant kill projectile
+	//player.GiveOffhandWeapon( "mp_weapon_grenade_sonar", OFFHAND_SPECIAL, ["ninja_projectile", "impact_bounce", "no_impact_effect"] )
 	ninjaOffhands.append( "mp_weapon_grenade_sonar" )
 	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_ORDNANCE ) // gravity star, was ["ninja_projectile"]: 2s cooldown instant kill projectile, bit slower than kunai. now also removed "pas_ordnance_pack"
 	ninjaOffhands.append( "mp_weapon_grenade_gravity" )
@@ -899,10 +1161,20 @@ void function BecomeNinja( entity player )
 	entity meleeWeapon = player.GetMeleeWeapon()
 	if ( IsValid( meleeWeapon ) )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
-	player.GiveOffhandWeapon( "melee_pilot_kunai", OFFHAND_MELEE, ["grunt_mode"] )
+	player.GiveOffhandWeapon( "melee_pilot_kunai", OFFHAND_MELEE, ["grunt_mode", "fake_human_melee"] )
 	ninjaOffhands.append( "melee_pilot_kunai" )
+	
 	//thread NinjaForcedWeapon( player, ninjaWeapons, ninjaOffhands ) // force ninja use given weapons
 	thread NinjaForcedWeapon( player, ninjaWeaponSlots, ninjaOffhands )
+
+	// ninja player executions
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_kunai and execution_pulseblade_ninja are modified execution ref
+		// this class rely on melee attack and more execution ref could be fun?
+		// removed "execution_backshot" due to weapon usage, also removed "execution_neck_snap" and "execution_combo" to use special executions more often
+		["execution_face_stab_kunai", "execution_knockout", "execution_pulseblade_ninja"]
+	)
 }
 
 // player will be re-give weapon upon landing... which means they'll have weapon entity changed, needs to handle that
@@ -980,26 +1252,46 @@ void function BecomeBeastKing( entity player )
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 
+	// no longer uses allow_as_primary melee weapon, we use a placeholder main weapon for handling melee!
+	array<int> beastKingWeaponSlots
+	player.GiveWeapon( "mp_weapon_gunship_missile", ["pilot_emptyhanded", "pilot_sword_primary", "gm_beastking", "disable_run_and_gun_server"] )
+	beastKingWeaponSlots.append( 0 )
+	
 	array<string> beastKingOffhands
 	// alt version: smoke as tactical, arc nade as ordnance
 	//player.GiveOffhandWeapon( "mp_weapon_grenade_electric_smoke", OFFHAND_SPECIAL, ["gm_beastking"] ) // regenerating electric smoke grenade, very short cooldown and won't do self damage
 	//beastKingOffhands.append( "mp_weapon_grenade_electric_smoke" )
 	//player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_ORDNANCE, ["gm_beastking_burn", "burn_mod_emp_grenade"] ) // regenerating emp grenade, high heavyarmor damage with burnmod, is good
 	// current version: firestar as tactical
+
+	// current version
 	player.GiveOffhandWeapon( "mp_weapon_thermite_grenade", OFFHAND_ORDNANCE, ["gm_beastking"] ) // very short cooldown firestar
 	beastKingOffhands.append( "mp_weapon_thermite_grenade" )
 	player.GiveOffhandWeapon( "mp_weapon_grenade_emp", OFFHAND_SPECIAL, ["gm_beastking"] ) // regenerating emp grenade, high heavyarmor damage
 	beastKingOffhands.append( "mp_weapon_grenade_emp" )
+
 	// melee weapon
 	entity meleeWeapon = player.GetMeleeWeapon()
 	if ( IsValid( meleeWeapon ) )
 		player.TakeWeaponNow( meleeWeapon.GetWeaponClassName() )
-	player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "pilot_emptyhanded", "gm_beastking"] ) // was having "grunt_mode", it's now oneshot kill sword
+	// no longer uses allow_as_primary melee weapon, we use a placeholder main weapon for handling melee!
+	//player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "pilot_emptyhanded", "gm_beastking"] ) // was having "grunt_mode", it's now oneshot kill sword
+	player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["pilot_sword_primary", "gm_beastking"] ) // was having "grunt_mode", it's now oneshot kill sword
+
 	// use beastKingThink for weapon swap
 	//player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to it
 	beastKingOffhands.append( "melee_pilot_sword" )
 
-	thread BeastKingThink( player, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
+	thread BeastKingThink( player, beastKingWeaponSlots, beastKingOffhands ) // for beast king respawning prowlers and limit weapon
+
+	// beastking player executions
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_sword is a modified execution ref
+		// this class rely on melee attack and more execution ref could be fun?
+		// removed "execution_backshot" due to weapon usage, also removed "execution_knockout" to use special executions more often
+		["execution_neck_snap", "execution_face_stab_sword", "execution_combo"]
+	)
 }
 
 void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
@@ -1026,6 +1318,51 @@ void function BeastKingSmokeDamageTarget( entity ent, var damageInfo )
 	}
 }
 
+const float BEAST_KING_PROWLER_DAMAGE_AGAINST_PLAYER_SCALE = 0.5 // 40 for claw and 50 for pounce, at least no more instant kills
+const float BEAST_KING_PROWLER_DAMAGE_AGAINST_HEAVY_ARMOR_SCALE = 5.0 // 300-400 for claw and 500 for pounce, bit lower than normal prowlers
+
+void function BeastKingProwlerDamageTarget( entity victim, var damageInfo )
+{
+	entity attacker = DamageInfo_GetAttacker( damageInfo )
+    if( !IsValid( attacker ) )
+        return
+	if( !attacker.IsNPC() )
+		return
+
+	// class table for checking prowler ownership
+	entity bossPlayer = attacker.GetBossPlayer()
+	if ( !IsValid( bossPlayer ) )
+		return
+	
+	if ( !( bossPlayer in beastKing.classTable ) )
+		return
+	if ( !IsAlive( beastKing.classTable[bossPlayer].ownedProwler ) )
+		return
+	
+	float damageScale = 1.0
+
+	bool nerfDamage = false
+	bool heavyArmorTarget = false
+	// prowler's craw damage is 80, pounce damage is 100
+	if ( victim.IsPlayer() ) // nerf it's damage agains players
+		nerfDamage = true
+	if ( victim.IsNPC() )
+	{
+		// a npc owned by player, do reduce damage
+		if ( IsValid( victim.GetBossPlayer() ) )
+			nerfDamage = true
+	}
+	if ( victim.GetArmorType() == ARMOR_TYPE_HEAVY )
+		heavyArmorTarget = true
+
+	if ( heavyArmorTarget )
+		damageScale *= BEAST_KING_PROWLER_DAMAGE_AGAINST_HEAVY_ARMOR_SCALE
+	else if ( nerfDamage )
+		damageScale *= BEAST_KING_PROWLER_DAMAGE_AGAINST_PLAYER_SCALE
+
+	DamageInfo_ScaleDamage( damageInfo, damageScale )
+}
+
 struct BeastKingStruct
 {
 	entity ownedProwler
@@ -1039,6 +1376,7 @@ struct
 	table< entity, BeastKingStruct > classTable
 } beastKing
 
+const bool BEAST_KING_PROWLER_RECALL_ENABLED = true
 const float BEAST_KING_PROWLER_COOLDOWN = 10.0
 const bool BEAST_KING_PROWLER_RESPAWN = true
 const float BEAST_KING_RECALL_RANGE = 750
@@ -1046,7 +1384,7 @@ const float BEAST_KING_RECALL_COOLDOWN = 2.0
 const float BEAST_KING_NOTIFICATION_COOLDOWN = 2.0
 const int BEAST_KING_PROWLER_HEALTH = 280 // was 380, 100 more than normal prowlers
 
-void function BeastKingThink( entity player, array<string> allowedOffhands )
+void function BeastKingThink( entity player, array<int> allowedWeaponSlots, array<string> allowedOffhands )
 {
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
@@ -1062,22 +1400,28 @@ void function BeastKingThink( entity player, array<string> allowedOffhands )
 	beastKing.classTable[player].lastRecallTime = Time() - BEAST_KING_RECALL_COOLDOWN
 	beastKing.classTable[player].lastNotifyTime = Time() - BEAST_KING_NOTIFICATION_COOLDOWN
 
-    AddButtonPressedPlayerInputCallback( player, IN_USE, BeastKingRecallProwler )
-    AddButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, BeastKingRecallProwler )
+	if ( BEAST_KING_PROWLER_RECALL_ENABLED )
+	{
+		AddButtonPressedPlayerInputCallback( player, IN_USE, BeastKingRecallProwler )
+		AddButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, BeastKingRecallProwler )
+	}
     
     OnThreadEnd(
         function(): ( player )
         {
             if ( IsValid( player ) )
             {
-                RemoveButtonPressedPlayerInputCallback( player, IN_USE, BeastKingRecallProwler )
-                RemoveButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, BeastKingRecallProwler )
-            }
+				if ( BEAST_KING_PROWLER_RECALL_ENABLED )
+				{
+					RemoveButtonPressedPlayerInputCallback( player, IN_USE, BeastKingRecallProwler )
+					RemoveButtonPressedPlayerInputCallback( player, IN_USE_AND_RELOAD, BeastKingRecallProwler )
+				}
+			}
         }
     )
 
 	thread BeastKingProwlerSpawner( player )
-	thread BeastKingForcedWeapon( player, allowedOffhands )
+	thread BeastKingForcedWeapon( player, allowedWeaponSlots, allowedOffhands )
 
 	WaitForever() // wait for endsignals to trigger
 }
@@ -1221,7 +1565,8 @@ entity function CreateProwlerForBeastKing( entity player )
 
     beastKing.classTable[player].ownedProwler = prowler
     beastKing.classTable[player].lastRecallTime = Time() - BEAST_KING_RECALL_COOLDOWN // make recall valid
-    SendHudMessage( player, "獵獸已重生",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
+    if ( BEAST_KING_PROWLER_RECALL_ENABLED )
+		SendHudMessage( player, "獵獸已重生。按 使用 可以將其移動至準星位置",  -1, -0.3, 255, 255, 0, 255, 0.15, 6, 1 )
 
 	PlayProwlerAppearFX( prowler ) // phase out effect
 
@@ -1275,7 +1620,7 @@ void function PlayerAndProwlerSenseTogether( entity player, entity prowler )
 	}
 }
 
-void function BeastKingForcedWeapon( entity player, array<string> allowedOffhands )
+void function BeastKingForcedWeapon( entity player, array<int> allowedWeaponSlots, array<string> allowedOffhands )
 {
 	player.EndSignal( "OnDestroy" )
 	player.EndSignal( "OnDeath" )
@@ -1285,12 +1630,12 @@ void function BeastKingForcedWeapon( entity player, array<string> allowedOffhand
 
 	while( true )
 	{
-		CheckBeastKingWeapon( player, allowedOffhands )
+		CheckBeastKingWeapon( player, allowedWeaponSlots, allowedOffhands )
 		WaitFrame()
 	}
 }
 
-void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands )
+void function CheckBeastKingWeapon( entity player, array<int> allowedWeaponSlots, array<string> allowedOffhands )
 {
 	// player will be re-give weapon upon landing... needs to handle that
 	if ( IsValid( player.GetParent() ) )
@@ -1299,6 +1644,8 @@ void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands
 	entity activeWeapon = player.GetActiveWeapon()
 	if ( !IsValid( activeWeapon ) ) // not holding a weapon, must be bugged
 	{
+		// no longer uses allow_as_primary melee weapon, we use a placeholder main weapon for handling melee!
+		/*
 		// update weapon to do deploy animation( VERY HACKY )
 		player.TakeOffhandWeapon( OFFHAND_MELEE )
 		player.GiveOffhandWeapon( "melee_pilot_sword", OFFHAND_MELEE, ["allow_as_primary", "pilot_emptyhanded", "gm_beastking"] )
@@ -1307,36 +1654,59 @@ void function CheckBeastKingWeapon( entity player, array<string> allowedOffhands
 		player.HolsterWeapon()
 		player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to melee
 		player.DeployWeapon()
+		*/
+
+		if ( player.GetMainWeapons().len() > 0 ) // has another weapon
+			player.SetActiveWeaponBySlot( 0 ) // swap to it
 		return
 	}
-	
+
 	string className = activeWeapon.GetWeaponClassName()
-	if ( !allowedOffhands.contains( className ) ) // player gets a weapon from other source?
+	int activeWeaponSlot
+	foreach ( int slot, entity weapon in player.GetMainWeapons() )
+	{
+		if ( weapon == activeWeapon )
+		{
+			activeWeaponSlot = slot
+			break
+		}
+	}
+	if ( !allowedWeaponSlots.contains( activeWeaponSlot ) && !allowedOffhands.contains( className ) )
 	{
 		player.TakeWeaponNow( activeWeapon.GetWeaponClassName() ) // take it!
-		player.SetActiveWeaponByName( "melee_pilot_sword" ) // swap to melee
+		if ( player.GetMainWeapons().len() > 0 ) // has another weapon
+			player.SetActiveWeaponBySlot( 0 ) // swap to it
 		//SendHudMessage( player, "驯兽师不可以使用其他武器",  -1, -0.3, 255, 255, 255, 255, 0.15, 6, 1 )
 	}
 }
 
 void function BecomeJumper( entity player )
 {
-    player.SetPlayerSettings( "pilot_nomad_female" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
+    //player.SetPlayerSettings( "pilot_nomad_female" ) // have a better pov model
 
 	SimpleClassLoadout(  
 		player,
 		"mp_weapon_esaw",												    // primary weapon
 		"mp_weapon_mgl",													// secondary weapon
 		"",											                        // grenade
-		$"models/humans/pilots/pilot_light_jester_f.mdl",					// imc player model
-		$"models/humans/pilots/pilot_light_jester_f.mdl",				    // mlt player model
+		// runner no longer uses stim pilot model, change this back to male
+		//$"models/humans/pilots/pilot_light_jester_f.mdl",					// imc player model
+		//$"models/humans/pilots/pilot_light_jester_f.mdl",				    // mlt player model
+		$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
+		$"models/humans/pilots/pilot_light_jester_m.mdl",				    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"機動兵",																// title
 		"以機動兵重生：可以部署一個跳板"						                	// respawn notification
 	)
 
-    player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "infinite_jump_pad", "gm_jumper"] )
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	// no longer allow infinite jump pad because we've added npc jump pad usage...
+    //player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "infinite_jump_pad", "gm_jumper"] )
+	player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["grunt_mode", "jump_pad", "gm_jumper"] )
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
+
+	// attach a fake head to it
+	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
 	player.SetCamo( 14 ) // green
@@ -1344,7 +1714,8 @@ void function BecomeJumper( entity player )
 
 void function BecomeShifter( entity player )
 {
-    player.SetPlayerSettings( "pilot_light_female" ) // have a better pov model
+    //player.SetPlayerSettings( "pilot_light_female" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_light_male" )
 
 	// not using the model $"models/Humans/heroes/imc_hero_ash.mdl" since we've assigned it to boss titans
 	SimpleClassLoadout(  
@@ -1352,8 +1723,10 @@ void function BecomeShifter( entity player )
 		"mp_weapon_doubletake",												// primary weapon
 		"mp_weapon_arc_launcher",											// secondary weapon
 		"",											                        // grenade
-		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model
-		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // mlt player model
+		//$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model
+		//$"models/humans/pilots/pilot_light_ged_f.mdl",					    // mlt player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // imc player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"相位兵",															// title
         "以相位兵重生：可使用一次長時間相位"						            // respawn notification
@@ -1362,20 +1735,31 @@ void function BecomeShifter( entity player )
 	player.GetMainWeapons()[0].AddMod( "tripletake" ) // visualize middle bullet(client prediction required)
     player.GetMainWeapons()[0].AddMod( "gm_shifter" ) // nerfed doubletake
     player.GiveOffhandWeapon( "mp_ability_shifter", OFFHAND_SPECIAL, ["grunt_mode", "gm_shifter"] )
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
+
+	// attach a fake head to it
+	// actually no need for phase shift pilot, just for the head break effect
+	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
-	player.SetCamo( 30 ) // black
+	player.SetCamo( 30 ) // dark
+
+	// shifter player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// removed "execution_knockout" to use special executions more often
+		["execution_combo", "execution_telefrag"]
+	)
 }
 
 void function BecomeRavenant( entity player )
 {
 	player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
-	player.SetPlayerSettingPosMods( PLAYERPOSE_CROUCHING, ["coliseum"] ) // 160 crouchwalk speed
 
 	SimpleClassLoadout(  
 		player,
-		"mp_weapon_hemlok",													// primary weapon
+		//"mp_weapon_hemlok",													// primary weapon(deprecated)
+		"mp_weapon_rspn101_og",												// primary weapon, switch from phase walker
 		"mp_weapon_rocket_launcher",										// secondary weapon
 		"mp_weapon_satchel",											    // grenade
 		$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
@@ -1385,7 +1769,13 @@ void function BecomeRavenant( entity player )
         "以亡靈重生：擁有更快的攀爬速度和更高的攀爬高度，下蹲行走不會減速"				// respawn notification
 	)
 
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	// 160 crouchwalk speed. there's a "courch_walk_boost" classmod for us handling crouch speed, adding this is just for better stand-to-crouch transition
+	player.SetPlayerSettingPosMods( PLAYERPOSE_CROUCHING, ["coliseum"] )
+
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
+
+	// attach a fake head to it
+	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
 	player.SetCamo( 154 ) // red line
@@ -1397,7 +1787,8 @@ void function BecomePhaseWalker( entity player )
 
 	SimpleClassLoadout(  
 		player,
-		"mp_weapon_rspn101_og",												// primary weapon
+		//"mp_weapon_rspn101_og",												// primary weapon
+		"mp_weapon_hemlok",													// new weapon, same as wraith's trailer
 		"mp_weapon_arc_launcher",											// secondary weapon
 		"",											    // grenade
 		$"models/humans/pilots/pilot_light_ged_f.mdl",					    // imc player model
@@ -1408,10 +1799,14 @@ void function BecomePhaseWalker( entity player )
 	)
 	
 	player.GiveOffhandWeapon( "mp_ability_shifter", OFFHAND_SPECIAL, ["grunt_mode", "gm_phasewalker", "wraith_portal", "amped_tacticals"] )
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
+
+	// attach a fake head to it
+	// actually no need for phase shift pilot, just for the head break effect
+	CreateMechanicalHeadForPlayer( player )
 
 	player.SetSkin( 1 )
-	player.SetCamo( 31 ) // white
+	player.SetCamo( 31 ) // light
 }
 
 void function BecomeHeavySniper( entity player )
@@ -1423,8 +1818,11 @@ void function BecomeHeavySniper( entity player )
 		"mp_weapon_sniper",													// primary weapon
 		"",																	// secondary weapon
 		"mp_weapon_grenade_electric_smoke",									// grenade
-		$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
-		$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		// model updated: other normal grunts now uses random model, heavy snipers should use lmg grunt model like specialists!
+		//$"models/humans/grunts/imc_grunt_rifle.mdl",						// imc player model
+		//$"models/humans/grunts/mlt_grunt_rifle.mdl",						// mlt player model
+		$"models/humans/grunts/imc_grunt_lmg.mdl",							// imc player model
+		$"models/humans/grunts/mlt_grunt_lmg.mdl",							// mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"重裝狙擊手",															// title
 		"以重裝狙擊手重生。主武器可直接對裝甲造成傷害"												 		// respawn notification
@@ -1434,21 +1832,27 @@ void function BecomeHeavySniper( entity player )
 	//player.GetMainWeapons()[0].AddMod( "titandamage_weapon" ) // no need to aim weakpoint to deal damage. the mod has been removed and build into gm_heavysniper now
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
+	// specialist grunts uses pilot headshot effect
+	DeathPackage_RemoveEntityHeadshotFXOverride( player )
+
 	// mlt specific pov camo
 	ApplyMLTGruntCamo( player )
 }
 
 void function BecomeRunner( entity player )
 {
-	player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
+	//player.SetPlayerSettings( "pilot_nomad_male" ) // have a better pov model
+	player.SetPlayerSettings( "pilot_light_male" )
 
 	SimpleClassLoadout(  
 		player,
 		"",												    				// primary weapon
 		"",																	// secondary weapon
 		"",											                        // grenade
-		$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
-		$"models/humans/pilots/pilot_light_jester_m.mdl",				    // mlt player model
+		//$"models/humans/pilots/pilot_light_jester_m.mdl",					// imc player model
+		//$"models/humans/pilots/pilot_light_jester_m.mdl",				    // mlt player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // imc player model
+		$"models/humans/pilots/pilot_light_ged_m.mdl",					    // mlt player model
 		["disable_doublejump", "only_wallclimb"],							// class mods
 		"奔跑者",																// title
 		"以奔跑者重生：可無限次使用長時間激素，消耗生命值"						    	// respawn notification
@@ -1457,7 +1861,23 @@ void function BecomeRunner( entity player )
 	player.GiveWeapon( "mp_weapon_autopistol", ["silencer", "gm_runner", "pas_run_and_gun", "extended_ammo", "fake_tf1_sprint_anim"] ) // less falloff re45
     player.GiveWeapon( "mp_weapon_mgl", ["extended_ammo"] ) // extended ammo mgl
 	player.GiveOffhandWeapon( "mp_ability_heal", OFFHAND_SPECIAL, ["octane_stim", "gm_runner"] ) // long duration stim, costs health on activation and disables health regen while activating(not compatible with "grunt_mode")
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
+
+	// attach a fake head to it
+	// actually no need for phase shift pilot, just for the head break effect
+	CreateMechanicalHeadForPlayer( player )
+
+	// looks like octane legendary skin? just to differ it's pov model from spectres
+	// now we could use phase shift pilot model, I think
+	//player.SetSkin( 1 )
+	//player.SetCamo( 135 ) // haze white
+
+	// runner player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// removed "execution_combo" to use special executions more often
+		["execution_knockout", "execution_stim"]
+	)
 }
 
 void function BecomePathBuilder( entity player )
@@ -1477,10 +1897,10 @@ void function BecomePathBuilder( entity player )
 	)
 
 	player.GiveOffhandWeapon( "mp_ability_grapple", OFFHAND_SPECIAL, ["zipline_gun", "gm_pathbuilder"] ) // normal speed zipline, 
-	player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity
+	//player.GetMeleeWeapon().AddMod( "fake_human_melee" ) // model doesn't have grunt melee activity, only change their damageSourceId for airkicks
 
 	player.SetSkin( 1 )
-	player.SetCamo( 18 ) // ocean
+	player.SetCamo( 18 ) // sea
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1508,9 +1928,17 @@ void function BecomeScout( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.SetSkin( 1 )
-	player.SetCamo( 18 ) // ocean
+	player.SetCamo( 18 ) // sea
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
+	// scout player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat is a modified execution ref
+		// removed "execution_backshot" to use special executions more often
+		["execution_neck_snap", "execution_face_stab_combat", "execution_grapple"]
+	)
 }
 
 void function TrackScoutGrappleUsage( entity player )
@@ -1549,7 +1977,7 @@ void function BecomeFlyer( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.SetSkin( 1 )
-	player.SetCamo( 19 ) // shadow
+	player.SetCamo( 19 ) // overcast
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1577,7 +2005,7 @@ void function BecomeAssassin( entity player )
 	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
 
 	player.SetSkin( 1 )
-	player.SetCamo( 19 ) // shadow
+	player.SetCamo( 19 ) // overcast
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
 }
@@ -1603,10 +2031,18 @@ void function BecomeStalker( entity player )
 	player.GiveOffhandWeapon( "mp_ability_holopilot", OFFHAND_SPECIAL, ["grunt_mode", "gm_stalker"] )
 
 	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet. also one way to tell them from decoys is through the helmet
+
+	// stalker player executions, includes their ability
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat is a modified execution ref
+		// removed "execution_neck_snap" to use special executions more often
+		["execution_backshot", "execution_face_stab_combat", "execution_holopilot"]
+	)
 }
 
 const float STALKER_DECOY_DURATION = 30 // doubled DECOY_DURATION
-const float STALKER_DECOY_HEALTH = 80 // can tank most npc attack. note that they still gets oneshot by players and npc pilots
+const float STALKER_DECOY_HEALTH = 70 // was 80. can tank most npc attack. note that they still gets oneshot by players and npc pilots
 const float STALKER_DECOY_REFUND_GRACE_PERIOD = 10 // if decoy isn't shot at and gets destroyed within this time, consider it has collide with something. we'd refund player's decoy charge
 const float STALKER_DECOY_MAX_COUNT = 2 // limited to 2 charges per player
 
@@ -1633,6 +2069,9 @@ void function OnStalkerDecoyCreated( entity player, entity decoy )
 	// note that this requires decoy.SetDamageNotifications( true ) to take effect
 	// that one is handled by modified mp_ability_holopilot.nut file!
 	AddEntityCallback_OnDamaged( decoy, OnStalkerDecoyDamaged )
+
+	// track owner life time
+	thread StalkerDecoyDissolveOwnerDeath( player, decoy )
 }
 
 entity function GetStalkerHolopilotDecoyWeapon( entity player )
@@ -1663,9 +2102,26 @@ void function CheckStalkerPlayerDecoyMaxCount( entity player, entity newDecoy )
 	if ( stalker.activatedDecoys[ player ].len() > STALKER_DECOY_MAX_COUNT )
 	{
 		entity latestDecoy = stalker.activatedDecoys[ player ][0]
-		latestDecoy.Decoy_Dissolve()
-		stalker.activatedDecoys[ player ].removebyvalue( latestDecoy )
+		if ( IsValid( latestDecoy ) )
+		{
+			// never refund charge on this case
+			if ( latestDecoy in stalker.decoyCreationTime )
+				delete stalker.decoyCreationTime[ latestDecoy ]
+			latestDecoy.Decoy_Dissolve()
+			stalker.activatedDecoys[ player ].removebyvalue( latestDecoy )
+		}
 	}
+}
+
+void function StalkerDecoyDissolveOwnerDeath( entity player, entity decoy )
+{
+	player.EndSignal( "OnDestroy" )
+	decoy.EndSignal( "OnDestroy" )
+	
+	player.WaitSignal( "OnDeath" )
+	// decoy still valid!
+	if ( stalker.activatedDecoys[ player ].contains( decoy ) )
+		decoy.Decoy_Dissolve()
 }
 
 void function OnStalkerDecoyDamaged( entity decoy, var damageInfo )
@@ -1677,11 +2133,6 @@ void function OnStalkerDecoyDamaged( entity decoy, var damageInfo )
 
 void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 {
-	// if decoy isn't damaged and gets destroyed within our period of time...
-	// try to refund charge
-	if ( !( decoy in stalker.decoyCreationTime ) )
-		return
-
 	entity bossPlayer = decoy.GetBossPlayer()
 	if ( !IsValid( bossPlayer ) )
 		return
@@ -1689,11 +2140,129 @@ void function OnStalkerDecoyDieOrDissolve( entity decoy, int currentState )
 	entity weapon = GetStalkerHolopilotDecoyWeapon( bossPlayer )
 	if ( !IsValid( weapon ) )
 		return
+	
+	// firstly making dissolving decoy no longer takes up a slot for player
+	stalker.activatedDecoys[ bossPlayer ].removebyvalue( decoy )
 
-	// all checks passed, try refund charge
-	if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
-		weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
-	delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
+	// if decoy isn't damaged and gets destroyed within our period of time...
+	// try to refund charge
+	if ( decoy in stalker.decoyCreationTime )
+	{
+		// all checks passed, try refund charge
+		if ( Time() - stalker.decoyCreationTime[ decoy ] <= STALKER_DECOY_REFUND_GRACE_PERIOD )
+			weapon.SetWeaponPrimaryClipCount( min( weapon.GetWeaponPrimaryClipCountMax(), weapon.GetWeaponPrimaryClipCount() + weapon.GetAmmoPerShot() ) )
+		delete stalker.decoyCreationTime[ decoy ] // always remember to remove it from array, otherwise it may trigger callback twice
+	}
+}
+
+void function BecomeGravityMaster( entity player )
+{
+	thread WaitForGravityMasterLanding( player )
+}
+
+void function WaitForGravityMasterLanding( entity player )
+{
+	player.SetPlayerSettings( "pilot_grapple_female" ) // have a better pov model
+
+	//WaitFrame() // wait for player being set into dropship
+
+	string primaryWeapon = ""
+	string secondaryWeapon = ""
+
+	// player inside dropship... this case they'll need a weapon in hand
+	// welp this will make weapon on player's back
+	// but after waiting 1 frame crosshair will be fixed?
+	// can't be fixed! let's just give player weapon upon landing, who will ever care players inside dropship?
+	/*
+	if ( player.GetParent().GetClassName() == "npc_dropship" )
+	{
+		primaryWeapon = "mp_weapon_peacekraber"
+		secondaryWeapon = "mp_weapon_arc_launcher"
+	}
+	else // inside droppod?
+	{
+		// give weapon upon player landing!
+		thread GravityMasterWeaponThink( player )
+	}
+	*/
+
+	SimpleClassLoadout(  
+		player,	
+		// kinda special, peace kraber needs to be given after player landing, otherwise player won't have crosshair till they switch weapon								
+		//"mp_weapon_peacekraber",											// primary weapon
+		//"mp_weapon_arc_launcher",											// secondary weapon
+		primaryWeapon,														// primary weapon
+		secondaryWeapon,													// secondary weapon
+		"",											    					// grenade
+		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// imc player model
+		$"models/humans/pilots/pilot_medium_geist_f.mdl",					// mlt player model
+		["disable_doublejump", "only_wallclimb"],							// class mods
+		"重力大師",															// title
+        "以重力大師重生：可使用一次重力電梯，逆轉範圍内重力"					// respawn notification
+	)
+	
+	//player.SetActiveWeaponByName( "mp_weapon_peacekraber" ) // will this fix crosshair???
+	// give weapon upon player landing!
+	thread GravityMasterWeaponThink( player )
+
+	player.GiveOffhandWeapon( "mp_weapon_grenade_gravity", OFFHAND_SPECIAL, ["grunt_mode", "gravity_lift", "gm_gravitymaster"] )
+	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
+
+	CreateIMCGruntHelmetForPlayer( player ) // give pilot model a grunt helmet
+
+	player.SetSkin( 1 )
+	player.SetCamo( 31 ) // light
+}
+
+void function GravityMasterWeaponThink( entity player )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+
+	waitthread WaitForPlayerLanding( player )
+
+	WaitFrame() // wait for player HUD back
+	foreach ( entity mainWeapon in player.GetMainWeapons() )
+		player.TakeWeaponNow( mainWeapon.GetWeaponClassName() )
+	
+	// give weapons
+	player.GiveWeapon( "mp_weapon_peacekraber", ["disable_run_and_gun_server"] )
+	player.GiveWeapon( "mp_weapon_arc_launcher" )
+}
+
+void function BecomeFortress( entity player )
+{
+	player.SetPlayerSettings( "pilot_geist_male" ) // have a better pov model
+
+	SimpleClassLoadout(  
+		player,
+		"mp_weapon_smr",													// primary weapon
+		"",																	// secondary weapon
+		"",																	// grenade
+		$"models/humans/grunts/imc_grunt_shield_captain.mdl",				// imc player model
+		$"models/humans/grunts/imc_grunt_shield_captain.mdl",				// mlt player model
+		["disable_doublejump", "only_wallclimb"],							// class mods
+		"堡壘",																// title
+		"以堡壘重生：強力的反泰坦武器，可使用一次強化掩體"						// respawn notification
+	)
+
+	player.GetMainWeapons()[0].AddMod( "gm_fortress" ) // less damage against human, less dmage on headshot, more damage against titans
+	player.GiveOffhandWeapon( "mp_weapon_hard_cover", OFFHAND_SPECIAL, ["grunt_mode", "hard_cover_always", "gm_fortress"] ) // hard cover with bit nerfed health
+	//player.GetMeleeWeapon().AddMod( "fake_grunt_melee" ) // model has grunt melee activity, use it
+
+	// specialist grunts uses pilot headshot effect
+	// welp, this one isn't considered as specialist, guess we leave original model
+	//DeathPackage_RemoveEntityHeadshotFXOverride( player )
+
+	// fortress player executions, includes their ability
+	// execution_hardcover not behaving well because the awall effect is played inside animation and we can't replace it with hard cover one
+	/*
+	Melee_SetExecutionRefsOverride( 
+		player, 
+		// execution_face_stab_combat and execution_hardcover are modified execution refs
+		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_hardcover"]
+	)
+	*/
 }
 
 ///////////////////////////////////////////////
@@ -1715,6 +2284,9 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 	// first do resetting class
 	player.SetPlayerSettingsWithMods( player.GetPlayerSettings(), classMods )
 	player.SetSuitGrapplePower( 100.0 ) // recharge grapple power
+	// pose mods carry through player settings change... have to reset
+	player.SetPlayerSettingPosMods( PLAYERPOSE_STANDING, [] )
+	player.SetPlayerSettingPosMods( PLAYERPOSE_CROUCHING, [] )
 
 	TakeAllWeapons( player )
 	if ( primary != "" )
@@ -1723,7 +2295,7 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 		player.GiveWeapon( secondary )
 	if ( grenade != "" )
 		player.GiveOffhandWeapon( grenade, OFFHAND_ORDNANCE, ["grunt_mode"] ) // grenade is limited to one use
-	player.GiveOffhandWeapon( "melee_pilot_emptyhanded", OFFHAND_MELEE, ["grunt_mode"] ) // normal melee( removed "fake_ground_execute" )
+	player.GiveOffhandWeapon( "melee_pilot_emptyhanded", OFFHAND_MELEE, ["grunt_mode", "fake_human_melee"] ) // normal melee( removed "fake_ground_execute" )
 
 	player.Signal( "ForceStopShield" ) // always try to stop last shield captain's shield
 	//player.SetTargetInfoIcon( $"ui/targetinfo_soldier_bounty" ) // will appear an error
@@ -1735,10 +2307,10 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 		bodyType = eBodyTypes.NPC_SPECTRE
 	// modified function in _pain_death_sounds.gnut, overwrite death sound!
 	PainDeathSounds_SetBodyTypeOverride( player, bodyType )
-	if ( !player.IsMechanical() ) // player is not mechanical
-		DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_human" ) // override headshot fx with grunt helmet drop effect
-	else
+	if ( player.IsMechanical() ) // player is mechanical( spectre )
 		DeathPackage_RemoveEntityHeadshotFXOverride( player ) // mechanic, remove headshot fx override since robotic pilot's fx is default to be the same as spectres
+	else
+		DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_human" ) // override headshot fx with grunt helmet drop effect
 	// set ragdoll impact effect to grunt version
 	SetHumanRagdollImpactTable( player )
 	
@@ -1753,11 +2325,30 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 		TakePassive( player, ePassives.PAS_ORDNANCE_PACK )
 
 	// grunt player executions
+	// better base on body type?
+	/*
 	Melee_SetExecutionRefsOverride( 
 		player, 
 		// execution_face_stab_combat is a modified execution ref
 		["execution_neck_snap", "execution_face_stab_combat", "execution_backshot", "execution_combo", "execution_knockout"]
 	)
+	*/
+	if ( player.IsMechanical() ) // player is mechanical( spectre )
+	{
+		Melee_SetExecutionRefsOverride( 
+			player, 
+			// execution_face_stab_combat is a modified execution ref
+			["execution_combo", "execution_knockout"]
+		)
+	}
+	else
+	{
+		Melee_SetExecutionRefsOverride( 
+			player, 
+			// execution_face_stab_combat is a modified execution ref
+			["execution_neck_snap", "execution_face_stab_combat", "execution_backshot"]
+		)
+	}
 
 	// using custom utility!
 	//player.SetGroundFrictionScale( 4.0 ) // prevent players getting speed from slide, but this still allow players slidehop
@@ -1773,15 +2364,15 @@ void function SimpleClassLoadout( entity player, string primary = "", string sec
 
 	if ( !IsFFAGame() ) // two teams modes
 	{
-		if ( player.GetTeam() == TEAM_IMC )
-		{
-			if ( imcModelValid )
-				player.SetModel( imcPlayerModel )
-		}
 		if ( player.GetTeam() == TEAM_MILITIA )
 		{
 			if ( mltModelValid )
 				player.SetModel( mltPlayerModel )
+		}
+		else
+		{
+			if ( imcModelValid )
+				player.SetModel( imcPlayerModel )
 		}
 	}
 	else // ffa games
@@ -1857,17 +2448,45 @@ void function CreateIMCGruntHelmetForPlayer( entity player )
 	entity helmet = CreatePropDynamic( $"models/humans/grunts/imc_grunt_lmg_helmet.mdl" )
 	helmet.SetParent( player, "HEADSHOT" )
 	helmet.Highlight_SetInheritHighlight( true ) // setup highlight
-	DeathPackage_RemoveEntityHeadshotFXOverride( player ) // remove headshotFX override. we always play helmet drop fx on death
+	//DeathPackage_RemoveEntityHeadshotFXOverride( player ) // remove headshotFX override. we always play helmet drop fx on death
+	// EDIT: no longer needs change headshot effect, our script can handle headshot event now
+	// but set headshot effect for every class could be hardcoded and won't be consist... guess we'd keep this
+	DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_pilot" )
 	thread TrackHelmetLifeTime( player, helmet )
 }
 
 void function TrackHelmetLifeTime( entity player, entity helmet )
 {
 	helmet.EndSignal( "OnDestroy" )
-	table result = WaitSignal( player, "OnDeath", "OnDestroy", "PlayerEmbarkedTitan" )
-	if ( result.signal == "OnDeath" )
+	//table result = WaitSignal( player, "OnDeath", "OnDestroy", "PlayerEmbarkedTitan" )
+	// try to get the moment when player is about to be killed by execution
+	// this may cause mechenical head to be destroyed earlier than player getting headshot at
+	/*
+	thread SignalWhenMarkedForExecutionDeath( player, head )
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "MarkedForExecutionDeath" )
+	if ( result.signal == "OnDeath" || result.signal == "MarkedForExecutionDeath" )
+	*/
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "AnimEvent_headshot_death", "AnimEvent_headstab_death" ) // "AnimEvent_headshot_death" and "AnimEvent_headstab_death" is a modified signal in sh_death_package.gnut, signaled when player triggers headshot death effect!
+	if ( result.signal == "OnDeath" || result.signal == "AnimEvent_headshot_death" || result.signal == "AnimEvent_headstab_death" )
 		PlayHelmetDropFX( player )
 	helmet.Destroy()
+}
+
+void function SignalWhenMarkedForExecutionDeath( entity player, entity prop )
+{
+	player.EndSignal( "OnDeath" )
+	player.EndSignal( "OnDestroy" )
+	prop.EndSignal( "OnDestroy" )
+
+	while ( true )
+	{
+		if ( player.e.markedForExecutionDeath )
+		{
+			player.Signal( "MarkedForExecutionDeath" )
+			break
+		}
+		WaitFrame( true ) // ignores script FPS limit, more accurate
+	}
 }
 
 void function PlayHelmetDropFX( entity player )
@@ -1897,8 +2516,12 @@ void function CreateMechanicalHeadForPlayer( entity player )
 	entity head = CreatePropDynamic( $"models/humans/pilots/pilot_light_ged_m_head_gib.mdl" )
 	head.SetParent( player, "HEADSHOT" )
 	head.Highlight_SetInheritHighlight( true ) // setup highlight
-	head.SetOrigin( < 0, 0, -7 > ) // tweak on position
-	DeathPackage_RemoveEntityHeadshotFXOverride( player ) // remove headshotFX override, we drop the head on getting headshot at
+	head.SetOrigin( < 0, 0, -6 > ) // tweak on position. should be lower because models other than phase shift pilot don't have a scaf for covering non-linking head
+	// EDIT: we need to change headshot effect otherwise player will drop an extra head on being executed
+	//DeathPackage_RemoveEntityHeadshotFXOverride( player ) // remove headshotFX override, we drop the head on getting headshot at
+	// EDIT: no longer needs change headshot effect, our script can handle headshot event now
+	// but set headshot effect for every class could be hardcoded and won't be consist... guess we'd keep this
+	DeathPackage_SetEntityHeadshotFXOverride( player, $"P_headshot_pilot" )
 
 	thread TrackHeadLifeTime( player, head )
 }
@@ -1906,29 +2529,90 @@ void function CreateMechanicalHeadForPlayer( entity player )
 void function TrackHeadLifeTime( entity player, entity head )
 {
 	head.EndSignal( "OnDestroy" )
-	table result = WaitSignal( player, "OnDeath", "OnDestroy", "PlayerEmbarkedTitan" )
-	
-	PlayMechanicalHeadRemoveFX( player )
+	//table result = WaitSignal( player, "OnDeath", "OnDestroy", "PlayerEmbarkedTitan" )
+	// try to get the moment when player is about to be killed by execution
+	// this may cause mechenical head to be destroyed earlier than player getting headshot at
+	/*
+	thread SignalWhenMarkedForExecutionDeath( player, head )
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "MarkedForExecutionDeath" )
+	if ( result.signal == "OnDeath" || result.signal == "MarkedForExecutionDeath" )
+	*/
+	table result = WaitSignal( player, "OnDeath", "OnDestroy", "AnimEvent_headshot_death", "AnimEvent_headstab_death" ) // "AnimEvent_headshot_death" and "AnimEvent_headstab_death" is a modified signal in sh_death_package.gnut, signaled when player triggers headshot death effect!
+	if ( result.signal == "OnDeath" || result.signal == "AnimEvent_headshot_death" || result.signal == "AnimEvent_headstab_death" )
+		PlayMechanicalHeadRemoveFX( player )
 	head.Destroy()
 }
 
 void function PlayMechanicalHeadRemoveFX( entity player )
 {
+	// effect should be played like TryHeadshotDeathFX() does
+	/*
+
 	// don't drop the head two times, just use a explosiopn fx
-	asset headBrokeFX = $"xo_damage_exp_1"
+	// due we want to fix executions, always drop head now
+	//asset headBrokeFX = $"xo_damage_exp_1"
+	asset headBrokeFX = $"P_headshot_pilot_robot"
 	int tagID = player.LookupAttachment( "HEADSHOT" )
 	vector fxOrg = player.GetAttachmentOrigin( tagID )
 	vector fxAng = player.GetAttachmentAngles( tagID )
+
 	entity fx = PlayFX( headBrokeFX, fxOrg, fxAng, null )
-	thread FastStopFX( fx, 0.5 )
+	// no need to fast stop head drop effect
+	//thread FastStopFX( fx, 0.5 )
+
+	*/
+
+	asset headshotFX = $"P_headshot_pilot_robot"
+	int team = player.GetTeam()
+
+	//Create friendly and enemy colored particle systems
+	entity friendlyColoredFX = CreateEntity( "info_particle_system" )
+	friendlyColoredFX.kv.start_active = 1
+	friendlyColoredFX.SetValueForEffectNameKey( headshotFX )
+	SetTeam( friendlyColoredFX, team )
+	friendlyColoredFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_FRIENDLY
+	SetTargetName( friendlyColoredFX, UniqueString() )
+	friendlyColoredFX.kv.cpoint1 = svGlobal.fx_CP_color_friendly.GetTargetName()
+	//friendlyColoredFX.SetOrigin( fxOrg )
+	//friendlyColoredFX.SetOwner( player )
+	friendlyColoredFX.SetParent( player, "HEADSHOT" )
+	DispatchSpawn( friendlyColoredFX )
+	thread DestroyAfterTime( friendlyColoredFX, 3.0 )
+
+	entity enemyColoredFX = CreateEntity( "info_particle_system" )
+	enemyColoredFX.kv.start_active = 1
+	enemyColoredFX.SetValueForEffectNameKey( headshotFX )
+	SetTeam( enemyColoredFX, team )
+	enemyColoredFX.kv.VisibilityFlags = ENTITY_VISIBLE_TO_ENEMY
+	SetTargetName( enemyColoredFX, UniqueString() )
+	enemyColoredFX.kv.cpoint1 = svGlobal.fx_CP_color_enemy.GetTargetName()
+	//friendlyColoredFX.SetOrigin( fxOrg )
+	//friendlyColoredFX.SetOwner( player )
+	enemyColoredFX.SetParent( player, "HEADSHOT" )
+	DispatchSpawn( enemyColoredFX )
+	thread DestroyAfterTime( enemyColoredFX, 3.0 )
 }
 
+void function DestroyAfterTime( entity ent, float time )
+{
+	Assert( IsNewThread(), "Must be threaded off" )
+
+	ent.EndSignal( "OnDestroy" )
+
+	wait( time )
+
+	ent.Destroy()
+}
+
+// effect should be played like TryHeadshotDeathFX() does
+/*
 void function FastStopFX( entity fx, float delay )
 {
 	wait delay
 	if ( IsValid( fx ) )
 		EffectStop( fx )
 }
+*/
 
 void function ApplyMLTGruntCamo( entity player )
 {

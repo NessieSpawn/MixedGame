@@ -63,6 +63,8 @@ function BaseGametype_Init()
 		level.titanAlwaysAvailableForTeam <- [ 0, 0, 0, 0 ]
 
 		level.missingPlayersTimeout <- null
+		// northstar new settings
+		level.customOOBTimer <- 0.0
 
 		CreateTeamColorControlPoints()
 
@@ -929,6 +931,31 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 			attacker = newAttacker
 	}
 
+	// modified here: allow player to get score when npc steal the kill!
+	if ( !attacker.IsPlayer() )
+	{
+		// This gets the last player that did damage to the entity so that we can give him the kill
+		AssistingPlayerStruct attackerInfo = GetLatestAssistingPlayerInfo( ent )
+		// only override attacker if assisting one is valid!
+		if ( IsValid( attackerInfo.player ) )
+		{
+			// also don't override if we don't allow friendly fire to add score
+			bool friendlyPlayerAssist = attackerInfo.player.GetTeam() == ent.GetTeam()
+			bool shouldOverrideAttackerForFriendlyAssist = FriendlyFire_IsEnabled() && FriendlyFire_ShouldAddScoreOnFriendlyKill()
+			if ( !friendlyPlayerAssist || shouldOverrideAttackerForFriendlyAssist )
+			{
+				attacker = attackerInfo.player
+				// Hack - attacker history isn't on client to calculate if a player should get credit for a kill when AI steals the final killing shot while a player is damaging them.
+				array<entity> playerArray = GetPlayerArray()
+				foreach ( player in playerArray )
+				{
+					Remote_CallFunction_Replay( player, "ServerCallback_SetAssistInformation", attackerInfo.damageSourceId, attacker.GetEncodedEHandle(), ent.GetEncodedEHandle(), attackerInfo.assistTime )
+				}
+			}
+		}
+	}
+	//
+
 	// modified, added via AddCallback_PlayerOrNPCKilledAttackerOverride
 	foreach ( callbackFunc in file.playerOrNPCKilledAttackerOverrideCallbacks )
 		attacker = callbackFunc( ent, attacker, damageInfo )
@@ -956,6 +983,9 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 		thread TitanVO_DelayedTitanDown( ent )
 	}
 
+	// modified here: allow player to get score from npc kills!
+	// move these checks before callbacks
+	/*
 	if ( !attacker.IsPlayer() )
 	{
 		// This gets the last player that did damage to the entity so that we can give him the kill
@@ -972,9 +1002,18 @@ bool function PlayerOrNPCKilled( entity ent, var damageInfo )
 			Remote_CallFunction_Replay( player, "ServerCallback_SetAssistInformation", attackerInfo.damageSourceId, attacker.GetEncodedEHandle(), ent.GetEncodedEHandle(), attackerInfo.assistTime )
 		}
 	}
+	*/
+	// vanilla behavior needs to be kept?
+	if ( !attacker.IsPlayer() )
+	{
+		// This gets the last player that did damage to the entity so that we can give him the kill
+		AssistingPlayerStruct attackerInfo = GetLatestAssistingPlayerInfo( ent )
+		attacker = attackerInfo.player
+		if ( !IsValid( attacker ) )
+			return true
+	}
 
-	// player attacker only from here down
-
+	// from here down, only includes player attacker thinks
 	PreScoreEventUpdateStats( attacker, ent )
 	// shared check from modified _score.nut, allow us turn off score event from killing certain entity
 	if ( !ScoreEvent_IsDisabledForEntity( ent ) )
@@ -2062,10 +2101,16 @@ void function EntityOutOfBounds( entity trigger, entity ent, entity caller, var 
 
 	//printt( "Valid Out OfBounds Entity, EntityOutOfBounds" )
 
+	// northstar new settings
+	float overridenOOBTimer = expect float( level.customOOBTimer )
 	if ( !(ent in file.outOfBoundsTable) ) //Note that we never remove the ent from the table after adding it
 	{
 		OutOfBoundsDataStruct initialDataStruct
 		initialDataStruct.timeBackInBound = max( 0, Time() - OUT_OF_BOUNDS_DECAY_TIME )
+
+		// northstar new settings
+		if( overridenOOBTimer > 0.0 )
+			initialDataStruct.timeLeftBeforeDyingFromOutOfBounds = overridenOOBTimer
 
 		ManageAddEntToOutOfBoundsTable( ent,  initialDataStruct  )
 	}
@@ -2082,6 +2127,13 @@ void function EntityOutOfBounds( entity trigger, entity ent, entity caller, var 
 		float decayTime = max( 0, Time() - dataStruct.timeBackInBound - OUT_OF_BOUNDS_DECAY_DELAY )
 		float outOfBoundsTimeRegained = decayTime * ( OUT_OF_BOUNDS_TIME_LIMIT / OUT_OF_BOUNDS_DECAY_TIME )
 		float deadTime = clamp( dataStruct.timeLeftBeforeDyingFromOutOfBounds + outOfBoundsTimeRegained, 0.0, OUT_OF_BOUNDS_TIME_LIMIT )
+
+		// northstar new settings
+		if( overridenOOBTimer > 0.0 )
+		{
+			outOfBoundsTimeRegained = decayTime * ( overridenOOBTimer / OUT_OF_BOUNDS_DECAY_TIME )
+			deadTime = clamp( dataStruct.timeLeftBeforeDyingFromOutOfBounds + outOfBoundsTimeRegained, 0.0, overridenOOBTimer )
+		}
 
 		//printt( "Decay Time: " + decayTime + ", outOfBoundsTimeRegained:" + outOfBoundsTimeRegained + ", timeLeftBeforeDyingFromOutOfBounds: " + dataStruct.timeLeftBeforeDyingFromOutOfBounds + ", deadTime: " + deadTime  )
 

@@ -112,16 +112,16 @@ WeaponData
 		{
 			"titanarmor_critical_hit_required"          "0"
 		}
-		nessie_balance
-		{
-			"damage_near_value"			"*0.5"
-			"damage_far_value"			"*0.5"
-   	 		"damage_very_far_value"		"*0.5"
-			"explosion_damage"			"*0.5"
+		// nessie_balance
+		// {
+		// 	"damage_near_value"			"*0.5"
+		// 	"damage_far_value"			"*0.5"
+   	 	// 	"damage_very_far_value"		"*0.5"
+		// 	"explosion_damage"			"*0.5"
 			
 			//"fast_swap_to"				"0"
 			//"ads_move_speed_scale"							"1.0"
-		}
+		// }
 
 		// npc usage when enabled npc headshots
 		// better not directly modifying "damage_headshot_scale" to prevent impacting player usage
@@ -140,6 +140,15 @@ WeaponData
 		fake_tf1_sprint_anim_active
 		{
 			"activitymodifier"						"satchel"
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
 		}
 	}
 
