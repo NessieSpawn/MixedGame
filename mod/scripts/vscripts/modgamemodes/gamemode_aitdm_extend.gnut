@@ -809,7 +809,11 @@ void function GruntConfig( entity soldier )
 		soldier.SetHealth( 80 )
 	}
 	
-	thread GruntTitleThink( soldier ) // specialist grunts may spawn from dropship, do a think here
+	// specialist grunts may spawn from dropship, do a think here
+	// no longer needs to think. we've already handled name change case in extra_ai_spawner.gnut( as well as model change )
+	//thread GruntTitleThink( soldier )
+	if ( isSpecialistGrunt )
+		soldier.SetTitle( GetMilitiaTitle() )
 
 	// grunt executions: 
 	Melee_SetExecutionRefsOverride( 
