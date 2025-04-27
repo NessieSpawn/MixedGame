@@ -812,6 +812,12 @@ void function GruntConfig( entity soldier )
 	// specialist grunts may spawn from dropship, do a think here
 	// no longer needs to think. we've already handled name change case in extra_ai_spawner.gnut( as well as model change )
 	//thread GruntTitleThink( soldier )
+	// just for debugging extra_ai_spawner things, seems our checks will work fine
+	/*
+	bool orgName = soldier.GetTitle() == "#NPC_SOLDIER"
+	print( "orgName is #NPC_SOLDIER: " + string( orgName ) )
+	print( "soldier.GetTitle():" + soldier.GetTitle() )
+	*/
 	if ( isSpecialistGrunt )
 		soldier.SetTitle( GetMilitiaTitle() )
 
