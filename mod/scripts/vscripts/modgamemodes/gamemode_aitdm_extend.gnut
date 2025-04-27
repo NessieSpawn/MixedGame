@@ -214,12 +214,28 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 		SetDeathCamLengthForced( 0.5 ) // don't want to display a long death cam
 		SetReplayStartDelayOverride( 1.5 ) // total of 2.0s death cam( 0.5s to enable respawn + 1.5s before replay )
 
-		// CHAOTIC needs more health( player can still easily get oneshot though )
+		// CHAOTIC
 		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
 		{
+			// pilots needs more health( can still easily get oneshot though )
 			HealthRegen_SetCustomRegenDelay( 3.0, 1.5, 1.2 ) // *0.6 regen delay 
 			HealthRegen_SetCustomRegenRate( 8.0, 16.0 ) // 2x regen rate
+
+			// enableds classic rodeo
+			// should be added AFTER we implement npc rodeo stuffs. temp disable
+			/*
+			ClassicRodeo_SetEnabled( true )
+			ClassicRodeo_SetRodeoAttackDamageScale( 1.0 ) // damage taken from classic rodeo
+			ClassicRodeo_BatteryContainerOnlyProtectsOnce( true )
+			*/
 		}
+		/*
+		else
+		{
+			// if not chaotic battle, no need to bypass titan's shield upon rodeo
+			ClassicRodeo_SetBatteryRemovalDamageFlags( damageTypes.rodeoBatteryRemoval )
+		}
+		*/
 	}
 }
 

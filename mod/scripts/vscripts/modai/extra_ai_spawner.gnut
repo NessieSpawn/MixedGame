@@ -6126,7 +6126,9 @@ void function ExtraSpawner_NPCTitanDrops( entity titan, bool standUp = true )
 			warningDuration = GetHotDropImpactTime( titan, regularTitanfallAnim )
 		}
 		// fake spawnTime to the time they actually starts thinking, so we don't get bad killreplay view
-		titan.ai.spawnTime = Time() + diff + WARPFALL_SOUND_DELAY + WARPFALL_FX_DELAY
+		//titan.ai.spawnTime = Time() + diff + WARPFALL_SOUND_DELAY + WARPFALL_FX_DELAY
+		// now we have modified settings in _base_gametype_mp.gnut to allow us offset replay start time
+		SetEntityReplayStartTimeOffset( titan, diff + WARPFALL_SOUND_DELAY + WARPFALL_FX_DELAY )
 
 		// friendly warning
 		foreach ( entity player in GetPlayerArrayOfTeam( team ) )
@@ -11840,7 +11842,9 @@ void function ExtraSpawner_SpawnReaperCanLaunchTicks( vector pos, vector rot, in
 	reaper.kv.VisibilityFlags = visibilityFlags // restore visibility after warpfall starts in spawncallbacks
 
 	// fake a spawntime to delay replay tracking, hide it's spawn
-	reaper.ai.spawnTime = Time() + 0.5
+	//reaper.ai.spawnTime = Time() + 0.5
+	// now we have modified settings in _base_gametype_mp.gnut to allow us offset replay start time
+	SetEntityReplayStartTimeOffset( reaper, 0.5 ) // this means we delay their replay by 0.5s!
 
 	// reaper highlight
 	// sp_enemy_pilot kinda bad, visible through viewmodel

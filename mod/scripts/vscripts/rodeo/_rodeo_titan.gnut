@@ -3017,12 +3017,26 @@ void function PlayerRodeoViewCone( entity player, string rodeoTargetType )
 // modified function
 void function PlayerRodeoViewCone_Classic( entity player, string rodeoTargetType )
 {
+	// ViewConeTight () not really works fine, shouldn't let players rotate towards titan
+	/*
 	player.PlayerCone_FromAnim()
+
 	// allow player to have arms model when grabbing a titan
 	// needs to clamp view cone abit
 	//ViewConeWide( player ) // not suitable
 	//ViewConeSmall( player ) // still able to see their elbow...
+
 	ViewConeTight( player )
+	*/
+
+	// copied from ViewConeTight(), while don't allow player to rotate left/down
+	player.PlayerCone_SetLerpTime( 0.5 )
+
+	player.PlayerCone_FromAnim()
+	player.PlayerCone_SetMinYaw( -15 )
+	player.PlayerCone_SetMaxYaw( 0 ) // was 15, which allows player to rotate left
+	player.PlayerCone_SetMinPitch( -15 )
+	player.PlayerCone_SetMaxPitch( 0 ) // was 15, which allows player to rotate down
 }
 
 void function OpenViewCone( entity player )
