@@ -332,7 +332,11 @@ void function GruntConfig( entity soldier )
 	ExtraSpawner_EnableNPCKnockBackImmune( soldier, true )
 	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 	
-	thread GruntTitleThink( soldier ) // specialist grunts may spawn from dropship, do a think here
+	// specialist grunts may spawn from dropship, do a think here
+	// no longer needs to think. we've already handled name change case in extra_ai_spawner.gnut( as well as model change )
+	//thread GruntTitleThink( soldier )
+	if ( isSpecialistGrunt )
+		soldier.SetTitle( GetMilitiaTitle() )
 
 	// now we use specified executions for grunt players & npcs
 	//MeleeSyncedHuman_SetHumanSizedDoClassicExecution( soldier, true ) // grunts uses classic neck snap
