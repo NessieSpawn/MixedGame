@@ -6488,6 +6488,8 @@ void function ExtraSpawner_SpawnSpecialistGruntCanEmbark( vector pos, vector rot
 	bool guardGrunt = aiSet == "npc_soldier_pve_eliteguard"
 	bool replaceAllWeapons = !sniperGrunt && !guardGrunt
 	ExtraSpawner_ApplyNPCWeapons( grunt, replaceAllWeapons )
+	// needs to remove localized string because they'll embark
+	AssignSpecialistGruntTitle( grunt, aiSet )
 	// setup grunt specific titan spawn function
 	ExtraSpawner_PilotRunsToEmbarkFallingTitan( grunt, pos, rot, team, spawnName, ExtraSpawner_SpawnTitanForGrunt )
 }
@@ -6560,6 +6562,20 @@ const float NPC_PLACED_TURRET_DAMAGE_SCALE = 0.3
 const float NPC_PLACED_TURRET_DAMAGE_SCALE_HEAVYARMOR = 0.6
 const int NPC_PLACED_TURRET_PROFICIENCY = eWeaponProficiency.VERYGOOD
 
+// we don't really want to replace model once other scripts have completed that
+// basically for our april fools mode
+const array<asset> VALID_GRUNT_MODELS =
+[
+	$"models/humans/grunts/mlt_grunt_lmg.mdl",
+	$"models/humans/grunts/imc_grunt_lmg.mdl",
+	$"models/humans/grunts/mlt_grunt_smg.mdl",
+	$"models/humans/grunts/imc_grunt_smg.mdl",
+	$"models/humans/grunts/mlt_grunt_shotgun.mdl",
+	$"models/humans/grunts/imc_grunt_shotgun.mdl",
+	$"models/humans/grunts/mlt_grunt_rifle.mdl",
+	$"models/humans/grunts/imc_grunt_rifle.mdl",
+]
+
 void function SetUpSpecialistGrunt( entity npc, string aiSet )
 {
 	//print( "Running SetUpSpecialistGrunt()" )
@@ -6567,25 +6583,34 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 	// stop any existing think
 	StopSpecialistGruntThink( npc, aiSet )
 
+	// we don't really want to overwrite model or title once other scripts have completed that
+	bool changeModel = VALID_GRUNT_MODELS.contains( npc.GetModelName() )
+	bool changeName = npc.GetTitle() == "#NPC_SOLDIER"
+
+	//print( "changeModel: " + string( changeModel ) )
+	//print( "changeName: " + string( changeName ) )
+
 	// hardcoded here..
 	int team = npc.GetTeam()
 	switch( aiSet )
 	{
 		case "npc_soldier_drone_summoner": // drone summoner grunt
-			if ( team == TEAM_MILITIA )
+			if ( changeModel )
 			{
-				//npc.SetModel( $"models/humans/heroes/mlt_hero_barker.mdl" )
-				npc.SetModel( $"models/humans/grunts/mlt_grunt_smg.mdl" ) // these grunts carrying radio on back, good for drone grunts
-			}
-			else
-			{
-				//npc.SetModel( $"models/humans/heroes/imc_hero_marder.mdl" )
-				npc.SetModel( $"models/humans/grunts/imc_grunt_smg.mdl" ) // these grunts carrying radio on back, good for drone grunts
+				if ( team == TEAM_MILITIA )
+				{
+					//npc.SetModel( $"models/humans/heroes/mlt_hero_barker.mdl" )
+					npc.SetModel( $"models/humans/grunts/mlt_grunt_smg.mdl" ) // these grunts carrying radio on back, good for drone grunts
+				}
+				else
+				{
+					//npc.SetModel( $"models/humans/heroes/imc_hero_marder.mdl" )
+					npc.SetModel( $"models/humans/grunts/imc_grunt_smg.mdl" ) // these grunts carrying radio on back, good for drone grunts
+				}
 			}
 			
-			// temp remove localized string because we want to add their capability of piloting a titan
-			//npc.SetTitle( "#NPC_SPECIALIST" )
-			npc.SetTitle( "特種步兵" )
+			if ( changeName )
+				AssignSpecialistGruntTitle( npc, aiSet )
 			npc.SetBehaviorSelector( "behavior_sp_soldier" ) // they'll throw grenade more often
 
 			string droneType = SPECIALIST_VALID_DRONETYPES[ RandomInt( SPECIALIST_VALID_DRONETYPES.len() ) ]
@@ -6595,11 +6620,11 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			break
 
 		case "npc_soldier_shield_captain": // shield captain
-			npc.SetModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" )
+			if ( changeModel )
+				npc.SetModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" )
 
-			// temp remove localized string because we want to add their capability of piloting a titan
-			//npc.SetTitle( "#NPC_SOLDIER_SHIELD_CAPTAIN" )
-			npc.SetTitle( "盾牌隊長" )
+			if ( changeName )
+				AssignSpecialistGruntTitle( npc, aiSet )
 			// force set them again here
 			npc.DisableNPCFlag( NPC_ALLOW_FLEE | NPC_ALLOW_HAND_SIGNALS | NPC_USE_SHOOTING_COVER | NPC_CROUCH_COMBAT )
 			thread WaitForShieldCaptainDrop( npc ) // start shield after being clear parented
@@ -6608,12 +6633,16 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 		case "npc_soldier_sidearm": // sniper grunt
 			//npc.SetAISettings( "npc_soldier_shield_captain" ) // re-assign aiset to shield captain: higher damage threshold
 			//npc.Signal( "ForceStopShield" ) // stop it's shield
-			if ( team == TEAM_MILITIA )
-				npc.SetModel( $"models/humans/grunts/mlt_grunt_lmg.mdl" )
-			else
-				npc.SetModel( $"models/humans/grunts/imc_grunt_lmg.mdl" )
+			if ( changeModel )
+			{
+				if ( team == TEAM_MILITIA )
+					npc.SetModel( $"models/humans/grunts/mlt_grunt_lmg.mdl" )
+				else
+					npc.SetModel( $"models/humans/grunts/imc_grunt_lmg.mdl" )
+			}
 
-			npc.SetTitle( "狙擊步兵" )
+			if ( changeName )
+				AssignSpecialistGruntTitle( npc, aiSet )
 			// behavior_sp_soldier has been reworked
 			// other specialist grunt using it will switch to AT weapons...
 			// there's a solution to assign sidearm for every specialist grunt
@@ -6641,12 +6670,16 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			break
 
 		case "npc_soldier_pve_eliteguard": // elite guard grunt
-			if ( team == TEAM_MILITIA )
-				npc.SetModel( $"models/humans/grunts/mlt_grunt_shotgun.mdl" )
-			else
-				npc.SetModel( $"models/humans/grunts/imc_grunt_shotgun.mdl" )
+			if ( changeModel )
+			{
+				if ( team == TEAM_MILITIA )
+					npc.SetModel( $"models/humans/grunts/mlt_grunt_shotgun.mdl" )
+				else
+					npc.SetModel( $"models/humans/grunts/imc_grunt_shotgun.mdl" )
+			}
 
-			npc.SetTitle( "菁英護衛" )
+			if ( changeName )
+				AssignSpecialistGruntTitle( npc, aiSet )
 			npc.kv.WeaponProficiency = eWeaponProficiency.PERFECT // they can shoot very nice
 			npc.SetBehaviorSelector( "behavior_sp_soldier" ) // they'll throw grenade more often
 
@@ -6692,9 +6725,11 @@ void function SetUpSpecialistGrunt( entity npc, string aiSet )
 			break
 
 		case "npc_soldier_training_sentry": // turret grunt
-			npc.SetModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" )
+			if ( changeModel )
+				npc.SetModel( $"models/humans/grunts/imc_grunt_shield_captain.mdl" )
 
-			npc.SetTitle( "砲塔工程師" )
+			if ( changeName )
+				AssignSpecialistGruntTitle( npc, aiSet )
 
 			// setup turret placement
 			const int totalTurretSettings = 3 // set to 3 if we want to enable hitscan turret
@@ -6749,6 +6784,36 @@ void function StopSpecialistGruntThink( entity npc, string aiSet )
 
 		case "npc_soldier_training_sentry": // turret grunt
 			npc.Signal( "ForceStopTurretPlacement" ) // stop it's turret placement think
+			break
+	}
+}
+
+void function AssignSpecialistGruntTitle( entity npc, string aiSet )
+{
+	switch( aiSet )
+	{
+		case "npc_soldier_drone_summoner": // drone summoner grunt
+			// temp remove localized string because we want to add their capability of piloting a titan
+			//npc.SetTitle( "#NPC_SPECIALIST" )
+			npc.SetTitle( "特種步兵" )
+			break
+
+		case "npc_soldier_shield_captain": // shield captain
+			// temp remove localized string because we want to add their capability of piloting a titan
+			//npc.SetTitle( "#NPC_SOLDIER_SHIELD_CAPTAIN" )
+			npc.SetTitle( "盾牌隊長" )
+			break
+
+		case "npc_soldier_sidearm": // sniper grunt
+			npc.SetTitle( "狙擊步兵" )
+			break
+
+		case "npc_soldier_pve_eliteguard": // elite guard grunt
+			npc.SetTitle( "菁英護衛" )
+			break
+
+		case "npc_soldier_training_sentry": // turret grunt
+			npc.SetTitle( "砲塔工程師" )
 			break
 	}
 }

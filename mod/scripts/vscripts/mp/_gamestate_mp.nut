@@ -1588,6 +1588,13 @@ bool function DefaultCallback_TryUseProjectileReplay( entity victim, entity atta
 	entity inflictor = DamageInfo_GetInflictor( damageInfo )
 	if ( IsValid( inflictor ) )
 	{
+		// debugging for triple threat
+		/*
+		print( "inflictor: " + string( inflictor ) )
+		if ( inflictor.IsProjectile() && inflictor.GetProjectileWeaponSettingBool( eWeaponVar.projectile_killreplay_enabled ) )
+			print( "inflictor.GetProjectileWeaponSettingBool( eWeaponVar.projectile_killreplay_enabled ): " + string( inflictor.GetProjectileWeaponSettingBool( eWeaponVar.projectile_killreplay_enabled ) ) )
+		*/
+
 		if ( inflictor.IsProjectile() && inflictor.GetProjectileWeaponSettingBool( eWeaponVar.projectile_killreplay_enabled ) )
 			return true
 	}
@@ -1597,10 +1604,13 @@ bool function DefaultCallback_TryUseProjectileReplay( entity victim, entity atta
 
 bool function ShouldUseProjectileReplay( entity victim, entity attacker, var damageInfo, bool isRoundEnd )
 {
+	// DEBUGGING for triple threat
+	//return true
+
 	if ( file.tryUseProjectileReplayCallback != null )
 		return file.tryUseProjectileReplayCallback( victim, attacker, damageInfo, isRoundEnd )
 	
-	// default to true (always do projectile replay)
+	// default to true (always do projectile replay), northstar behavior
 	return true
 }
 
