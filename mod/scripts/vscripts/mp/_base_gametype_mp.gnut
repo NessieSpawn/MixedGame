@@ -33,6 +33,7 @@ global function PlayerWatchesKillReplayWrapper // this function should share wit
 global function PlayerClassChangeToSpectator // shared with other files such _spectator.gnut
 global function SetPlayerCameraToIntermissionCam // shared
 global function GetReplayTimeSinceAttackerSpawned // shared with _gamestate_mp.nut
+global function SetEntityReplayStartTimeOffset // shared with _ai_gamemodes.gnut and extra_ai_spawner.gnut. allowing us offset reaper's replay start time while not changing their .ai.spawnTime
 global function StopKillReplayForPlayer // shared with _gamestate_mp.nut
 
 global function IsPlayerDeathsHidden // new added
@@ -95,6 +96,7 @@ struct
 	table<entity, bool> playerDisableForcedRespawn
 	float respawnDelayForced
 	table<entity, float> playerRespawnDelayForced
+	table<entity, float> entReplayStartTimeOffset
 
 	bool enableLateRespawn = true
 	array<string> respawnedPlayerUIDs = []
@@ -1038,9 +1040,21 @@ float function GetReplayTimeSinceAttackerSpawned( entity attacker )
 			timeSinceAttackerSpawned = Time() - GetPlayerLastRespawnTime( attacker )
 		else if ( attacker.IsNPC() ) // npc
 			timeSinceAttackerSpawned = Time() - attacker.ai.spawnTime
+
+		// overrides: allowing offset replay start time for warpfall entities such as reapers
+		if ( attacker in file.entReplayStartTimeOffset )
+			timeSinceAttackerSpawned += file.entReplayStartTimeOffset[ attacker ]
 	}
 
 	return timeSinceAttackerSpawned
+}
+
+void function SetEntityReplayStartTimeOffset( entity ent, float offset )
+{
+	if ( !( ent in file.entReplayStartTimeOffset ) )
+		file.entReplayStartTimeOffset[ ent ] <- 0.0
+	if ( offset >= 0 ) // never offset value lower than 0 because in that case entity not yet spawned, replay will select a random npc
+		file.entReplayStartTimeOffset[ ent ] = offset
 }
 
 //void function PlayerWatchesKillReplayWrapper( entity player, entity attacker, float timeSinceAttackerSpawned, float timeOfDeath, float beforeTime, table replayTracker )

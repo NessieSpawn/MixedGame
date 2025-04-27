@@ -1010,6 +1010,20 @@ void function PlayShieldBreakEffect_Server( entity ent )
 
 void function PlayShieldActivateEffect_Server( entity ent )
 {
+    // so... actually we do need check their spawn time because on client-side we can't recognize shield value on newly spawned entities
+    float timeSinceEntSpawned = 0
+    if ( ent.IsPlayer() ) // player
+        timeSinceEntSpawned = Time() - GetPlayerLastRespawnTime( ent )
+    else if ( ent.IsNPC() ) // npc
+        timeSinceEntSpawned = Time() - ent.ai.spawnTime
+
+    //print( "timeSinceEntSpawned: " + string( timeSinceEntSpawned ) )
+    if ( timeSinceEntSpawned <= 0.2 ) // handles first 2 server frames to simulate client-side sync
+    {
+        //print( "not playing any shield effect!" )
+        return
+    }
+
 	entity shieldEnt = ent
 	if ( IsSoul( ent ) )
 	{
