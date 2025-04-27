@@ -1049,7 +1049,10 @@ float function GetReplayTimeSinceAttackerSpawned( entity attacker )
 
 		// overrides: allowing offset replay start time for warpfall entities such as reapers
 		if ( attacker in file.entReplayStartTimeOffset )
-			timeSinceAttackerSpawned += file.entReplayStartTimeOffset[ attacker ]
+		{
+			timeSinceAttackerSpawned -= file.entReplayStartTimeOffset[ attacker ]
+			//print( "file.entReplayStartTimeOffset[ attacker ]: " + string( file.entReplayStartTimeOffset[ attacker ] ) )
+		}
 	}
 
 	return timeSinceAttackerSpawned
