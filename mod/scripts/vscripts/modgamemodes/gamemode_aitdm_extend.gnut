@@ -640,8 +640,8 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 	array<string> mods
 	switch ( newWeapon )
 	{
-		case "mp_titanweapon_sticky_40mm"
-			mods.append( "atlas_40mm" ) // do need a mod to buff their damage without
+		case "mp_titanweapon_sticky_40mm":
+			mods.append( "npc_human_usage" ) // do need a mod to buff their damage without
 			break
 		case "mp_titanweapon_triplethreat":
 			mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
