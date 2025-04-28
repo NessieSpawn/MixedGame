@@ -3035,7 +3035,7 @@ void function PlayerRodeoViewCone_Classic( entity player, string rodeoTargetType
 	player.PlayerCone_FromAnim()
 	player.PlayerCone_SetMinYaw( -45 ) // was -15. should've allow players shoot bullets through?
 	player.PlayerCone_SetMaxYaw( 0 ) // was 15, which allows player to rotate left
-	player.PlayerCone_SetMinPitch( -179 ) //  was -15.should've allow players shoot bullets through?
+	player.PlayerCone_SetMinPitch( -30 ) // was -15. once tried -179 but it may cause too much motion, feels pretty bad
 	player.PlayerCone_SetMaxPitch( 0 ) // was 15, which allows player to rotate down
 	// this fucks up everything
 	//player.EnableWorldSpacePlayerEyeAngles() // can this fix player unable to shoot bullets through titan?
