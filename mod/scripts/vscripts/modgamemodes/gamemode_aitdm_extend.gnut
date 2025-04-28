@@ -741,8 +741,15 @@ entity function GiveNessyProjectileMod( entity ent, entity weapon )
 				mods.removebyvalue( mod )
 		}
 	}
-	//else
-	//	print( "omg this npc has titan weapon" )
+	/*
+	else
+	{
+		print( "omg this npc has titan weapon" )
+		print( "weaponName: " + weapon.GetWeaponClassName() )
+		foreach ( string mod in mods )
+			print( "mod: " + mod )
+	}
+	*/
 	mods.append( "fake_nessy_weapon" )
 
 	// main weapons
