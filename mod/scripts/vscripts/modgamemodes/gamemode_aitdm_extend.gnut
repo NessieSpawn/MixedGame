@@ -642,14 +642,28 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 	switch ( newWeapon )
 	{
 		case "mp_titanweapon_sticky_40mm":
-			mods.append( "npc_human_usage" ) // do need a mod to buff their damage without
+			// maybe keep behavior consist as player atlas titan?
+			//mods.append( "npc_human_usage" ) // do need a mod to buff their damage without tracker rockets
+			mods.append( "atlas_40mm" )
 			break
 		case "mp_titanweapon_triplethreat":
-			mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
+			// maybe keep behavior consist as player ogre titan?
+			//mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
+			if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
+			{
+				mods.append( "fake_magnetic_triplethreat" )
+				mods.append( "ogre_triplethreat" )
+			}
+			else
+			{
+				mods.append( "disable_default_magnetic" )
+				mods.append( "ogre_triplethreat_no_magnetic" )
+			}
 			break
 		case "mp_titanweapon_rocketeer_rocketstream":
-			//mods.append( "brute_rocket" ) // maybe better use brute4_quad_rocket to have constant behavior with npc titans...? idk
-			mods.append( "brute4_quad_rocket" )
+			// or maybe keep behavior consist as player brute titan?
+			mods.append( "brute_rocket" ) // maybe better use brute4_quad_rocket to have constant behavior with npc titans...? idk
+			//mods.append( "brute4_quad_rocket" )
 			break
 	}
 	entity weapon = soldier.GiveWeapon( newWeapon, mods )
@@ -718,11 +732,15 @@ entity function GiveNessyProjectileMod( entity ent, entity weapon )
 
 	// seems we'll have to use SetMod() to change weapon model
 	// still not working fine...  do we have to replace the weapon manually?
-	array<string> mods = weapon.GetMods()
-	foreach ( string mod in mods )
+	// skip this check for titan weapons!!! they should've get their own mods
+	if ( weapon.GetWeaponInfoFileKeyField( "weaponClass" ) != "titan" )
 	{
-		if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
-			mods.removebyvalue( mod )
+		array<string> mods = weapon.GetMods()
+		foreach ( string mod in mods )
+		{
+			if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
+				mods.removebyvalue( mod )
+		}
 	}
 	mods.append( "fake_nessy_weapon" )
 

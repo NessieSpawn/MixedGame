@@ -84,8 +84,13 @@ WeaponData
 			"explosion_damage_heavy_armor"				"*2.2" // 440
 			//"critical_hit_damage_scale"				"--0.4" // 1.1
 			"fire_rate"   								"--0.25" // 1.5
+
+			// npc usage for whatever
+			"npc_damage_near_value"						"*3" // 300
+			"npc_damage_near_value_titanarmor"			"*2.4" // 720
+			"npc_damage_far_value_titanarmor" 			"*3" // 600
 		}
-		atlas_40mm_burst // 3 burst per charge. use together with atlas_40mm, pas_tone_burst and fd_tone_weapon_2
+		atlas_40mm_burst // 3 burst per charge. use together with atlas_40mm, pas_tone_burst( optionally fd_tone_weapon_2 )
 		{
 			"fire_rate"   								"++0.25" // 1.75, same as normal 40mm's
 			"burst_fire_delay"							"++0.35" // 1.1, less desync for client
@@ -94,6 +99,11 @@ WeaponData
 			"damage_near_value_titanarmor"				"*0.417" // ~300
 			"damage_far_value_titanarmor" 				"*0.417" // 300
 			"explosion_damage"							"*0.34" // 25
+
+			"npc_damage_near_value"						"*0.134" // 40
+			"npc_damage_far_value"						"*0.294118" // ~25
+			"npc_damage_near_value_titanarmor"			"*0.417" // ~300
+			"npc_damage_far_value_titanarmor" 			"*0.4" // 200
 		}
 
 		// pilot usage
