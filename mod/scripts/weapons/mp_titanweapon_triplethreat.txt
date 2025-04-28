@@ -42,7 +42,8 @@ WeaponData
 	// northstar missing projectile kill replay
 	// this won't work idk why...
 	// don't you tell me this thing has client-side handle?
-	"projectile_killreplay_enabled"					"1"
+	// maybe just remove. keep it consist that titan weapons never do projectile kill replay
+	//"projectile_killreplay_enabled"					"1"
 
 	MP_BASE
 	{
@@ -508,7 +509,7 @@ WeaponData
 			"bounce_effect_table"							"bounce_arc"
 
 			// no longer has explosion delay, remove killreplay
-			"projectile_killreplay_enabled"					"1"
+			//"projectile_killreplay_enabled"					"1"
 		}
 
         rolling_rounds
