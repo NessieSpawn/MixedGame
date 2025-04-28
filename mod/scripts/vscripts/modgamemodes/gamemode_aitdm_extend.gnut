@@ -731,16 +731,18 @@ entity function GiveNessyProjectileMod( entity ent, entity weapon )
 
 	// seems we'll have to use SetMod() to change weapon model
 	// still not working fine...  do we have to replace the weapon manually?
+	array<string> mods = weapon.GetMods()
 	// skip this check for titan weapons!!! they should've get their own mods
 	if ( weapon.GetWeaponInfoFileKeyField( "weaponClass" ) != "titan" )
 	{
-		array<string> mods = weapon.GetMods()
 		foreach ( string mod in mods )
 		{
 			if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
 				mods.removebyvalue( mod )
 		}
 	}
+	//else
+	//	print( "omg this npc has titan weapon" )
 	mods.append( "fake_nessy_weapon" )
 
 	// main weapons
