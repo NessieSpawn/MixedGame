@@ -60,6 +60,9 @@ WeaponData
 			// I think titan weapons don't use raise_time at all
 			// but whatever, stryder don't have multiple weapons so this is all good
 			//"raise_time"								"1.0"
+
+			// npc usage for whatever
+			"npc_damage_far_value_titanarmor"			"--5" // 95
 		}
 
 		// Rebalanced weapon
@@ -75,6 +78,9 @@ WeaponData
 			"reloadempty_time"								"*1.27" // ~3.3s
 			"reloadempty_time_late1"						"*1.27"
 			"reloadempty_time_late2"						"*1.27"
+
+			// npc usage for whatever
+			"npc_damage_far_value_titanarmor"				"--5" // 95
 		}
 
 		// pilot usage
