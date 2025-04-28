@@ -1,7 +1,7 @@
 {
 	"Name" : "Nessy Attrition Extended",
 	"Description" : "Happy April Fools Day",
-	"Version": "1.1.5",
+	"Version": "1.1.6",
 	"LoadPriority": 3,
 
 	"Scripts": [
