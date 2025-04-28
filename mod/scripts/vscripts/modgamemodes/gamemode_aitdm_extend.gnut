@@ -742,8 +742,15 @@ entity function GiveNessyProjectileMod( entity ent, entity weapon )
 				mods.removebyvalue( mod )
 		}
 	}
-	//else
-	//	print( "omg this npc has titan weapon" )
+	/*
+	else
+	{
+		print( "omg this npc has titan weapon" )
+		print( "weaponName: " + weapon.GetWeaponClassName() )
+		foreach ( string mod in mods )
+			print( "mod: " + mod )
+	}
+	*/
 	mods.append( "fake_nessy_weapon" )
 
 	// main weapons
@@ -867,7 +874,14 @@ void function GruntConfig( entity soldier )
 	{
 		// grunt specific faction leader models!
 		if ( isSpecialistGrunt )
+		{
 			soldier.SetModel( VALID_SPECIALIST_GRUNT_MODELS[ RandomInt( VALID_SPECIALIST_GRUNT_MODELS.len() ) ] )
+			// pilot executions: 
+			Melee_SetExecutionRefsOverride( 
+				soldier, 
+				["execution_telefrag", "execution_stim", "execution_grapple", "execution_pulseblade", "execution_cloak", "execution_holopilot", "execution_ampedwall"]
+			)
+		}
 		else
 		{
 			// random model from teams

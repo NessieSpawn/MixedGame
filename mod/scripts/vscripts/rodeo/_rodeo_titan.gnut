@@ -3033,10 +3033,11 @@ void function PlayerRodeoViewCone_Classic( entity player, string rodeoTargetType
 	player.PlayerCone_SetLerpTime( 0.5 )
 
 	player.PlayerCone_FromAnim()
-	player.PlayerCone_SetMinYaw( -15 )
+	player.PlayerCone_SetMinYaw( -45 ) // was -15. should've allow players shoot bullets through?
 	player.PlayerCone_SetMaxYaw( 0 ) // was 15, which allows player to rotate left
-	player.PlayerCone_SetMinPitch( -15 )
+	player.PlayerCone_SetMinPitch( -179 ) //  was -15.should've allow players shoot bullets through?
 	player.PlayerCone_SetMaxPitch( 0 ) // was 15, which allows player to rotate down
+	player.EnableWorldSpacePlayerEyeAngles() // can this fix player unable to shoot bullets through titan?
 }
 
 void function OpenViewCone( entity player )
