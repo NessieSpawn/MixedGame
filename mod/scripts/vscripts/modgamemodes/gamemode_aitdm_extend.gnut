@@ -369,6 +369,10 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 			// update weapon clip size after mod change... though GiveExtraWeaponMod() should already handled it
 			try { weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() ) } // anti-crash for charge weapons
 			catch(ex1) {}
+
+			// remove weapon skin
+			weapon.SetSkin( 0 )
+			weapon.SetCamo( 0 )
 		}
 
 		foreach ( entity weapon in player.GetOffhandWeapons() )
@@ -376,7 +380,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 	}
 }
 
-// altpilot updates camo to active loadout, needs to handle that by waiting for next frame( 1/60s actually )
+// altpilot updates camo to active loadout, needs to handle that by waiting for next frame( only 1/60s delay at our framerate )
 void function DelayedRemovePlayerSkinCamo( entity player )
 {
 	player.EndSignal( "OnDestroy" )
@@ -1172,7 +1176,12 @@ void function TitanConfig( entity soldier )
 
 		// change projectile model
 		foreach ( entity weapon in soldier.GetMainWeapons() )
+		{
 			GiveNessyProjectileMod( soldier, weapon )
+			// remove weapon skin
+			weapon.SetSkin( 0 )
+			weapon.SetCamo( 0 )
+		}
 		foreach ( entity weapon in soldier.GetOffhandWeapons() )
 			GiveNessyProjectileMod( soldier, weapon )
 	}
