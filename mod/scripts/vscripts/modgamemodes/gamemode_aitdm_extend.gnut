@@ -188,9 +188,14 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 	// APRIL FOOLS SPECIAL settings
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
+		// for us handling npc weapons
+		RegisterSignal( "GiveHumanTitanWeapon_Threaded" )
+
 		// random player model
 		AltPilot_SetPlayerModelAllRandom( true )
 		AltPilot_SetShouldReplacePlayerSettings( true )
+		AltPilot_SetShouldRemovePlayerCamo( true ) // keep camo disabled. we also needs to handle camo in this script!
+		RegisterSignal( "DelayedRemovePlayerSkinCamo" )
 		SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
 
 		// model stuffs
@@ -307,8 +312,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
 		// remove pilot skin
-		player.SetSkin( 0 )
-		player.SetCamo( 0 )
+		thread DelayedRemovePlayerSkinCamo( player )
 
 		// NOT WORKING FINE
 		//player.GiveExtraWeaponMod( "fake_nessy_weapon" )
@@ -371,6 +375,18 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 		foreach ( entity weapon in player.GetOffhandWeapons() )
 			GiveNessyProjectileMod( player, weapon )
 	}
+}
+
+// altpilot updates camo to active loadout, needs to handle that by waiting for next frame( 1/60s actually )
+void function DelayedRemovePlayerSkinCamo( entity player )
+{
+	player.EndSignal( "OnDestroy" )
+	player.Signal( "DelayedRemovePlayerSkinCamo" )
+	player.EndSignal( "DelayedRemovePlayerSkinCamo" )
+	WaitEndFrame()
+
+	player.SetSkin( 0 )
+	player.SetCamo( 0 )
 }
 
 void function InitModdedSpawnSettings()
@@ -629,6 +645,8 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 {
 	soldier.EndSignal( "OnDestroy" )
 	soldier.EndSignal( "OnDeath" )
+	soldier.Signal( "GiveHumanTitanWeapon_Threaded" )
+	soldier.EndSignal( "GiveHumanTitanWeapon_Threaded" )
 	WaitEndFrame() // droppod npcs' squad name gets assigned later after spawn, needs to handle it
 
 	string squadName = expect string( soldier.kv.squadname )
