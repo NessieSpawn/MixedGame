@@ -152,7 +152,7 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 
 			vector attackVec = attackParams.dir + rightVec + upVec
 
-			// adding fix from tf|1: upper and lower grenade travel speed greatly increased. only occur when not using hydraulic_launcher
+			// adding fix from tf|1: upper and middle grenade travel speed greatly increased. only occur when not using hydraulic_launcher
 			// due to that, needs to fix client-side impact visual
 			bool isFixedGrenade = false
 			if (weapon.HasMod("hydraulic_launcher"))
@@ -161,14 +161,14 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 			{
 				switch ( i )
 				{
+					case 0: // middle grenade?
+						// faster than lower grenade
+						attackVec *= 1.4
+						isFixedGrenade = true
+						break
 					case 1: // upper grenade?
 						// fastest grenade
 						attackVec *= 1.8
-						isFixedGrenade = true
-						break
-					case 2: // lower grenade?
-						// faster than middle grenade
-						attackVec *= 1.4
 						isFixedGrenade = true
 						break
 				}
@@ -195,7 +195,7 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	return 3
 }
 
-// adding fix from tf|1: upper and lower grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+// adding fix from tf|1: upper and middle grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
 //function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null )
 function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null, bool fixVisual = false )
 {
@@ -262,7 +262,7 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 				//EmitSoundOnEntity( nade, "Weapon_R1_MGL_Grenade_Emitter" )
 			}
 
-			// adding fix from tf|1: upper and lower grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+			// adding fix from tf|1: upper and middle grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
 			if ( fixVisual )
 				nade.s.fixImpactEffect <- true
 		#else
