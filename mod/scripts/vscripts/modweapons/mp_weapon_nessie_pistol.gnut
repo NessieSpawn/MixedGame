@@ -327,7 +327,7 @@ void function NessieLifetime( entity drone, entity nessie, float delay )
 			{
 				// fake explode effect
 				PlayFX( $"P_plasma_exp_SM", drone.GetOrigin(), drone.GetAngles() )
-				EmitSoundAtPosition( TEAM_UNASSIGNED, drone.GetOrigin(), "explo_plasma_small" )
+				EmitSoundAtPosition( drone.GetTeam(), drone.GetOrigin(), "explo_plasma_small" )
 				drone.Destroy()
 			}
 		}

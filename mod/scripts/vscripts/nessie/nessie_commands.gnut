@@ -199,7 +199,7 @@ void function DelayedDissolvePlayer( entity player, int dissovleType )
 	if ( IsValid( player ) && !IsAlive( player ) )
 	{
 		player.Dissolve( dissovleType, Vector( 0, 0, 0 ), 500 )
-		EmitSoundAtPosition( TEAM_UNASSIGNED, player.GetOrigin(), "Object_Dissolve" )
+		EmitSoundAtPosition( ent.GetTeam(), player.GetOrigin(), "Object_Dissolve" )
 	}
 }
 
