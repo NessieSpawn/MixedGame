@@ -107,7 +107,8 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	//
 	// fix sound for ttf2!!!
 	// change to be in new updated mp_titanweapon_triplethreat.txt
-	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
+	// nah. let's just keep behavior constant due that "spectrelauncher_ai_wpnfire" don't have team-based sound
+	weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
 
 	#if CLIENT
 		if ( !playerFired )
