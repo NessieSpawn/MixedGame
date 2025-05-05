@@ -414,10 +414,14 @@ void function SetBTLoadout( entity titan )
 	titan.GiveWeapon( "mp_titanweapon_xo16_shorty", ["fakebt_balance"] ) // ["burst", "fakebt_balance", "fakebt_balance_burst"]
 	//titan.GiveWeapon( "mp_titanweapon_xo16_vanguard" )
 	// shared settings from titan_replace.gnut, allow us toggle triple threat weapon's magnetic
+	// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+	/*
 	if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
 		titan.GiveWeapon( "mp_titanweapon_triplethreat", ["fake_magnetic_triplethreat", "fakebt_balance"] )
 	else
 		titan.GiveWeapon( "mp_titanweapon_triplethreat", ["disable_default_magnetic", "fakebt_balance_no_magnetic"] )
+	*/
+	titan.GiveWeapon( "mp_titanweapon_triplethreat", ["disable_default_magnetic", "classic_ads_grenade", "fakebt_balance_no_magnetic"] )
 	//titan.GiveWeapon( "mp_titanweapon_meteor" )
 	//titan.GiveWeapon( "mp_titanweapon_sticky_40mm" )
 	titan.GiveWeapon( "mp_titanweapon_rocketeer_rocketstream", ["fakebt_balance", "disable_run_and_gun_server"] )

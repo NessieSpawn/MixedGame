@@ -605,6 +605,17 @@ WeaponData
 		fake_nessy_weapon
 		{
 		}
+
+		// to fix behavior same as tf|1: ads grenade launches much faster. always use together with disable_default_magnetic!
+		classic_ads_grenade
+		{
+			// damage needs to scale down due to extended range
+			"explosion_damage"								"*0.9"
+			"explosion_damage_heavy_armor"					"*0.9" // 495. just good to not hitting a titan over 1 segment
+			
+			"npc_explosion_damage"							"*0.9"
+			"npc_explosion_damage_heavy_armor"				"*0.9"
+		}
 	}
 	active_crosshair_count				"1"
 	crosshair_index					"0"
