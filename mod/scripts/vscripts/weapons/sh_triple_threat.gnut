@@ -77,6 +77,8 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 		shouldCreateProjectile = true
 
 	// fix fire sound for ttf2
+	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
+	/*
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
@@ -92,6 +94,31 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
 			//EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
 			EmitSoundOnEntity( weaponOwner, "Weapon_MGL_Fire_3P" )
+		}
+	#endif
+	*/
+	#if SERVER
+		if( weaponOwner.IsPlayer() )
+		{
+			int friendlyTeam = weaponOwner.GetTeam()
+			array<entity> players = GetPlayerArray()
+
+			// don't do sound on owner or friendly players
+			foreach ( player in players )
+			{
+				if ( player == weaponOwner )
+					continue
+				if ( player.GetTeam() == friendlyTeam )
+					continue
+
+				EmitSoundOnEntityOnlyToPlayer( weapon, player, "spectrelauncher_ai_wpnfire" )
+			}
+		}
+		else
+		{
+			// enemy sound ONLY
+			// modified function in _utility.gnut
+			EmitSoundOnEntityExceptToTeam( weapon, "spectrelauncher_ai_wpnfire", weaponOwner.GetTeam() )
 		}
 	#endif
 	//
