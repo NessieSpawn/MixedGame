@@ -97,14 +97,16 @@ WeaponData
 
 	"sound_dryfire"									"titan_dryfire"
 	// updating sound here: most of tf1 sounds ain't working well in tf2
-	//"fire_sound_1_player_1p"						"weapon_triplethreat_fire_1p"
-	//"fire_sound_1_player_3p"						"weapon_triplethreat_fire_3p"
-	//"fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
-	//"sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
-	//"sound_zoom_out"								"Weapon_Triple_Threat.ALT_Off"
+	// EDIT: sounds now done in script, basic sound still needs to be played
+	"fire_sound_1_player_1p"						"weapon_triplethreat_fire_1p"
+	"fire_sound_1_player_3p"						"weapon_triplethreat_fire_3p"
+	"fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
+	// welp we've changed tp sound, maybe just keep same as NSCN does
+	"sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
+	"sound_zoom_out"								"Weapon_Triple_Threat.ALT_Off"
 
-	//"low_ammo_sound_name_1"							"mgl_lowammo_shot1"
-	//"low_ammo_sound_name_2"							"mgl_lowammo_shot2"
+	"low_ammo_sound_name_1"							"mgl_lowammo_shot1"
+	"low_ammo_sound_name_2"							"mgl_lowammo_shot2"
 
 	// from reaper's tick launcher
 	//"fire_sound_1_player_1p"						"spectrelauncher_ai_wpnfire"
@@ -118,11 +120,12 @@ WeaponData
 	// "fire_sound_2_npc"								"weapon_triplethreat_fire_3p"
 
 	// from leadwall
-	"sound_zoom_in"									"Weapon_EVA8_ADS_In"
-	"sound_zoom_out"								"Weapon_EVA8_ADS_Out"
+	// welp we've changed tp sound, maybe just keep same as NSCN does
+	// "sound_zoom_in"									"Weapon_EVA8_ADS_In"
+	// "sound_zoom_out"								"Weapon_EVA8_ADS_Out"
 
-	"low_ammo_sound_name_1"							"Leadwall_LowAmmo_Shot1"
-	"low_ammo_sound_name_2"							"Leadwall_LowAmmo_Shot2"
+	// "low_ammo_sound_name_1"							"Leadwall_LowAmmo_Shot1"
+	// "low_ammo_sound_name_2"							"Leadwall_LowAmmo_Shot2"
 
 	"fx_muzzle_flash_view"							"wpn_muzzleflash_xo_triple_fp"
 	"fx_muzzle_flash_world"							"wpn_muzzleflash_xo_triple"

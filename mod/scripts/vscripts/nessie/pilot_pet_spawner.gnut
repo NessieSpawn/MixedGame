@@ -173,6 +173,9 @@ void function DisableDroneSound( entity drone ) // annoying sound!
 	WaitFrame()
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 void function TrackNessieLifeTime( entity pet, entity nessie )
