@@ -80,17 +80,23 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
-			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" ) //Weapon_MGL_Fire_1P
-			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			// welp we've changed tp sound, maybe just keep same as NSCN does
+			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" ) //Weapon_MGL_Fire_1P
+			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
+			//EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_1P" )
+			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_3P" )
 		}
 		else
-			EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+		{
+			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
+			//EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntity( weaponOwner, "Weapon_MGL_Fire_3P" )
+		}
 	#endif
 	//
 	// fix sound for ttf2!!!
-	// change to be in new updated mp_titanweapon_triplethreat.txt
-	// nah. let's just keep behavior constant due that "spectrelauncher_ai_wpnfire" don't have team-based sound
-	weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
+	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
 
 	#if CLIENT
 		if ( !playerFired )
