@@ -164,7 +164,7 @@ void function OnProjectileCollision_weapon_wrecking_ball( entity projectile, vec
         return
     }
     //if( curBounceCount > 2 ) // so owner won't receive loud noise, well it's still very noisy
-        //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Android_ReaperMelee_Impact_3p_vs_3p" )
+        //EmitSoundAtPosition( projectile.GetTeam(), pos, "Android_ReaperMelee_Impact_3p_vs_3p" )
     if( hitEnt.IsPlayer() || hitEnt.IsNPC() ) // actually this will never explode, since this grenade has bounced once
     {
         if( hitEnt.GetTeam() != projectile.GetTeam() )
@@ -307,7 +307,7 @@ void function OnProjectileCollision_weapon_wrecking_ball( entity projectile, vec
 #if SERVER
 void function WreckingBallExplode( entity projectile, entity owner, vector expOrigin = < 0,0,0 > )
 {
-    //EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "beacon_straton_missilefire_rocketexplo" )
+    //EmitSoundAtPosition( projectile.GetTeam(), projectile.GetOrigin(), "beacon_straton_missilefire_rocketexplo" )
     vector padAngles = projectile.proj.savedAngles
     vector origin = projectile.GetOrigin()
     FireSpeedPad( owner, origin, padAngles, 1, SPEED_PAD_LAUNCH_POWER_EXPLOSION )
