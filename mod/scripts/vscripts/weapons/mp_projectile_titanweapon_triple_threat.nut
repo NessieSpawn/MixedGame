@@ -143,7 +143,8 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 			if ( GetShieldHealthWithFix( victim ) > 0 )
 				playVictimSound = false
 		}
-		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_1P" )
+		if ( playVictimSound )
+			EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_1P" )
 	}
 	if ( IsValid( owner ) && owner.IsPlayer() )
 	{
