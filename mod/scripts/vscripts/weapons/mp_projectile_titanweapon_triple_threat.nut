@@ -125,7 +125,7 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	entity victim
 	entity owner = projectile.GetOwner()
 	int team = projectile.GetTeam()
-	if ( ( collisionPlayer in projectile.s ) && IsValid( projectile.s.collisionPlayer ) )
+	if ( ( "collisionPlayer" in projectile.s ) && IsValid( projectile.s.collisionPlayer ) )
 	{
 		victim = expect entity( projectile.s.collisionPlayer )
 		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_1P" )
