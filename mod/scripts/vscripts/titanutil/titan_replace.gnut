@@ -1626,7 +1626,7 @@ void function TitanReplace_BecomeOgre( entity titan, bool isPickup = false, bool
 				else
 					titan.GiveWeapon ("mp_titanweapon_triplethreat", ["disable_default_magnetic", "ogre_triplethreat_no_magnetic"])
 				*/
-				titan.GiveWeapon ("mp_titanweapon_triplethreat", ["disable_default_magnetic", "classic_ads_grenade"])
+				titan.GiveWeapon ("mp_titanweapon_triplethreat", ["disable_default_magnetic", "classic_ads_grenade", "ogre_triplethreat_no_magnetic"])
 
 				//Defence
 				if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
@@ -3163,7 +3163,7 @@ entity function OgreWeaponWeaponPropFunc( entity weapon, vector origin, vector a
 	if ( weaponName != "mp_titanweapon_triplethreat" )
 		return // return empty will cancel the weapon drop
 	
-	if ( !mods.contains( "ogre_triplethreat" ) )
+	if ( !mods.contains( "ogre_triplethreat" ) && !mods.contains( "ogre_triplethreat_no_magnetic" ) )
 		return
 	
 	asset modelName = $"models/weapons/titan_triple_threat_og/w_titan_triple_threat_og.mdl"
@@ -3180,7 +3180,7 @@ string function OgreWeaponDisplayNameFunc( entity weapon )
 	if ( weaponName != "mp_titanweapon_triplethreat" )
 		return "" // return empty will cancel the weapon drop
 	
-	if ( !mods.contains( "ogre_triplethreat" ) )
+	if ( !mods.contains( "ogre_triplethreat" ) && !mods.contains( "ogre_triplethreat_no_magnetic" ) )
 		return ""
 
 	return "巨妖 技能組"
