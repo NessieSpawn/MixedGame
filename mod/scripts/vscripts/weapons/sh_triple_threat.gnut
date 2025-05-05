@@ -110,7 +110,9 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	// change to be in new updated mp_titanweapon_triplethreat.txt
 	// nah. let's just keep behavior constant due that "spectrelauncher_ai_wpnfire" don't have team-based sound
 	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
-	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
+	weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
+	// whatever I'm doing fuck myself
+	/*
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
@@ -135,6 +137,7 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 			EmitSoundOnEntityExceptToTeam( weapon, "spectrelauncher_ai_wpnfire", weaponOwner.GetTeam() )
 		}
 	#endif
+	*/
 
 	#if CLIENT
 		if ( !playerFired )
