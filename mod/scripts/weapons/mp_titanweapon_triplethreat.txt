@@ -98,9 +98,9 @@ WeaponData
 	"sound_dryfire"									"titan_dryfire"
 	// updating sound here: most of tf1 sounds ain't working well in tf2
 	// EDIT: sounds now done in script, basic sound still needs to be played
-	// "fire_sound_1_player_1p"						"weapon_triplethreat_fire_1p"
-	// "fire_sound_1_player_3p"						"weapon_triplethreat_fire_3p"
-	// "fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
+	"fire_sound_1_player_1p"						"weapon_triplethreat_fire_1p"
+	"fire_sound_1_player_3p"						"weapon_triplethreat_fire_3p"
+	"fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
 	// welp we've changed tp sound, maybe just keep same as NSCN does
 	// EDIT: revert
 	// "sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
@@ -112,14 +112,14 @@ WeaponData
 	// from reaper's tick launcher
 	//"fire_sound_1_player_1p"						"spectrelauncher_ai_wpnfire"
 	// from unused sound, maybe better for first person
-	// nah. let's just keep behavior constant due that "spectrelauncher_ai_wpnfire" don't have team-based sound
+	// remove from northstar to better handle client without mod installed
 	// I... ugh... maybe... could've stop doing third person sound fix on teammates... maybe.... with script...
-	"fire_sound_1_player_1p"						"weapon_stickylauncher_altfire_1p"
+	// "fire_sound_1_player_1p"						"weapon_stickylauncher_altfire_1p"
 	// "fire_sound_1_player_3p"						"spectrelauncher_ai_wpnfire"
 	// "fire_sound_1_npc"								"spectrelauncher_ai_wpnfire"
-	"fire_sound_2_player_1p"						"weapon_triplethreat_fire_1p"
-	"fire_sound_2_player_3p"						"weapon_triplethreat_fire_3p"
-	"fire_sound_2_npc"								"weapon_triplethreat_fire_3p"
+	// "fire_sound_2_player_1p"						"weapon_triplethreat_fire_1p"
+	// "fire_sound_2_player_3p"						"weapon_triplethreat_fire_3p"
+	// "fire_sound_2_npc"								"weapon_triplethreat_fire_3p"
 
 	// from leadwall
 	// welp we've changed tp sound, maybe just keep same as NSCN does

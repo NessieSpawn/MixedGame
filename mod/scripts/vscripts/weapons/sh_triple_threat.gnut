@@ -100,6 +100,9 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
+			// FP sound due that triple threat might be used by players
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" )
+
 			int friendlyTeam = weaponOwner.GetTeam()
 			array<entity> players = GetPlayerArray()
 
