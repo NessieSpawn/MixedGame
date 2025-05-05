@@ -44,12 +44,12 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 						delete projectile.s.fixImpactEffect
 				}
 			#endif
-			
-			projectile.GrenadeExplode( normal )
 
 			// more of sound fix: do 3p_vs_1p impact sound against victim!
 			if ( hitEnt.IsPlayer() )
 				projectile.s.collisionPlayer <- hitEnt
+			
+			projectile.GrenadeExplode( normal )
 		}
 	}
 	else if( "becomeProxMine" in projectile.s && projectile.s.becomeProxMine == true )
@@ -120,6 +120,7 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	// welp this is definitely way too crazy
 	//EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "explo_40mm_splashed_impact_3p" )
 	//EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "Default.ClusterRocket_Primary_Explosion_3P_vs_3P" )
+	
 	// more of sound think -- let's fully fake impact sound system!
 	string soundPrefix = "Default.ClusterRocket_Primary_Explosion"
 	entity victim
@@ -127,14 +128,19 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	int team = projectile.GetTeam()
 	if ( ( "collisionPlayer" in projectile.s ) && IsValid( projectile.s.collisionPlayer ) )
 	{
+		//print( "playing victim sound" )
 		victim = expect entity( projectile.s.collisionPlayer )
 		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_1P" )
 	}
 	if ( IsValid( owner ) && owner.IsPlayer() )
+	{
+		//print( "playing owner sound" )
 		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), owner, soundPrefix + "_1P_vs_3P" )
+	}
 	// victim sound and owner sound both played
 	if ( IsValid( victim ) && ( IsValid( owner ) && owner.IsPlayer() ) )
 	{
+		//print( "both owner and npc sound played" )
 		// do sound individually for other players
 		foreach ( entity player in GetPlayerArray )
 		{
@@ -143,14 +149,26 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 		}
 	}
 	else if ( IsValid( owner ) && owner.IsPlayer() ) // only owner sound played
+	{
+		//print( "only owner sound" )
 		EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), owner, soundPrefix + "_3P_vs_3P" )
+	}
 	else if ( IsValid( victim ) ) // only victim sound played
+	{
+		//print( "only victim sound" )
 		EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_3P" )
+	}
 	else // non-player sound not hitting anything
+	{
+		//print( "neutral sound" )
 		EmitSoundAtPosition( projectile.GetTeam(), projectile.GetOrigin(), soundPrefix + "_3P_vs_3P" )
+	}
 
 	// adding fix from tf|1: upper and middle grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
 	if( "fixImpactEffect" in projectile.s )
+	{
+		//print( "fixing projectile impact effect" )
 		FixImpactEffectForProjectileAtPosition( projectile, projectile.GetOrigin() )
+	}
 #endif
 }

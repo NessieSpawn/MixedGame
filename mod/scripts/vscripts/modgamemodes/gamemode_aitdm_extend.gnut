@@ -1231,6 +1231,8 @@ void function DroneConfig( entity soldier )
 	// friendly highlight
 	AITdmExtend_FriendlyHighlight( soldier )
 
+	thread DisableDroneSound( soldier ) // try to stop annoying sound
+
 	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
@@ -1245,6 +1247,21 @@ void function DroneConfig( entity soldier )
 			SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
 		}
 	}
+}
+
+void function DisableDroneSound( entity drone )
+{
+	drone.EndSignal( "OnDestroy" )
+	
+	WaitFrame() // initial wait
+	// wait for drone deploy animation end
+	while ( drone.Anim_IsActive() )
+		WaitFrame()
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 void function GunshipConfig( entity soldier )
