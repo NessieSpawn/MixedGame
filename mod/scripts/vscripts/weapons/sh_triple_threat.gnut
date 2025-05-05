@@ -111,28 +111,30 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 	// nah. let's just keep behavior constant due that "spectrelauncher_ai_wpnfire" don't have team-based sound
 	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
 	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
-	if( weaponOwner.IsPlayer() )
-	{
-		int friendlyTeam = weaponOwner.GetTeam()
-		array<entity> players = GetPlayerArray()
-
-		// don't do sound on owner or friendly players
-		foreach ( player in players )
+	#if SERVER
+		if( weaponOwner.IsPlayer() )
 		{
-			if ( player == weaponOwner )
-				continue
-			if ( player.GetTeam() == friendlyTeam )
-				continue
+			int friendlyTeam = weaponOwner.GetTeam()
+			array<entity> players = GetPlayerArray()
 
-			EmitSoundOnEntityOnlyToPlayer( weapon, player, "spectrelauncher_ai_wpnfire" )
+			// don't do sound on owner or friendly players
+			foreach ( player in players )
+			{
+				if ( player == weaponOwner )
+					continue
+				if ( player.GetTeam() == friendlyTeam )
+					continue
+
+				EmitSoundOnEntityOnlyToPlayer( weapon, player, "spectrelauncher_ai_wpnfire" )
+			}
 		}
-	}
-	else
-	{
-		// enemy sound ONLY
-		// modified function in _utility.gnut
-		EmitSoundOnEntityExceptToTeam( weapon, "spectrelauncher_ai_wpnfire", weaponOwner.GetTeam() )
-	}
+		else
+		{
+			// enemy sound ONLY
+			// modified function in _utility.gnut
+			EmitSoundOnEntityExceptToTeam( weapon, "spectrelauncher_ai_wpnfire", weaponOwner.GetTeam() )
+		}
+	#endif
 
 	#if CLIENT
 		if ( !playerFired )
