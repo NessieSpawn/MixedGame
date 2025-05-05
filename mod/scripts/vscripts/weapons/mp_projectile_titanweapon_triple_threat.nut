@@ -130,6 +130,19 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	{
 		//print( "playing victim sound" )
 		victim = expect entity( projectile.s.collisionPlayer )
+		// just for suffer
+		bool playVictimSound = true
+		if ( victim.IsTitan() )
+		{ 
+			entity soul = victim.GetTitanSoul()
+			if ( IsValid( soul ) && GetShieldHealthWithFix( soul ) > 0 )
+				playVictimSound = false // sound already played by triplethreat_frag impact!!!
+		}
+		else
+		{
+			if ( GetShieldHealthWithFix( victim ) > 0 )
+				playVictimSound = false
+		}
 		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_1P" )
 	}
 	if ( IsValid( owner ) && owner.IsPlayer() )
