@@ -685,6 +685,7 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 			*/
 			mods.append( "disable_default_magnetic" )
 			mods.append( "classic_ads_grenade" )
+			mods.append( "ogre_triplethreat_no_magnetic" )
 			break
 		case "mp_titanweapon_rocketeer_rocketstream":
 			// or maybe keep behavior consist as player brute titan?
