@@ -229,7 +229,8 @@ entity function FakeWorldModel_CreateForWeapon( entity weapon, asset model, stri
 	//print( "weapon owner: " + string( owner ) )
 	if ( !IsValid( owner ) )
 		return
-	if ( owner.LookupAttachment( attachment ) < 0 )
+	//print( "attachID: " + string( owner.LookupAttachment( attachment ) ) )
+	if ( owner.LookupAttachment( attachment ) <= 0 )
 		return
     
 	entity prop = CreatePropDynamic( model, owner.GetOrigin(), owner.GetAngles() )
