@@ -103,11 +103,12 @@ WeaponData
 	"fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
 	// welp we've changed tp sound, maybe just keep same as NSCN does
 	// EDIT: revert
-	// "sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
-	// "sound_zoom_out"								"Weapon_Triple_Threat.ALT_Off"
+	// EDIT2: to keep both client&server constant, use this
+	"sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
+	"sound_zoom_out"								"Weapon_Triple_Threat.ALT_Off"
 
-	// "low_ammo_sound_name_1"							"mgl_lowammo_shot1"
-	// "low_ammo_sound_name_2"							"mgl_lowammo_shot2"
+	"low_ammo_sound_name_1"							"mgl_lowammo_shot1"
+	"low_ammo_sound_name_2"							"mgl_lowammo_shot2"
 
 	// from reaper's tick launcher
 	//"fire_sound_1_player_1p"						"spectrelauncher_ai_wpnfire"
@@ -124,11 +125,12 @@ WeaponData
 	// from leadwall
 	// welp we've changed tp sound, maybe just keep same as NSCN does
 	// EDIT: revert
-	"sound_zoom_in"									"Weapon_EVA8_ADS_In"
-	"sound_zoom_out"								"Weapon_EVA8_ADS_Out"
+	// EDIT2: to keep both client&server constant, use triple threat values
+	// "sound_zoom_in"									"Weapon_EVA8_ADS_In"
+	// "sound_zoom_out"								"Weapon_EVA8_ADS_Out"
 
-	"low_ammo_sound_name_1"							"Leadwall_LowAmmo_Shot1"
-	"low_ammo_sound_name_2"							"Leadwall_LowAmmo_Shot2"
+	// "low_ammo_sound_name_1"							"Leadwall_LowAmmo_Shot1"
+	// "low_ammo_sound_name_2"							"Leadwall_LowAmmo_Shot2"
 
 	"fx_muzzle_flash_view"							"wpn_muzzleflash_xo_triple_fp"
 	"fx_muzzle_flash_world"							"wpn_muzzleflash_xo_triple"
