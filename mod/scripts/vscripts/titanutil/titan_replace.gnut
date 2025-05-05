@@ -1629,10 +1629,14 @@ void function TitanReplace_BecomeOgre( entity titan, bool isPickup = false, bool
 				titan.GiveWeapon ("mp_titanweapon_triplethreat", ["disable_default_magnetic", "classic_ads_grenade", "ogre_triplethreat_no_magnetic"])
 
 				//Defence
+				// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+				/*
 				if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
 					titan.GiveOffhandWeapon("mp_titanweapon_heat_shield", OFFHAND_SPECIAL, ["ogre_shield"] )
 				else
 					titan.GiveOffhandWeapon("mp_titanweapon_heat_shield", OFFHAND_SPECIAL, ["ogre_shield_no_magnetic"] )
+				*/
+				titan.GiveOffhandWeapon("mp_titanweapon_heat_shield", OFFHAND_SPECIAL, ["ogre_shield_no_magnetic"] )
 
 				//Tactical
 				titan.GiveOffhandWeapon("mp_titanability_sonar_pulse", OFFHAND_ANTIRODEO ) //["ogre_sonar"]
