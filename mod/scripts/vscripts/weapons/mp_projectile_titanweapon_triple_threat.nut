@@ -35,8 +35,13 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 			#if SERVER
 				if ( hitEnt.GetTeam() == projectile.GetTeam() )
 				{
-					vector explodePos = pos + expect vector( normal )
+					// to keep same as mgl does, no need to add normal
+					//vector explodePos = pos + expect vector( normal )
+					vector explodePos = pos
 					FixImpactEffectForProjectileAtPosition( projectile, explodePos ) // shared from _unpredicted_impact_fix.gnut
+					// make sure we don't fix visual multiple times
+					if( "fixImpactEffect" in projectile.s )
+						delete projectile.s.fixImpactEffect
 				}
 			#endif
 			
@@ -59,7 +64,6 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 			thread TripleThreatProximityTrigger( projectile )
 		#endif
 	}
-
 }
 
 #if SERVER
@@ -107,6 +111,12 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	//print( "Running here" )
 	//for( int i = 0; i < 30; i ++ ) // stack the sound!!! don't work well
 	//	EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "Explo_TripleThreat_Impact_3P" )
-	EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "Explo_40mm_Impact_3P" )
+	// explo_40mm_splashed_impact_3p might be quiet crazy but whatever
+	//EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "Explo_40mm_Impact_3P" )
+	EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "explo_40mm_splashed_impact_3p" )
+
+	// adding fix from tf|1: upper and lower grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+	if( "fixImpactEffect" in projectile.s )
+		FixImpactEffectForProjectileAtPosition( projectile, projectile.GetOrigin() )
 #endif
 }

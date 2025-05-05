@@ -460,11 +460,16 @@ WeaponData
 	"npc_min_engage_range"							"100"
 	"npc_min_engage_range_heavy_armor"				"500"
 
-	"npc_max_engage_range"							"2000" // max range with magnitic
-	"npc_max_engage_range_heavy_armor"				"2000" // max range with magnitic
+	// shall decrease these values. was using 2000
+	"npc_max_engage_range"							"1000" // max range with magnitic
+	"npc_max_engage_range_heavy_armor"				"1500" // max range with magnitic
 
 	// northstar missing, should re-assign activity
 	"activitymodifier"								"mp_titanweapon_triple_threat"
+
+	// northstar missing, alt fire value when using "classic_ads_grenade"
+	"npc_alt_fire_check_type"						"farther_than"
+	"npc_alt_fire_check_value"						"800"
 
 	Mods
 	{
@@ -595,11 +600,30 @@ WeaponData
 			"npc_explosion_damage"							"*0.5" // 75. was *0.3( 45 )
 			"npc_explosion_damage_heavy_armor"				"*0.74545" // ~410. was *0.6( 330 )
 		}
+		bison_triplethreat_no_magnetic
+		{
+			"explosion_damage"								"*0.6" // 90
+			"explosion_damage_heavy_armor"					"*0.854545" // ~470
+
+			"npc_explosion_damage"							"*0.6" // 90
+			"npc_explosion_damage_heavy_armor"				"*0.854545" // ~470
+		}
 
 		// nessy
         // titan weapons: model change done in script
 		fake_nessy_weapon
 		{
+		}
+
+		// to fix behavior same as tf|1: ads grenade launches much faster. always use together with disable_default_magnetic!
+		classic_ads_grenade
+		{
+			// damage needs to scale down due to extended range
+			"explosion_damage"								"*0.9"
+			"explosion_damage_heavy_armor"					"*0.9" // 495. just good to not hitting a titan over 1 segment
+			
+			"npc_explosion_damage"							"*0.9"
+			"npc_explosion_damage_heavy_armor"				"*0.9"
 		}
 	}
 	active_crosshair_count				"1"

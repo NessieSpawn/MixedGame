@@ -134,8 +134,27 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 
 			vector attackVec = attackParams.dir + rightVec + upVec
 
+			// adding fix from tf|1: upper and lower grenade travel speed greatly increased. only occur when not using hydraulic_launcher
+			// due to that, needs to fix client-side impact visual
+			bool isFixedGrenade = false
 			if (weapon.HasMod("hydraulic_launcher"))
 				attackVec *= (1.0 + weapon.GetWeaponChargeFraction())
+			else if ( inADS && weapon.HasMod( "classic_ads_grenade" ) )
+			{
+				switch ( i )
+				{
+					case 1: // upper grenade?
+						// fastest grenade
+						attackVec *= 1.8
+						isFixedGrenade = true
+						break
+					case 2: // lower grenade?
+						// faster than middle grenade
+						attackVec *= 1.4
+						isFixedGrenade = true
+						break
+				}
+			}
 
 			float fuseTime
 			if( hasRollingRoundsMod )
@@ -144,19 +163,23 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 				fuseTime = RandomFloatRange( MIN_FUSE_TIME, MAX_FUSE_TIME )
 
 			int damageType = damageTypes.explosive
-			if ( weapon.HasMod( "arc_triple_threat" ) )
+			// this should've be burn mod special
+			//if ( weapon.HasMod( "arc_triple_threat" ) )
+			if ( weapon.HasMod( "burn_mod_titan_triple_threat" ) )
 				damageType = damageType | damageTypes.electric
 
 			vector angularVelocity = Vector( RandomFloatRange( -velocity, velocity ), 100, 0 )
 
-			FireTripleThreatGrenade( weapon, attackParams.pos, attackVec, angularVelocity, playerFired, fuseTime, damageType )
+			FireTripleThreatGrenade( weapon, attackParams.pos, attackVec, angularVelocity, playerFired, fuseTime, damageType, isFixedGrenade )
 		}
 	}
 
 	return 3
 }
 
-function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null )
+// adding fix from tf|1: upper and lower grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+//function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null )
+function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null, bool fixVisual = false )
 {
 	entity weaponOwner = weapon.GetWeaponOwner()
 
@@ -220,6 +243,10 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 				nade.InitMagnetic( BURN_MAGNETIC_FORCE, "Explo_TripleThreat_MagneticAttract" )
 				//EmitSoundOnEntity( nade, "Weapon_R1_MGL_Grenade_Emitter" )
 			}
+
+			// adding fix from tf|1: upper and lower grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+			if ( fixVisual )
+				nade.s.fixImpactEffect <- true
 		#else
 			SetTeam( nade, weaponOwner.GetTeam() )
 		#endif
