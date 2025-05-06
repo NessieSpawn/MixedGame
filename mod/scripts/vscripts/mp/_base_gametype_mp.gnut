@@ -459,6 +459,10 @@ void function CodeCallback_OnPlayerKilled( entity player, var damageInfo )
 	// disable prediction to prevent it messing with ragdoll in some places, as well as killreplay and such
 	player.SetPredictionEnabled( false )
 
+	// on welp, some bug on pilot players: their shield health won't be set to 0 on using .Die() method
+	// let's just handle it manually. this also plays shield break effect
+	SetShieldHealthWithFix( player, 0 )
+
 	// store last active weapon before death package drop player's weapon( gib or ragdoll )
 	if ( !player.IsTitan() )
 		file.playerActiveWeaponBeforeDeathPackage[ player ] = player.GetActiveWeapon()
