@@ -2539,6 +2539,21 @@ void function EmitSoundOnEntityToTeamExceptPlayer( entity ent, string sound, int
 	}
 }
 
+// MODIFIED for whatever
+void function EmitSoundOnEntityExceptToTeam( entity ent, string sound, int excludeTeam )
+{
+	array<entity> players = GetPlayerArray()
+
+	foreach ( player in players )
+	{
+		if ( player.GetTeam() == excludeTeam )
+			continue
+
+		EmitSoundOnEntityOnlyToPlayer( ent, player, sound )
+	}
+}
+//
+
 #if DEV
 // DEV function to toggle player view between the skybox and the real world.
 void function ToggleSkyboxView( float scale = 0.001 )

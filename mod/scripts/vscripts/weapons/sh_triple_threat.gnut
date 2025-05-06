@@ -77,18 +77,57 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 		shouldCreateProjectile = true
 
 	// fix fire sound for ttf2
+	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
+	/*
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
-			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" ) //Weapon_MGL_Fire_1P
-			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			// welp we've changed tp sound, maybe just keep same as NSCN does
+			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" ) //Weapon_MGL_Fire_1P
+			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
+			//EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_1P" )
+			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_3P" )
 		}
 		else
-			EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+		{
+			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
+			//EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntity( weaponOwner, "Weapon_MGL_Fire_3P" )
+		}
+	#endif
+	*/
+	#if SERVER
+		if( weaponOwner.IsPlayer() )
+		{
+			// FP sound due that triple threat might be used by players
+			// might be crazy to change this every time... keep 3p/1p sound constant? spectrelauncher_ai_wpnfire might be a bit lower pitched though...
+			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" )
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" )
+
+			int friendlyTeam = weaponOwner.GetTeam()
+			array<entity> players = GetPlayerArray()
+
+			// don't do sound on owner or friendly players
+			foreach ( player in players )
+			{
+				if ( player == weaponOwner )
+					continue
+				if ( player.GetTeam() == friendlyTeam )
+					continue
+
+				EmitSoundOnEntityOnlyToPlayer( weapon, player, "spectrelauncher_ai_wpnfire" )
+			}
+		}
+		else
+		{
+			// enemy sound ONLY
+			// modified function in _utility.gnut
+			EmitSoundOnEntityExceptToTeam( weapon, "spectrelauncher_ai_wpnfire", weaponOwner.GetTeam() )
+		}
 	#endif
 	//
 	// fix sound for ttf2!!!
-	// change to be in new updated mp_titanweapon_triplethreat.txt
 	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
 
 	#if CLIENT
@@ -134,8 +173,27 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 
 			vector attackVec = attackParams.dir + rightVec + upVec
 
+			// adding fix from tf|1: upper and middle grenade travel speed greatly increased. only occur when not using hydraulic_launcher
+			// due to that, needs to fix client-side impact visual
+			bool isFixedGrenade = false
 			if (weapon.HasMod("hydraulic_launcher"))
 				attackVec *= (1.0 + weapon.GetWeaponChargeFraction())
+			else if ( inADS && weapon.HasMod( "classic_ads_grenade" ) )
+			{
+				switch ( i )
+				{
+					case 0: // middle grenade?
+						// faster than lower grenade
+						attackVec *= 1.4
+						isFixedGrenade = true
+						break
+					case 1: // upper grenade?
+						// fastest grenade
+						attackVec *= 1.8
+						isFixedGrenade = true
+						break
+				}
+			}
 
 			float fuseTime
 			if( hasRollingRoundsMod )
@@ -144,19 +202,23 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 				fuseTime = RandomFloatRange( MIN_FUSE_TIME, MAX_FUSE_TIME )
 
 			int damageType = damageTypes.explosive
-			if ( weapon.HasMod( "arc_triple_threat" ) )
+			// this should've be burn mod special
+			//if ( weapon.HasMod( "arc_triple_threat" ) )
+			if ( weapon.HasMod( "burn_mod_titan_triple_threat" ) )
 				damageType = damageType | damageTypes.electric
 
 			vector angularVelocity = Vector( RandomFloatRange( -velocity, velocity ), 100, 0 )
 
-			FireTripleThreatGrenade( weapon, attackParams.pos, attackVec, angularVelocity, playerFired, fuseTime, damageType )
+			FireTripleThreatGrenade( weapon, attackParams.pos, attackVec, angularVelocity, playerFired, fuseTime, damageType, isFixedGrenade )
 		}
 	}
 
 	return 3
 }
 
-function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null )
+// adding fix from tf|1: upper and middle grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+//function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null )
+function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFired, float fuseTime, damageType = null, bool fixVisual = false )
 {
 	entity weaponOwner = weapon.GetWeaponOwner()
 
@@ -220,6 +282,10 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 				nade.InitMagnetic( BURN_MAGNETIC_FORCE, "Explo_TripleThreat_MagneticAttract" )
 				//EmitSoundOnEntity( nade, "Weapon_R1_MGL_Grenade_Emitter" )
 			}
+
+			// adding fix from tf|1: upper and middle grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
+			if ( fixVisual )
+				nade.s.fixImpactEffect <- true
 		#else
 			SetTeam( nade, weaponOwner.GetTeam() )
 		#endif

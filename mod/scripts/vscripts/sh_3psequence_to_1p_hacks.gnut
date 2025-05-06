@@ -336,7 +336,7 @@ void function FakeFirstPersonSequence( entity player )
 	vector angles = FAKEFP_PILOT_ANGLES
 
 	int attachID = player.LookupAttachment( attachment )
-	if ( attachID < 0 ) // don't have attachment?
+	if ( attachID <= 0 ) // don't have attachment?
 		return
 	
 	if ( IsPlayerEmbarking( player ) ) // fp embarking

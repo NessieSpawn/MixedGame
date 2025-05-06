@@ -102,7 +102,7 @@ void function TrackPetLifeTime( entity owner, entity pet )
 			if( IsValid( pet ) )
 			{
 				PlayFX( $"P_plasma_exp_SM", pet.GetOrigin(), < 0,pet.GetAngles().y,0 > )
-				EmitSoundAtPosition( TEAM_UNASSIGNED, pet.GetOrigin(), "Explo_TripleThreat_Impact_3P" )
+				EmitSoundAtPosition( pet.GetTeam(), pet.GetOrigin(), "Explo_TripleThreat_Impact_3P" )
 				pet.Destroy()
 			}
 		}
@@ -173,6 +173,9 @@ void function DisableDroneSound( entity drone ) // annoying sound!
 	WaitFrame()
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 void function TrackNessieLifeTime( entity pet, entity nessie )

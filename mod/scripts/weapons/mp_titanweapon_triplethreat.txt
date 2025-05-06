@@ -100,19 +100,24 @@ WeaponData
 
 	"sound_dryfire"									"titan_dryfire"
 	// updating sound here: most of tf1 sounds ain't working well in tf2
-	//"fire_sound_1_player_1p"						"weapon_triplethreat_fire_1p"
-	//"fire_sound_1_player_3p"						"weapon_triplethreat_fire_3p"
-	//"fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
-	//"sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
-	//"sound_zoom_out"								"Weapon_Triple_Threat.ALT_Off"
+	// EDIT: sounds now done in script, basic sound still needs to be played
+	"fire_sound_1_player_1p"						"weapon_triplethreat_fire_1p"
+	"fire_sound_1_player_3p"						"weapon_triplethreat_fire_3p"
+	"fire_sound_1_npc"								"weapon_triplethreat_fire_3p"
+	// welp we've changed tp sound, maybe just keep same as NSCN does
+	// EDIT: revert
+	// EDIT2: to keep both client&server constant, use this
+	"sound_zoom_in"									"Weapon_Triple_Threat.ALT_On"
+	"sound_zoom_out"								"Weapon_Triple_Threat.ALT_Off"
 
-	//"low_ammo_sound_name_1"							"mgl_lowammo_shot1"
-	//"low_ammo_sound_name_2"							"mgl_lowammo_shot2"
+	"low_ammo_sound_name_1"							"mgl_lowammo_shot1"
+	"low_ammo_sound_name_2"							"mgl_lowammo_shot2"
 
 	// from reaper's tick launcher
 	//"fire_sound_1_player_1p"						"spectrelauncher_ai_wpnfire"
 	// from unused sound, maybe better for first person
 	// remove from northstar to better handle client without mod installed
+	// I... ugh... maybe... could've stop doing third person sound fix on teammates... maybe.... with script...
 	// "fire_sound_1_player_1p"						"weapon_stickylauncher_altfire_1p"
 	// "fire_sound_1_player_3p"						"spectrelauncher_ai_wpnfire"
 	// "fire_sound_1_npc"								"spectrelauncher_ai_wpnfire"
@@ -121,11 +126,14 @@ WeaponData
 	// "fire_sound_2_npc"								"weapon_triplethreat_fire_3p"
 
 	// from leadwall
-	"sound_zoom_in"									"Weapon_EVA8_ADS_In"
-	"sound_zoom_out"								"Weapon_EVA8_ADS_Out"
+	// welp we've changed tp sound, maybe just keep same as NSCN does
+	// EDIT: revert
+	// EDIT2: to keep both client&server constant, use triple threat values
+	// "sound_zoom_in"									"Weapon_EVA8_ADS_In"
+	// "sound_zoom_out"								"Weapon_EVA8_ADS_Out"
 
-	"low_ammo_sound_name_1"							"Leadwall_LowAmmo_Shot1"
-	"low_ammo_sound_name_2"							"Leadwall_LowAmmo_Shot2"
+	// "low_ammo_sound_name_1"							"Leadwall_LowAmmo_Shot1"
+	// "low_ammo_sound_name_2"							"Leadwall_LowAmmo_Shot2"
 
 	"fx_muzzle_flash_view"							"wpn_muzzleflash_xo_triple_fp"
 	"fx_muzzle_flash_world"							"wpn_muzzleflash_xo_triple"
@@ -463,11 +471,16 @@ WeaponData
 	"npc_min_engage_range"							"100"
 	"npc_min_engage_range_heavy_armor"				"500"
 
-	"npc_max_engage_range"							"2000" // max range with magnitic
-	"npc_max_engage_range_heavy_armor"				"2000" // max range with magnitic
+	// shall decrease these values. was using 2000
+	"npc_max_engage_range"							"1000" // max range with magnitic
+	"npc_max_engage_range_heavy_armor"				"1500" // max range with magnitic
 
 	// northstar missing, should re-assign activity
 	"activitymodifier"								"mp_titanweapon_triple_threat"
+
+	// northstar missing, alt fire value when using "classic_ads_grenade"
+	"npc_alt_fire_check_type"						"farther_than"
+	"npc_alt_fire_check_value"						"800"
 
 	Mods
 	{
@@ -603,6 +616,25 @@ WeaponData
 
 			"npc_explosion_damage"							"*0.5" // 75. was *0.3( 45 )
 			"npc_explosion_damage_heavy_armor"				"*0.74545" // ~410. was *0.6( 330 )
+		}
+		bison_triplethreat_no_magnetic
+		{
+			"explosion_damage"								"*0.6" // 90
+			"explosion_damage_heavy_armor"					"*0.854545" // ~470
+
+			"npc_explosion_damage"							"*0.6" // 90
+			"npc_explosion_damage_heavy_armor"				"*0.854545" // ~470
+		}
+
+		// to fix behavior same as tf|1: ads grenade launches much faster. always use together with disable_default_magnetic!
+		classic_ads_grenade
+		{
+			// damage needs to scale down due to extended range
+			"explosion_damage"								"*0.9"
+			"explosion_damage_heavy_armor"					"*0.9" // 495. just good to not hitting a titan over 1 segment
+			
+			"npc_explosion_damage"							"*0.9"
+			"npc_explosion_damage_heavy_armor"				"*0.9"
 		}
 	}
 	active_crosshair_count				"1"

@@ -1930,7 +1930,14 @@ void function NPCBisonLoadout( entity titan )
 {
 	TakeAllWeapons( titan )
 	//Weapon, npc bison is not smart enough, give them a main weapon
-	titan.GiveWeapon( "mp_titanweapon_triplethreat", ["fake_magnetic_triplethreat", "bison_triplethreat"] )
+	// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+	/*
+	if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
+		//titan.GiveWeapon( "mp_titanweapon_triplethreat", ["fake_magnetic_triplethreat", "bison_triplethreat"] )
+	else
+		titan.GiveWeapon( "mp_titanweapon_triplethreat", ["disable_default_magnetic", "bison_triplethreat_no_magnetic"] )
+	*/
+	titan.GiveWeapon( "mp_titanweapon_triplethreat", ["disable_default_magnetic", "classic_ads_grenade", "bison_triplethreat_no_magnetic"] )
 	//Defence
 	titan.GiveOffhandWeapon( "mp_titanability_particle_wall", OFFHAND_SPECIAL, ["brute4_mobile_dome_shield", "molting_dome", "bison_dome"] )
 	//Tactical

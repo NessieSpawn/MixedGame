@@ -670,6 +670,8 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 			break
 		case "mp_titanweapon_triplethreat":
 			// maybe keep behavior consist as player ogre titan?
+			// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+			/*
 			//mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
 			if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
 			{
@@ -681,6 +683,10 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 				mods.append( "disable_default_magnetic" )
 				mods.append( "ogre_triplethreat_no_magnetic" )
 			}
+			*/
+			mods.append( "disable_default_magnetic" )
+			mods.append( "classic_ads_grenade" )
+			mods.append( "ogre_triplethreat_no_magnetic" )
 			break
 		case "mp_titanweapon_rocketeer_rocketstream":
 			// or maybe keep behavior consist as player brute titan?
@@ -1232,6 +1238,8 @@ void function DroneConfig( entity soldier )
 	// friendly highlight
 	AITdmExtend_FriendlyHighlight( soldier )
 
+	thread DisableDroneSound( soldier ) // try to stop annoying sound
+
 	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 1 ) == 1 )
 	{
@@ -1246,6 +1254,21 @@ void function DroneConfig( entity soldier )
 			SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
 		}
 	}
+}
+
+void function DisableDroneSound( entity drone )
+{
+	drone.EndSignal( "OnDestroy" )
+	
+	WaitFrame() // initial wait
+	// wait for drone deploy animation end
+	while ( drone.Anim_IsActive() )
+		WaitFrame()
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 void function GunshipConfig( entity soldier )

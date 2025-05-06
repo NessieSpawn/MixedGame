@@ -131,8 +131,12 @@ void function PilotTitanWeaponThink( entity player )
                             //print( "trying to create fake model for it" )
                             asset worldModelName = TITAN_WEAPON_FP_MODEL_TO_WORLD[ fpModelName ]
                             entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName, "PROPGUN", false )
-                            fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
-                            file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+                            // some npc may have weapon hidden... like drones and turrets
+                            if ( IsValid( fakeWeapon ) )
+                            {
+                                fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
+                                file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+                            }
                         }
                     }
                 }
@@ -224,8 +228,12 @@ void function HumansizedTitanWeaponsThink()
                                 //print( "trying to create fake model for it" )
                                 // don't hide ORG weapon, weapon hiding handled by this script
                                 entity fakeWeapon = FakeWorldModel_CreateForWeapon( activeWeapon, worldModelName, "PROPGUN", false )
-                                fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
-                                file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+                                // some npc may have weapon hidden... like drones and turrets
+                                if ( IsValid( fakeWeapon ) )
+                                {
+                                    fakeWeapon.kv.modelscale = PILOT_TITAN_WEAPON_MODEL_SCALE
+                                    file.weaponFakeProp[ activeWeapon ] = fakeWeapon
+                                }
                             }
                         }
                     }

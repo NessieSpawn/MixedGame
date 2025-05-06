@@ -15,7 +15,7 @@ void function MpAbilityShifterSuper_OnWeaponTossPrep( entity weapon, WeaponTossP
         #if SERVER
         if( GAMETYPE == "ctf" )
             PhaseShift( weaponOwner, 0, 0.4 )
-        EmitSoundAtPosition( TEAM_UNASSIGNED, weaponOwner.GetOrigin(), SHIFTER_START_SOUND_3P )
+        EmitSoundAtPosition( weaponOwner.GetTeam(), weaponOwner.GetOrigin(), SHIFTER_START_SOUND_3P )
         PlayFX( $"P_phase_shift_main", weaponOwner.GetOrigin() )
         #endif
     }

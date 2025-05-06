@@ -117,7 +117,7 @@ void function DissolveEntityWrapped( entity ent )
 	if ( GamePlayingOrSuddenDeath() || GetGameState() == eGameState.Epilogue )
 	{
 		ent.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 500 )
-		EmitSoundAtPosition( TEAM_UNASSIGNED, ent.GetOrigin(), "Object_Dissolve" )
+		EmitSoundAtPosition( ent.GetTeam(), ent.GetOrigin(), "Object_Dissolve" )
 		
 		if ( ent.IsPlayer() )
 			thread EnsureWargamesDeathEffectIsClearedForPlayer( ent )

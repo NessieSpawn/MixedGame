@@ -327,7 +327,7 @@ void function NessieLifetime( entity drone, entity nessie, float delay )
 			{
 				// fake explode effect
 				PlayFX( $"P_plasma_exp_SM", drone.GetOrigin(), drone.GetAngles() )
-				EmitSoundAtPosition( TEAM_UNASSIGNED, drone.GetOrigin(), "explo_plasma_small" )
+				EmitSoundAtPosition( drone.GetTeam(), drone.GetOrigin(), "explo_plasma_small" )
 				drone.Destroy()
 			}
 		}
@@ -393,6 +393,9 @@ void function DisableNessieDroneSound( entity drone ) // annoying sound!
 	WaitFrame()
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 // nessie grunts(actually spectres since they can scale model)
