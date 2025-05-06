@@ -1,7 +1,7 @@
 {
 	"Name" : "Nessy Attrition Extended Client",
 	"Description" : "Enables R-101, Alternator, Kraber, DMR and L-Star on server. Fixes Desync issues.",
-	"Version": "1.1.0",
+	"Version": "1.1.1",
 	"LoadPriority": 3,
 
 	"Scripts": [
