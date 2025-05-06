@@ -390,5 +390,8 @@ void function DisableDroneSound( entity drone )
 		WaitFrame()
 	}
 	*/
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 #endif

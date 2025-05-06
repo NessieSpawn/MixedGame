@@ -188,9 +188,14 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 	// APRIL FOOLS SPECIAL settings
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
+		// for us handling npc weapons
+		RegisterSignal( "GiveHumanTitanWeapon_Threaded" )
+
 		// random player model
 		AltPilot_SetPlayerModelAllRandom( true )
 		AltPilot_SetShouldReplacePlayerSettings( true )
+		AltPilot_SetShouldRemovePlayerCamo( true ) // keep camo disabled. we also needs to handle camo in this script!
+		RegisterSignal( "DelayedRemovePlayerSkinCamo" )
 		SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
 
 		// model stuffs
@@ -306,8 +311,7 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
 		// remove pilot skin
-		player.SetSkin( 0 )
-		player.SetCamo( 0 )
+		thread DelayedRemovePlayerSkinCamo( player )
 
 		// NOT WORKING FINE
 		//player.GiveExtraWeaponMod( "fake_nessy_weapon" )
@@ -365,11 +369,27 @@ void function OnPlayerChangeLoadout( entity player, PilotLoadoutDef p )
 			// update weapon clip size after mod change... though GiveExtraWeaponMod() should already handled it
 			try { weapon.SetWeaponPrimaryClipCount( weapon.GetWeaponPrimaryClipCountMax() ) } // anti-crash for charge weapons
 			catch(ex1) {}
+
+			// remove weapon skin
+			weapon.SetSkin( 0 )
+			weapon.SetCamo( 0 )
 		}
 
 		foreach ( entity weapon in player.GetOffhandWeapons() )
 			GiveNessyProjectileMod( player, weapon )
 	}
+}
+
+// altpilot updates camo to active loadout, needs to handle that by waiting for next frame( only 1/60s delay at our framerate )
+void function DelayedRemovePlayerSkinCamo( entity player )
+{
+	player.EndSignal( "OnDestroy" )
+	player.Signal( "DelayedRemovePlayerSkinCamo" )
+	player.EndSignal( "DelayedRemovePlayerSkinCamo" )
+	WaitEndFrame()
+
+	player.SetSkin( 0 )
+	player.SetCamo( 0 )
 }
 
 void function InitModdedSpawnSettings()
@@ -628,6 +648,8 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 {
 	soldier.EndSignal( "OnDestroy" )
 	soldier.EndSignal( "OnDeath" )
+	soldier.Signal( "GiveHumanTitanWeapon_Threaded" )
+	soldier.EndSignal( "GiveHumanTitanWeapon_Threaded" )
 	WaitEndFrame() // droppod npcs' squad name gets assigned later after spawn, needs to handle it
 
 	string squadName = expect string( soldier.kv.squadname )
@@ -641,14 +663,34 @@ void function GiveHumanTitanWeapon_Threaded( entity soldier )
 	switch ( newWeapon )
 	{
 		case "mp_titanweapon_sticky_40mm":
-			mods.append( "npc_human_usage" ) // do need a mod to buff their damage without
+			// maybe keep behavior consist as player atlas titan?
+			//mods.append( "npc_human_usage" ) // do need a mod to buff their damage without tracker rockets
+			mods.append( "atlas_40mm" )
 			break
 		case "mp_titanweapon_triplethreat":
-			mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
+			// maybe keep behavior consist as player ogre titan?
+			// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+			/*
+			//mods.append( "disable_default_magnetic" ) // actually surprisingly good against npcs as they won't dodge these grenades
+			if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
+			{
+				mods.append( "fake_magnetic_triplethreat" )
+				mods.append( "ogre_triplethreat" )
+			}
+			else
+			{
+				mods.append( "disable_default_magnetic" )
+				mods.append( "ogre_triplethreat_no_magnetic" )
+			}
+			*/
+			mods.append( "disable_default_magnetic" )
+			mods.append( "classic_ads_grenade" )
+			mods.append( "ogre_triplethreat_no_magnetic" )
 			break
 		case "mp_titanweapon_rocketeer_rocketstream":
-			//mods.append( "brute_rocket" ) // maybe better use brute4_quad_rocket to have constant behavior with npc titans...? idk
-			mods.append( "brute4_quad_rocket" )
+			// or maybe keep behavior consist as player brute titan?
+			mods.append( "brute_rocket" ) // maybe better use brute4_quad_rocket to have constant behavior with npc titans...? idk
+			//mods.append( "brute4_quad_rocket" )
 			break
 	}
 	entity weapon = soldier.GiveWeapon( newWeapon, mods )
@@ -718,11 +760,24 @@ entity function GiveNessyProjectileMod( entity ent, entity weapon )
 	// seems we'll have to use SetMod() to change weapon model
 	// still not working fine...  do we have to replace the weapon manually?
 	array<string> mods = weapon.GetMods()
-	foreach ( string mod in mods )
+	// skip this check for titan weapons!!! they should've get their own mods
+	if ( weapon.GetWeaponInfoFileKeyField( "weaponClass" ) != "titan" )
 	{
-		if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
-			mods.removebyvalue( mod )
+		foreach ( string mod in mods )
+		{
+			if ( WEAPON_MODS_TO_REMOVE.contains( mod ) )
+				mods.removebyvalue( mod )
+		}
 	}
+	/*
+	else
+	{
+		print( "omg this npc has titan weapon" )
+		print( "weaponName: " + weapon.GetWeaponClassName() )
+		foreach ( string mod in mods )
+			print( "mod: " + mod )
+	}
+	*/
 	mods.append( "fake_nessy_weapon" )
 
 	// main weapons
@@ -840,7 +895,14 @@ void function GruntConfig( entity soldier )
 	{
 		// grunt specific faction leader models!
 		if ( isSpecialistGrunt )
+		{
 			soldier.SetModel( VALID_SPECIALIST_GRUNT_MODELS[ RandomInt( VALID_SPECIALIST_GRUNT_MODELS.len() ) ] )
+			// pilot executions: 
+			Melee_SetExecutionRefsOverride( 
+				soldier, 
+				["execution_telefrag", "execution_stim", "execution_grapple", "execution_pulseblade", "execution_cloak", "execution_holopilot", "execution_ampedwall"]
+			)
+		}
 		else
 		{
 			// random model from teams
@@ -1120,7 +1182,12 @@ void function TitanConfig( entity soldier )
 
 		// change projectile model
 		foreach ( entity weapon in soldier.GetMainWeapons() )
+		{
 			GiveNessyProjectileMod( soldier, weapon )
+			// remove weapon skin
+			weapon.SetSkin( 0 )
+			weapon.SetCamo( 0 )
+		}
 		foreach ( entity weapon in soldier.GetOffhandWeapons() )
 			GiveNessyProjectileMod( soldier, weapon )
 	}
@@ -1164,6 +1231,8 @@ void function DroneConfig( entity soldier )
 	// friendly highlight
 	AITdmExtend_FriendlyHighlight( soldier )
 
+	thread DisableDroneSound( soldier ) // try to stop annoying sound
+
 	// APRIL FOOLS SPECIAL
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
@@ -1178,6 +1247,21 @@ void function DroneConfig( entity soldier )
 			SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
 		}
 	}
+}
+
+void function DisableDroneSound( entity drone )
+{
+	drone.EndSignal( "OnDestroy" )
+	
+	WaitFrame() // initial wait
+	// wait for drone deploy animation end
+	while ( drone.Anim_IsActive() )
+		WaitFrame()
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 void function GunshipConfig( entity soldier )

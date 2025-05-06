@@ -541,6 +541,23 @@ void function DroneConfig( entity soldier )
 	GruntModeFriendlyHighlight( soldier )
 
 	soldier.SetNameVisibleToEnemy( false )
+
+	thread DisableDroneSound( soldier ) // try to stop annoying sound
+}
+
+void function DisableDroneSound( entity drone )
+{
+	drone.EndSignal( "OnDestroy" )
+	
+	WaitFrame() // initial wait
+	// wait for drone deploy animation end
+	while ( drone.Anim_IsActive() )
+		WaitFrame()
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
+	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
+	// enemy sound still needs to be played, I think?
+	// modified function in _utility.gnut
+	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 void function GunshipConfig( entity soldier )

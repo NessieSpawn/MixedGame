@@ -26,8 +26,11 @@ global function TitanReplace_EnableRoninReBalance // rebalance sword block, bloc
 global function TitanReplace_EnableSPRoninSword // rework ronin's sword core to make it behave like SP one
 
 // weapon settings: magnetic triplethreat will have more stats penalty
+// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+/*
 global function TitanReplace_DisableTripleThreatWeaponMagnetic // disable use of fake_magnetic_triplethreat, while buffing some other stuffs
 global function TitanReplace_ShouldUseMagneticTripleThreatWeapon // shared with sh_fakebt.gnut
+*/
 
 ///// acrossFile utilities
 global function TitanReplace_GiveTitanLoadoutReplace
@@ -234,6 +237,8 @@ void function TitanReplace_EnableSPRoninSword( bool enable )
 	file.spRoninSwordEnabled = enable
 }
 
+// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+/*
 void function TitanReplace_DisableTripleThreatWeaponMagnetic( bool disable )
 {
 	file.tripleThreatWeaponUsesMagneticMod = !disable
@@ -243,6 +248,7 @@ bool function TitanReplace_ShouldUseMagneticTripleThreatWeapon()
 {
 	return file.tripleThreatWeaponUsesMagneticMod
 }
+*/
 
 void function OnTitanSpawned( entity titan )
 {
@@ -1613,16 +1619,24 @@ void function TitanReplace_BecomeOgre( entity titan, bool isPickup = false, bool
 				thread TakeTitanEarnMeterSmoke( titan )
 
 				//Weapon
+				// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+				/*
 				if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
                 	titan.GiveWeapon ("mp_titanweapon_triplethreat", ["fake_magnetic_triplethreat", "ogre_triplethreat"])
 				else
 					titan.GiveWeapon ("mp_titanweapon_triplethreat", ["disable_default_magnetic", "ogre_triplethreat_no_magnetic"])
+				*/
+				titan.GiveWeapon ("mp_titanweapon_triplethreat", ["disable_default_magnetic", "classic_ads_grenade", "ogre_triplethreat_no_magnetic"])
 
 				//Defence
+				// THESE SETTINGS NOW DEPRECATED. reworked with "classic_ads_grenade" mod
+				/*
 				if ( TitanReplace_ShouldUseMagneticTripleThreatWeapon() )
 					titan.GiveOffhandWeapon("mp_titanweapon_heat_shield", OFFHAND_SPECIAL, ["ogre_shield"] )
 				else
 					titan.GiveOffhandWeapon("mp_titanweapon_heat_shield", OFFHAND_SPECIAL, ["ogre_shield_no_magnetic"] )
+				*/
+				titan.GiveOffhandWeapon("mp_titanweapon_heat_shield", OFFHAND_SPECIAL, ["ogre_shield_no_magnetic"] )
 
 				//Tactical
 				titan.GiveOffhandWeapon("mp_titanability_sonar_pulse", OFFHAND_ANTIRODEO ) //["ogre_sonar"]
@@ -3153,7 +3167,7 @@ entity function OgreWeaponWeaponPropFunc( entity weapon, vector origin, vector a
 	if ( weaponName != "mp_titanweapon_triplethreat" )
 		return // return empty will cancel the weapon drop
 	
-	if ( !mods.contains( "ogre_triplethreat" ) )
+	if ( !mods.contains( "ogre_triplethreat" ) && !mods.contains( "ogre_triplethreat_no_magnetic" ) )
 		return
 	
 	asset modelName = $"models/weapons/titan_triple_threat_og/w_titan_triple_threat_og.mdl"
@@ -3170,7 +3184,7 @@ string function OgreWeaponDisplayNameFunc( entity weapon )
 	if ( weaponName != "mp_titanweapon_triplethreat" )
 		return "" // return empty will cancel the weapon drop
 	
-	if ( !mods.contains( "ogre_triplethreat" ) )
+	if ( !mods.contains( "ogre_triplethreat" ) && !mods.contains( "ogre_triplethreat_no_magnetic" ) )
 		return ""
 
 	return "巨妖 技能組"

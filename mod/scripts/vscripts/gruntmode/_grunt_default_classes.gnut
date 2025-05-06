@@ -837,7 +837,6 @@ void function SpecialistGruntDronesHandler( entity player )
 			
 			handledDrones.append( drone )
 			// update drone status
-			thread DisableDroneSound( drone ) // try to stop annoying sound
 			drone.SetMaxHealth( SPECIALIST_GRUNT_DRONE_HEALTH )
 			drone.SetHealth( drone.GetMaxHealth() )
 			// send notification
@@ -962,18 +961,6 @@ entity function PlayDroneAppearFX( entity ent )
 	asset effect = $"P_phase_shift_main"
 
 	return PlayFXOnEntity( effect, ent )
-}
-
-void function DisableDroneSound( entity drone )
-{
-	drone.EndSignal( "OnDestroy" )
-	
-	WaitFrame() // initial wait
-	// wait for drone deploy animation end
-	while ( drone.Anim_IsActive() )
-		WaitFrame()
-	StopSoundOnEntity( drone, "Drone_Mvmt_Hover_Hero" )
-	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
 }
 
 const int SHIELD_CAPTAIN_SHIELD_HEALTH = 100 // was 150

@@ -71,7 +71,7 @@ void function SpellCardThink( entity player, float duration )
 			if( projectile.GetTeam() != player.GetTeam() )
 			{
 				PlayFX( $"P_plasma_exp_SM", projectile.GetOrigin() )
-				EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "Explo_40mm_Impact_3P" )
+				EmitSoundAtPosition( projectile.GetTeam(), projectile.GetOrigin(), "Explo_40mm_Impact_3P" )
 				projectile.Destroy()
 			}
 		}

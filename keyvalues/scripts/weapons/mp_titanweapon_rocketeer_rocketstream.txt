@@ -3,6 +3,16 @@ WeaponData
 	// modified callbacks
 	"OnWeaponActivate"								"OnWeaponActivate_TitanWeapon_Rocketeer_RocketStream"
 
+	// vanilla missing: base npc damage value
+	// if we hardcode everything inside mods it will be messy and they'll conflict with each other
+	MP_BASE
+	{
+		"npc_damage_near_value"							"50"
+		"npc_damage_far_value" 							"50"
+		"npc_damage_near_value_titanarmor"				"350"
+		"npc_damage_far_value_titanarmor" 				"300"
+	}
+
 	// vanilla missing: npc explosion damage
 	// I'll not touch vanilla weapon settings, moved to brute_rocket
 	//"npc_explosion_damage"						"35" // nerf to 35, was 50
@@ -47,6 +57,12 @@ WeaponData
 			"damage_near_value_titanarmor"					"*1.5" // 525
 			"damage_far_value_titanarmor" 					"*1.5" // 450
 
+			// npc better not one shot pilot players because we have explosions and cluster
+			//"npc_damage_near_value"							"*2.0" // 100
+			//"npc_damage_far_value" 							"*2.0" // 100
+			"npc_damage_near_value_titanarmor"				"*1.5" // 525
+			"npc_damage_far_value_titanarmor" 				"*1.5" // 525
+
 			// add npc explosion damages: this weapon mod rely on explosions to deal damage
 			// but we don't have base value for npc exlosion damage, needs to hardcode here
 			"npc_explosion_damage"					"35" // player value is 35
@@ -80,6 +96,9 @@ WeaponData
 			"explosion_damage"						"*0.7" // 35
 			"explosion_damage_heavy_armor"			"*0.7" // 140
 
+			// npc better not one shot pilot players because we have explosions and cluster
+			"npc_damage_near_value"             	"*1.7" // 85
+			"npc_damage_far_value"              	"*1.5" // 75
 			// add npc explosion damages: this weapon mod rely on explosions to deal damage
 			// but we don't have base value for npc exlosion damage, needs to hardcode here
 			"npc_explosion_damage"					"35" // player value is 35
@@ -168,12 +187,13 @@ WeaponData
 			"bolt_gravity_enabled"							"0"
 
 			// Spread
-			"spread_stand_hip"								"0"
-			"spread_stand_hip_run"							"0"
+			// no sense with hipfire, removing ads spread is enough. we're out of lines
+			//"spread_stand_hip"								"0"
+			//"spread_stand_hip_run"							"0"
 			"spread_stand_ads"								"0"
-			"spread_crouch_hip"   							"0"
+			//"spread_crouch_hip"   							"0"
 			"spread_crouch_ads"   							"0"
-			"spread_air_hip"  								"0"
+			//"spread_air_hip"  								"0"
 			"spread_air_ads"  								"0"
 
 			"fire_rate"										"1.3"
@@ -322,14 +342,17 @@ WeaponData
 
 			// don't know why vanilla leave this enabled. can't turn off, will cause client to desync
 			//"primary_fire_does_not_block_sprint"		"0"
+
+			"npc_damage_near_value_titanarmor"			"*0.75"
+			"npc_damage_far_value_titanarmor" 			"*0.75"
 		}
 
 		// brute
 		brute_rocket // nerf a little bit or atlas will seem stupid
 		{
-			"damage_near_value_titanarmor"				"*0.9"
-			"damage_far_value_titanarmor" 				"*0.9"
-			"explosion_damage_heavy_armor"				"*0.9"
+			"damage_near_value_titanarmor"				"*0.9" // 315
+			"damage_far_value_titanarmor" 				"*0.9" // 270
+			"explosion_damage_heavy_armor"				"*0.9" // 180
 
 			// the high projectile speed is a bug I made before
 			// actually it don't desync very much, just keep it in script
@@ -339,13 +362,19 @@ WeaponData
 			"npc_rest_time_between_bursts_min"			"*1.33" // ~1.0
 			"npc_rest_time_between_bursts_max"			"*1.167" // ~1.75
 
+			"npc_damage_near_value_titanarmor"			"*0.9" // 315
+			"npc_damage_far_value_titanarmor" 			"*0.9" // 270
+
 			// vanilla missing: npc explosion damage
 			// remove npc explosion damages: this weapon don't rely on explosions to deal damage
 			// if add damage to npcs it might become too much powerful, also makes them hurting themselves at close range
 			//"npc_explosion_damage"						"++35" // nerf to 35, was 50
 			//"npc_explosion_damage_heavy_armor"			"++200" // 200
-			"npc_explosion_damage"						"0"
-			"npc_explosion_damage_heavy_armor"			"0"
+
+			// removing useless line here... our lines has reached max of 200
+			//"npc_explosion_damage"						"0"
+			//"npc_explosion_damage_heavy_armor"			"0"
+
 			// instead of adding explosion damage, we remove aim_at_feet for npcs!
 			"npc_aim_at_feet"							"0" 
 
@@ -442,8 +471,11 @@ WeaponData
 			// no need to increase titan damage that much, I think?
 			//"damage_near_value_titanarmor"					"550"
 			//"damage_far_value_titanarmor" 					"550"
+
+			// damage buff?
 			"damage_near_value_titanarmor"					"*1.2" // 420
 			"damage_far_value_titanarmor" 					"*1.2" // 360
+
 			"npc_damage_near_value_titanarmor"				"*1.2"
 			"npc_damage_far_value_titanarmor" 				"*1.2"
 		}
