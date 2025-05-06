@@ -966,6 +966,9 @@ void function MarkForDeath( entity target )
 
 	//printt("marking player " + target + " for death")
 	target.e.markedForExecutionDeath = true //This will kill off the player even if the execution animation is interruped from this point forward
+	// welp, npcs will get killed here... thus playing shield-broke effect
+	// also play it on players? looks pretty cool though
+	SetShieldHealthWithFix( target, 0 )
 
 	target.EndSignal( "OnDeath" )
 
