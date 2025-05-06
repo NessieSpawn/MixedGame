@@ -55,6 +55,11 @@ WeaponData
 
 			// mozambique don't have this... may cause desync on client
 			"alt_fire_anim_count"							"0"
+
+			// don't mess up muzzle flash! use general one
+			"fx_muzzle_flash_view"							"wpn_muzzleflash_pistol_FP"
+			"fx_muzzle_flash_world"							"wpn_muzzleflash_pistol"
+			"fx_muzzle_flash_attach"						"muzzle_flash"
 		}
 	}
 }

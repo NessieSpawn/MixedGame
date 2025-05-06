@@ -37,6 +37,12 @@ WeaponData
 	"playermodel" 									"models/weapons/titan_triple_threat_og/w_titan_triple_threat_og.mdl"
 	"holstermodel"  									"models/weapons/titan_triple_threat_og/w_titan_triple_threat_og.mdl"
 
+	// northstar missing projectile kill replay
+	// this won't work idk why...
+	// don't you tell me this thing has client-side handle?
+	// maybe just remove. keep it consist that titan weapons never do projectile kill replay
+	//"projectile_killreplay_enabled"					"1"
+
 	MP_BASE
 	{
 		"damage_near_distance"							"1500"
