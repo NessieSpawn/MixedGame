@@ -101,7 +101,9 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 		if( weaponOwner.IsPlayer() )
 		{
 			// FP sound due that triple threat might be used by players
-			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" )
+			// might be crazy to change this every time... keep 3p/1p sound constant? spectrelauncher_ai_wpnfire might be a bit lower pitched though...
+			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" )
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" )
 
 			int friendlyTeam = weaponOwner.GetTeam()
 			array<entity> players = GetPlayerArray()
