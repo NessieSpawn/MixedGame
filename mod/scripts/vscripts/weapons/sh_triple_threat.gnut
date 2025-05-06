@@ -78,6 +78,7 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 
 	// fix fire sound for ttf2
 	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
+	// whatever I'm doing fuck myself
 	/*
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
@@ -103,7 +104,11 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 			// FP sound due that triple threat might be used by players
 			// might be crazy to change this every time... keep 3p/1p sound constant? spectrelauncher_ai_wpnfire might be a bit lower pitched though...
 			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" )
-			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" )
+			// try emitting on player to have better effect?
+			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" )
+			//EmitSoundOnEntityOnlyToPlayer( weaponOwner, weaponOwner, "spectrelauncher_ai_wpnfire" )
+			// this works the best: mgl sound to match northstar default sound, tp sound remains unchanged to avoid confusion
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_1P" )
 
 			int friendlyTeam = weaponOwner.GetTeam()
 			array<entity> players = GetPlayerArray()
