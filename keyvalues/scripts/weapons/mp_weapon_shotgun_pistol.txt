@@ -8,7 +8,8 @@ WeaponData
 	"grenade_disc_throw"							"1"
 	
 	// :D
-	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	// removing this for some easter egg from base branch -- only mozambique itself won't fire nessy dolls?
+	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
 	
 	//"damage_flags"								"DF_SHOTGUN | DF_BULLET | DF_KNOCK_BACK | DF_DISMEMBERMENT | DF_GIB"
 	
