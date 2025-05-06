@@ -46,8 +46,12 @@ void function OnProjectileCollision_titanweapon_triple_threat( entity projectile
 			#endif
 
 			// more of sound fix: do 3p_vs_1p impact sound against victim!
+			// welp we need handle shield hit effect... cannot pass only players
+			/*
 			if ( hitEnt.IsPlayer() )
 				projectile.s.collisionPlayer <- hitEnt
+			*/
+			projectile.s.collisionEnt <- hitEnt
 			
 			projectile.GrenadeExplode( normal )
 		}
@@ -126,56 +130,82 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	entity victim
 	entity owner = projectile.GetOwner()
 	int team = projectile.GetTeam()
-	if ( ( "collisionPlayer" in projectile.s ) && IsValid( projectile.s.collisionPlayer ) )
+	// something needs testing is that, maybe because that triple threat grenade won't parent to entity and no special sound will be played
+	bool isShieldHit = false
+	string shieldHitSoundPrefix = "TitanShield.Explosive.BulletImpact"
+	// cannot handle only players due that we want shield sound to be fixed
+	//if ( ( "collisionPlayer" in projectile.s ) && IsValid( projectile.s.collisionPlayer ) )
+	if ( ( "collisionEnt" in projectile.s ) && IsValid( projectile.s.collisionEnt ) )
 	{
 		//print( "playing victim sound" )
-		victim = expect entity( projectile.s.collisionPlayer )
+		//victim = expect entity( projectile.s.collisionPlayer )
+		victim = expect entity( projectile.s.collisionEnt )
 		// just for suffer
-		bool playVictimSound = true
 		if ( victim.IsTitan() )
-		{ 
+		{
 			entity soul = victim.GetTitanSoul()
 			if ( IsValid( soul ) && GetShieldHealthWithFix( soul ) > 0 )
-				playVictimSound = false // sound already played by triplethreat_frag impact!!!
+				isShieldHit = true // sound already played by triplethreat_frag impact!!!
 		}
 		else
 		{
 			if ( GetShieldHealthWithFix( victim ) > 0 )
-				playVictimSound = false
+				isShieldHit = true
 		}
-		if ( playVictimSound )
-			EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_1P" )
+		// player sound
+		if ( victim.IsPlayer() )
+		{
+			string sound = soundPrefix + "_3P_vs_1P"
+			if ( isShieldHit )
+				sound = shieldHitSoundPrefix + "_3P_vs_1P"
+			EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, sound )
+		}
 	}
 	if ( IsValid( owner ) && owner.IsPlayer() )
 	{
 		//print( "playing owner sound" )
-		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), owner, soundPrefix + "_1P_vs_3P" )
+		string sound = soundPrefix + "_1P_vs_3P"
+		if ( isShieldHit )
+			sound = shieldHitSoundPrefix + "_1P_vs_3P"
+		EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), owner, sound )
 	}
 	// victim sound and owner sound both played
-	if ( IsValid( victim ) && ( IsValid( owner ) && owner.IsPlayer() ) )
+	if ( ( IsValid( victim ) && victim.IsPlayer() ) && ( IsValid( owner ) && owner.IsPlayer() ) )
 	{
 		//print( "both owner and npc sound played" )
 		// do sound individually for other players
+		string sound = soundPrefix + "_3P_vs_3P"
+		if ( isShieldHit )
+			sound = shieldHitSoundPrefix + "_3P_vs_3P"
 		foreach ( entity player in GetPlayerArray )
 		{
 			if ( player != victim && player != owner )
-				EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), player, soundPrefix + "_3P_vs_3P" )
+				EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), player, sound )
 		}
 	}
 	else if ( IsValid( owner ) && owner.IsPlayer() ) // only owner sound played
 	{
 		//print( "only owner sound" )
-		EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), owner, soundPrefix + "_3P_vs_3P" )
+		string sound = soundPrefix + "_3P_vs_3P"
+		if ( isShieldHit )
+			sound = shieldHitSoundPrefix + "_3P_vs_3P"
+		EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), owner, sound )
 	}
-	else if ( IsValid( victim ) ) // only victim sound played
+	else if ( ( IsValid( victim ) && victim.IsPlayer() ) ) // only victim sound played
 	{
 		//print( "only victim sound" )
-		EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, soundPrefix + "_3P_vs_3P" )
+		string sound = soundPrefix + "_3P_vs_3P"
+		if ( isShieldHit )
+			sound = shieldHitSoundPrefix + "_3P_vs_3P"
+		EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), victim, sound )
 	}
 	else // non-player sound not hitting anything
 	{
 		//print( "neutral sound" )
-		EmitSoundAtPosition( projectile.GetTeam(), projectile.GetOrigin(), soundPrefix + "_3P_vs_3P" )
+		string sound = soundPrefix + "_3P_vs_3P"
+		if ( isShieldHit )
+			sound = shieldHitSoundPrefix + "_3P_vs_3P"
+		EmitSoundAtPosition( projectile.GetTeam(), projectile.GetOrigin(), sound )
 	}
 
 	// adding fix from tf|1: upper and middle grenade travel speed greatly increased. due to that, needs to fix client-side impact visual
