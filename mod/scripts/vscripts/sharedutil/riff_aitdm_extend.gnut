@@ -25,5 +25,5 @@ void function Riff_AITdm_Extend_Init()
 
     // APRIL FOOLS SPECIAL
     AddPrivateMatchModeSettingEnum( "#AITDM_EXTENDED", "aitdm_extended_april_fools", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
-    AddPrivateMatchModeSettingEnum( "#AITDM_EXTENDED", "aitdm_april_fools_extreme_npc_weapons", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+    AddPrivateMatchModeSettingEnum( "#AITDM_EXTENDED", "aitdm_april_fools_extreme_npc_weapons", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "1" )
 }

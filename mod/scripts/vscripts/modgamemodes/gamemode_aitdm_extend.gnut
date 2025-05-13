@@ -220,7 +220,7 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 		SetReplayStartDelayOverride( 1.5 ) // total of 2.0s death cam( 0.5s to enable respawn + 1.5s before replay )
 
 		// CHAOTIC
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 		{
 			// pilots needs more health( can still easily get oneshot though )
 			HealthRegen_SetCustomRegenDelay( 3.0, 1.5, 1.2 ) // *0.6 regen delay 
@@ -911,7 +911,7 @@ void function GruntConfig( entity soldier )
 		}
 
 		// random titan weapon assignment
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			GiveHumanTitanWeapon( soldier )
 	}
 }
@@ -959,7 +959,7 @@ void function PilotConfig( entity soldier )
 	ExtraSpawner_EnableNPCDieOnAnyDamageImmune( soldier, true )
 
 	// APRIL FOOLS SPECIAL
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		// stronger behavior
 		soldier.SetMaxHealth( 1500 )
@@ -1002,7 +1002,7 @@ void function ProwlerConfig( entity soldier )
 	soldier.SetHealth( 350 )
 
 	// APRIL FOOLS SPECIAL
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		// higher damage
 		ExtraSpawner_SetProwlerMeleeDamageScale( soldier, 0.6, 8.0 )
@@ -1036,7 +1036,7 @@ void function SpectreConfig( entity soldier )
 	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 )
 	{
 		// random titan weapon assignment
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			GiveHumanTitanWeapon( soldier )
 	}
 }
@@ -1075,7 +1075,7 @@ void function StalkerConfig( entity soldier )
 			soldier.SetModel( VALID_STALKER_MODELS[ RandomInt( VALID_STALKER_MODELS.len() ) ] )
 
 		// random titan weapon assignment
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			GiveHumanTitanWeapon( soldier )
 	}
 }
@@ -1103,7 +1103,7 @@ void function ReaperConfig( entity soldier )
 	ExtraSpawner_SetNPCFlinchProtectionScale( soldier, 0.5 ) // less likely can be in pain animation( at least 1500 damage / 3600 repeat damage required )
 
 	// APRIL FOOLS SPECIAL: add aggressive_ai and fake_nessy_weapon, grants shield
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		if ( soldier.GetMainWeapons().len() > 0 )
 		{
@@ -1221,7 +1221,7 @@ void function DelayedSetUpNPCTitan( entity soldier )
 		soldier.SetCamo( 0 )
 
 		// grants shield for non-player titans
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			SetShieldHealthWithFix( soul, GetShieldHealthMaxWithFix( soul ) )
 	}
 }
@@ -1241,7 +1241,7 @@ void function DroneConfig( entity soldier )
 			soldier.GetMainWeapons()[0].AddMod( "fake_nessy_weapon" )
 
 		// grants shield
-		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 		{
 			SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() )
 			SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
@@ -1364,7 +1364,7 @@ void function DelayedSetUpNPCSpawnedTurret( entity soldier )
 	ScoreEvent_SetEntityEarnValueOverride( soldier, "KillLightTurret", 0.02, 0.02 )
 
 	// APRIL FOOLS SPECIAL: grants shield
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 	{
 		SetShieldHealthMaxWithFix( soldier, soldier.GetMaxHealth() * 0.5 ) // 600 heavy armor shield
 		SetShieldHealthWithFix( soldier, GetShieldHealthMaxWithFix( soldier ) )
@@ -1386,7 +1386,7 @@ void function InitExtraSpawnerSettings()
 {
 	// changed r201 to r101. they just looks better
 	// if we've enabled extreme weapons, specialist grunt will no longer has special weapon, should give others their weapons( also... smart pistol? )
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson", "mp_weapon_alternator_smg", "mp_weapon_wingman_n", "mp_weapon_smart_pistol"] )
 	else
 		ExtraSpawner_SetNPCWeapons( "npc_soldier", ["mp_weapon_rspn101_og", "mp_weapon_lmg", "mp_weapon_shotgun", "mp_weapon_r97", "mp_weapon_dmr", "mp_weapon_car", "mp_weapon_vinson"] )
@@ -1400,7 +1400,7 @@ void function InitExtraSpawnerSettings()
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_soldier", ["npc_lower_damage", "npc_disable_fire_at_pilot", "multiplayer_npc_launcher"] )
 
 	// if we've enabled extreme weapons, specialist grunt will no longer has special weapon, should give others their weapons( also... smart pistol? )
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 		ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2", "mp_weapon_shotgun_pistol", "mp_weapon_sniper", "mp_weapon_smart_pistol"] )
 	else
 		ExtraSpawner_SetNPCWeapons( "npc_spectre", ["mp_weapon_mastiff", "mp_weapon_doubletake", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_lstar", "mp_weapon_g2"] )
@@ -1416,7 +1416,7 @@ void function InitExtraSpawnerSettings()
 		ExtraSpawner_SetNPCExtraWeaponMods( "npc_spectre", ["npc_higher_damage_headshot", "npc_shorter_rest"] )
 
 	// if we've enabled extreme weapons, specialist grunt will no longer has special weapon, should give others their weapons( also... smart pistol? )
-	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+	if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 		ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar", "mp_weapon_alternator_smg", "mp_weapon_wingman_n", "mp_weapon_smart_pistol", "mp_weapon_shotgun_pistol", "mp_weapon_sniper"] )
 	else
 		ExtraSpawner_SetNPCWeapons( "npc_pilot_elite", ["mp_weapon_rspn101_og", "mp_weapon_r97", "mp_weapon_lmg", "mp_weapon_dmr", "mp_weapon_shotgun", "mp_weapon_mastiff", "mp_weapon_car", "mp_weapon_hemlok_smg", "mp_weapon_hemlok", "mp_weapon_g2", "mp_weapon_vinson", "mp_weapon_doubletake", "mp_weapon_lstar"] )
@@ -1648,7 +1648,7 @@ int function AITdmExtend_GetScoreValue( entity ent, bool isDoomedShot = false )
 	{
 		bool isSpecialistGrunt = SPECIALIST_GRUNTS.contains( ent.GetAISettingsName() )
 		// APRIL FOOLS SPECIAL: extreme weapons removes grunt's special weapon, needs to handle that case
-		if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 0 ) == 1 )
+		if ( GetCurrentPlaylistVarInt( "aitdm_extended_april_fools", 0 ) == 1 && GetCurrentPlaylistVarInt( "aitdm_april_fools_extreme_npc_weapons", 1 ) == 1 )
 			isSpecialistGrunt = EXTREME_WEAPON_SPECIALIST_GRUNTS.contains( ent.GetAISettingsName() )
 		if ( isSpecialistGrunt )
 			scoreToAdd = SPECIALIST_GRUNT_SCORE_AMOUNT
