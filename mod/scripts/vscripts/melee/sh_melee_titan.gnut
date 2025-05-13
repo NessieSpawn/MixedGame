@@ -252,6 +252,8 @@ void function TitanMeleeAttack( entity titan )
 
 	// modified: fighter melee
 	bool isFighterMelee = meleeWeapon.HasMod( "fighter_melee" )
+	// modified: exploding melee
+	bool isExplodingMelee = meleeWeapon.HasMod( "exploding_melee" )
 
 	const int IMPACT_EFFECT_FLAGS = 0
 	array<VisibleEntityInCone> hitResults = PlayerMelee_FindVisibleEntitiesInCone( titan )
@@ -364,10 +366,38 @@ void function TitanMeleeAttack( entity titan )
 			titan.PlayerMelee_SetAttackHitEntity( tr.hitEnt )
 			didHitTheWorld = true
 
-			// do a extra fx for fighter melee
+			// modified server-side stuffs
 #if SERVER
+			// do a extra fx for fighter melee
 			if ( isFighterMelee )
 				PlayImpactFXTable( tr.endPos, tr.hitEnt, "titan_sword", SF_ENVEXPLOSION_INCLUDE_ENTITIES )
+
+			// radius damage on impact
+			if ( isExplodingMelee )
+			{
+				print( "exploding!" )
+				vector origin = tr.endPos
+				int damage = meleeWeapon.GetWeaponSettingInt( eWeaponVar.explosion_damage )
+				int damageHeavyArmor = meleeWeapon.GetWeaponSettingInt( eWeaponVar.explosion_damage_heavy_armor )
+				float innerRadius = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.explosion_inner_radius )
+				float outerRadius = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.explosionradius )
+				float impulseForce = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force )
+				if ( meleeWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force_explosions ) > 0 ) // most melee weapon has crazy impulse value, guess we handle using another variable...
+					impulseForce = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force_explosions )
+				RadiusDamage(
+					origin,									// center
+					titan,									// attacker
+					titan,									// inflictor
+					damage,									// damage
+					damageHeavyArmor,						// damageHeavyArmor
+					innerRadius,							// innerRadius
+					outerRadius,							// outerRadius
+					SF_ENVEXPLOSION_NO_DAMAGEOWNER,			// flags
+					0,										// distanceFromAttacker
+					impulseForce,							// explosionForce
+					damageTypes.explosive,					// scriptDamageFlags
+					TitanMelee_GetMeleeDamageSourceIDForWeapon( meleeWeapon ) )			// scriptDamageSourceIdentifier
+			}
 #endif // #if SERVER
 		}
 	}
@@ -387,6 +417,7 @@ void function TitanMeleeAttack( entity titan )
 			severityScale = SCALE_WHEN_OTHER_TARGETS
 		
 		// modifier settings
+		// seems we can't affect client predicted effect that much... whatever
 #if SERVER
 		severityScale *= GetMeleeHitConfirmationMultiplier( meleeWeapon )
 #endif
@@ -394,10 +425,47 @@ void function TitanMeleeAttack( entity titan )
 		
 		meleeWeapon.DoMeleeHitConfirmation( severityScale ) // this will trigger screen shake on player
 
-		// fighter melee: do a sound to atleast let players know that they hit an target
+		// modified stuffs
 #if SERVER
+		// fighter melee: do a sound to atleast let players know that they hit an target
 		if ( isFighterMelee ) // fighter melee
 			EmitSoundOnEntityOnlyToPlayer( titan, titan, "titan_melee_hit" )
+		// exploding punch: do radius damage at hit pos
+		// ... i'd say this ISN"T STABLE AT ALL. only do it when attack miss
+		/*
+		if ( isExplodingMelee )
+		{
+			//print( "weapon has exploding_melee!" )
+			vector traceDir = titan.GetViewVector()
+			float attackRange = meleeWeapon.GetMeleeAttackRange()
+			vector traceEnd = (traceStartPos + traceDir * attackRange)
+			TraceResults tr = TraceLine( traceStartPos, traceEnd, null, TRACE_MASK_SHOT, TRACE_COLLISION_GROUP_NONE )
+		
+			// no need to validate hitent because here we must have hit something...
+			//print( "exploding!" )
+			vector origin = tr.endPos
+			int damage = meleeWeapon.GetWeaponSettingInt( eWeaponVar.explosion_damage )
+			int damageHeavyArmor = meleeWeapon.GetWeaponSettingInt( eWeaponVar.explosion_damage_heavy_armor )
+			float innerRadius = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.explosion_inner_radius )
+			float outerRadius = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.explosionradius )
+			float impulseForce = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force )
+			if ( meleeWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force_explosions ) > 0 ) // most melee weapon has crazy impulse value, guess we handle using another variable...
+				impulseForce = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.impulse_force_explosions )
+			RadiusDamage(
+				origin,									// center
+				titan,									// attacker
+				titan,									// inflictor
+				damage,									// damage
+				damageHeavyArmor,						// damageHeavyArmor
+				innerRadius,							// innerRadius
+				outerRadius,							// outerRadius
+				SF_ENVEXPLOSION_NO_DAMAGEOWNER,			// flags
+				0,										// distanceFromAttacker
+				impulseForce,							// explosionForce
+				damageTypes.explosive,					// scriptDamageFlags
+				TitanMelee_GetMeleeDamageSourceIDForWeapon( meleeWeapon ) )			// scriptDamageSourceIdentifier
+		}
+		*/
 #endif // #if SERVER
 	}
 }

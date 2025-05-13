@@ -1741,7 +1741,7 @@ void function TitanReplace_BecomeBison( entity titan, bool isPickup = false, boo
 				titan.GiveOffhandWeapon( "mp_titancore_flame_wave", OFFHAND_EQUIPMENT, ["ground_slam"] )
 				
 				//Melee, primary weapon for bison
-				titan.GiveOffhandWeapon( "melee_titan_punch_fighter", OFFHAND_MELEE, ["berserker", "allow_as_primary", "dash_punch", "bison_punch"] )
+				titan.GiveOffhandWeapon( "melee_titan_punch_fighter", OFFHAND_MELEE, ["berserker", "allow_as_primary", "dash_punch", "bison_punch", "exploding_melee"] )
 				titan.SetActiveWeaponByName( "melee_titan_punch_fighter" ) // needs to setup
 
 				// version2: try to use mp_weapon_gunship_missile as a melee primary placeholder
