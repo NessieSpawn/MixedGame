@@ -114,6 +114,7 @@ void function DissolveEntityWrapped( entity ent )
 {
 	// we never do dissolve during other gamestates, otherwise we may hide the entity forever
 	// player dissolving cleanup handled by EnsureWargamesDeathEffectIsClearedForPlayer()
+	// anyways we've make executed npcs no longer dies earlier than players... should've no need to fix animating entities death effect? 
 	if ( GamePlayingOrSuddenDeath() || GetGameState() == eGameState.Epilogue )
 	{
 		ent.Dissolve( ENTITY_DISSOLVE_CHAR, < 0, 0, 0 >, 500 )
@@ -182,10 +183,26 @@ void function MarvinSpawnerThink( entity spawner )
 		marvin.EnableNPCFlag( NPC_IGNORE_ALL )
 		//marvin.SetEfficientMode( true )
 
-		thread MarvinJobThink( marvin )
+		// makes marvin always job... so that they won't move around?
+		// welp there will always be one marvin moving around! idk how to check that, just... attach all marvins on a mover?
+		// currently nothing works bad, that walking marvin is trying to handing to some place and work there. funny.
+		// at least they won't teleport everywhere after this fix
+		//thread MarvinJobThink( marvin )
+		thread MarvinJobLifeLong( marvin )
 
 		WaitSignal( marvin, "OnDeath", "OnDestroy" )
 		wait MARVIN_RESPAWN_DELAY
+	}
+}
+
+void function MarvinJobLifeLong( entity marvin )
+{
+	marvin.EndSignal( "OnDeath" )
+	marvin.EndSignal( "OnDestroy" )
+	while ( true )
+	{
+		waitthread MarvinJobThink( marvin )
+		WaitFrame()
 	}
 }
 
