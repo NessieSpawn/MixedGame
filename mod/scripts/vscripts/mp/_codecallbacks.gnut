@@ -1014,6 +1014,8 @@ void function CodeCallback_OnPlayerGrappled( entity player, entity victim )
 	{
 		if ( victim.p.lastGrappledTime + TITAN_GRAPPLE_DEBOUNCE_TIME < Time() )
 		{
+			// yet to be moved into bison_util.gnut, using CodeCallback_OnGrapple() stuffs
+			/*
 			if ( player.IsTitan() )
 			{
 				victim.TakeDamage( TITAN_GRAPPLE_DAMAGE, player, player, { origin = victim.EyePosition(), scriptType = DF_GIB, damageSourceId = eDamageSourceId.titan_grapple } )
@@ -1029,6 +1031,7 @@ void function CodeCallback_OnPlayerGrappled( entity player, entity victim )
 					StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 0.75, 0.9 + fadeTime, fadeTime )
 				}
 			}
+			*/
 
 			if ( victim.IsPlayer() )
 			{

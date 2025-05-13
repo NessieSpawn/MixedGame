@@ -136,6 +136,8 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 	{
 		player.Signal( "VTOLHoverBegin" )
 		player.EndSignal( "VTOLHoverBegin" )
+		if ( IsValid( weapon ) )
+			weapon.EndSignal( "OnDestroy" ) // shall we??
 	}
 
 	player.EndSignal( "OnDeath" )
@@ -224,12 +226,15 @@ void function FlyerHovers( entity player, HoverSounds soundInfo, float flightTim
 		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_left_back" ) )
 		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_right_back" ) )
 	}
+	// to keep behavior consist as npcs: no effect for other titan models?
+	/*
 	else if ( player.LookupAttachment( "thrust" ) != 0 ) // modified: non-northstar titans jet effect
 	{
 		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_small", "thrust" ) )
 		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_left" ) )
 		activeFX.append( CreateTitanHoverJetEffect( player, $"P_xo_jet_fly_large", "vent_right" ) )
 	}
+	*/
 	ArrayRemoveInvalid( activeFX ) // we may have failed creating effects due to attachments, better handle like this!
 
 	EmitSoundOnEntityOnlyToPlayer( player, player,  soundInfo.liftoff_1p )
