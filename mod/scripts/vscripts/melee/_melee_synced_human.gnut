@@ -974,6 +974,7 @@ void function MarkForDeath( entity target )
 	// also play it on players? looks pretty cool though
 	// now we've removed npc's force kill behavior, no need to add this fix anymore
 	// still needs debugging that whether npcs will set their shield value to 0 after death to show effects...
+	// yes they'll always break their shield on death, guess it's correct we do so for players in _base_gametype_mp.gnut
 	//SetShieldHealthWithFix( target, 0 )
 
 	target.EndSignal( "OnDeath" )

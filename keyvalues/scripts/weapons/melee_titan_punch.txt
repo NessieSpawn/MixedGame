@@ -20,7 +20,7 @@ WeaponData
 	{
 		berserker
 		{
-			"fire_rate"										"0.75" // to avoid long anim event
+			"fire_rate"										"0.75" // to avoid input buffer mess up anim events. only for using together with allow_as_primary
 		}
 
 		allow_as_primary
@@ -45,13 +45,13 @@ WeaponData
 		}
 		big_punch // ttf1 big punch sequence, don't use together with berserker. client can predict this
 		{
-			"fire_rate"									"0.57" // to avoid long anim event
+			"fire_rate"									"0.57" // to avoid input buffer mess up anim events. only for using together with allow_as_primary
 			"melee_attack_animtime"						"1.7"
 			"melee_anim_1p_number"						"2" // ACT_VM_MELEE_ATTACK2
 			
 			// both ACT_GESTURE_MELEE_ATTACK1 and ACT_GESTURE_MELEE_ATTACK2 don't working well on atlas titan, maybe use berserker one
 			// but ACT_GESTURE_MELEE_ATTACK3 makes stryder use titan sword animation
-			// don't want either to happen, now adding separent animation mod
+			// don't want either to happen, now adding separent animation mod and leaving for scripts to change them
 			//"melee_anim_3p"								"ACT_GESTURE_MELEE_ATTACK2" // ACT_GESTURE_MELEE_ATTACK3
 
 			"melee_damage_heavyarmor"					"++450" // 950, it's sequence is really freaking long
@@ -94,10 +94,13 @@ WeaponData
 
 			// stats to use togehther with exploding_melee
 			"explosion_damage"							"200" // splasher value is 125
-			"explosion_damage_heavy_armor"				"500"
+			// remove heavy armor explosion damage -- as they're mostly easier to be hit
+			// we now do explosions on first target hit, thus to bring in crowd-control for bison
+			//"explosion_damage_heavy_armor"				"500"
+			"explosion_damage_heavy_armor"				"0"
 			// from 40mm splasher... should've working fine?
 			"explosion_inner_radius"  					"100"
-			"explosionradius" 							"250" // fd splasher value is 225
+			"explosionradius" 							"225" // fd splasher value is 225, unused splasher mod value is 250
 			"impulse_force_explosions"   				"20000" // maybe not necessary as we're a melee titan, we should've already put good effort to reach a pilot
 		}
 		// npc bison
