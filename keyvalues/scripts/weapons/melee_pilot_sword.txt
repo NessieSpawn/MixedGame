@@ -18,7 +18,7 @@ WeaponData
 		allow_as_primary
 		{
 			//"activitymodifier"								"satchel" // removed for compatibility with pilot_emptyhanded
-			"fire_rate"										"0.9" // to avoid long anim event
+			"fire_rate"										"0.9" // to avoid input buffer mess up anim events
 		}
 
 		// modified

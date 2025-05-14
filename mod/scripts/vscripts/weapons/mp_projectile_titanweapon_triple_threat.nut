@@ -131,6 +131,8 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 	entity owner = projectile.GetOwner()
 	int team = projectile.GetTeam()
 	// something needs testing is that, maybe because that triple threat grenade won't parent to entity and no special sound will be played
+	// yes triplethreat grenade uses .GrenadeExplode() method which won't do effect if grenade is not parented with shielded entity
+	// mgl uses .ExplodeForCollisionCallback() method which does the thing, I'm just keeping server-side fixes here
 	bool isShieldHit = false
 	string shieldHitSoundPrefix = "TitanShield.Explosive.BulletImpact"
 	// cannot handle only players due that we want shield sound to be fixed

@@ -9,7 +9,9 @@ const array<string> BISON_DAMAGE_REDUCTION_MELEE_MODS =
 const float BISON_DAMAGE_REDUCTION_SEVERITY = 0.1
 const float BISON_MELEE_DAMAGE_AGAINST_DOOMED_TITAN = 1.5 // bison can't termination, so we use higher doomed damage for them
 const float BISON_SPEED_BOOST_SEVERITY = 0.0 // was 0.15, will cause bison's movement animations messed up
+const float BISON_VICTIM_SLOW_SEVERITY = 0.0 // was 0.25, no slow effect for now
 const float BISON_VICTIM_SLOW_DURATION = 0.0 // was 0.3, no slow effect for now
+const float BISON_VICTIM_SLOW_FADETIME = 0.0 // was 1.0, no slow effect for now
 const float BISON_DASH_RECHARGE_RATE_SCALE = 3.0 // since we've removed bison's speed boost, should give them more charge
 const float BISON_DASH_RECHARGE_RATE_SCALE_TURBO = 1.75 // bison with pas_mobility_dash_capacity receive less rate
 const float BISON_DASH_RECHARGE_DELAY_SCALE = 0.0 // bison won't have any delay recharging another dash 
@@ -26,11 +28,23 @@ const float HIT_CONFIRMATION_MULTIPLIER_AS_BISON = 0.2 // bison will have less s
 
 // due we've removed "pushback_scale" in melee_titan_punch_fighter.txt, needs to handle stuffs here
 const float BISON_PUNCH_KNOCKBACK_SCALE = 0.5 // bit higher than "pushback_scale" "0.3"
-const float BISON_PUNCH_SELF_KNOCKBACK_MULTIPLIER = 0.6 // still 0.3 to self
+const float BISON_PUNCH_SELF_KNOCKBACK_MULTIPLIER = 0.6 // still 0.3 to self( 0.5 * 0.6 )
 
 // npc bison punch
 // no any damage modify or disabling execution, just changes damageSourceId
 const string NPC_BISON_PUNCH_MOD_NAME = "bison_punch_npc"
+
+// moving grapple stuffs from sh_consts.gnut to here
+const int BISON_GRAPPLE_DAMAGE_TITAN = 600 // vanilla value is 600
+const float BISON_GRAPPLE_DAMAGE_DEBOUNCE_TIME = 0.6 // to avoid multi-attach damage spaming maybe... vanilla value is 1.0. current value matches BISON_GRAPPLE_ATTACHED_DURATION
+const float BISON_GRAPPLE_SLOW_SEVERITY = 0.75 // vanilla value is 0.75
+const float BISON_GRAPPLE_SLOW_DURATION = 0.6 // vanilla value is 0.9. current value matches BISON_GRAPPLE_ATTACHED_DURATION
+const float BISON_GRAPPLE_SLOW_FADETIME = 0.5 // vanilla value is 0.5
+
+struct
+{
+    table<entity, float> entLastTookBisonGrappleDamageTime
+} file
 
 void function BisonUtil_Init()
 {
@@ -47,6 +61,7 @@ void function BisonUtil_Init()
 	RegisterSignal( "BisonGrappled" )
     RegisterSignal( "BisonGrappleCancelled" )
     RegisterSignal( "BisonGrappleAttachedPlayerOrNPC" )
+    RegisterSignal( "BisonGrappleAnimationFix" )
     AddCallback_MpAbilityGrapplePrimaryAttack( BisonOnUseGrapple )
     AddCallback_OnGrapple( OnBisonGrappleAttached )
 
@@ -64,6 +79,7 @@ void function BisonUtil_Init()
 
     // npc bison
     // no any damage modify or disabling execution, just changes damageSourceId
+    // this only works for npcs spawned by extra_ai_spawner.gnut as we have a callback to change their display name
     TitanMelee_AddDamageSourceIdMod( NPC_BISON_PUNCH_MOD_NAME, eDamageSourceId.melee_titan_punch_bison )
 }
 
@@ -99,6 +115,8 @@ void function BisonMelee_DamagedTarget( entity victim, var damageInfo )
         return
     if ( !TitanIsMeleeBison( attacker ) )
         return
+    //print( "bison damaged target!" ) // debugging for explosion damages
+    //print( "damage value: " + string( DamageInfo_GetDamage( damageInfo ) ) )
     
 
     if( !victim.IsTitan() )
@@ -108,8 +126,9 @@ void function BisonMelee_DamagedTarget( entity victim, var damageInfo )
         return
 
     // titan slow effect needs to apply on soul
-    StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 0.25, BISON_VICTIM_SLOW_DURATION, 0.25 )
-    StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, 0.25, BISON_VICTIM_SLOW_DURATION * 2, 1.0 ) 
+    StatusEffect_AddTimed( soul, eStatusEffect.move_slow, BISON_VICTIM_SLOW_SEVERITY, BISON_VICTIM_SLOW_DURATION, BISON_VICTIM_SLOW_FADETIME )
+    StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, BISON_VICTIM_SLOW_SEVERITY, BISON_VICTIM_SLOW_DURATION, BISON_VICTIM_SLOW_FADETIME ) 
+    // do bonus damage as we won't execute our target
     if( soul.IsDoomed() )
         DamageInfo_ScaleDamage( damageInfo, BISON_MELEE_DAMAGE_AGAINST_DOOMED_TITAN )
 }
@@ -240,11 +259,16 @@ void function BisonOnUseGrapple( entity weapon, WeaponPrimaryAttackParams attack
 	{
         entity player = weapon.GetWeaponOwner()
 		thread BisonDelayedAutoDetach( player )
+        // try to fix grapple pull animation by any means...
+        // won't work at all...
+        //thread ScriptedBisonGrappleAnimationFix( player )
 	}
 }
 
 void function BisonDelayedAutoDetach( entity player )
 {
+    player.EndSignal( "OnDestroy" )
+    player.EndSignal( "OnDeath" )
 	player.Signal( "BisonGrappled" )
 	player.EndSignal( "BisonGrappled" )
     player.EndSignal( "BisonGrappleCancelled" )
@@ -262,6 +286,7 @@ void function BisonDelayedAutoDetach( entity player )
                 // clean up
 				RemoveButtonPressedPlayerInputCallback( player, IN_DUCK, PlayerPressedGrappleDetachButton )
 				RemoveButtonPressedPlayerInputCallback( player, IN_DUCKTOGGLE, PlayerPressedGrappleDetachButton )
+                player.Signal( "BisonGrappleCancelled" ) // new adding, to end animation fixes
             }
         }
     )
@@ -298,6 +323,44 @@ void function OnBisonGrappleAttached( entity player, entity hitEnt, vector hitpo
     if ( !grappleWeapon.HasMod( "bison_grapple" ) )
         return
 
+    // fix again, with reduced max duration
+    // won't work at all...
+    //thread ScriptedBisonGrappleAnimationFix( player, BISON_GRAPPLE_ATTACHED_DURATION )
+    
+    // moving damage stuffs from _codecallbacks.gnut, allow npcs to be damaged by bison
+    if ( hitEnt.IsNPC() || hitEnt.IsPlayer() )
+    {
+        if ( hitEnt.GetTeam() != player.GetTeam() || FriendlyFire_IsEnabled() )
+        {
+            if ( !( hitEnt in file.entLastTookBisonGrappleDamageTime ) )
+                file.entLastTookBisonGrappleDamageTime[ hitEnt ] <- 0.0
+            
+            // 1s damage protection...
+            if ( file.entLastTookBisonGrappleDamageTime[ hitEnt ] + BISON_GRAPPLE_DAMAGE_DEBOUNCE_TIME < Time() )
+            {
+                if ( player.IsTitan() )
+                {
+                    // now we only do damage to titan victim
+                    if ( hitEnt.IsTitan() )
+                        hitEnt.TakeDamage( BISON_GRAPPLE_DAMAGE_TITAN, player, player, { origin = hitpos, scriptType = DF_GIB, damageSourceId = eDamageSourceId.titan_grapple } )
+
+                    // idk why there is also slow, just leaving here
+                    // also adding move_slow for pilot victim
+                    entity slowEnt = hitEnt
+                    if ( hitEnt.IsTitan() && IsValid( hitEnt.GetTitanSoul() ) )
+                        slowEnt = hitEnt.GetTitanSoul()
+
+                    StatusEffect_AddTimed( slowEnt, eStatusEffect.move_slow, BISON_GRAPPLE_SLOW_SEVERITY, BISON_GRAPPLE_SLOW_DURATION + BISON_GRAPPLE_SLOW_FADETIME, BISON_GRAPPLE_SLOW_FADETIME )
+                    if ( hitEnt.IsTitan() )
+                        StatusEffect_AddTimed( slowEnt, eStatusEffect.dodge_speed_slow, BISON_GRAPPLE_SLOW_SEVERITY, BISON_GRAPPLE_SLOW_DURATION + BISON_GRAPPLE_SLOW_FADETIME, BISON_GRAPPLE_SLOW_FADETIME )
+                }
+
+                // this should only be updated when target actually takes damage
+                file.entLastTookBisonGrappleDamageTime[ hitEnt ] = Time()
+            }
+        }
+    }
+
     float powerPerGrapple = grappleWeapon.GetWeaponSettingFloat( eWeaponVar.grapple_power_required )
     float ownerGrapplePower = player.GetSuitGrapplePower()
     int grappleShotsLeft = int ( ownerGrapplePower / powerPerGrapple )
@@ -331,5 +394,36 @@ void function OnBisonGrappleAttached( entity player, entity hitEnt, vector hitpo
             float powerReduction = min ( grapplePowerCostMax, BISON_GRAPPLE_COST_GRAPPLING_PILOT )
             player.SetSuitGrapplePower( max ( 0, ownerGrapplePower - powerReduction ) )
         }
+    }
+}
+
+void function ScriptedBisonGrappleAnimationFix( entity player, float maxDuration = 3.0 )
+{
+    player.EndSignal( "OnDestroy" )
+    player.EndSignal( "OnDeath" )
+    player.Signal( "BisonGrappleAnimationFix" )
+    player.EndSignal( "BisonGrappleAnimationFix" )
+    // many ways to stop fix so that we don't get weird behavior
+	player.EndSignal( "BisonGrappled" )
+    player.EndSignal( "BisonGrappleCancelled" )
+    player.EndSignal( "BisonGrappleAttachedPlayerOrNPC" )
+
+    float endTime = Time() + maxDuration // max duration... maybe no need? should be handled by "BisonGrappleCancelled" signal, or we just return
+    while ( Time() < endTime )
+    {
+        WaitFrame() // idk we use higher framerate frequently causes performance issue or not... just feels better
+        // don't overwrite offhand / melee attack animation
+        entity activeWeapon = player.GetActiveWeapon()
+        bool activeWeaponIsNonMeleeOffhand
+        if ( IsValid( activeWeapon ) && activeWeapon.IsWeaponOffhand() && activeWeapon != player.GetMeleeWeapon() )
+            activeWeaponIsNonMeleeOffhand = true
+        if ( player.PlayerMelee_IsAttackActive() || !IsValid( activeWeapon ) || activeWeaponIsNonMeleeOffhand )
+        {
+            //print( "animation fix ignored!" )
+            continue
+        }
+        //print( "fixing animation!" )
+        // won't work at all...
+        player.Anim_StopGesture( DEFAULT_SCRIPTED_ANIMATION_BLEND_TIME ) // force stop weird death animation
     }
 }
