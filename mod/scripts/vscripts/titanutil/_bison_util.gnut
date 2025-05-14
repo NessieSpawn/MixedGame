@@ -9,7 +9,9 @@ const array<string> BISON_DAMAGE_REDUCTION_MELEE_MODS =
 const float BISON_DAMAGE_REDUCTION_SEVERITY = 0.1
 const float BISON_MELEE_DAMAGE_AGAINST_DOOMED_TITAN = 1.5 // bison can't termination, so we use higher doomed damage for them
 const float BISON_SPEED_BOOST_SEVERITY = 0.0 // was 0.15, will cause bison's movement animations messed up
+const float BISON_VICTIM_SLOW_SEVERITY = 0.0 // was 0.25, no slow effect for now
 const float BISON_VICTIM_SLOW_DURATION = 0.0 // was 0.3, no slow effect for now
+const float BISON_VICTIM_SLOW_FADETIME = 0.0 // was 1.0, no slow effect for now
 const float BISON_DASH_RECHARGE_RATE_SCALE = 3.0 // since we've removed bison's speed boost, should give them more charge
 const float BISON_DASH_RECHARGE_RATE_SCALE_TURBO = 1.75 // bison with pas_mobility_dash_capacity receive less rate
 const float BISON_DASH_RECHARGE_DELAY_SCALE = 0.0 // bison won't have any delay recharging another dash 
@@ -124,8 +126,9 @@ void function BisonMelee_DamagedTarget( entity victim, var damageInfo )
         return
 
     // titan slow effect needs to apply on soul
-    StatusEffect_AddTimed( soul, eStatusEffect.move_slow, 0.25, BISON_VICTIM_SLOW_DURATION, 0.25 )
-    StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, 0.25, BISON_VICTIM_SLOW_DURATION * 2, 1.0 ) 
+    StatusEffect_AddTimed( soul, eStatusEffect.move_slow, BISON_VICTIM_SLOW_SEVERITY, BISON_VICTIM_SLOW_DURATION, BISON_VICTIM_SLOW_FADETIME )
+    StatusEffect_AddTimed( soul, eStatusEffect.dodge_speed_slow, BISON_VICTIM_SLOW_SEVERITY, BISON_VICTIM_SLOW_DURATION, BISON_VICTIM_SLOW_FADETIME ) 
+    // do bonus damage as we won't execute our target
     if( soul.IsDoomed() )
         DamageInfo_ScaleDamage( damageInfo, BISON_MELEE_DAMAGE_AGAINST_DOOMED_TITAN )
 }
