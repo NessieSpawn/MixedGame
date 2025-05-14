@@ -446,6 +446,7 @@ void function TitanMeleeAttack( entity titan )
 #if SERVER
 void function ExplodingMeleeGoBoom( entity meleeWeapon, entity titan, vector origin )
 {
+	//print( "ExplodingMeleeGoBoom!" )
 	int damage = meleeWeapon.GetWeaponSettingInt( eWeaponVar.explosion_damage )
 	int damageHeavyArmor = meleeWeapon.GetWeaponSettingInt( eWeaponVar.explosion_damage_heavy_armor )
 	float innerRadius = meleeWeapon.GetWeaponSettingFloat( eWeaponVar.explosion_inner_radius )
