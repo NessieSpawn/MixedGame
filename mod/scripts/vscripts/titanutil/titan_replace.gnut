@@ -479,7 +479,7 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 					break
 
 				//case $"models/titans/light/titan_light_ronin_prime.mdl":
-				case "ion":
+				case "ronin":
 					SendHudMessage(player, "已启用游侠泰坦装备，取消至尊泰坦以使用原版浪人",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 					TitanReplace_BecomeStryder( titan, false, true )
 					break

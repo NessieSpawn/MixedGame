@@ -1147,6 +1147,12 @@ const array<asset> VALID_OGRE_TITAN_MODELS =
 	$"models/titans/heavy/titan_heavy_scorch_prime.mdl",
 	$"models/titans/heavy/titan_heavy_legion_prime.mdl",
 ]
+// hardcode for ronin sword: prime state based on model
+const array<asset> STRYDER_PRIME_MODELS =
+[
+	$"models/titans/light/titan_light_northstar_prime.mdl",
+	$"models/titans/light/titan_light_ronin_prime.mdl",
+]
 void function TitanConfig( entity soldier )
 {
 	// friendly highlight
@@ -1188,6 +1194,24 @@ void function TitanConfig( entity soldier )
 			{
 				soldier.SetModel( validModelGroups[ RandomInt( validModelGroups.len() ) ] )
 				UpdateTitanBatteryContainerParent( soldier )
+
+				// alr hardcode for ronin sword: prime state based on model
+				string titanClass = GetTitanCharacterName( titan )
+				if ( titanClass == "ronin" )
+				{
+					array<int> offhandSlots = [ OFFHAND_MELEE, OFFHAND_LEFT, OFFHAND_RIGHT ]
+
+					foreach ( slot in offhandSlots )
+					{
+						entity weapon = soldier.GetOffhandWeapon( slot )
+						array<string> mods = weapon.GetMods()
+						if ( STRYDER_PRIME_MODELS.contains( titan.GetModelName() ) )
+							mods.append( "modelset_prime" )
+						else
+							mods.removebyvalue( "modelset_prime" )
+						weapon.SetMods( mods )
+					}
+				}
 			}
 		}
 
