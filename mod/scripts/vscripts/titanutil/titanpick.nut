@@ -558,7 +558,7 @@ function PickupDroppedTitanWeapon( weaponProp, player )
         if ( pickUpCallbackString != "" )
         {
             // tell player why they can't pick up this weapon
-            SendHudMessage( player, pickUpCallbackString, -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
+            //SendHudMessage( player, pickUpCallbackString, -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
 		    return
         }
     }
