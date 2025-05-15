@@ -1196,7 +1196,7 @@ void function TitanConfig( entity soldier )
 				UpdateTitanBatteryContainerParent( soldier )
 
 				// alr hardcode for ronin sword: prime state based on model
-				string titanClass = GetTitanCharacterName( titan )
+				string titanClass = GetTitanCharacterName( soldier )
 				if ( titanClass == "ronin" )
 				{
 					array<int> offhandSlots = [ OFFHAND_MELEE, OFFHAND_LEFT, OFFHAND_RIGHT ]
@@ -1205,7 +1205,7 @@ void function TitanConfig( entity soldier )
 					{
 						entity weapon = soldier.GetOffhandWeapon( slot )
 						array<string> mods = weapon.GetMods()
-						if ( STRYDER_PRIME_MODELS.contains( titan.GetModelName() ) )
+						if ( STRYDER_PRIME_MODELS.contains( soldier.GetModelName() ) )
 							mods.append( "modelset_prime" )
 						else
 							mods.removebyvalue( "modelset_prime" )
