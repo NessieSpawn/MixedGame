@@ -53,7 +53,7 @@ void function SendCilentCommandToServer_Threaded()
         entity player = GetLocalClientPlayer()
         if ( IsValid( player ) )
         {
-            player.ClientCommand( "InstalledSuperMixedGameClient" )
+            player.ClientCommand( "InstalledSuperMixedGameClient FULL" ) // tell server we've installed FULL mod!
             return
         }
 
