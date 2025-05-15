@@ -179,7 +179,7 @@ void function OnProjectileExplode_titanweapon_triplethreat( entity projectile )
 		string sound = soundPrefix + "_3P_vs_3P"
 		if ( isShieldHit )
 			sound = shieldHitSoundPrefix + "_3P_vs_3P"
-		foreach ( entity player in GetPlayerArray )
+		foreach ( entity player in GetPlayerArray() )
 		{
 			if ( player != victim && player != owner )
 				EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), player, sound )
