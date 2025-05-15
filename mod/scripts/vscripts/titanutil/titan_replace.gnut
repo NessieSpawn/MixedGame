@@ -4039,6 +4039,8 @@ void function RegisterModdedBrute4TitanCharacter()
 	// invalid mods
 	TitanPick_AddIllegalWeaponMod( "brute4_cluster_payload_ammo" )
 	MeleeSyncedTitan_AddModToRemoveOnLoadoutReplace( "brute4_cluster_payload_ammo" ) 
+	TitanPick_AddIllegalWeaponMod( "rapid_detonator_active" )
+	MeleeSyncedTitan_AddModToRemoveOnLoadoutReplace( "rapid_detonator_active" ) 
 
 	// damage balancing
 	TitanPick_AddPickedWeaponDamageScale( "brute4_modded", "atlas", 1.0 ) // atlas chassis using brute4 loadout: 100% damage
@@ -4074,8 +4076,39 @@ string function ModdedBrute4WeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "brute4_quad_rocket" ) )
 		return ""
 
-	//return "野獸四號 裝備"
-	return "BRUTE4 Loadout"
+	array<string> primaryMods = weapon.GetMods()
+	entity special = titan.GetOffhandWeapon( OFFHAND_SPECIAL )
+	entity ordnance = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
+	entity antiRodeo = titan.GetOffhandWeapon( OFFHAND_ANTIRODEO )
+	entity core = titan.GetOffhandWeapon( OFFHAND_EQUIPMENT )
+	array<string> specialMods = []
+	array<string> ordnanceMods = []
+	array<string> antiRodeoMods = []
+	array<string> coreMods = []
+	if ( IsValid( special ) )
+		specialMods = special.GetMods()
+	if ( IsValid( ordnance ) )
+		ordnanceMods = ordnance.GetMods()
+	if ( IsValid( antiRodeo ) )
+		antiRodeoMods = antiRodeo.GetMods()
+	if ( IsValid( core ) )
+		coreMods = core.GetMods()
+
+	string displayName = "ARCHON Loadout"
+	/*
+	string displayName = "野獸四號 裝備"
+	if ( primaryMods.contains( "straight_shot" ) )
+		displayName += "【直綫發射】"
+	else if ( specialMods.contains( "molting_dome" ) )
+		displayName += "【蛻變圓頂】"
+	else if ( antirodeoMods.contains( "explosive_reserves" ) )
+		displayName += "【過量炸藥】"
+	else if ( ordnanceMods.contains( "magnetic_rollers" ) )
+		displayName += "【磁能滾雷】"
+	else if ( coreMods.contains( "rapid_detonator" ) )
+		displayName += "【快速引爆】"
+	*/
+
 	/* // unused
 	if( mods.contains( "straight_shot" ) )
 		return "四段火箭(野獸四號) [直射系統]"
@@ -4083,6 +4116,8 @@ string function ModdedBrute4WeaponDisplayNameFunc( entity weapon )
 		return "四段火箭(野獸四號) [快速引爆]"
 	return "四段火箭(野獸四號)"
 	*/
+
+	return displayName
 }
 
 string function ModdedBrute4ShouldAllowPlayerPickUp( entity player )
@@ -4137,9 +4172,40 @@ string function ModdedArchonWeaponDisplayNameFunc( entity weapon )
 	
 	if ( !mods.contains( "archon_arc_cannon" ) )
 		return ""
+	
+	array<string> primaryMods = weapon.GetMods()
+	entity special = titan.GetOffhandWeapon( OFFHAND_SPECIAL )
+	entity ordnance = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
+	entity antiRodeo = titan.GetOffhandWeapon( OFFHAND_ANTIRODEO )
+	entity core = titan.GetOffhandWeapon( OFFHAND_EQUIPMENT )
+	array<string> specialMods = []
+	array<string> ordnanceMods = []
+	array<string> antiRodeoMods = []
+	array<string> coreMods = []
+	if ( IsValid( special ) )
+		specialMods = special.GetMods()
+	if ( IsValid( ordnance ) )
+		ordnanceMods = ordnance.GetMods()
+	if ( IsValid( antiRodeo ) )
+		antiRodeoMods = antiRodeo.GetMods()
+	if ( IsValid( core ) )
+		coreMods = core.GetMods()
 
-	//return "執政官 裝備"
-	return "ARCHON Loadout"
+	string displayName = "ARCHON Loadout"
+	/*
+	string displayName = "執政官 裝備"
+	if ( primaryMods.contains( "chain_reaction" ) )
+		displayName += "【連鎖反應】"
+	else if ( primaryMods.contains( "static_feedback" ) )
+		displayName += "【靜電反饋】"
+	else if ( specialMods.contains( "bolt_from_the_blue" ) )
+		displayName += "【藍色閃電】"
+	else if ( ordnanceMods.contains( "thylord_module" ) )
+		displayName += "【泰隆模塊】"
+	else if ( coreMods.contains( "bring_the_thunder" ) )
+		displayName += "【轟雷降臨】"
+	*/
+
 	/* // unused
 	if ( mods.contains( "capacitor" ) )
 		return "電弧機炮 [電容器]"
@@ -4149,6 +4215,8 @@ string function ModdedArchonWeaponDisplayNameFunc( entity weapon )
 		return "電弧機炮 [發電裝置]"
 	return "電弧機炮"
 	*/
+
+	return displayName
 }
 
 string function ModdedArchonShouldAllowPlayerPickUp( entity player )
