@@ -373,9 +373,9 @@ void function OnPlayerRespawned( entity player )
     if( !BLEEDOUT_MODE_ENABLE_SECOND_LOADOUT )
         return
     if( !file.useFakeApexLoadout[player.GetUID()] )
-        SendHudMessage( player, "當前裝備: 原版技能組\n按下 近戰 切換至僞apex技能組", -1, -0.3, 0, 255, 255, 255, 0, 10, 0 )
+        SendHudMessage( player, "當前使用: 原版裝備\n按下 近戰 切換至僞apex裝備", -1, -0.3, 0, 255, 255, 255, 0, 10, 0 )
     else if( file.useFakeApexLoadout[player.GetUID()] )
-        SendHudMessage( player, "当前装备: 僞apex技能組\n按下 近戰 切換至原版技能組", -1, -0.3, 0, 255, 255, 255, 0, 10, 0 )
+        SendHudMessage( player, "當前使用: 僞apex裝備\n按下 近戰 切換至原版裝備", -1, -0.3, 0, 255, 255, 255, 0, 10, 0 )
 }
 
 void function OnPlayerGetsPilotLoadout( entity player, PilotLoadoutDef p )

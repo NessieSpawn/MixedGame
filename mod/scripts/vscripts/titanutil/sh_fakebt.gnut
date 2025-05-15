@@ -550,7 +550,7 @@ void function SetBTOffhands( entity player )
 		{
 			if( !PlayerHasWeapon( player, "mp_titanability_smoke" ) ) // key offhand for remarking this loadout
 			{
-				SendHudMessage( player, "切換至遠征泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
+				SendHudMessage( player, "切換至遠征泰坦裝備", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
 				//Ordnance
 				//player.TakeOffhandWeapon(OFFHAND_ORDNANCE)	
 				//player.GiveOffhandWeapon("mp_titanweapon_shoulder_rockets", OFFHAND_ORDNANCE )
@@ -581,7 +581,7 @@ void function SetBTOffhands( entity player )
 		{
 			if( !PlayerHasWeapon( player, "mp_titanweapon_heat_shield" ) ) // key offhand for remarking this loadout
 			{
-				SendHudMessage( player, "切換至擲彈兵泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
+				SendHudMessage( player, "切換至擲彈兵泰坦裝備", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
 				//Ordnance
 				player.TakeOffhandWeapon(OFFHAND_ORDNANCE)
 				player.GiveOffhandWeapon("mp_titanweapon_dumbfire_rockets", OFFHAND_ORDNANCE )
@@ -618,7 +618,7 @@ void function SetBTOffhands( entity player )
 		{
 			if( !PlayerHasWeapon( player, "mp_titanweapon_flame_wall" ) ) // key offhand for remarking this loadout
 			{
-				SendHudMessage( player, "切換至野獸泰坦技能組", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
+				SendHudMessage( player, "切換至野獸泰坦裝備", -1, 0.3, 255, 200, 0, 0, 0.15, 6, 0.15 )
 				//Ordnance
 				player.TakeOffhandWeapon(OFFHAND_ORDNANCE)	
 				player.GiveOffhandWeapon("mp_titanweapon_flame_wall", OFFHAND_ORDNANCE )
@@ -789,11 +789,20 @@ void function FakeBTClientSideSetup_Threaded( entity titan )
 #endif
 
 #if SERVER
+// checking for Frontier Monarch warpaint
 bool function TitanShouldReplaceAsFakeBT( entity titan )
 {
-	return titan.GetModelName() == $"models/titans/medium/titan_medium_vanguard.mdl" && titan.GetCamo() == -1 && titan.GetSkin() == 3
+	// not using model checks anymore... try to handle it more correctly
+	//return titan.GetModelName() == $"models/titans/medium/titan_medium_vanguard.mdl" && titan.GetCamo() == -1 && titan.GetSkin() == 3
+	
+	// idk how skin & camo works in titan loadout stuffs... hope it's working fine
+	string titanClass = titanSoul.soul.titanLoadout.titanClass
+	int camoIndex = titanSoul.soul.titanLoadout.skinIndex
+	int skinIndex = titanSoul.soul.titanLoadout.camoIndex
+	return titanClass == "vanguard" && camoIndex == -1 && skinIndex == 3
 }
 #elseif CLIENT
+// client callbacks runs after than server-side model change, safe to set up everything with this check
 bool function TitanShouldReplaceAsFakeBT( entity titan )
 {
 	return titan.GetModelName() == $"models/titans/buddy/titan_buddy.mdl"
