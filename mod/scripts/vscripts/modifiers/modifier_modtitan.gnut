@@ -142,41 +142,68 @@ array<string> function GetTitanHelpMessage( entity player )
     if ( !IsValid( titan ) )
         return [MESSAGE_FAILED_NO_TITAN]
 
+    // not using model checks anymore... try to handle it more correctly
+    // leaving only for fakeBT
     asset modelName = titan.GetModelName()
+    entity titanSoul = titan.GetTitanSoul()
+	if( !IsValid( titanSoul ) ) // soul not spawned yet, mostly because disembarking, no worries
+		return [MESSAGE_FAILED_NO_TITAN]
+    
+    string titanClass = titanSoul.soul.titanLoadout.titanClass
+	bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
+    
     array<string> helpMessage
-    switch( modelName )
-	{
-        case $"models/titans/medium/titan_medium_tone_prime.mdl":
-            helpMessage = ATLAS_HELP_MESSAGE
-            break
+    // not using model checks anymore... try to handle it more correctly
+    if ( isPrime )
+    {
+        //switch( modelName )
+        switch ( titanClass )
+        {
+            //case $"models/titans/medium/titan_medium_tone_prime.mdl":
+            case "tone":
+                helpMessage = ATLAS_HELP_MESSAGE
+                break
 
-        case $"models/titans/heavy/titan_heavy_legion_prime.mdl":
-            helpMessage = OGRE_HELP_MESSAGE
-            break
+            //case $"models/titans/heavy/titan_heavy_legion_prime.mdl":
+            case "legion":
+                helpMessage = OGRE_HELP_MESSAGE
+                break
 
-        case $"models/titans/light/titan_light_ronin_prime.mdl":
-            helpMessage = STRYDER_HELP_MESSAGE
-            break
+            //case $"models/titans/light/titan_light_ronin_prime.mdl":
+            case "ronin":
+                helpMessage = STRYDER_HELP_MESSAGE
+                break
 
-        case $"models/titans/heavy/titan_heavy_scorch_prime.mdl":
-            helpMessage = BISON_HELP_MESSAGE
-            break
+            //case $"models/titans/heavy/titan_heavy_scorch_prime.mdl":
+            case "scorch":
+                helpMessage = BISON_HELP_MESSAGE
+                break
 
-        case $"models/titans/medium/titan_medium_ion_prime.mdl":
-            helpMessage = ARCHON_HELP_MESSAGE
-            break
+            //case $"models/titans/medium/titan_medium_ion_prime.mdl":
+            case "archon":
+                helpMessage = ARCHON_HELP_MESSAGE
+                break
 
-        case $"models/titans/light/titan_light_northstar_prime.mdl":
-            helpMessage = BRUTE_HELP_MESSAGE
-            break
-        
-        case $"models/titans/buddy/titan_buddy.mdl":
-            helpMessage = FAKEBT_HELP_MESSAGE
-            break
-        
-        default:
-            return [MESSAGE_FAILED_NOT_MODDED_TITAN]
+            //case $"models/titans/light/titan_light_northstar_prime.mdl":
+            case "northstar":
+                helpMessage = BRUTE_HELP_MESSAGE
+                break
+            
+            // not using model checks anymore... try to handle it more correctly
+            /*
+            case $"models/titans/buddy/titan_buddy.mdl":
+                helpMessage = FAKEBT_HELP_MESSAGE
+                break
+            
+            default:
+                return [MESSAGE_FAILED_NOT_MODDED_TITAN]
+            */
+        }
     }
+    else if ( modelName == $"models/titans/buddy/titan_buddy.mdl" )
+        return FAKEBT_HELP_MESSAGE
+    else
+        return [MESSAGE_FAILED_NOT_MODDED_TITAN]
 
     return helpMessage
 }

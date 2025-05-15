@@ -7,6 +7,7 @@ global function TitanPick_Init
 // main settings func
 global function TitanPick_Enabled_Init
 global function TitanPick_EnableWeaponDrops
+global function TitanPick_IsWeaponDropsEnabled // to be shared with ai-gamemodes, stop spawning modded titans after we enabling this
 
 global function TitanPick_SetTitanDroppedWeaponLifeTime // manually created weapon drops can bypass this setting
 
@@ -38,6 +39,10 @@ global function TitanPick_TitanDropWeapon
 global function TitanPick_AddPickedWeaponDamageScale
 global function TitanPick_GetTitanDamageScale
 
+// for disallowing modded titans from being picked up by non-client-side-installed players
+// each character can only have one of these callback
+global function TitanPick_SetCallback_ShouldAllowWeaponPick
+
 const float TITAN_WEAPON_DROP_LIFETIME          = 60 // (serve as default value)after this time the weapon drop will be destroyed
 
 // consts that no need to change
@@ -51,6 +56,8 @@ const float PLAYER_RUI_UPDATE_DURATION          = 0.5 // use cinematic flag to u
 
 global struct DroppedTitanWeapon
 {
+    string characterName // store this for our callbacks to run
+
     string weaponClassName
     string weaponName
     array<string> weaponMods
@@ -120,6 +127,9 @@ struct
 
     // titan chassis-based balancing
     table< string, table<string, float> > pickedWeaponDropDamageScaling
+
+    // titan pick disallowing callbacks
+    table< string, string functionref( entity player ) > charaNameAllowPickUpCallback
 } file
 
 void function TitanPick_Init() 
@@ -152,6 +162,12 @@ void function TitanPick_Enabled_Init()
 void function TitanPick_EnableWeaponDrops( bool enable )
 {
     file.enableWeaponDrops = enable
+}
+
+// to be shared with ai-gamemodes
+bool function TitanPick_IsWeaponDropsEnabled()
+{
+    return GetCurrentPlaylistVarInt( "titan_weapon_drops", 0 ) != 0 || file.enableWeaponDrops // playlistvar overrides settings!
 }
 
 void function TitanPick_SetTitanDroppedWeaponLifeTime( float lifeTime )
@@ -202,9 +218,8 @@ bool function TryDropWeaponOnTitanKilled( entity titan )
 bool function TitanPick_ShouldTitanDropWeapon( entity titan )
 {
     // main check
-    bool weaponDropEnabled = file.enableWeaponDrops || GetCurrentPlaylistVarInt( "titan_weapon_drops", 0 ) != 0
     //print( "weaponDropEnabled: " + string( weaponDropEnabled ) )
-    if ( !weaponDropEnabled )
+    if ( !TitanPick_IsWeaponDropsEnabled() )
         return false
 
     if( !titan.IsTitan() )
@@ -343,6 +358,7 @@ entity function TitanPick_TitanDropWeapon( entity titan, vector droppoint = DEFA
     AddCallback_OnUseEntity( weaponProp, PickupDroppedTitanWeapon )
 
     DroppedTitanWeapon weaponStruct
+    weaponStruct.characterName = charaName
     weaponStruct.weaponName = displayName
     weaponStruct.weaponClassName = weapon.GetWeaponClassName()
     weaponStruct.weaponMods = RemoveIllegalWeaponMods( weapon.GetMods() )
@@ -531,6 +547,21 @@ function PickupDroppedTitanWeapon( weaponProp, player )
 		//SendHudMessage( player, "核心啓用期間不可更換裝備", -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
 		return
 	}
+
+    // callbacks to handle weapon pickup
+    string newWeaponCharaName = file.droppedWeaponPropsTable[ weaponProp ].characterName
+    if ( newWeaponCharaName in file.charaNameAllowPickUpCallback )
+    {
+        string pickUpCallbackString = file.charaNameAllowPickUpCallback[ newWeaponCharaName ]( player )
+        // return value is for displaying why player cannot pick up
+	    // if returning empty string it means we're safe to pick up such weapon
+        if ( pickUpCallbackString != "" )
+        {
+            // tell player why they can't pick up this weapon
+            SendHudMessage( player, pickUpCallbackString, -1, 0.3, 255, 255, 0, 255, 0, 3, 0 )
+		    return
+        }
+    }
 
     entity newLoadoutOwner = file.droppedWeaponOwnerSoul[ weaponProp ]
     // drop current weapon
@@ -853,4 +884,12 @@ void function TitanPick_AddCallback_OnTitanPickupWeapon( void functionref( entit
 {
     if ( !file.onTitanPickupWeaponCallbacks.contains( callbackFunc ) )
         file.onTitanPickupWeaponCallbacks.append( callbackFunc )
+}
+
+void function TitanPick_SetCallback_ShouldAllowWeaponPick( string pickCharaName, string functionref( entity player ) callbackFunc )
+{
+    if ( !( pickCharaName in file.charaNameAllowPickUpCallback ) )
+        file.charaNameAllowPickUpCallback[ pickCharaName ] <- callbackFunc
+    else // only one callback can be added per character...
+        print( "[TITAN PICK] TitanPick_SetCallback_ShouldAllowWeaponPick(): " + pickCharaName + " already having a callback!" )
 }
