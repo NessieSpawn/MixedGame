@@ -344,6 +344,7 @@ void function SetBTLoadout( entity titan )
 	
 	//Monarch as Fake BT
 	// notification done here!
+	// actually only hot dropping titan will run to here, disembarking case already blocked by TitanShouldReplaceAsFakeBT()
 	bool isTitanDropping = true
 	if ( "spawnWithoutSoul" in titan.s )
 	{
@@ -793,6 +794,7 @@ void function FakeBTClientSideSetup_Threaded( entity titan )
 bool function TitanShouldReplaceAsFakeBT( entity titan )
 {
 	// not using model checks anymore... try to handle it more correctly
+	// note that this actually handles disembarking case because our titan model isn't monarch anymore
 	//return titan.GetModelName() == $"models/titans/medium/titan_medium_vanguard.mdl" && titan.GetCamo() == -1 && titan.GetSkin() == 3
 	
 	entity titanSoul = titan.GetTitanSoul()
@@ -811,9 +813,16 @@ bool function TitanShouldReplaceAsFakeBT( entity titan )
 	}
 
 	// idk how skin & camo works in titan loadout stuffs... hope it's working fine
-	string titanClass = titanSoul.soul.titanLoadout.titanClass
-	int camoIndex = titanSoul.soul.titanLoadout.skinIndex
-	int skinIndex = titanSoul.soul.titanLoadout.camoIndex
+	// titanClass isn't valid most of time...
+	// needs to get from ai settings
+	//string titanClass = titanSoul.soul.titanLoadout.titanClass
+	string titanClass = GetTitanCharacterName( titan )
+	int camoIndex = titanSoul.soul.titanLoadout.camoIndex
+	int skinIndex = titanSoul.soul.titanLoadout.skinIndex
+	//print( "FAKEBT" )
+	//print( "titanClass: " + titanClass )
+	//print( "camoIndex: " + string( camoIndex ) )
+	//print( "skinIndex: " + string( skinIndex ) )
 	return titanClass == "vanguard" && camoIndex == -1 && skinIndex == 3
 }
 #elseif CLIENT

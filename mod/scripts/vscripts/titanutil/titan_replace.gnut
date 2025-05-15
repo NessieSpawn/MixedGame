@@ -263,10 +263,6 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 	if( !IsValid( titanSoul ) ) // soul not spawned yet, mostly because disembarking, no worries
 		return
 
-	// following are player titans( pet titans )
-	entity player = GetPetTitanOwner( titan )
-	if( !IsValid( player ) )
-		return
 	if ( "spawnWithoutSoul" in titan.s )
 	{
 		// this is defined in CreateAutoTitanForPlayer_ForTitanTitanReplace_BecomesPilot(), mark the titan as "disembarked" not "hotdropping"
@@ -274,18 +270,25 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 			return
 	}
 
-	// get passives and executionrefs here
-	file.soulPassiveTable[ titanSoul ] = _PassiveFromEnum[titanSoul.soul.titanLoadout.passive2] // for saving player's starting passive
-	file.soulExecutionRefTable[ titanSoul ] = titanSoul.soul.titanLoadout.titanExecution // for saving player's starting executions
-	//print( "soul " + string( titanSoul ) + " 's executionRef is: " + file.soulExecutionRefTable[ titanSoul ] )
-
 	// not using model checks anymore... try to handle it more correctly
 	//asset modelName = titan.GetModelName()
 	//print( "modelName is: " + string( modelName ) )
-	string titanClass = titanSoul.soul.titanLoadout.titanClass
-	bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
 
-	// titan fixes and balance, always run
+	// titanClass isn't valid most of time...
+	// needs to get from ai settings
+	//string titanClass = titanSoul.soul.titanLoadout.titanClass
+	//string titanClass = titan.ai.titanSpawnLoadout.titanClass
+	string titanClass = GetTitanCharacterName( titan )
+	//string setFile = titanSoul.soul.titanLoadout.setFile
+	bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
+	//print( "TITANREPLACE" )
+	//print( "titan: " + string( titan ) )
+	//print( "titanClass: " + titanClass )
+	//print( "setFile: " + setFile )
+	//print( "isPrime: " + string( isPrime ) )
+	//print( "GetTitanClassFromSetFile( setFile ): " + GetTitanClassFromSetFile( setFile ) )
+
+	// titan fixes and balance, always run -- even for npcs
 	// not using model checks anymore... try to handle it more correctly
 	//switch( modelName )
 	switch ( titanClass )
@@ -436,6 +439,16 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 			}
 			break
 	}
+
+	// following are player titans special
+	entity player = GetPetTitanOwner( titan )
+	if( !IsValid( player ) )
+		return
+	
+	// get passives and executionrefs here
+	file.soulPassiveTable[ titanSoul ] = _PassiveFromEnum[titanSoul.soul.titanLoadout.passive2] // for saving player's starting passive
+	file.soulExecutionRefTable[ titanSoul ] = titanSoul.soul.titanLoadout.titanExecution // for saving player's starting executions
+	//print( "soul " + string( titanSoul ) + " 's executionRef is: " + file.soulExecutionRefTable[ titanSoul ] )
 
 	// loadout replace
 	if( file.defaultReplaceEnabled ) // don't run loadout functions automatically if settings disabled

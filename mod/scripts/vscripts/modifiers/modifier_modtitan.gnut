@@ -149,7 +149,10 @@ array<string> function GetTitanHelpMessage( entity player )
 	if( !IsValid( titanSoul ) ) // soul not spawned yet, mostly because disembarking, no worries
 		return [MESSAGE_FAILED_NO_TITAN]
     
-    string titanClass = titanSoul.soul.titanLoadout.titanClass
+    // titanClass isn't valid most of time...
+	// needs to get from ai settings
+    //string titanClass = titanSoul.soul.titanLoadout.titanClass
+    string titanClass = GetTitanCharacterName( titan )
 	bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
     
     array<string> helpMessage
