@@ -795,6 +795,21 @@ bool function TitanShouldReplaceAsFakeBT( entity titan )
 	// not using model checks anymore... try to handle it more correctly
 	//return titan.GetModelName() == $"models/titans/medium/titan_medium_vanguard.mdl" && titan.GetCamo() == -1 && titan.GetSkin() == 3
 	
+	entity titanSoul = titan.GetTitanSoul()
+	if( !IsValid( titanSoul ) ) // soul not spawned yet, mostly because disembarking, no worries
+		return false
+
+	// ensure we are player owned titans
+	entity player = GetPetTitanOwner( titan )
+	if( !IsValid( player ) )
+		return false
+	if ( "spawnWithoutSoul" in titan.s )
+	{
+		// this is defined in CreateAutoTitanForPlayer_ForTitanTitanReplace_BecomesPilot(), mark the titan as "disembarked" not "hotdropping"
+		if ( expect bool ( titan.s.spawnWithoutSoul ) )
+			return false
+	}
+
 	// idk how skin & camo works in titan loadout stuffs... hope it's working fine
 	string titanClass = titanSoul.soul.titanLoadout.titanClass
 	int camoIndex = titanSoul.soul.titanLoadout.skinIndex

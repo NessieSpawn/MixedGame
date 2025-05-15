@@ -4040,16 +4040,21 @@ entity function ModdedBrute4WeaponWeaponPropFunc( entity weapon, vector origin, 
 
 string function ModdedBrute4WeaponDisplayNameFunc( entity weapon )
 {
-	string weaponName = weapon.GetWeaponClassName()
-    array<string> mods = weapon.GetMods()
+	entity titan = weapon.GetWeaponOwner()
+	if ( !IsValid( titan ) )
+		return ""
+	entity soul = titan.GetTitanSoul()
+	if ( !IsValid( soul ) )
+		return ""
 
+	string weaponName = weapon.GetWeaponClassName()
 	if ( weaponName != "mp_titanweapon_rocketeer_rocketstream" )
 		return "" // return empty will cancel the weapon drop
 	
-	if ( !mods.contains( "brute4_quad_rocket" ) )
-		return ""
-
 	array<string> primaryMods = weapon.GetMods()
+	if ( !primaryMods.contains( "brute4_quad_rocket" ) )
+		return ""
+	
 	entity special = titan.GetOffhandWeapon( OFFHAND_SPECIAL )
 	entity ordnance = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
 	entity antiRodeo = titan.GetOffhandWeapon( OFFHAND_ANTIRODEO )
@@ -4134,16 +4139,21 @@ entity function ModdedArchonWeaponWeaponPropFunc( entity weapon, vector origin, 
 
 string function ModdedArchonWeaponDisplayNameFunc( entity weapon )
 {
-	string weaponName = weapon.GetWeaponClassName()
-    array<string> mods = weapon.GetMods()
+	entity titan = weapon.GetWeaponOwner()
+	if ( !IsValid( titan ) )
+		return ""
+	entity soul = titan.GetTitanSoul()
+	if ( !IsValid( soul ) )
+		return ""
 
+	string weaponName = weapon.GetWeaponClassName()
 	if ( weaponName != "mp_titanweapon_arc_cannon" )
 		return "" // return empty will cancel the weapon drop
 	
-	if ( !mods.contains( "archon_arc_cannon" ) )
-		return ""
-	
 	array<string> primaryMods = weapon.GetMods()
+	if ( !primaryMods.contains( "archon_arc_cannon" ) )
+		return ""
+
 	entity special = titan.GetOffhandWeapon( OFFHAND_SPECIAL )
 	entity ordnance = titan.GetOffhandWeapon( OFFHAND_ORDNANCE )
 	entity antiRodeo = titan.GetOffhandWeapon( OFFHAND_ANTIRODEO )
