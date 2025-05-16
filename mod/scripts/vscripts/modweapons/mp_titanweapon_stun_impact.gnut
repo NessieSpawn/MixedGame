@@ -128,7 +128,7 @@ void function ImpactStun_OnDamagedTarget( entity victim, var damageInfo )
         return
     
     array<string> mods = Vortex_GetRefiredProjectileMods( inflictor ) // modded weapon refire behavior
-    if ( !mods.contains( "archon_stun_impact" ) ) // don't have the mod! should check it
+    if ( !mods.contains( "shock_stun_impact" ) ) // don't have the mod! should check it
         return
 
     EMP_DamagedPlayerOrNPC( victim, damageInfo )

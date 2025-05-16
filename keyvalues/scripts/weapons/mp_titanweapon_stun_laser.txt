@@ -155,8 +155,8 @@ WeaponData
 			//"regen_ammo_refill_rate"						"++2" // 10s, same as arc waves
 		}
 
-		// archon( not modded )
-		archon_laser // only do damage, no stun
+		// archon( not modded ). now renamed to shock to have different display name than modded archon
+		shock_laser // only do damage, no stun
 		{
 			// still needs one stormball shot to kill a pilot
 			"damage_near_value"   							"90"

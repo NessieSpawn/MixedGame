@@ -8,7 +8,7 @@ void function MpTitanWeaponEnergyLaster_Init()
 		
 		AddCallback_WeaponMod_DamageSourceIdOverride( 
 			"mp_titanweapon_stun_laser",					// weapon name
-			"archon_laser",									// weapon mod
+			"shock_laser",									// weapon mod
 			eDamageSourceId.mp_titanweapon_energy_laser		// damageSourceId override
 		)
 
