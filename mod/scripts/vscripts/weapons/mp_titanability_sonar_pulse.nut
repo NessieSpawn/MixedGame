@@ -29,7 +29,7 @@ bool function OnWeaponAttemptOffhandSwitch_titanability_sonar_pulse( entity weap
 var function OnWeaponPrimaryAttack_titanability_sonar_pulse( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
-	if ( weapon.HasMod( "archon_stun_impact" ) )
+	if ( weapon.HasMod( "shock_stun_impact" ) )
 		return OnWeaponPrimaryAttack_titanweapon_stun_impact( weapon, attackParams )
 
 	// vanilla behavior
@@ -44,7 +44,7 @@ var function OnWeaponPrimaryAttack_titanability_sonar_pulse( entity weapon, Weap
 var function OnWeaponNPCPrimaryAttack_titanability_sonar_pulse( entity weapon, WeaponPrimaryAttackParams attackParams )
 {
 	// modded weapon
-	if ( weapon.HasMod( "archon_stun_impact" ) )
+	if ( weapon.HasMod( "shock_stun_impact" ) )
 		return OnWeaponNPCPrimaryAttack_titanweapon_stun_impact( weapon, attackParams )
 
 	if ( IsSingleplayer() )
@@ -76,7 +76,7 @@ void function OnProjectileCollision_titanability_sonar_pulse( entity projectile,
 	// modded weapon
 	//array<string> mods = projectile.ProjectileGetMods() // vanilla behavior, no need to change to Vortex_GetRefiredProjectileMods()
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
-	if ( mods.contains( "archon_stun_impact" ) )
+	if ( mods.contains( "shock_stun_impact" ) )
 		return OnProjectileCollision_titanweapon_stun_impact( projectile, pos, normal, hitEnt, hitbox, isCritical )
 
 	// the behavior has been modded, should change it someday

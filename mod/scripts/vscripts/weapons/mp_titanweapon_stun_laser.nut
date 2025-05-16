@@ -105,7 +105,7 @@ void function StunLaser_DamagedTarget( entity target, var damageInfo )
 
 	// hardcoded for archon laser
 	// in any case AddCallback_WeaponMod_DamageSourceIdOverride() failsafe
-	if ( weapon.HasMod( "archon_laser" ) )
+	if ( weapon.HasMod( "shock_laser" ) )
 	{
 		DamageInfo_SetDamageSourceIdentifier( damageInfo, eDamageSourceId.mp_titanweapon_energy_laser )
 		return

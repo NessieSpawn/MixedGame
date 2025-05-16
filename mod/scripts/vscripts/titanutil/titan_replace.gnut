@@ -69,7 +69,7 @@ global function TitanReplace_BecomeOgre
 global function TitanReplace_BecomeBison
 global function TitanReplace_BecomeGunnerBison // bison variant
 global function TitanReplace_BecomeMonarch
-global function TitanReplace_BecomeArchon
+global function TitanReplace_BecomeShock // renamed to shock to have different display name than modded archon
 global function TitanReplace_BecomeBrute
 
 // client install required
@@ -275,12 +275,13 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 	//print( "modelName is: " + string( modelName ) )
 
 	// titanClass isn't valid most of time...
+	// setfile also empty if we use an auto titan aisettings
 	// needs to get from ai settings
 	//string titanClass = titanSoul.soul.titanLoadout.titanClass
 	//string titanClass = titan.ai.titanSpawnLoadout.titanClass
 	string titanClass = GetTitanCharacterName( titan )
 	//string setFile = titanSoul.soul.titanLoadout.setFile
-	bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
+	//bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
 	//print( "TITANREPLACE" )
 	//print( "titan: " + string( titan ) )
 	//print( "titanClass: " + titanClass )
@@ -450,6 +451,11 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 	file.soulExecutionRefTable[ titanSoul ] = titanSoul.soul.titanLoadout.titanExecution // for saving player's starting executions
 	//print( "soul " + string( titanSoul ) + " 's executionRef is: " + file.soulExecutionRefTable[ titanSoul ] )
 
+	bool isPrime = titanSoul.soul.titanLoadout.isPrime == "titan_is_prime"
+	// these are client install required titans
+	// needs more checks to fully enable
+	bool useModdedTitans = file.moddedTitanReplaceEnabled && file.moddedPlayers.contains( player )
+
 	// loadout replace
 	if( file.defaultReplaceEnabled ) // don't run loadout functions automatically if settings disabled
 	{
@@ -501,48 +507,31 @@ void function TitanReplace_GiveTitanLoadoutReplace( entity titan )
 
 				//case $"models/titans/medium/titan_medium_ion_prime.mdl":
 				case "ion":
-					if ( !file.moddedTitanReplaceEnabled ) // will be override by modded titans
+					if ( useModdedTitans ) // these are client install required titans
 					{
 						SendHudMessage(player, "已啓用執政官泰坦裝備，取消至尊泰坦以使用原版離子",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
-						TitanReplace_BecomeArchon( titan, false, true )
+						TitanReplace_BecomeModdedArchon( titan, false, true )
+					}
+					else // will be override by modded titans
+					{
+						SendHudMessage(player, "已啓用雷擊泰坦裝備，取消至尊泰坦以使用原版離子",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+						TitanReplace_BecomeShock( titan, false, true )
 					}
 					break
 				
 				//case $"models/titans/light/titan_light_northstar_prime.mdl":
 				case "northstar":
-					if ( !file.moddedTitanReplaceEnabled ) // will be override by modded titans
+					if ( useModdedTitans ) // these are client install required titans
+					{
+						SendHudMessage(player, "已啓用野獸四號泰坦裝備，取消至尊泰坦以使用原版北極星",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
+						TitanReplace_BecomeModdedBrute4( titan, false, true )
+					}
+					else // will be override by modded titans
 					{
 						SendHudMessage(player, "已啓用野獸泰坦裝備，取消至尊泰坦以使用原版北極星",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
 						TitanReplace_BecomeBrute( titan, false, true )
 					}
 					break
-			}
-		}
-	}
-
-	//temp fix, these are client install required titans
-	// needs more settings to fully enable
-	if ( file.moddedTitanReplaceEnabled )
-	{
-		if( file.moddedPlayers.contains( player ) )
-		{
-			// not using model checks anymore... try to handle it more correctly
-			if ( isPrime )
-			{
-				//switch( modelName )
-				switch( titanClass )
-				{
-					//case $"models/titans/medium/titan_medium_ion_prime.mdl":
-					case "ion":
-						SendHudMessage(player, "已啓用執政官泰坦裝備，取消至尊泰坦以使用原版離子",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
-						TitanReplace_BecomeModdedArchon( titan, false, true )
-						break
-					//case $"models/titans/light/titan_light_northstar_prime.mdl":
-					case "northstar":
-						SendHudMessage(player, "已啓用野獸四號泰坦裝備，取消至尊泰坦以使用原版北極星",  -1, 0.3, 200, 200, 225, 255, 0.15, 5, 1);
-						TitanReplace_BecomeModdedBrute4( titan, false, true )
-						break
-				}
 			}
 		}
 	}
@@ -626,7 +615,7 @@ void function TitanReplace_BecomeIon( entity titan, bool isPickup = false, bool 
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_ION" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_ATLAS_LASER" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "ion" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -636,7 +625,7 @@ void function TitanReplace_BecomeIon( entity titan, bool isPickup = false, bool 
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 離子 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-				player.SetTitle( "#TITAN_ION" )
+				player.SetTitle( "#NPC_TITAN_AUTO_ATLAS_LASER" )
 			}
 
 			// spawn as ion
@@ -758,7 +747,7 @@ void function TitanReplace_BecomeTone( entity titan, bool isPickup = false, bool
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_TONE" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_ATLAS_TRACKER" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "tone" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -768,7 +757,7 @@ void function TitanReplace_BecomeTone( entity titan, bool isPickup = false, bool
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 強力 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-				player.SetTitle( "#TITAN_TONE" )
+				player.SetTitle( "#NPC_TITAN_AUTO_ATLAS_TRACKER" )
 			}
 
 			// spawn as tone
@@ -990,7 +979,7 @@ void function TitanReplace_BecomeRonin( entity titan, bool isPickup = false, boo
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_RONIN" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_STRYDER_SWORD" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "ronin" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -1000,7 +989,7 @@ void function TitanReplace_BecomeRonin( entity titan, bool isPickup = false, boo
 			if( !isSpawning ) // got loadout switch
 			{
            		SendHudMessage( player, "更換至 浪人 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-            	player.SetTitle( "#TITAN_RONIN" )
+            	player.SetTitle( "#NPC_TITAN_AUTO_STRYDER_SWORD" )
 			}
 
 			// spawn as ronin
@@ -1122,7 +1111,7 @@ void function TitanReplace_BecomeNorthstar( entity titan, bool isPickup = false,
                 return
             }
             
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_NORTHSTAR" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_STRYDER_SNIPER" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "northstar" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -1132,7 +1121,7 @@ void function TitanReplace_BecomeNorthstar( entity titan, bool isPickup = false,
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 北極星 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-            	player.SetTitle( "#TITAN_NORTHSTAR" )
+            	player.SetTitle( "#NPC_TITAN_STRYDER_SNIPER" )
 			}
 
 			// spawn as northstar
@@ -1368,7 +1357,7 @@ void function TitanReplace_BecomeScorch( entity titan, bool isPickup = false, bo
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_SCORCH" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_OGRE_METEOR" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "scorch" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -1379,7 +1368,7 @@ void function TitanReplace_BecomeScorch( entity titan, bool isPickup = false, bo
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 烈焰 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-            	player.SetTitle( "#TITAN_SCORCH" )
+            	player.SetTitle( "#NPC_TITAN_AUTO_OGRE_METEOR" )
 			}
 
 			// spawn as scorch
@@ -1503,7 +1492,7 @@ void function TitanReplace_BecomeLegion( entity titan, bool isPickup = false, bo
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_LEGION" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_OGRE_MINIGUN" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "legion" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -1514,7 +1503,7 @@ void function TitanReplace_BecomeLegion( entity titan, bool isPickup = false, bo
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 軍團 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-            	player.SetTitle( "#TITAN_LEGION" )
+            	player.SetTitle( "#NPC_TITAN_AUTO_OGRE_MINIGUN" )
 			}
 
 			// spawn as legion
@@ -1819,7 +1808,8 @@ void function TitanReplace_BecomeGunnerBison( entity titan, bool isPickup = fals
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_OGRE_FIGHTER" )
+			// localized string "#NPC_TITAN_OGRE_FIGHTER" isn't good enough, guess we'll use hardcoded string
+			TitanReplace_UpdateSoulTitanTitle( soul, "野牛" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "bison_gunner" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -1829,7 +1819,7 @@ void function TitanReplace_BecomeGunnerBison( entity titan, bool isPickup = fals
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 野牛 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-            	player.SetTitle( "#NPC_TITAN_OGRE_FIGHTER" )
+            	player.SetTitle( "野牛" ) // hardcoded string!!!
 			}
 
 			// spawn as bison
@@ -1932,7 +1922,7 @@ void function TitanReplace_BecomeMonarch( entity titan, bool isPickup = false, b
                 return
             }
 
-			TitanReplace_UpdateSoulTitanTitle( soul, "#TITAN_VANGUARD" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_ATLAS_VANGUARD" )
 			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "vanguard" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
@@ -1942,7 +1932,7 @@ void function TitanReplace_BecomeMonarch( entity titan, bool isPickup = false, b
 			if( !isSpawning ) // got loadout switch
 			{
             	SendHudMessage( player, "更換至 帝王 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-            	player.SetTitle( "#TITAN_VANGUARD" )
+            	player.SetTitle( "#NPC_TITAN_AUTO_ATLAS_VANGUARD" )
 			}
 
 			// spawn as monarch
@@ -2075,7 +2065,7 @@ void function TitanReplace_BecomeMonarch( entity titan, bool isPickup = false, b
 	}
 }
 
-void function TitanReplace_BecomeArchon( entity titan, bool isPickup = false, bool isSpawning = false )
+void function TitanReplace_BecomeShock( entity titan, bool isPickup = false, bool isSpawning = false )
 {
 	if( !titan.IsTitan() )
 		return
@@ -2095,8 +2085,8 @@ void function TitanReplace_BecomeArchon( entity titan, bool isPickup = false, bo
                 return
             }
 			
-			TitanReplace_UpdateSoulTitanTitle( soul, "#NPC_TITAN_AUTO_STRYDER_ARC" )
-			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "archon" )
+			TitanReplace_UpdateSoulTitanTitle( soul, "雷擊" ) // hardcoded string!
+			TitanPick_SoulSetWeaponDropTitanCharacterName( soul, "shock" )
 			//TitanEmbark_SetSoulFirstPersonEmbarkEnabled( soul, false )
 			PlayerEarnMeter_SetSoulEarnMeterSmokeEnabled( soul, true )
 			MeleeSyncedTitan_SetSoulDoClassicExecution( soul, false )
@@ -2104,11 +2094,11 @@ void function TitanReplace_BecomeArchon( entity titan, bool isPickup = false, bo
 
 			if( !isSpawning ) // got loadout switch
 			{
-				SendHudMessage( player, "更換至 執政官 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
-				player.SetTitle( "#NPC_TITAN_AUTO_STRYDER_ARC" )
+				SendHudMessage( player, "更換至 雷擊 泰坦裝備" + GenerateTitanDamageScaleString( titan ), -1, 0.3, 255, 255, 0, 0, 0.15, 6, 0.15 )
+				player.SetTitle( "雷擊" ) // hardcoded string!
 			}
 
-			// spawn as archon
+			// spawn as archon. now renamed to shock to have different display name than modded archon
 			if( !isPickup )
 			{
 				int passiveType = TitanReplace_GetPassiveType( TitanReplace_GetSoulStartingPassive( soul ) )
@@ -2143,13 +2133,13 @@ void function TitanReplace_BecomeArchon( entity titan, bool isPickup = false, bo
 				titan.GiveOffhandWeapon("mp_titanweapon_vortex_shield_ion", OFFHAND_SPECIAL, ["vortex_blocker"] )
 				
 				// Utility
-				titan.GiveOffhandWeapon("mp_titanability_sonar_pulse", OFFHAND_ANTIRODEO, ["archon_stun_impact"] )
+				titan.GiveOffhandWeapon("mp_titanability_sonar_pulse", OFFHAND_ANTIRODEO, ["shock_stun_impact"] )
 
 				//Offence
-				titan.GiveOffhandWeapon( "mp_titanweapon_stun_laser", OFFHAND_ORDNANCE, ["archon_laser", "energy_transfer"] ) // energy_transfer have a laser visual effect
+				titan.GiveOffhandWeapon( "mp_titanweapon_stun_laser", OFFHAND_ORDNANCE, ["shock_laser", "energy_transfer"] ) // energy_transfer just for changing laser visual effect
 
 				//Titan Core
-				titan.GiveOffhandWeapon( "mp_titancore_laser_cannon", OFFHAND_EQUIPMENT, ["tesla_core", "archon_tesla"] )
+				titan.GiveOffhandWeapon( "mp_titancore_laser_cannon", OFFHAND_EQUIPMENT, ["tesla_core", "shock_tesla"] )
 
 				//Melee
 				titan.GiveOffhandWeapon( "melee_titan_punch_ion", OFFHAND_MELEE )
@@ -2483,7 +2473,7 @@ void function RegisterDefaultTitanPickCharacters()
 	RegisterLegionTitanCharacter()
 	RegisterOgreTitanCharacter()
 	RegisterGunnerBisonTitanCharacter() // bison variant
-	RegisterArchonTitanCharacter()
+	RegisterShockTitanCharacter() // renamed to shock to have different display name than modded archon
 	RegisterBruteTitanCharacter()
 
 	RegisterModdedArchonTitanCharacter()
@@ -3925,22 +3915,22 @@ string function GetMonarchFinalUpgradeName( entity titan )
     return ""
 }
 
-// archon
-void function RegisterArchonTitanCharacter()
+// archon. now renamed to shock to have different display name than modded archon
+void function RegisterShockTitanCharacter()
 {
-	TitanPick_RegisterTitanWeaponDrop( "archon", ArchonWeaponWeaponPropFunc, ArchonWeaponDisplayNameFunc, TitanReplace_BecomeArchon )
+	TitanPick_RegisterTitanWeaponDrop( "shock", ShockWeaponWeaponPropFunc, ShockWeaponDisplayNameFunc, TitanReplace_BecomeShock )
 	
 	// invalid mods
 	TitanPick_AddIllegalWeaponMod( "tesla_core_charged" )
 	MeleeSyncedTitan_AddModToRemoveOnLoadoutReplace( "tesla_core_charged" )
 
 	// damage balancing
-	TitanPick_AddPickedWeaponDamageScale( "archon", "atlas", 1.0 ) // atlas chassis using archon loadout: 100% damage
-	TitanPick_AddPickedWeaponDamageScale( "archon", "stryder", 0.9 ) // stryder chassis using archon loadout: 90% damage
-	TitanPick_AddPickedWeaponDamageScale( "archon", "ogre", 1.05 ) // ogre chassis using archon loadout: 105% damage
+	TitanPick_AddPickedWeaponDamageScale( "shock", "atlas", 1.0 ) // atlas chassis using shock loadout: 100% damage
+	TitanPick_AddPickedWeaponDamageScale( "shock", "stryder", 0.9 ) // stryder chassis using shock loadout: 90% damage
+	TitanPick_AddPickedWeaponDamageScale( "shock", "ogre", 1.05 ) // ogre chassis using shock loadout: 105% damage
 }
 
-entity function ArchonWeaponWeaponPropFunc( entity weapon, vector origin, vector angles )
+entity function ShockWeaponWeaponPropFunc( entity weapon, vector origin, vector angles )
 {
 	string weaponName = weapon.GetWeaponClassName()
 	array<string> mods = weapon.GetMods()
@@ -3958,7 +3948,7 @@ entity function ArchonWeaponWeaponPropFunc( entity weapon, vector origin, vector
 	return weaponProp
 }
 
-string function ArchonWeaponDisplayNameFunc( entity weapon )
+string function ShockWeaponDisplayNameFunc( entity weapon )
 {
 	string weaponName = weapon.GetWeaponClassName()
     array<string> mods = weapon.GetMods()
@@ -3969,7 +3959,7 @@ string function ArchonWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "storm_launcher" ) )
 		return ""
 
-	return "執政官 裝備"
+	return "雷擊 裝備"
 }
 
 // brute
