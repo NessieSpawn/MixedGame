@@ -3959,7 +3959,7 @@ string function ShockWeaponDisplayNameFunc( entity weapon )
 	if ( !mods.contains( "storm_launcher" ) )
 		return ""
 
-	return "執政官 裝備"
+	return "雷擊 裝備"
 }
 
 // brute
