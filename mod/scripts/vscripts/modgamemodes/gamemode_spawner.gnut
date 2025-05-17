@@ -76,6 +76,7 @@ void function Modded_Gamemode_Extra_Spawner_Init()
 	{
 		AltPilot_SetShouldReplaceModel( true )
 		SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
+		SetPlayerHeadShotFXDependOnSurfaceProp( true ) // fix headshot effects
 	}
 
 	// cool killing effect, choose a random one
