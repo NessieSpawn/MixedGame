@@ -3,8 +3,12 @@
 untyped // for player.SetPlayerSettings() to work
 global function Forced_BodyType_Init
 
+// SetPlayerForcedBodyType() is now DEPRECATED setting
 global function SetPlayerForcedBodyType
+// for alt pilot -- whatever, if we're not changing playersettings these settings will help us fix misc stuffs
+// other case is mostly for imc_hero_ash.mdl. fuck it why it's using flesh surfaceprop?
 global function SetPlayerBodyTypeDependOnSurfaceProp
+global function SetPlayerHeadShotFXDependOnSurfaceProp
 
 const string BODY_TYPE_FLESH_SETFILE        = "pilot_medium_male"
 const string BODY_TYPE_MECHANICAL_SETFILE   = "pilot_light_male"
@@ -13,10 +17,14 @@ const string BODY_TYPE_MECHANICAL_SETFILE   = "pilot_light_male"
 const int SURFACEPROP_FLESH                 = 18
 const int SURFACEPROP_METAL_SPECTRE         = 94
 
+const asset BODY_TYPE_FLESH_HEADSHOTFX      = $"P_headshot_pilot"
+const asset BODY_TYPE_MECHANICAL_HEADSHOTFX = $"P_headshot_pilot_robot"
+
 struct
 {
     string forcedBodyType = "" // "flesh", "mechanical"
     bool bodyTypeDependOnSurfaceProp = false
+    bool headshotFXDependOnSurfaceProp = false
 } file
 
 void function Forced_BodyType_Init()
@@ -34,6 +42,11 @@ void function SetPlayerBodyTypeDependOnSurfaceProp( bool enable )
     file.bodyTypeDependOnSurfaceProp = enable
 }
 
+void function SetPlayerHeadShotFXDependOnSurfaceProp( bool enable )
+{
+    file.headshotFXDependOnSurfaceProp = enable
+}
+
 void function OnPlayerPostDamage( entity player, var damageInfo )
 {
     if ( player.IsTitan() ) // don't do anything to titans
@@ -46,16 +59,6 @@ void function OnPlayerPostDamage( entity player, var damageInfo )
 
 void function UpdatePlayerToForcedBodyType( entity player )
 {
-    //print( "RUNNING UpdatePlayerToForcedBodyType()" )
-    //bool bodyTypeValid = file.forcedBodyType == "flesh" || file.forcedBodyType == "mechanical"
-    //if ( !bodyTypeValid && !file.bodyTypeDependOnSurfaceProp ) // not using a valid settings
-    //    return
-    if ( !file.bodyTypeDependOnSurfaceProp )
-    {
-        //print( "SetPlayerBodyTypeDependOnSurfaceProp() is false" )
-        return
-    }
-
     bool isMechanical = false
     if ( file.bodyTypeDependOnSurfaceProp )
     {
@@ -69,39 +72,54 @@ void function UpdatePlayerToForcedBodyType( entity player )
             isMechanical = player.IsMechanical()
     }
 
-    //print( "setfile isMechanical: " + string( isMechanical ) )
-    string setFileToUse = isMechanical ? BODY_TYPE_MECHANICAL_SETFILE : BODY_TYPE_FLESH_SETFILE
+    //print( "RUNNING UpdatePlayerToForcedBodyType()" )
+    //bool bodyTypeValid = file.forcedBodyType == "flesh" || file.forcedBodyType == "mechanical"
+    //if ( !bodyTypeValid && !file.bodyTypeDependOnSurfaceProp ) // not using a valid settings
+    //    return
+    if ( file.bodyTypeDependOnSurfaceProp )
+    {
+        //print( "setfile isMechanical: " + string( isMechanical ) )
+        string setFileToUse = isMechanical ? BODY_TYPE_MECHANICAL_SETFILE : BODY_TYPE_FLESH_SETFILE
 
-    // save model and skin
-    asset model = player.GetModelName()
-    int skin = player.GetSkin()
-    int camo = player.GetCamo()
+        // save model and skin
+        asset model = player.GetModelName()
+        int skin = player.GetSkin()
+        int camo = player.GetCamo()
 
-    // save player's bodygroup
-    int bodyGroupData = player.GetFullBodygroup()
+        // save player's bodygroup
+        int bodyGroupData = player.GetFullBodygroup()
 
-    // save health and shield
-    int health = player.GetHealth()
-    int maxHealth = player.GetMaxHealth()
-    int shield = GetShieldHealthWithFix( player )
-    int maxShield = GetShieldHealthMaxWithFix( player )
+        // save health and shield
+        int health = player.GetHealth()
+        int maxHealth = player.GetMaxHealth()
+        int shield = GetShieldHealthWithFix( player )
+        int maxShield = GetShieldHealthMaxWithFix( player )
 
-    // force change to certain setfile
-    player.SetPlayerSettings( setFileToUse )
+        // force change to certain setfile
+        player.SetPlayerSettings( setFileToUse )
 
-    // update model and skin
-    player.SetModel( model )
-    player.SetSkin( skin )
-    player.SetCamo( camo )
+        // update model and skin
+        player.SetModel( model )
+        player.SetSkin( skin )
+        player.SetCamo( camo )
 
-    // update bodygroup
-    player.SetFullBodygroup( bodyGroupData )
+        // update bodygroup
+        player.SetFullBodygroup( bodyGroupData )
 
-    // update health and shield so they won't be reset
-    player.SetMaxHealth( maxHealth )
-    player.SetHealth( health )
-    //player.SetShieldHealthMax( maxShield )
-    //player.SetShieldHealth( shield )
-    SetShieldHealthMaxWithFix( player, maxShield )
-    SetShieldHealthWithFix( player, maxShield )
+        // update health and shield after changing player settings
+        player.SetMaxHealth( maxHealth )
+        player.SetHealth( health )
+        //player.SetShieldHealthMax( maxShield )
+        //player.SetShieldHealth( shield )
+        SetShieldHealthMaxWithFix( player, maxShield )
+        SetShieldHealthWithFix( player, maxShield )
+    }
+    //else
+        //print( "SetPlayerBodyTypeDependOnSurfaceProp() is false" )
+
+    if ( file.headshotFXDependOnSurfaceProp )
+    {
+        asset headshotFXToUse = isMechanical ? BODY_TYPE_MECHANICAL_HEADSHOTFX : BODY_TYPE_FLESH_HEADSHOTFX
+        DeathPackage_SetEntityHeadshotFXOverride( player, headshotFXToUse )
+    }
 }

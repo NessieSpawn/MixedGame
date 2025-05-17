@@ -6,6 +6,7 @@ void function Nessie_Normal_Settings_NonTitan_Init()
 {
     AltPilot_SetShouldReplaceModel( true )
     SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
+	SetPlayerHeadShotFXDependOnSurfaceProp( true ) // fix headshot effects
 	AltPilot_SetModelReplaceChance( 0.5 )
     /* // funny one: always replace or never replace, choose one
     AltPilot_SetModelReplaceChance( 1 ) // left for following checks, always replace
