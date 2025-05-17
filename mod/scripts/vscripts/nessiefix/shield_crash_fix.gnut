@@ -83,10 +83,10 @@ const table<string, string> IMPACTS_SOUND_OVERRIDE_ATTACKER =
 }
 
 const table<string, string> IMPACTS_SOUND_OVERRIDE_VICTIM =
-[
+{
     ["titan_particle_accelerator"]      = "titanshield_ampedxo16_bulletimpact",
     ["lstar"]                           = "titanshield_ampedxo16_bulletimpact",
-]
+}
 
 // there's only one PAINFUL thing: we can't get whether a damage is radius damage or not... maybe just ignore most grenade impacts...???
 // direct hit check is their damage position <= 2hu of grenade position. but I think it's gonna broken when projectile having large bolt_hit_size... should've check that??? 
