@@ -48,6 +48,13 @@ function MpTitanweaponTripleThreat_Init()
 	PrecacheParticleSystem( FX_MINE_LIGHT )
 	PrecacheParticleSystem( FX_TRIPLE_IGNITION )
 	PrecacheParticleSystem( FX_TRIPLE_IGNITION_BURN )
+
+	// modified
+#if SERVER
+    // fix obit display name for triple threat
+	// while we do so, needs to copy-paste callbacks from _weapon_utility.nut
+    RegisterWeaponDamageSource( "mp_titanweapon_triplethreat", "#WPN_TITAN_TRIPLE_THREAT_SHORT" )
+#endif
 }
 
 var function OnWeaponPrimaryAttack_titanweapon_triplethreat( entity weapon, WeaponPrimaryAttackParams attackParams )
@@ -266,8 +273,7 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 		Grenade_Init( nade, weapon )
 		#if SERVER
 			nade.SetOwner( weaponOwner )
-			// we've registered mp_titanwepaon_triplethread in Northstar.Custom, no need to re-assign
-			nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_triple_threat ) // so nades can behave nicely
+			//nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_triple_threat ) // so nades can behave nicely, calling callbacks in _weapon_utility.nut
 			thread EnableCollision( nade )
 			thread AirPop( nade, fuseTime )
 			thread TrapExplodeOnDamage( nade, 50, 0.0, 0.1 )
