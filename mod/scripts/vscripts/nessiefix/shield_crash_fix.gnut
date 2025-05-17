@@ -76,13 +76,13 @@ const table<string, string> IMPACTS_SOUND_OVERRIDE =
 }
 
 // some impact effect have different sound for attacker vs victim...
-const table<string, string> IMPACTS_SOUND_OVERRIDE_ATTACKER =
+const table<string, string> IMPACTS_SOUND_OVERRIDE_1P =
 {
     ["titan_particle_accelerator"]      = "titanshield_lstar_bulletimpact",
     ["lstar"]                           = "titanshield_lstar_bulletimpact",
 }
 
-const table<string, string> IMPACTS_SOUND_OVERRIDE_VICTIM =
+const table<string, string> IMPACTS_SOUND_OVERRIDE_3P =
 {
     ["titan_particle_accelerator"]      = "titanshield_ampedxo16_bulletimpact",
     ["lstar"]                           = "titanshield_ampedxo16_bulletimpact",
@@ -950,25 +950,25 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
     if ( impactEffectName in IMPACTS_SOUND_OVERRIDE )
         shieldHitSound = IMPACTS_SOUND_OVERRIDE[ impactEffectName ]
     // 1p/3p different sound
-    string 1pSoundOverride
-    string 3pSoundOverride
-    if ( impactEffectName in IMPACTS_SOUND_OVERRIDE_ATTACKER )
-        1pSoundOverride = IMPACTS_SOUND_OVERRIVE_ATTACKER[ impactEffectName ]
-    if ( impactEffectName in IMPACTS_SOUND_OVERRIDE_VICTIM )
-        3pSoundOverride = IMPACTS_SOUND_OVERRIDE_VICTIM[ impactEffectName ]
+    string fpSoundOverride
+    string tpSoundOverride
+    if ( impactEffectName in IMPACTS_SOUND_OVERRIDE_1P )
+        fpSoundOverride = IMPACTS_SOUND_OVERRIDE_1P[ impactEffectName ]
+    if ( impactEffectName in IMPACTS_SOUND_OVERRIDE_3P )
+        tpSoundOverride = IMPACTS_SOUND_OVERRIDE_3P[ impactEffectName ]
 
     // all checks passed... I think?
-    ShieldHitSoundByType( ent, DamageInfo_GetAttacker( damageInfo ), shieldHitSound, 1pSoundOverride, 3pSoundOverride )
+    ShieldHitSoundByType( ent, DamageInfo_GetAttacker( damageInfo ), shieldHitSound, fpSoundOverride, tpSoundOverride )
 }
 
-void function ShieldHitSoundByType( entity ent, entity attacker, string soundPrefix, string 1pSoundOverride = "", string 3pSoundOverride = "" )
+void function ShieldHitSoundByType( entity ent, entity attacker, string soundPrefix, string fpSoundOverride = "", string tpSoundOverride = "" )
 {
-    string 1pSound = soundPrefix + "_1p_vs_3p"
-    string 3pSound = soundPrefix + "_3p_vs_3p"
+    string fpSound = soundPrefix + "_1p_vs_3p"
+    string tpSound = soundPrefix + "_3p_vs_3p"
     if ( 1pSoundOverride != "" )
-        1pSound = 1pSoundOverride + "_1p_vs_3p"
+        fpSound = fpSoundOverride + "_1p_vs_3p"
     if ( 3pSoundOverride != "" )
-        3pSound = 3pSoundOverride + "_3p_vs_3p"
+        tpSound = tpSoundOverride + "_3p_vs_3p"
     // attacker sound
     if ( IsValid( attacker ) && attacker.IsPlayer() )
     {
