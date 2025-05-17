@@ -291,7 +291,10 @@ void function TitanLoseSegementFX( entity titan, entity attacker, vector damageO
 	int handle = titan.GetEncodedEHandle()
 	int handleAttacker = -1
 
-	if ( IsValid( attacker ) )
+	// whatever the case is, a destroyed npc fired projectile will pass themselves as attacker, which causes client-side crash
+	// according to cl_titan_triple_health.gnut, passing -1 can still triggers everything. so... we needs to check that
+	//if ( IsValid( attacker ) )
+	if ( IsValid( attacker ) && ( attacker.IsPlayer() || attacker.IsNPC() ) ) // only update handle if attacker is player or npc
 		handleAttacker = attacker.GetEncodedEHandle()
 
 	array<entity> players = GetPlayerArray()
@@ -312,7 +315,13 @@ void function TitanLoseSegementFX( entity titan, entity attacker, vector damageO
 			EmitSoundOnEntityOnlyToPlayer( titan, titan, SEGMENT_DOWN_SOUNDS_1P[ currentRegenTab ] )
 
 			// need a command here to play for not victim and not attacker
-			EmitSoundOnEntityExceptToPlayer( titan, titan, SEGMENT_DOWN_SOUNDS_3P[ currentRegenTab ] )
+			// modified: currently best method is we emit sound for other players individually
+			//EmitSoundOnEntityExceptToPlayer( titan, titan, SEGMENT_DOWN_SOUNDS_3P[ currentRegenTab ] )
+			foreach ( entity player in GetPlayerArray() )
+			{
+				if ( player != titan && player != attacker )
+					EmitSoundOnEntityOnlyToPlayer( titan, player, SEGMENT_DOWN_SOUNDS_3P[ currentRegenTab ] )
+			}
 		}
 		else if ( IsAlive( attacker ) && attacker.IsPlayer() )
 		{
