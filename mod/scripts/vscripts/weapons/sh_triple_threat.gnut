@@ -42,6 +42,8 @@ struct
 
 function MpTitanweaponTripleThreat_Init()
 {
+	// VANILLA HAS NO WHERE CALLING THIS. NORTHSTAR ALSO NOT FIXING IT
+	// all because MpWeaponGunshipLauncher_Init() inited stuffs thus we're not crashing...
 	RegisterSignal( "ProxMineTrigger" )
 
 	PrecacheParticleSystem( FX_MINE_TRAIL )

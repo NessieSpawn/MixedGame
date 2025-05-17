@@ -193,6 +193,8 @@ void function InitWeaponScripts()
 	MpWeaponArcTrap_Init()
 	#endif
 
+	// vanilla definitely missing
+	MpTitanweaponTripleThreat_Init()
 	#if SERVER
 		BallLightning_Init()
 	#endif
