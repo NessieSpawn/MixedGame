@@ -189,12 +189,13 @@ void function InitWeaponScripts()
 	MpTitanWeaponStunLaser_Init()
 	MpTitanWeaponShoulderRockets_Init()
 	MpTitanAbilitySmoke_Init()
+
+	// vanilla definitely missing
+	MpTitanweaponTripleThreat_Init()
 	#if MP
 	MpWeaponArcTrap_Init()
 	#endif
 
-	// vanilla definitely missing
-	MpTitanweaponTripleThreat_Init()
 	#if SERVER
 		BallLightning_Init()
 	#endif
