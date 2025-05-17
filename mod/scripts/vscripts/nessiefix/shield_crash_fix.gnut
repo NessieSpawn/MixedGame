@@ -65,7 +65,6 @@ const array<string> IMPACTS_SOUND_DISABLED =
 // impact sound
 const table<string, string> IMPACTS_SOUND_OVERRIDE =
 {
-    ["titan_particle_accelerator"]      = "titanshield_lstar_bulletimpact", // this is actually 1P sound only
     ["predator_bullet"]                 = "titanshield_heavy_bulletimpact",
     ["titan_bullet"]                    = "titanshield_heavy_bulletimpact",
     ["titan_shotgun_bullet"]            = "titanshield_heavy_bulletimpact",
@@ -75,6 +74,19 @@ const table<string, string> IMPACTS_SOUND_OVERRIDE =
     ["melee_titan"]                     = "titanshield_meleeimpact",
     ["titan_sword"]                     = "titanshield_meleeimpact"
 }
+
+// some impact effect have different sound for attacker vs victim...
+const table<string, string> IMPACTS_SOUND_OVERRIDE_ATTACKER =
+{
+    ["titan_particle_accelerator"]      = "titanshield_lstar_bulletimpact",
+    ["lstar"]                           = "titanshield_lstar_bulletimpact",
+}
+
+const table<string, string> IMPACTS_SOUND_OVERRIDE_VICTIM =
+[
+    ["titan_particle_accelerator"]      = "titanshield_ampedxo16_bulletimpact",
+    ["lstar"]                           = "titanshield_ampedxo16_bulletimpact",
+]
 
 // there's only one PAINFUL thing: we can't get whether a damage is radius damage or not... maybe just ignore most grenade impacts...???
 // direct hit check is their damage position <= 2hu of grenade position. but I think it's gonna broken when projectile having large bolt_hit_size... should've check that??? 
@@ -937,21 +949,34 @@ void function PlayShieldHitSound_Server( entity ent, var damageInfo )
     // overrides
     if ( impactEffectName in IMPACTS_SOUND_OVERRIDE )
         shieldHitSound = IMPACTS_SOUND_OVERRIDE[ impactEffectName ]
+    // 1p/3p different sound
+    string 1pSoundOverride
+    string 3pSoundOverride
+    if ( impactEffectName in IMPACTS_SOUND_OVERRIDE_ATTACKER )
+        1pSoundOverride = IMPACTS_SOUND_OVERRIVE_ATTACKER[ impactEffectName ]
+    if ( impactEffectName in IMPACTS_SOUND_OVERRIDE_VICTIM )
+        3pSoundOverride = IMPACTS_SOUND_OVERRIDE_VICTIM[ impactEffectName ]
 
     // all checks passed... I think?
-    ShieldHitSoundByType( ent, DamageInfo_GetAttacker( damageInfo ), shieldHitSound )
+    ShieldHitSoundByType( ent, DamageInfo_GetAttacker( damageInfo ), shieldHitSound, 1pSoundOverride, 3pSoundOverride )
 }
 
-void function ShieldHitSoundByType( entity ent, entity attacker, string soundPrefix )
+void function ShieldHitSoundByType( entity ent, entity attacker, string soundPrefix, string 1pSoundOverride = "", string 3pSoundOverride = "" )
 {
+    string 1pSound = soundPrefix + "_1p_vs_3p"
+    string 3pSound = soundPrefix + "_3p_vs_3p"
+    if ( 1pSoundOverride != "" )
+        1pSound = 1pSoundOverride + "_1p_vs_3p"
+    if ( 3pSoundOverride != "" )
+        3pSound = 3pSoundOverride + "_3p_vs_3p"
     // attacker sound
     if ( IsValid( attacker ) && attacker.IsPlayer() )
     {
-        EmitSoundOnEntityOnlyToPlayer( ent, attacker, soundPrefix + "_1p_vs_3p" )
-        EmitSoundOnEntityExceptToPlayer( ent, attacker, soundPrefix + "_3p_vs_3p" )
+        EmitSoundOnEntityOnlyToPlayer( ent, attacker, 1pSound )
+        EmitSoundOnEntityExceptToPlayer( ent, attacker, 3pSound )
     }
     else // netual sound
-        EmitSoundOnEntity( ent, soundPrefix + "_3p_vs_3p" )
+        EmitSoundOnEntity( ent, 3pSound )
 }
 
 string function GetShieldDamagedSound( int damageTypes )
