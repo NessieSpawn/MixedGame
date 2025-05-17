@@ -196,7 +196,8 @@ void function Modded_Gamemode_AITdm_Extended_Init()
 		AltPilot_SetShouldReplacePlayerSettings( true )
 		AltPilot_SetShouldRemovePlayerCamo( true ) // keep camo disabled. we also needs to handle camo in this script!
 		RegisterSignal( "DelayedRemovePlayerSkinCamo" )
-		SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
+		SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects SPECIALLY for ash model
+		SetPlayerHeadShotFXDependOnSurfaceProp( true ) // fix headshot effects SPECIALLY for ash model
 
 		// model stuffs
 		Nessie_AutoSpawnCostumeForPlayers( true ) // allow player costume

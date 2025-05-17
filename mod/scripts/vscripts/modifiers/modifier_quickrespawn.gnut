@@ -20,6 +20,7 @@ void function GameModifier_QuickRespawn_Init()
 	// altpilot
 	AltPilot_SetShouldReplaceModel( true )
 	SetPlayerBodyTypeDependOnSurfaceProp( true ) // fix gib effects
+	SetPlayerHeadShotFXDependOnSurfaceProp( true ) // fix headshot effects
 	AltPilot_SetModelReplaceChance( 0.5 )
 
 	// gameplay
@@ -48,10 +49,6 @@ void function GameModifier_QuickRespawn_Init()
 	SetWaitingForPlayersMaxDuration( 0.0 ) // no wating!
 	ClassicMP_SetCustomIntro( ClassicMP_ShorterDropshipIntro_Setup, DROPSHIP_INTRO_LENGTH_SHORTER ) // override intro
 	AddCallback_OnClientConnected( OnClientConnected )
-
-	// killing effect handle
-	if ( FORCE_GIB_DEATH )
-		SetPlayerBodyTypeDependOnSurfaceProp( true )
 }
 
 void function OnClientConnected( entity player )

@@ -422,14 +422,14 @@ const array<asset> RANDOM_DECOY_ASSETS =
 	$"models/humans/grunts/mlt_grunt_lmg.mdl", 
 	$"models/humans/grunts/imc_grunt_lmg.mdl", 
 	$"models/humans/grunts/imc_grunt_shield_captain.mdl", 
-	$"models/robots/spectre/imc_spectre.mdl"
+	$"models/robots/spectre/imc_spectre.mdl",
 	$"models/Humans/heroes/imc_hero_ash.mdl", 
 	$"models/Humans/heroes/imc_hero_blisk.mdl", 
 	$"models/humans/heroes/mlt_hero_jack.mdl", 
 	$"models/humans/heroes/mlt_hero_sarah.mdl", 
 	$"models/humans/pilots/sp_medium_geist_f.mdl", 
 	$"models/humans/pilots/sp_medium_reaper_m.mdl", 
-	$"models/humans/pilots/sp_medium_stalker_m.mdl"
+	$"models/humans/pilots/sp_medium_stalker_m.mdl",
 ]
 
 entity function CreateRandomDecoyForPlayer( entity player, float stickPercentToRun = 0.0 )

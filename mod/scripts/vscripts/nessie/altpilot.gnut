@@ -130,7 +130,7 @@ const array<asset> ALTPILOT_GRUNT_MODELS =
 const array<asset> ALTPILOT_SKIN_DISABLED_MODELS =
 [
 	// HIDES ITSELF WHEN HAVING A SKIN
-	$"models/robots/spectre/imc_spectre.mdl"
+	$"models/robots/spectre/imc_spectre.mdl",
 
 	// have ghost camo which makes them less likely can be seen...
 	$"models/humans/heroes/mlt_hero_jack.mdl",
