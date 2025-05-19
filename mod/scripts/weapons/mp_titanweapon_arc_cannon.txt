@@ -321,6 +321,10 @@ WeaponData
 		// modded archon version of arc cannon
 		archon_arc_cannon
 		{
+			// vanilla arc cannon won't crit but archon's would
+			// temp remove for balance? idk
+			//"critical_hit"									"1"
+
 			// Damage - When Used by Players
 			"damage_flags"									"DF_STOPS_TITAN_REGEN | DF_BULLET | DF_NO_SELF_DAMAGE | DF_KNOCK_BACK"
 
