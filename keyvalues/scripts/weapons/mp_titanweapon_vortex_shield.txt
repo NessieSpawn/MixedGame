@@ -70,7 +70,9 @@ WeaponData
 			"damage_far_value_titanarmor" 					"400"
 
 			// can critical hit be modified in mods?
-			"critical_hit"									"1"
+			// yes they could, but our arc cannon currently won't do crit damage, guess we'd remove shield crit either
+			//"critical_hit"									"1"
+			"critical_hit"									"0"
 			"critical_hit_damage_scale"						"1.5"
 
 			"impulse_force"   								"1000"

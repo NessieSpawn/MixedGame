@@ -54,7 +54,7 @@ int function FireWeaponPlayerAndNPC( WeaponPrimaryAttackParams attackParams, boo
 				burstCount = weapon.GetWeaponChargeLevelMax()
 
 			// burst modifiers
-			if ( weapon.HasMod( "atlas_40mm_burst" ) )
+			if ( weapon.HasMod( "atlas_40mm_triple_burst" ) )
 				burstCount *= 3
 
 			weapon.SetWeaponBurstFireCount( burstCount )

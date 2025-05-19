@@ -1,5 +1,11 @@
 WeaponData
 {
+	// thus we can modify npc's explosion damage though mods
+	MP_BASE
+	{
+		"npc_explosion_damage"						"75"
+	}
+
 	Mods
 	{
 		gunship_gunner
@@ -68,6 +74,7 @@ WeaponData
 		// atlas
 		atlas_40mm
 		{
+			// kinda crazy because it could do 10000+ damage with one clip, don't know how to balance for now
 			"damage_near_value"							"*1.5" // 300
 			"damage_far_value" 							"*1.5" // 300
 			"damage_near_value_titanarmor"				"*2.18" // ~720
@@ -81,20 +88,28 @@ WeaponData
 			"npc_damage_near_value_titanarmor"			"*2.4" // 720
 			"npc_damage_far_value_titanarmor" 			"*3" // 600
 		}
-		atlas_40mm_burst // 3 burst per charge. use together with atlas_40mm, pas_tone_burst( optionally fd_tone_weapon_2 )
+		atlas_40mm_triple_burst // 3 burst per charge. use together with atlas_40mm, pas_tone_burst( optionally fd_tone_weapon_2 to have more full-burst shots )
 		{
-			"fire_rate"   								"++0.25" // 1.75, same as normal 40mm's
+			// with pas_tone_burst fire rate will increase to 5.0
+			// guess we still decrease it a very little bit. whatever our burst_fire_delay has already been nerfed
+			//"fire_rate"   								"++0.25" // 1.75, same as normal 40mm's
 			"burst_fire_delay"							"++0.35" // 1.1, less desync for client
 			"damage_near_value"   						"*0.134" // 40
 			"damage_far_value"							"*0.134" // 40
-			"damage_near_value_titanarmor"				"*0.417" // ~300
+			// due the fact we need more time to deliver full clip, better do increased damage?
+			//"damage_near_value_titanarmor"				"*0.417" // ~300
+			//"damage_far_value_titanarmor" 				"*0.417" // 300
+			"damage_near_value_titanarmor"				"*0.5" // 360
 			"damage_far_value_titanarmor" 				"*0.417" // 300
 			"explosion_damage"							"*0.34" // 25
 
 			"npc_damage_near_value"						"*0.134" // 40
 			"npc_damage_far_value"						"*0.294118" // ~25
-			"npc_damage_near_value_titanarmor"			"*0.417" // ~300
-			"npc_damage_far_value_titanarmor" 			"*0.4" // 200
+			//"npc_damage_near_value_titanarmor"			"*0.417" // ~300
+			//"npc_damage_far_value_titanarmor" 			"*0.4" // 200
+			"damage_near_value_titanarmor"				"*0.5" // 360
+			"damage_far_value_titanarmor" 				"*0.4" // 240
+			"npc_explosion_damage"						"*0.34" // 25
 		}
 
 		// pilot usage
