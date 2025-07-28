@@ -42,12 +42,23 @@ struct
 
 function MpTitanweaponTripleThreat_Init()
 {
+	// VANILLA HAS NO WHERE CALLING THIS. NORTHSTAR ALSO NOT FIXING IT
+	// all because MpWeaponGunshipLauncher_Init() inited stuffs thus we're not crashing...
 	RegisterSignal( "ProxMineTrigger" )
 
 	PrecacheParticleSystem( FX_MINE_TRAIL )
 	PrecacheParticleSystem( FX_MINE_LIGHT )
 	PrecacheParticleSystem( FX_TRIPLE_IGNITION )
 	PrecacheParticleSystem( FX_TRIPLE_IGNITION_BURN )
+
+	// modified
+#if SERVER
+    // fix obit display name for triple threat
+    RegisterWeaponDamageSource( "mp_titanweapon_triplethreat", "#WPN_TITAN_TRIPLE_THREAT_SHORT" )
+	// add callbacks for new damage source id so we can have vanilla-accurate behavior
+	AddDamageCallbackSourceID( eDamageSourceId.mp_titanweapon_triplethreat, TripleThreatGrenade_DamagedPlayerOrNPC )
+#endif
+	//
 }
 
 var function OnWeaponPrimaryAttack_titanweapon_triplethreat( entity weapon, WeaponPrimaryAttackParams attackParams )
@@ -77,26 +88,27 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 		shouldCreateProjectile = true
 
 	// fix fire sound for ttf2
-	// now using northstarCN changes
+	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
+	// whatever I'm doing fuck myself
 	/*
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
-			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_Softball_Fire_1P" ) //Weapon_MGL_Fire_1P
-			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "Weapon_Softball_Fire_3P" ) //Weapon_MGL_Fire_3P
+			// welp we've changed tp sound, maybe just keep same as NSCN does
+			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "weapon_stickylauncher_altfire_1p" ) //Weapon_MGL_Fire_1P
+			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
+			//EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_1P" )
+			EmitSoundOnEntityExceptToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_3P" )
 		}
 		else
-			EmitSoundOnEntity( weaponOwner, "Weapon_Softball_Fire_3P" ) //Weapon_MGL_Fire_3P
+		{
+			// "spectrelauncher_ai_wpnfire" don't have team-based sound...
+			//EmitSoundOnEntity( weaponOwner, "spectrelauncher_ai_wpnfire" ) //Weapon_MGL_Fire_3P
+			EmitSoundOnEntity( weaponOwner, "Weapon_MGL_Fire_3P" )
+		}
 	#endif
 	*/
-	//
-	// fix sound for ttf2!!!
-	// change to be in new updated mp_titanweapon_triplethreat.txt
-	// nah. let's just keep behavior constant due that "spectrelauncher_ai_wpnfire" don't have team-based sound
-	// maybe I could just play spectrelauncher_ai_wpnfire to enemy team... I think...
-	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
-	// whatever I'm doing fuck myself
-	// this works the best: mgl sound to match northstar default sound, tp sound remains unchanged to avoid confusion
 	#if SERVER
 		if( weaponOwner.IsPlayer() )
 		{
@@ -107,7 +119,7 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "spectrelauncher_ai_wpnfire" )
 			//EmitSoundOnEntityOnlyToPlayer( weaponOwner, weaponOwner, "spectrelauncher_ai_wpnfire" )
 			// this works the best: mgl sound to match northstar default sound, tp sound remains unchanged to avoid confusion
-			//EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_1P" )
+			EmitSoundOnEntityOnlyToPlayer( weapon, weaponOwner, "Weapon_MGL_Fire_1P" )
 
 			int friendlyTeam = weaponOwner.GetTeam()
 			array<entity> players = GetPlayerArray()
@@ -130,9 +142,10 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 			// needs to remove from current branch, as we don't have script support
 			//EmitSoundOnEntityExceptToTeam( weapon, "spectrelauncher_ai_wpnfire", weaponOwner.GetTeam() )
 		}
-	#elseif CLIENT
-		weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "" )
-	#endif // SERVER
+	#endif
+	//
+	// fix sound for ttf2!!!
+	//weapon.EmitWeaponSound_1p3p( "Weapon_MGL_Fire_1P", "Weapon_MGL_Fire_3P" )
 
 	#if CLIENT
 		if ( !playerFired )
@@ -274,8 +287,7 @@ function FireTripleThreatGrenade( entity weapon, origin, fwd, velocity, playerFi
 		Grenade_Init( nade, weapon )
 		#if SERVER
 			nade.SetOwner( weaponOwner )
-			// we've registered mp_titanwepaon_triplethread in Northstar.Custom, no need to re-assign
-			nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_triple_threat ) // so nades can behave nicely
+			//nade.ProjectileSetDamageSourceID( eDamageSourceId.mp_titanweapon_triple_threat ) // so nades can behave nicely, calling callbacks in _weapon_utility.nut
 			thread EnableCollision( nade )
 			thread AirPop( nade, fuseTime )
 			thread TrapExplodeOnDamage( nade, 50, 0.0, 0.1 )
