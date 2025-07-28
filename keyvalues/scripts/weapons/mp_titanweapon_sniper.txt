@@ -110,6 +110,18 @@ WeaponData
 		knockback_sniper
 		{
 		}
+
+		// cosmetic: enable scope bodygroup
+		titan_sniper_scope
+		{
+			"bodygroup1_set"	"1"
+		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 	}
 
 	RUI_CrosshairData
@@ -156,12 +168,6 @@ WeaponData
 			{
 				isFiring				weapon_is_firing
 			}
-		}
-
-		// nessy
-        // titan weapons: model change done in script
-		fake_nessy_weapon
-		{
 		}
 	}
 }
