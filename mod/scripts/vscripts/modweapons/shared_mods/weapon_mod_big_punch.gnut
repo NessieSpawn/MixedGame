@@ -19,6 +19,7 @@ void function WeaponMod_Titan_Big_Punch_Init()
     // adding a new damageSourceId. it's gonna transfer to client automatically
 	RegisterWeaponDamageSource( "melee_titan_big_punch", "#GEAR_BIG_PUNCH" )
 
+    // actually big punch's attacking event starts really quick... it's just having a huge punishment sequence
     //TitanMelee_AddCounterImmuneMod( TITAN_BIG_PUNCH_MOD_NAME ) // dash punch with sequence cannot be countered
 
     TitanMelee_AddDashPunchSpeedScaleMod( TITAN_BIG_PUNCH_MOD_NAME, TITAN_BIG_PUNCH_SPEEDSCALE )

@@ -31,7 +31,7 @@ var function OnWeaponPrimaryAttack_titanability_sonar_pulse( entity weapon, Weap
 	// modded weapon
 	// saved only for client-side in this branch
 #if CLIENT
-	if ( weapon.HasMod( "archon_stun_impact" ) )
+	if ( weapon.HasMod( "shock_stun_impact" ) )
 		return OnWeaponPrimaryAttack_titanweapon_stun_impact( weapon, attackParams )
 #endif
 
@@ -49,7 +49,7 @@ var function OnWeaponNPCPrimaryAttack_titanability_sonar_pulse( entity weapon, W
 	// modded weapon
 	// remove for this branch
 	/*
-	if ( weapon.HasMod( "archon_stun_impact" ) )
+	if ( weapon.HasMod( "shock_stun_impact" ) )
 		return OnWeaponNPCPrimaryAttack_titanweapon_stun_impact( weapon, attackParams )
 	*/
 
@@ -84,7 +84,7 @@ void function OnProjectileCollision_titanability_sonar_pulse( entity projectile,
 	array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // I don't care, let's break vanilla behavior
 	// saved only for client-side in this branch
 #if CLIENT
-	if ( mods.contains( "archon_stun_impact" ) )
+	if ( mods.contains( "shock_stun_impact" ) )
 		return OnProjectileCollision_titanweapon_stun_impact( projectile, pos, normal, hitEnt, hitbox, isCritical )
 #endif
 

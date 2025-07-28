@@ -40,5 +40,17 @@ WeaponData
         {
             "fire_duration"                                 "--14.9" // at least 0.1s fire_duration required for it can consume ammo properly
         }
+
+        // nessy
+        // toss prep weapons
+        // do need anti-crash for trap weapons
+        // THIS WILL BREAK ARC TRAP BEHAVIOR EVEN IF CRASH HAS BEEN FIXED. removed
+		// fake_nessy_weapon
+		// {
+		// 	// we'll also have a script for adding fake model to the weapon
+		// 	// nessy doll isn't a usable model for dropping to ground, script handle is enough
+        //     //"playermodel" 									"models/domestic/nessy_doll.mdl"
+		// 	// projectile model change in script
+		// }
 	}
 }

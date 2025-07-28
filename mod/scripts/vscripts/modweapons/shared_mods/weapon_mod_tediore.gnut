@@ -546,14 +546,14 @@ void function OnProjectileCollision_Tediore( entity projectile, vector pos, vect
             if ( IsValid( weaponOwner ) && weaponOwner.IsPlayer() )
             {
                 // it's good to use EmitSoundAtPosition() since pulseBlade one may be soon destroyed
-                EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, projectile.GetOrigin(), weaponOwner, "Pilot_PulseBlade_Activated_3P" )
-                EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, projectile.GetOrigin(), weaponOwner, "Pilot_PulseBlade_Activated_1P" )
+                EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), projectile.GetOrigin(), weaponOwner, "Pilot_PulseBlade_Activated_3P" )
+                EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), projectile.GetOrigin(), weaponOwner, "Pilot_PulseBlade_Activated_1P" )
                 //EmitSoundOnEntityExceptToPlayer( projectile, weaponOwner, "Pilot_PulseBlade_Activated_3P" )
                 //EmitSoundOnEntityOnlyToPlayer( projectile, weaponOwner, "Pilot_PulseBlade_Activated_1P" )
             }
             else
             {
-                EmitSoundAtPosition( TEAM_UNASSIGNED, projectile.GetOrigin(), "Pilot_PulseBlade_Activated_3P" )
+                EmitSoundAtPosition( projectile.GetTeam(), projectile.GetOrigin(), "Pilot_PulseBlade_Activated_3P" )
                 //EmitSoundOnEntity( projectile, "Pilot_PulseBlade_Activated_3P" )
             }
         }
@@ -643,7 +643,7 @@ void function TedioreGunExplode( entity thrownGun, actualPilotDamage, actualTita
     if( impactFXName == "exp_frag_grenade" ) // fuck frag sounds
     {
         PlayFX( $"P_impact_exp_FRAG_air" ,thrownGun.GetOrigin(), < 0,0,0 > )
-	    EmitSoundAtPosition( TEAM_UNASSIGNED, thrownGun.GetOrigin(), "explo_fraggrenade_impact_3p_int" )
+	    EmitSoundAtPosition( thrownGun.GetTeam(), thrownGun.GetOrigin(), "explo_fraggrenade_impact_3p_int" )
     }
     else if( impactFXName != "" )
     */
@@ -1034,7 +1034,7 @@ void function TediorePhaseExplode( entity thrownGun, float clipLeftPercentage, f
 {
     vector origin = thrownGun.GetOrigin()
     PlayFX( TEDIORE_PHASE_EXPLOSION_FX, origin - < 0,0,80 > )
-    EmitSoundAtPosition( TEAM_UNASSIGNED, origin, TEDIORE_PHASE_EXPLOSION_SOUND )
+    EmitSoundAtPosition( thrownGun.GetTeam(), origin, TEDIORE_PHASE_EXPLOSION_SOUND )
 
     float phaseTime = TEDIORE_PHASE_DURATION_MAX * clipLeftPercentage
     if( phaseTime < TEDIORE_PHASE_DURATION_MIN  )
@@ -1828,7 +1828,7 @@ void function NessieDroneLifetime( entity drone, entity nessie, entity fx, float
 			if( IsValid( drone ) )
 			{
 				PlayFX( $"P_plasma_exp_SM", drone.GetOrigin(), drone.GetAngles() )
-				EmitSoundAtPosition( TEAM_UNASSIGNED, drone.GetOrigin(), "explo_plasma_small" )
+				EmitSoundAtPosition( drone.GetTeam(), drone.GetOrigin(), "explo_plasma_small" )
 				drone.Destroy()
 			}
 		}

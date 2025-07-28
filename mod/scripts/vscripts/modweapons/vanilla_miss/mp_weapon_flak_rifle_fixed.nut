@@ -38,6 +38,9 @@ void function MpWeaponFlakRifle_Init()
 	Vortex_AddProjectileModToKeepDataOnRefire( "flak_cannon" )
 #endif
 	*/
+
+	// signal for being used by sound fix
+	RegisterSignal( "FlatlineWeaponFire" )
 }
 
 #if SERVER

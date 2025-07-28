@@ -187,5 +187,16 @@ WeaponData
 			"damage_near_value"   							"*0.5" // 150
 			"damage_far_value"								"*0.3" // 90
 		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		// charge may come pretty weird due that mozambique don't have charge animation? idk
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			//"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+		}
 	}
 }

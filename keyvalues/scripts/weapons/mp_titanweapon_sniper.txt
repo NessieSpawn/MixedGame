@@ -11,6 +11,14 @@ WeaponData
 	"tracer_effect"   							"P_wpn_arcball_beam"
 	"tracer_effect_first_person"  				"P_wpn_arcball_beam"
 
+	// unused bodygroup: scope
+	// Bodygroups:
+	"bodygroup1_name"	"attachment1"
+	"bodygroup1_set"	"0"
+
+	// modified fix: titan weapons should've disallow headshots
+	"allow_headshots" 								"0"
+
 	Mods
 	{
 		stryder_sniper
@@ -148,6 +156,12 @@ WeaponData
 			{
 				isFiring				weapon_is_firing
 			}
+		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
 		}
 	}
 }

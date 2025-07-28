@@ -1,6 +1,6 @@
 global function WeaponMod_DirectHit_Init
 
-global function OnProjectileCollision_DirectHit
+global function OnProjectileCollision_DirectHit_NoReturn // no need to return this function
 
 struct
 {
@@ -17,7 +17,7 @@ void function WeaponMod_DirectHit_Init()
     #endif
 }
 
-void function OnProjectileCollision_DirectHit( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
+void function OnProjectileCollision_DirectHit_NoReturn( entity projectile, vector pos, vector normal, entity hitEnt, int hitbox, bool isCritical )
 {
 #if SERVER
     if ( !( projectile in file.projectileHitTargets ) )

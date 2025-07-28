@@ -93,5 +93,15 @@ WeaponData
 			"ammo_clip_size"   				"*0.5"
 			"ammo_default_total"			"*0.5"
 		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }

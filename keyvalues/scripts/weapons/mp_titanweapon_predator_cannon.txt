@@ -1,5 +1,8 @@
 WeaponData
 {
+	// modified fix: titan weapons should've disallow headshots
+	"allow_headshots" 								"0"
+
 	Mods
 	{
 		LongRangeAmmo
@@ -56,5 +59,12 @@ WeaponData
 			"damage_near_value_titanarmor"				"*0.8"
 			"damage_far_value_titanarmor" 				"*0.8"
 		}
+
+		// nessy
+        // titan weapons: model change done in script
+		// only LongRangePowerShot fires a projectile, don't wanna change it's damageSourceId to Mozambique
+		// fake_nessy_weapon
+		// {
+		// }
 	}
 }

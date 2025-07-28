@@ -100,7 +100,7 @@ void function move (entity player, entity weapon) {
 
 void function moveback (entity player , vector origpos) {
 	string playername = player.GetPlayerName()
-	EmitSoundAtPosition( TEAM_UNASSIGNED, player.GetOrigin(), SHIFTER_START_SOUND_3P )
+	EmitSoundAtPosition( player.GetTeam(), player.GetOrigin(), SHIFTER_START_SOUND_3P )
     PlayFX( $"P_phase_shift_main", player.GetOrigin() )
 	file.playerrewindusedtable[playername] <- true
 	entity mover = CreateOwnedScriptMover (player)

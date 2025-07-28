@@ -211,5 +211,11 @@ WeaponData
 			"grenade_bounce_extra_vertical_randomness"		"0.2"
 			"grenade_roll_vel_frac_per_second"				"0.8"
 		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
+		}
 	}
 }

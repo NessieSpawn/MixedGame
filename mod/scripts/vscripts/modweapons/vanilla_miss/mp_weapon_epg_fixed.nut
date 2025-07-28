@@ -17,6 +17,6 @@ void function OnProjectileCollision_weapon_epg( entity projectile, vector pos, v
 
     array<string> mods = Vortex_GetRefiredProjectileMods( projectile ) // modded weapon refire behavior
     if ( mods.contains( "direct_hit" ) )
-        OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
+        OnProjectileCollision_DirectHit_NoReturn( projectile, pos, normal, hitEnt, hitbox, isCritical )
 #endif
 }

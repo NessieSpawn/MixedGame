@@ -65,7 +65,7 @@ void function OnProjectileExplode_weapon_frag_grenade( entity frag )
 {
 #if SERVER
     PlayFX( $"P_impact_exp_FRAG_air" ,frag.GetOrigin(), < 0,0,0 > )
-	EmitSoundAtPosition( TEAM_UNASSIGNED, frag.GetOrigin(), "explo_fraggrenade_impact_3p_int" )
+	EmitSoundAtPosition( frag.GetTeam(), frag.GetOrigin(), "explo_fraggrenade_impact_3p_int" )
 	//"explo_fraggrenade_impact_3p_int"
 	//"explo_fraggrenade_impact_1p_OLD" //ttf1 sound! but volume so low...
 	//"corporate_spectre_death_explode"
