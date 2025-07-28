@@ -194,6 +194,8 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 
 			// adding fix from tf|1: upper and middle grenade travel speed greatly increased. only occur when not using hydraulic_launcher
 			// due to that, needs to fix client-side impact visual
+			// no need to add on client because we already have server-side impact fix
+			/*
 			bool isFixedGrenade = false
 			if (weapon.HasMod("hydraulic_launcher"))
 				attackVec *= (1.0 + weapon.GetWeaponChargeFraction())
@@ -213,6 +215,10 @@ function FireTripleThreat( entity weapon, WeaponPrimaryAttackParams attackParams
 						break
 				}
 			}
+			*/
+			// vanilla behavior
+			if (weapon.HasMod("hydraulic_launcher"))
+				attackVec *= (1.0 + weapon.GetWeaponChargeFraction())
 
 			float fuseTime
 			if( hasRollingRoundsMod )
