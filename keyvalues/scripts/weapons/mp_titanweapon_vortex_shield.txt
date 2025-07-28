@@ -71,6 +71,7 @@ WeaponData
 
 			// can critical hit be modified in mods?
 			// yes they could, but our arc cannon currently won't do crit damage, guess we'd remove shield crit either
+			// arc cannon crit added on 7/28/2025, but this weapon can't reflect shots... guess we still keep the value
 			//"critical_hit"									"1"
 			"critical_hit"									"0"
 			"critical_hit_damage_scale"						"1.5"
