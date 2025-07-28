@@ -68,9 +68,11 @@ WeaponData
 		// Rebalanced weapon
 		rebalanced_weapon
 		{
-			"damage_far_value_titanarmor"					"--5" // 95
+			// no need to nerf damage after so long
+			//"damage_far_value_titanarmor"					"--5" // 95
 
 			// inspired by tf1 xo-16, do increased reload time
+			// reload will be fixed by rapid_reload upgrade
 			"reload_time" 									"*1.27" // ~3.3s
 			"reload_time_late1"								"*1.27"
 			"reload_time_late2"								"*1.27"
@@ -80,7 +82,8 @@ WeaponData
 			"reloadempty_time_late2"						"*1.27"
 
 			// npc usage for whatever
-			"npc_damage_far_value_titanarmor"				"--5" // 95
+			// no need to nerf damage after so long
+			//"npc_damage_far_value_titanarmor"				"--5" // 95
 		}
 
 		// pilot usage
