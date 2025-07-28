@@ -309,7 +309,7 @@ void function OnProjectileCollision_weapon_modded_archer( entity projectile, vec
 	// saved only for client-side in this branch
 #if CLIENT
 	if ( mods.contains( "direct_hit" ) )
-        OnProjectileCollision_DirectHit( projectile, pos, normal, hitEnt, hitbox, isCritical )
+        OnProjectileCollision_DirectHit_NoReturn( projectile, pos, normal, hitEnt, hitbox, isCritical )
 #endif
 
 #if SERVER

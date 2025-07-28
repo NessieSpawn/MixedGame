@@ -6,7 +6,8 @@ WeaponData // client script required
 
 	//Projectile Stuff
 	//"projectilemodel" 								"models/industrial/grappling_hook_end.mdl"
-	"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	//"projectilemodel" 								"models/domestic/nessy_doll.mdl"
+	"projectilemodel"								"models/dev/empty_model.mdl"
 	"projectile_trail_effect_0" 					"weapon_kraber_projectile"
 
 	//Behavior

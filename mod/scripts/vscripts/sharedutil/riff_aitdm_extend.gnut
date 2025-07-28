@@ -22,4 +22,10 @@ void function Riff_AITdm_Extend_Init()
     // npc scoring settings
     AddPrivateMatchModeSettingArbitrary( "#AITDM_EXTENDED", "aitdm_coop_pilot_score_multiplier", "2.0" )
     AddPrivateMatchModeSettingArbitrary( "#AITDM_EXTENDED", "aitdm_coop_titan_score_multiplier", "3.0" )
+
+    // APRIL FOOLS SPECIAL
+    AddPrivateMatchModeSettingEnum( "#AITDM_EXTENDED", "aitdm_extended_april_fools", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
+    AddPrivateMatchModeSettingEnum( "#AITDM_EXTENDED", "aitdm_april_fools_nessy_weapons", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "1" )
+    // extreme npc weapons no longer bind together with april fools, we can use them individually now
+    AddPrivateMatchModeSettingEnum( "#AITDM_EXTENDED", "aitdm_extended_extreme_npc_weapons", [ "#SETTING_DISABLED", "#SETTING_ENABLED" ], "0" )
 }

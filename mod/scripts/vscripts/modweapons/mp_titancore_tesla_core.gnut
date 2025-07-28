@@ -15,8 +15,8 @@ const float EMP_DAMAGE_TICK_RATE 			= 0.5
 const asset FX_EMP_FIELD					= $"P_xo_emp_field"
 const asset FX_EMP_FIELD_1P					= $"P_body_emp_1P"
 
-// archon usage
-const int DAMAGE_AGAINST_TITANS_ARCHON 		= 400 // archon have main weapon upgrade, so empfield deal less damage
+// archon usage. now renamed to shock to have different display name than modded archon
+const int DAMAGE_AGAINST_TITANS_SHOCK 		= 400 // archon have main weapon upgrade, so empfield deal less damage
 
 void function Tesla_Core_Init()
 {
@@ -94,10 +94,10 @@ void function TeslaCoreThink( entity weapon, float coreDuration )
 	entity soul = owner.GetTitanSoul()
 	int statusEffect = StatusEffect_AddEndless( soul, eStatusEffect.damageAmpFXOnly, 1.0 ) // add a visual effect
 	
-	bool archonVersion = weapon.HasMod( "archon_tesla" )
-	thread TeslaCoreEMPFieldThink( owner, archonVersion )
-	if ( archonVersion )
-		thread ArchonMainWeaponSuperChargedThink( owner, coreDuration )
+	bool shockVersion = weapon.HasMod( "shock_tesla" )
+	thread TeslaCoreEMPFieldThink( owner, shockVersion )
+	if ( shockVersion )
+		thread ShockMainWeaponSuperChargedThink( owner, coreDuration )
     //thread EMPTitanThinkConstant( owner ) // start empField
 	// using a modified empField function now!
     //thread TrackEMPTitanDoomedState( owner ) // vanilla empField will end after titan doomed, let's do a check here
@@ -165,7 +165,7 @@ void function TrackEMPTitanDoomedState( entity titan )
 */
 
 // main mechanic goes here, from _ai_emp_titans.gnut
-void function TeslaCoreEMPFieldThink( entity titan, bool isArchon = false )
+void function TeslaCoreEMPFieldThink( entity titan, bool isShock = false )
 {
 	titan.EndSignal( "OnDeath" )
 	titan.EndSignal( "OnDestroy" )
@@ -251,8 +251,8 @@ void function TeslaCoreEMPFieldThink( entity titan, bool isArchon = false )
 	wait 0.5 // first wait here, for fx being setup
 	int damage = DAMAGE_AGAINST_PILOTS
 	int damageHeavyArmor = DAMAGE_AGAINST_TITANS
-	if ( isArchon )
-		damageHeavyArmor = DAMAGE_AGAINST_TITANS_ARCHON
+	if ( isShock )
+		damageHeavyArmor = DAMAGE_AGAINST_TITANS_SHOCK
 	float interval = EMP_DAMAGE_TICK_RATE
 
 	while ( true )
@@ -325,8 +325,8 @@ void function TeslaCoreDamagedTarget( entity victim, var damageInfo )
 	}
 }
 
-// archon tesla core
-void function ArchonMainWeaponSuperChargedThink( entity owner, float coreDuration )
+// archon tesla core. now renamed to shock to have different display name than modded archon
+void function ShockMainWeaponSuperChargedThink( entity owner, float coreDuration )
 {
 	// same signals as empField does, so it can get exact duration
 	owner.EndSignal( "OnDeath" )

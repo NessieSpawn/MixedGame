@@ -26,11 +26,11 @@ WeaponData
 	
 		// npc range behavior
 		"npc_min_engage_range"							"100"
-		"npc_max_engage_range"							"800" // vanilla uses 2000, but it is clearly that mgl can't shoot that far
+		"npc_max_engage_range"							"500" // vanilla uses 2000, but it is clearly that mgl can't shoot that far. was using 1200
 		"npc_min_engage_range_heavy_armor"				"250" // vanilla uses 500, but mgl don't have too much self damage
-		"npc_max_engage_range_heavy_armor"				"1200" // vanilla uses 3500, but it is clearly that mgl can't shoot that far
+		"npc_max_engage_range_heavy_armor"				"800" // vanilla uses 3500, but it is clearly that mgl can't shoot that far. was using 1200
 		"npc_min_range"   								"0"
-		"npc_max_range"   								"1500" // vanilla uses 8000.... serious?
+		"npc_max_range"   								"1000" // vanilla uses 8000.... serious? was using 1500
 	}
 	
 	Mods
@@ -160,6 +160,16 @@ WeaponData
 		// special
 		friendlyfire_weapon
 		{
+		}
+
+		// nessy
+		// ADS mostly fucked for whatever
+		fake_nessy_weapon
+		{
+			"viewmodel"   									"models/weapons/pstl_sa3/ptpov_pstl_sa3.mdl"
+			// we'll also have a script for adding fake model to the weapon
+			"playermodel" 									"models/weapons/pstl_sa3/w_pstl_sa3.mdl"
+			// projectile model change in script
 		}
     }
 }

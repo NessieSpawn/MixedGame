@@ -78,17 +78,17 @@ void function OnProjectileCollision_ninja_projectile( entity projectile, vector 
                 entity owner = projectile.GetOwner()
                 if( IsValid( owner ) && owner.IsPlayer() )
                 {
-                    EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_3P" )
-                    EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, pos, owner, "Pilot_PulseBlade_Activated_1P" )
+                    EmitSoundAtPositionExceptToPlayer( projectile.GetTeam(), pos, owner, "Pilot_PulseBlade_Activated_3P" )
+                    EmitSoundAtPositionOnlyToPlayer( projectile.GetTeam(), pos, owner, "Pilot_PulseBlade_Activated_1P" )
                 }
                 else
-                    EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
+                    EmitSoundAtPosition( projectile.GetTeam(), pos, "Pilot_PulseBlade_Activated_3P" )
             }
             // removing normal for FX
             vector fxPos = pos //pos + normal
             PlayFX( $"P_impact_exp_laserlite_AMP", fxPos, VectorToAngles( normal ) )
-            //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "PulseBlade_SurfaceImpact_BubbleShield_3P" )
-            //EmitSoundAtPosition( TEAM_UNASSIGNED, pos, "Pilot_PulseBlade_Activated_3P" )
+            //EmitSoundAtPosition( projectile.GetTeam(), pos, "PulseBlade_SurfaceImpact_BubbleShield_3P" )
+            //EmitSoundAtPosition( projectile.GetTeam(), pos, "Pilot_PulseBlade_Activated_3P" )
         }
     #endif
 

@@ -97,5 +97,15 @@ WeaponData
 		{
 			"explosion_damage_heavy_armor"					"*2.0" // 1200 with burn_mod_emp_grenade, was *2.5, but beastKing's sword already got some titan damage
 		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }

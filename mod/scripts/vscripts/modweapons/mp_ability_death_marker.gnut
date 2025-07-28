@@ -101,6 +101,7 @@ void function OnKilledByDeathMarker( entity victim, var damageInfo )
 
     vector deathPos = victim.GetOrigin()
     thread DeathMarkerKillshotVisual( deathPos )
+    // to keep consist behavior as DelayedPulseLocation() does, not adding team-based sound
     EmitSoundAtPositionExceptToPlayer( TEAM_UNASSIGNED, deathPos, attacker, "Titan_Tone_SonarLock_Impact_Pulse_3P" )
 	EmitSoundAtPositionOnlyToPlayer( TEAM_UNASSIGNED, deathPos, attacker, "Titan_Tone_SonarLock_Impact_Pulse_1P" )
     array<entity> nearbyPlayers = GetPlayerArrayEx( "any", TEAM_ANY, TEAM_ANY, deathPos, DEATH_MARKER_RADIUS )

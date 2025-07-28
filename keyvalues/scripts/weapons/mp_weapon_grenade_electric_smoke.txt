@@ -90,5 +90,15 @@ WeaponData
 			"regen_ammo_refill_rate"						"*3" // ~6s cooldown
 			"grenade_ignition_time"							"++1" // 6s duration. script has been modified and changing ignition will extend smoke duration
 		}
+
+		// nessy
+        // toss prep weapons
+		fake_nessy_weapon
+		{
+			// we'll also have a script for adding fake model to the weapon
+			// nessy doll isn't a usable model for dropping to ground, script handle is enough
+            //"playermodel" 									"models/domestic/nessy_doll.mdl"
+			// projectile model change in script
+		}
 	}
 }

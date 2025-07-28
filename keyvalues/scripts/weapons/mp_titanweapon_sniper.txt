@@ -16,6 +16,9 @@ WeaponData
 	"bodygroup1_name"	"attachment1"
 	"bodygroup1_set"	"0"
 
+	// modified fix: titan weapons should've disallow headshots
+	"allow_headshots" 								"0"
+
 	Mods
 	{
 		stryder_sniper
@@ -112,6 +115,12 @@ WeaponData
 		titan_sniper_scope
 		{
 			"bodygroup1_set"	"1"
+		}
+
+		// nessy
+        // titan weapons: model change done in script
+		fake_nessy_weapon
+		{
 		}
 	}
 }
