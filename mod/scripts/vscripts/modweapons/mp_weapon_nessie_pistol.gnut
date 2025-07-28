@@ -395,7 +395,8 @@ void function DisableNessieDroneSound( entity drone ) // annoying sound!
 	StopSoundOnEntity( drone, "Drone_Mvmt_Hover" )
 	// enemy sound still needs to be played, I think?
 	// modified function in _utility.gnut
-	EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
+	// needs to remove from current branch, as we don't have script support
+	//EmitSoundOnEntityExceptToTeam( drone, "Drone_Mvmt_Hover_Hero", drone.GetTeam() )
 }
 
 // nessie grunts(actually spectres since they can scale model)
