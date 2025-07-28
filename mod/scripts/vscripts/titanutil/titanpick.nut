@@ -283,15 +283,17 @@ entity function TitanPick_TitanDropWeapon( entity titan, vector droppoint = DEFA
         droppoint = titanPos
         
         vector endPos = downTrace.endPos
+        // this sometimes causes weapon drop collision into world... idk how to fix
         if ( titanPos.z > endPos.z ) // playerPos is higher than traced pos
             droppoint = endPos // use trace endPos instead
         
         droppoint += < 0,0,15 > // add a bit offset
 
         // get surface angle
+        // this sometimes causes weapon drop collision into world... idk how to fix
         vector surfaceAng = VectorToAngles( downTrace.surfaceNormal )
         //vector titanYaw = < 0, titan.GetAngles().y, 0 >
-        dropangle = surfaceAng + < 90, 0, 0 > //+ titanYaw // not safe to change yaw because prop has already been rotated
+        dropangle = surfaceAng + < 90, 0, 0 > //+ titanYaw // not safe to change yaw because prop has already been rotated with surface yaw
         dropangle.x = ClampAngle( dropangle.x )
         dropangle.z = 90
         /*
