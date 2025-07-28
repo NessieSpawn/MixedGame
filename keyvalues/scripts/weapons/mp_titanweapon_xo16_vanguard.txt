@@ -69,7 +69,8 @@ WeaponData
 		rebalanced_weapon
 		{
 			// no need to nerf damage after so long
-			//"damage_far_value_titanarmor"					"--5" // 95
+			// maybe keep this... after we nerf atlas?
+			"damage_far_value_titanarmor"					"--5" // 95
 
 			// inspired by tf1 xo-16, do increased reload time
 			// reload will be fixed by rapid_reload upgrade
@@ -83,7 +84,8 @@ WeaponData
 
 			// npc usage for whatever
 			// no need to nerf damage after so long
-			//"npc_damage_far_value_titanarmor"				"--5" // 95
+			// maybe keep this... after we nerf atlas?
+			"npc_damage_far_value_titanarmor"				"--5" // 95
 		}
 
 		// pilot usage
