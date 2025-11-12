@@ -68,7 +68,7 @@ void function Sv_EarnMeterMP_Init()
 
 void function EarnMeterMP_SetTitanLoadout( entity player )
 {
-	if ( EarnMeterMP_IsTitanEarnGametype() )
+	if ( EarnMeterMP_IsTitanEarnGametype() && IsTitanDropAvailableForPlayerTeam( player ) )
 		PlayerEarnMeter_SetGoal( player, EarnObject_GetByRef( GetTitanLoadoutForPlayer( player ).titanClass ) )
 	else
 		PlayerEarnMeter_SetGoal( player, PlayerEarnMeter_GetReward( player ) )
@@ -160,7 +160,7 @@ void function OnPlaying()
 	foreach ( entity player in GetPlayerArray() )
 		SetupPlayerEarnMeter( player )
 
-	if ( Riff_BoostAvailability() != eBoostAvailability.Disabled )
+	if ( BurnMeterEnabled() )
 		SetCallback_EarnMeterRewardEarned( EarnMeterMP_BoostEarned )
 
 	// do this in playing so that gamemodes/maps can disable and this'll take affect
@@ -171,11 +171,17 @@ void function OnPlaying()
 	}
 
 	SetCallback_EarnMeterGoalEarned( EarnMeterMP_TitanEarned )
+
+	if( !BurnMeterEnabled() && !EarnMeterMP_IsTitanEarnGametype() )
+		PlayerEarnMeter_SetEnabled( false )
 }
 
 void function OnPlayerRespawned( entity player )
 {
-	thread EarnMeterMP_PlayerLifeThink( player )
+	if( !BurnMeterEnabled() && !EarnMeterMP_IsTitanEarnGametype() ) // If both are disabled there's no reason to show up the Earn Meter
+		PlayerEarnMeter_SetMode( player, eEarnMeterMode.DISABLED )
+	else
+		thread EarnMeterMP_PlayerLifeThink( player )
 
 	// what is this call?
 	//if ( PlayerEarnMeter_IsRewardAvailable( player ) )
@@ -184,7 +190,12 @@ void function OnPlayerRespawned( entity player )
 
 void function EarnMeterMP_ReplaceReward( entity player, EarnObject reward, float rewardFrac )
 {
-	PlayerEarnMeter_Reset( player )
+	// DANGEROUS CHANGE NEEDS TESTING
+	// I don't know whether my think is compatible with recent northstar change
+	// I put resetting here must somehow makes sense
+	if ( !IsTitanAvailable( player ) )
+		PlayerEarnMeter_Reset( player )
+	
 	if ( reward.id < 0 )
 		return
 	
@@ -202,6 +213,9 @@ void function EarnMeterMP_ReplaceReward( entity player, EarnObject reward, float
 
 void function EarnMeterMP_PlayerLifeThink( entity player )
 {
+	// new adding signal, needs testing
+	svGlobal.levelEnt.EndSignal( "CleanUpEntitiesForRoundEnd" )
+
 	player.Signal( "EarnMeterMP_PlayerLifeThink" )
 	player.EndSignal( "EarnMeterMP_PlayerLifeThink" )
 
@@ -257,8 +271,12 @@ void function EarnMeterMP_PlayerLifeThink( entity player )
 			EarnMeterMP_ResetPlayerPassiveGainTimer( player ) // reset gain timer
 		
 		int desiredEarnMeterMode
+		bool maxActiveTitansReached
 		entity petTitan = player.GetPetTitan()
 		entity soul = player.GetTitanSoul() // move out of if-else cases
+		
+		if ( Riff_TitanQueueLimit() > 0 && GetTitanCountForTeam( player.GetTeam() ) >= Riff_TitanQueueLimit() )
+			maxActiveTitansReached = true
 
 		if ( player.IsTitan() )
 		{
@@ -267,7 +285,7 @@ void function EarnMeterMP_PlayerLifeThink( entity player )
 			if ( IsValid( soul ) ) // stupid anti-crash, possibly no need
 			{
 				//entity soul = player.GetTitanSoul() // move out of if-else cases
-				if ( SoulTitanCore_GetExpireTime( soul ) > Time() )
+				if ( IsValid( soul ) && TitanCoreInUse( player ) )
 					desiredEarnMeterMode = eEarnMeterMode.CORE_ACTIVE
 				else
 					desiredEarnMeterMode = eEarnMeterMode.CORE
@@ -278,6 +296,20 @@ void function EarnMeterMP_PlayerLifeThink( entity player )
 		{
 			EarnMeterMP_ResetPlayerPassiveGainTimer( player ) // having a pet titan should reset earnmeter gain timer
 			desiredEarnMeterMode = eEarnMeterMode.PET
+		}
+		else if ( maxActiveTitansReached ) // Hides Meter when max active Titan limit is reached
+		{
+			// it seems that this new feature 
+			// Allow players to do a "shadow buildup" while meter is hidden for them in case Max Active Titans Riff is enabled
+			// we might not need to reset timer due to that...?
+			//EarnMeterMP_ResetPlayerPassiveGainTimer( player ) // team getting titan locked should reset earnmeter gain timer
+			desiredEarnMeterMode = eEarnMeterMode.DISABLED
+			// NEW CHANGES NEEDS TO FEATURE
+			// our game can now lock titans during match, needs to handle that case to stop titan announcement!!!
+			// try to delay titan ready message to next sec... so when a slot opened people will be greeted with the message right away
+			// needs testing!! maybe also needs to handle 15s cooldown inside the EarnMeterMP_TitanEarned() function
+			// oh welp, maybe we could just do IsTitanDropAvailableForPlayerTeam( player ) check from other functions rather than this
+			//file.playerTitanReadyMessageTime[ player ] = Time() + 1.0
 		}
 		else
 			desiredEarnMeterMode = eEarnMeterMode.DEFAULT
@@ -364,6 +396,22 @@ void function EarnMeterMP_PlayerLifeThink( entity player )
 			{
 				EarnMeterMP_GivePlayerPassiveGainMeter( player )
 			}
+			// Allow players to do a "shadow buildup" while meter is hidden for them in case Max Active Titans Riff is enabled
+			// NEW FEATURE NEEDS TESTING!!!
+			// compatibility unsure, but looking into my comments it says "looping to refresh goal seems bad"...
+			// I think not resetting passive gain timer during titan lock is good enough for handing this... "shadow buildup" behavior 
+			/*
+			else if ( maxActiveTitansReached && lastEarnMeterMode == eEarnMeterMode.DISABLED )
+			{
+				if ( PlayerEarnMeter_GetOwnedFrac( player ) < 1.0 )
+					PlayerEarnMeter_DisableGoal( player )
+				else if ( player.GetPlayerNetInt( "goalState" ) != eRewardState.UNAVAILABLE )
+				{
+					player.SetPlayerNetInt( "goalState", eRewardState.AVAILABLE )
+					PlayerEarnMeter_RefreshGoal( player )
+				}
+			}
+			*/
 		}
 
 		WaitFrame()
@@ -384,13 +432,16 @@ void function TryTitanSoonAnnouncement( entity player )
 
 bool function ShouldDoTitanSoonAnnouncement( entity player )
 {
+	// NEW FEATURE NEEDS TESTING
+	// our game can now stops titan dropping during match, I'm now adding IsTitanDropAvailableForPlayerTeam( player ) to handle that feature
 	if( 
 		EarnMeterMP_IsTitanEarnGametype() && 
 		PlayerEarnMeter_GetOwnedFrac( player ) >= 0.8 && 
 		!IsTitanAvailable( player ) && 
 		!player.IsTitan() && 
 		!IsValid( player.GetPetTitan() ) &&
-		GetGameState() == eGameState.Playing
+		GetGameState() == eGameState.Playing &&
+		IsTitanDropAvailableForPlayerTeam( player )
 	  )
 		return true
 
@@ -406,6 +457,10 @@ void function EarnMeterMP_ResetPlayerPassiveGainTimer( entity player )
 bool function EarnMeterMP_PlayerCanReceivePassiveMeterGain( entity player )
 {
 	if ( !EarnMeterMP_IsPassiveMeterGainEnabled() )
+		return false
+	// new case from titan limit feature
+	// although I've already handled prematch case within many other functions this is just for better behavior
+	if ( GetGameState() == eGameState.Prematch )
 		return false
 
 	float timeSinceLastGain = Time() - EarnMeterMP_GetPlayerLastPassiveGainTime( player )
@@ -464,8 +519,12 @@ void function EarnMeterMP_TitanEarned( entity player )
 		{
 			SetTitanAvailable( player )
 			// only do ready message when player has connected for enough time, so we don't override gamemode announcements
-			// also don't want to spam message at player, though that won't happen very often with titans
-			if ( Time() >= file.playerTitanReadyMessageTime[ player ] )
+			// also don't want to spam message at player, though that won't happen very often due to internal cooldown
+			// NEW CHANGES NEEDS TO FEATURE
+			// our game can now lock titans during match, needs to handle that case to stop titan announcement!!!
+			// current I'm adding IsTitanDropAvailableForPlayerTeam( player ), needs testing
+			//if ( Time() >= file.playerTitanReadyMessageTime[ player ] )
+			if ( Time() >= file.playerTitanReadyMessageTime[ player ] && IsTitanDropAvailableForPlayerTeam( player ) )
 			{
 				Remote_CallFunction_NonReplay( player, "ServerCallback_TitanReadyMessage" )
 				file.playerTitanReadyMessageTime[ player ] = Time() + 15.0 // min interval in cl_earn_meter is 30, adding 15s here
@@ -498,7 +557,7 @@ void function EarnMeterMP_SetBoostByRef( entity player, string boostRef )
 	EarnObject earnobject = EarnObject_GetByRef( boostRef )
 	BurnReward burncard = BurnReward_GetByRef( boostRef )
 
-	if ( Riff_BoostAvailability() != eBoostAvailability.Disabled )
+	if ( BurnMeterEnabled() )
 	{
 		PlayerEarnMeter_SetReward( player, earnobject ) // pretty sure this works?
 		PlayerEarnMeter_SetRewardFrac( player, burncard.cost )
@@ -507,13 +566,18 @@ void function EarnMeterMP_SetBoostByRef( entity player, string boostRef )
 
 	// goal should always been enabled
 	PlayerEarnMeter_EnableGoal( player )
-	if ( EarnMeterMP_IsTitanEarnGametype() )
+	// NEW FEATURE NEEDS TESTING( DANGEROUS!!! )
+	// don't know whether checking stuffs on respawn while we're not refreshing goals is a good idea
+	// hopefully EarnMeterMP_SetTitanLoadout() calls can handle it...
+	if ( EarnMeterMP_IsTitanEarnGametype() && IsTitanDropAvailableForPlayerTeam( player ) )
 	{
 		PlayerEarnMeter_SetGoal( player, EarnObject_GetByRef( GetTitanLoadoutForPlayer( player ).titanClass ) )
 		//PlayerEarnMeter_EnableGoal( player ) // prevents goalstate from being set incorrectly
 	}
 	else
+	{
 		PlayerEarnMeter_SetGoal( player, earnobject )
+	}
 }
 
 // move here from sv_earn_meter.gnut
@@ -695,4 +759,9 @@ void function EarnMeterMP_ProgessFracCalculate_Threaded( entity player )
 			continue
 		}
 	}
+
+
+bool function IsTitanDropAvailableForPlayerTeam( entity player ) 
+{
+	return ( level.nv.titanDropEnabledForTeam == TEAM_BOTH || level.nv.titanDropEnabledForTeam == player.GetTeam() )
 }
