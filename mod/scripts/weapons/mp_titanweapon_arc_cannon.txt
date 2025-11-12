@@ -323,6 +323,9 @@ WeaponData
 		{
 			// vanilla arc cannon won't crit but archon's would
 			// temp remove for balance? idk
+			// 7/28/2025 could add back after we nerf charge ball. shock shield still can't crit
+			// due to our low range crit should not be overpowered! hopefully
+			// maybe keep disabling crit... after we nerf atlas?
 			//"critical_hit"									"1"
 
 			// Damage - When Used by Players

@@ -44,6 +44,9 @@ void function OnClientConnected( entity player )
 
 void function WeaponDropped( entity weapon )
 {
+	if ( !IsValid( weapon ) ) // necessary to validate due LoadoutsMPOnWeaponDrop() stuffs
+		return
+
 	// hidden weapon has dropped!
 	//print( string( weapon ) + " has been dropped!" )
 	if ( weapon in file.weaponsHiddenByAutoThink )

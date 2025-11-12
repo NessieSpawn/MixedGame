@@ -16,11 +16,14 @@ global const int FW_DEFAULT_TURRET_HEALTH = 12500
 global const int FW_DEFAULT_TURRET_SHIELD = 4000
 
 // fix a turret
-global const float TURRET_FIXED_HEALTH_PERCENTAGE = 0.33
-global const float TURRET_FIXED_SHIELD_PERCENTAGE = 1.0 // default is regen all shield
+global const float FW_TURRET_FIXED_HEALTH_PERCENTAGE = 0.33
+global const float FW_TURRET_FIXED_SHIELD_PERCENTAGE = 1.0 // default is regen all shield
 // hack a turret
-global const float TURRET_HACKED_HEALTH_PERCENTAGE = 0.5
-global const float TURRET_HACKED_SHIELD_PERCENTAGE = 0.5
+global const float FW_TURRET_HACKED_HEALTH_PERCENTAGE = 0.5
+global const float FW_TURRET_HACKED_SHIELD_PERCENTAGE = 0.5
+
+// npc gameplay settings
+global const int FW_NPC_DAMAGES_HARVESTER = 1 // bool
 
 void function SHCreateGamemodeFW_Init()
 {
@@ -33,10 +36,12 @@ void function SHCreateGamemodeFW_Init()
 	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_health", FW_DEFAULT_TURRET_HEALTH.tostring() )
 	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_shield", FW_DEFAULT_TURRET_SHIELD.tostring() )
 	// battery port playlistvar
-	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_fixed_health", TURRET_FIXED_HEALTH_PERCENTAGE.tostring() )
-	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_fixed_shield", TURRET_FIXED_SHIELD_PERCENTAGE.tostring() )
-	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_hacked_health", TURRET_HACKED_HEALTH_PERCENTAGE.tostring() )
-	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_hacked_shield", TURRET_HACKED_SHIELD_PERCENTAGE.tostring() )
+	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_fixed_health", FW_TURRET_FIXED_HEALTH_PERCENTAGE.tostring() )
+	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_fixed_shield", FW_TURRET_FIXED_SHIELD_PERCENTAGE.tostring() )
+	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_hacked_health", FW_TURRET_HACKED_HEALTH_PERCENTAGE.tostring() )
+	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_turret_hacked_shield", FW_TURRET_HACKED_SHIELD_PERCENTAGE.tostring() )
+	// npc gameplay playlistvar
+	AddPrivateMatchModeSettingArbitrary( "#PL_fw", "fw_npcs_damage_harvester", FW_NPC_DAMAGES_HARVESTER.tostring() )
 
 	AddCallback_OnCustomGamemodesInit( CreateGamemodeFW )
 	AddCallback_OnRegisteringCustomNetworkVars( FWOnRegisteringNetworkVars )
