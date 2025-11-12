@@ -57,6 +57,9 @@ void function OnClientConnected( entity player )
 
 void function WeaponDropped( entity weapon )
 {
+    if ( !IsValid( weapon ) ) // necessary to validate due LoadoutsMPOnWeaponDrop() stuffs
+		return
+
 	// hidden weapon has dropped!
     // won't matter at normal cases because whenever you put a titan weapon on ground, they can't be picked up
     // this is just for handling

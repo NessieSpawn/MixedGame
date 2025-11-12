@@ -101,6 +101,7 @@ void function LoadoutsMPOnWeaponDrop( entity weapon )
 	if ( !IsValid( weapon ) )
 		return
 
+	// MAKE SURE ALL AddCallback_WeaponDropped() things DO validation check!!!
 	if ( !file.weaponDropsEnabled )
 		weapon.Destroy()
 }

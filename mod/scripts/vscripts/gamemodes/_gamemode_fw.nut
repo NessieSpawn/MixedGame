@@ -143,6 +143,10 @@ void function GamemodeFW_Init()
 	// _battery_port.gnut needs this
 	RegisterSignal( "BatteryActivate" )
 
+	// mp_thaw's intro spawnpoint have some problem, player can be stucked on the sky, so override it
+	if ( GetMapName() == "mp_thaw" )
+		SetSpawnpointGamemodeOverride( TEAM_DEATHMATCH )
+
 	AiGameModes_SetNPCWeapons( "npc_soldier", [ "mp_weapon_rspn101", "mp_weapon_dmr", "mp_weapon_r97", "mp_weapon_lmg" ] )
 	AiGameModes_SetNPCWeapons( "npc_spectre", [ "mp_weapon_hemlok_smg", "mp_weapon_doubletake", "mp_weapon_mastiff" ] )
 
@@ -174,6 +178,7 @@ void function GamemodeFW_Init()
 //////////////////////////
 ///// HACK FUNCTIONS /////
 //////////////////////////
+// on current case these should be fixed through normal scripting rather than hacking, just leaving this think here maybe
 
 const array<string> HACK_CLEANUP_MAPS =
 [
@@ -806,12 +811,13 @@ void function InitFWCampSites()
 	foreach( int index, CampSiteStruct campsite in file.fwCampSites )
 	{
 		entity campInfo = campsite.camp
-		float radius = float( campInfo.kv.radius )
+		float radius = 2048 //float( campInfo.kv.radius )
 
 		// get droppod spawns
-		foreach ( entity spawnpoint in SpawnPoints_GetDropPod() )
-			if ( Distance( campInfo.GetOrigin(), spawnpoint.GetOrigin() ) < radius )
-				campsite.validDropPodSpawns.append( spawnpoint )
+		// these spawn points suck because sometimes they are outside the map
+		//foreach ( entity spawnpoint in SpawnPoints_GetDropPod() )
+			//if ( Distance( campInfo.GetOrigin(), spawnpoint.GetOrigin() ) < radius )
+				//campsite.validDropPodSpawns.append( spawnpoint )
 
 		// get titan spawns
 		foreach ( entity spawnpoint in SpawnPoints_GetTitan() )
@@ -991,11 +997,12 @@ void function AddIgnoredCountToOtherCamps( CampSiteStruct senderCamp )
 // functions from at
 void function FW_SpawnDroppodSquad( CampSiteStruct campsite, string aiType )
 {
-	entity spawnpoint
-	if ( campsite.validDropPodSpawns.len() == 0 )
-		spawnpoint = campsite.tracker // no spawnPoints valid, use camp itself to spawn
-	else
-		spawnpoint = campsite.validDropPodSpawns.getrandom()
+	// if there were no spawnPoints valid, use camp itself to spawn
+	entity spawnpoint = campsite.tracker
+	array<entity> spawnpoints = campsite.validDropPodSpawns
+	spawnpoints.extend( campsite.validTitanSpawns )
+	if ( spawnpoints.len() > 0 )
+		spawnpoint = spawnpoints.getrandom()
 
 	// add variation to spawns
 	wait RandomFloat( 1.0 )
@@ -1015,6 +1022,10 @@ void function FW_HandleSquadSpawn( array<entity> guys, CampSiteStruct campsite, 
 		// show on minimap to let players kill them
 		guy.Minimap_AlwaysShow( TEAM_MILITIA, null )
 		guy.Minimap_AlwaysShow( TEAM_IMC, null )
+		// welp this one is... in my opinion grunts behave more like creeps throughout the map to gather resourses rather than troopers to attack harvesters
+		// make it a setting
+		if ( GetCurrentPlaylistVarInt( "fw_npcs_damage_harvester", FW_NPC_DAMAGES_HARVESTER ) )
+			guy.SetEnemyChangeCallback( OnNPCEnemyChange_SwitchToArcher )
 
 		// untrack them on death
 		thread FW_WaitToUntrackNPC( guy, campsite.campId, aiType )
@@ -1025,11 +1036,12 @@ void function FW_HandleSquadSpawn( array<entity> guys, CampSiteStruct campsite, 
 
 void function FW_SpawnReaper( CampSiteStruct campsite )
 {
-	entity spawnpoint
-	if ( campsite.validDropPodSpawns.len() == 0 )
-		spawnpoint = campsite.tracker // no spawnPoints valid, use camp itself to spawn
-	else
-		spawnpoint = campsite.validDropPodSpawns.getrandom()
+	// if there were no spawnPoints valid, use camp itself to spawn
+	entity spawnpoint = campsite.tracker
+	array<entity> spawnpoints = campsite.validDropPodSpawns
+	spawnpoints.extend( campsite.validTitanSpawns )
+	if ( spawnpoints.len() > 0 )
+		spawnpoint = spawnpoints.getrandom()
 
 	// add variation to spawns
 	wait RandomFloat( 1.0 )
@@ -1076,6 +1088,36 @@ void function FW_WaitToUntrackNPC( entity guy, string campId, string aiType )
 	guy.WaitSignal( "OnDeath", "OnDestroy" )
 	if( aiType in file.trackedCampNPCSpawns[ campId ] ) // maybe escalated?
 		file.trackedCampNPCSpawns[ campId ][ aiType ]--
+}
+
+void function OnNPCEnemyChange_SwitchToArcher( entity guy )
+{
+	entity enemy = guy.GetEnemy()
+	if ( !IsAlive( guy ) || guy.IsFrozen() || !IsAlive( enemy ) || !IsValid( guy.GetActiveWeapon() ) )
+		return
+
+	string archer = "mp_weapon_rocket_launcher"
+	array<string> weapons = []
+	foreach ( entity weapon in guy.GetMainWeapons() )
+		weapons.append( weapon.GetWeaponClassName() )
+
+	if ( enemy == fw_harvesterImc.harvester || enemy == fw_harvesterMlt.harvester )
+	{
+		if ( !weapons.contains( archer ) )
+			guy.GiveWeapon( archer )
+		guy.SetActiveWeaponByName( archer )
+	}
+	else
+	{
+		foreach ( string weapon in weapons )
+			if ( weapon == archer )
+				guy.TakeWeaponNow( archer )
+		array<string> newweapons = []
+		foreach ( entity newweapon in guy.GetMainWeapons() )
+			newweapons.append( newweapon.GetWeaponClassName() )
+		if ( newweapons.len() )
+			guy.SetActiveWeaponByName( newweapons.getrandom() )
+	}
 }
 
 /////////////////////////////////
@@ -2043,13 +2085,29 @@ void function OnHarvesterPostDamaged( entity harvester, var damageInfo )
 	if( friendlyTeam == TEAM_IMC )
 		harvesterstruct = fw_harvesterImc
 
-	if ( !attacker.IsTitan() )
+	// seems this check is for grunts to damage harvester, leave it a setting
+	if ( GetCurrentPlaylistVarInt( "fw_npcs_damage_harvester", FW_NPC_DAMAGES_HARVESTER ) )
 	{
-		if( attacker.IsPlayer() )
+		damageAmount = DamageInfo_GetDamage( damageInfo ) // get damageAmount again after all damage adjustments
+
+		if ( !attacker.IsTitan() && attacker.IsPlayer() )
+		{
 			Remote_CallFunction_NonReplay( attacker , "ServerCallback_FW_NotifyTitanRequired" )
-		DamageInfo_SetDamage( damageInfo, GetShieldHealthWithFix( harvester ) )
-		damageAmount = 0 // never damage haveter's prop
+			DamageInfo_SetDamage( damageInfo, harvester.GetShieldHealth() )
+			damageAmount = 0 // never damage harvester's prop
+		}
 	}
+	else // basic checks
+	{
+		if ( !attacker.IsTitan() )
+		{
+			if( attacker.IsPlayer() )
+				Remote_CallFunction_NonReplay( attacker , "ServerCallback_FW_NotifyTitanRequired" )
+			DamageInfo_SetDamage( damageInfo, GetShieldHealthWithFix( harvester ) )
+			damageAmount = 0 // never damage haveter's prop
+		}
+	}
+	
 
 	if( !harvesterstruct.harvesterShieldDown )
 	{
@@ -2483,13 +2541,13 @@ function FW_UseBattery( batteryPortvar, playervar ) //actually void function( en
     }
 
     // restore turret health
-    int newHealth = int ( min( turret.GetMaxHealth(), turret.GetHealth() + ( turret.GetMaxHealth() * GetCurrentPlaylistVarFloat( "fw_turret_fixed_health", TURRET_FIXED_HEALTH_PERCENTAGE ) ) ) )
+    int newHealth = int ( min( turret.GetMaxHealth(), turret.GetHealth() + ( turret.GetMaxHealth() * GetCurrentPlaylistVarFloat( "fw_turret_fixed_health", FW_TURRET_FIXED_HEALTH_PERCENTAGE ) ) ) )
     if( turretReplaced || teamChanged ) // replaced/hacked turret will spawn with 50% health
-        newHealth = int ( turret.GetMaxHealth() * GetCurrentPlaylistVarFloat( "fw_turret_hacked_health", TURRET_HACKED_HEALTH_PERCENTAGE ) )
+        newHealth = int ( turret.GetMaxHealth() * GetCurrentPlaylistVarFloat( "fw_turret_hacked_health", FW_TURRET_HACKED_HEALTH_PERCENTAGE ) )
     // restore turret shield
-    int newShield = int ( min( GetShieldHealthMaxWithFix( turret ), GetShieldHealthWithFix( turret ) + ( GetShieldHealthMaxWithFix( turret ) * GetCurrentPlaylistVarFloat( "fw_turret_fixed_shield", TURRET_FIXED_SHIELD_PERCENTAGE ) ) ) )
+    int newShield = int ( min( GetShieldHealthMaxWithFix( turret ), GetShieldHealthWithFix( turret ) + ( GetShieldHealthMaxWithFix( turret ) * GetCurrentPlaylistVarFloat( "fw_turret_fixed_shield", FW_TURRET_FIXED_SHIELD_PERCENTAGE ) ) ) )
     if( turretReplaced || teamChanged ) // replaced/hacked turret will spawn with 50% shield
-        newShield = int ( GetShieldHealthMaxWithFix( turret ) * GetCurrentPlaylistVarFloat( "fw_turret_hacked_shield", TURRET_HACKED_SHIELD_PERCENTAGE ) )
+        newShield = int ( GetShieldHealthMaxWithFix( turret ) * GetCurrentPlaylistVarFloat( "fw_turret_hacked_shield", FW_TURRET_HACKED_SHIELD_PERCENTAGE ) )
     // only do team score event if turret's shields down, encourage players to hack more turrets
     bool additionalScore = GetShieldHealthWithFix( turret ) <= 0
     // this can be too much powerful
