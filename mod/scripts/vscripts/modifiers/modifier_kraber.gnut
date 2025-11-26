@@ -5,7 +5,7 @@ const array<string> TACTICALS_LIST =
 [
     "mp_ability_heal", 
     "mp_ability_grapple", 
-    "mp_ability_holopilot", 
+    //"mp_ability_holopilot", // i'd say decoys could be frustrating for kraber fights. since we've already removed charge rifle stuffs let's just balance them all
     "mp_weapon_grenade_sonar"
 ]
 
